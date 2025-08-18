@@ -8,17 +8,8 @@ const _m1 = new Matrix4();
 const _q1 = new Quaternion();
 
 export class Object3D {
-    /**
-     * @private
-     * @type {Euler}
-     */
-    #rotation;
-
-    /**
-     * @private
-     * @type {Quaternion}
-     */
-    #quaternion;
+    /** @private @type {Euler} */ #rotation;
+    /** @private @type {Quaternion} */ #quaternion;
 
     /**
      * Creates new Object3D.
@@ -71,8 +62,7 @@ export class Object3D {
 
     /**
      * Local rotation (Euler angles).
-     * @readonly
-     * @type {Euler}
+     * @readonly @type {Euler}
      */
     get rotation() {
         return this.#rotation;
@@ -83,8 +73,7 @@ export class Object3D {
 
     /**
      * Local rotation (quaternion).
-     * @readonly
-     * @type {Quaternion}
+     * @readonly @type {Quaternion}
      */
     get quaternion() {
         return this.#quaternion;
@@ -96,8 +85,7 @@ export class Object3D {
 
     /**
      * True if this object is Camera.
-     * @readonly
-     * @type {boolean}
+     * @readonly @type {boolean}
      */
     get isCamera() {
         return ("projectionMatrix" in this) && ("matrixWorldInverse" in this);
@@ -105,8 +93,7 @@ export class Object3D {
 
     /**
      * True if this object is Mesh.
-     * @readonly
-     * @type {boolean}
+     * @readonly @type {boolean}
      */
     get isMesh() {
         return Object.getPrototypeOf(this).constructor.name === "Mesh";
@@ -127,7 +114,7 @@ export class Object3D {
 
     /**
      * Returns clone of this object (deep copy).
-     * @returns {Object3D}
+     * @returns {Object3D} this object
      */
     clone() {
         return new Object3D().copy(this);
@@ -137,7 +124,7 @@ export class Object3D {
      * Copies properties from another Object3D.
      * @param {Object3D} source
      * @param {boolean} [recursive=true]
-     * @returns {Object3D}
+     * @returns {Object3D} this object
      */
     copy(source, recursive = true) {
         this.id = crypto.randomUUID();

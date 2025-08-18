@@ -10,17 +10,17 @@ import { MathUtils } from "../maths/MathUtils.js";
 
 export class Color {
     /**
-     * Red channel [0,1]
+     * Red channel. [0,1]
      * @type {number}
      */
     r = 1;
     /**
-     * Green channel [0,1]
+     * Green channel. [0,1]
      * @type {number}
      */
     g = 1;
     /**
-     * Blue channel [0,1]
+     * Blue channel. [0,1]
      * @type {number}
      */
     b = 1;
@@ -33,9 +33,8 @@ export class Color {
     }
 
     /**
-     * Returns color as 24-bit integer (0xRRGGBB)
-     * @readonly
-     * @type {number}
+     * Returns color as 24-bit integer. (0xRRGGBB)
+     * @readonly @type {number}
      */
     get hex() {
         return ((this.r * Color.RGB_SCALE) << 16) ^
@@ -44,18 +43,16 @@ export class Color {
     }
 
     /**
-     * Returns color as hex string (e.g. "#ff00ff")
-     * @readonly
-     * @type {string}
+     * Returns color as hex string. (e.g. "#ff00ff")
+     * @readonly @type {string}
      */
     get hexString() {
         return `#${this.hex.toString(16).padStart(6, "0")}`;
     }
 
     /**
-     * Returns color as HSL object {h,s,l}
-     * @readonly
-     * @type {HSL}
+     * Returns color as HSL object. {h,s,l}
+     * @readonly @type {HSL}
      */
     get hsl() {
         const r = this.r;
@@ -84,9 +81,8 @@ export class Color {
     }
 
     /**
-     * Returns color asHSL CSS string (e.g. "hsl(120,100%,50%)")
-     * @readonly
-     * @type {string}
+     * Returns color as HSL CSS string. (e.g. "hsl(120,100%,50%)")
+     * @readonly @type {string}
      */
     get hslString() {
         const hsl = this.hsl;
@@ -106,7 +102,7 @@ export class Color {
 
     /**
      * Copies value from another Color.
-     * @param {Color} source
+     * @param {Color} source - source color
      * @returns {Color}
      */
     copy(source) {
@@ -117,8 +113,8 @@ export class Color {
     }
 
     /**
-     * Parses value into Color (Color, number, or string).
-     * @param {Color|number|string} value
+     * Parses value into Color.
+     * @param {Color|number|string} value - Color, number, or string
      * @returns {Color}
      */
     parse(value) {
@@ -136,7 +132,7 @@ export class Color {
 
     /**
      * Sets color from another Color, hex, string, or RGB values.
-     * @param {...any} args
+     * @param {...any} args - Color value(s) or array
      * @returns {Color}
      */
     set(...args) {
@@ -159,7 +155,7 @@ export class Color {
 
     /**
      * Sets color from 24-bit hex value.
-     * @param {number} hex
+     * @param {number} hex - hex value (0xRRGGBB)
      * @returns {Color}
      */
     setHex(hex) {
@@ -176,9 +172,9 @@ export class Color {
 
     /**
      * Sets color from HSL values.
-     * @param {number} h
-     * @param {number} s
-     * @param {number} l
+     * @param {number} h - hue
+     * @param {number} s - saturation
+     * @param {number} l - lightness
      * @returns {Color}
      */
     setHSL(h, s, l) {
@@ -207,9 +203,9 @@ export class Color {
 
     /**
      * Sets color from RGB values (0-1).
-     * @param {number} r
-     * @param {number} g
-     * @param {number} b
+     * @param {number} r - red
+     * @param {number} g - green
+     * @param {number} b - blue
      * @returns {Color}
      */
     setRGB(r, g, b) {
@@ -225,7 +221,7 @@ export class Color {
 
     /**
      * Sets tcolor from CSS style string.
-     * @param {string} style
+     * @param {string} style - CSS color string (e.g. "#ff00ff", "rgb(255,0,255)", "hsl(300,100%,50%)")
      * @returns {Color}
      */
     setStyle(style) {

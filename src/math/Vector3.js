@@ -2,19 +2,22 @@ import { MathUtils } from "./MathUtils.js";
 
 export class Vector3 {
     /**
-     * Creates new 3D vector
+     * Creates new 3D vector.
      * @param {number} [x=0] - x component
      * @param {number} [y=0] - y component
      * @param {number} [z=0] - z component
      */
     constructor(x = 0, y = 0, z = 0) {
+        /** @type {number} */
         this.x = x;
+        /** @type {number} */
         this.y = y;
+        /** @type {number} */
         this.z = z;
     }
 
     /**
-     * Adds another vector to this vector
+     * Adds another vector to this vector.
      * @param {Vector3} v - vector to add
      * @returns {Vector3} this vector for chaining
      */
@@ -26,7 +29,7 @@ export class Vector3 {
     }
 
     /**
-     * Adds scalar value to this vector
+     * Adds scalar value to this vector.
      * @param {number} scalar - scalar value to add
      * @returns {Vector3} this vector for chaining
      */
@@ -38,7 +41,7 @@ export class Vector3 {
     }
 
     /**
-     * Applies matrix transformation to this vector
+     * Applies matrix transformation to this vector.
      * @param {Mat4} m - transformation matrix
      * @returns {Vector3} this vector for chaining
      */
@@ -55,7 +58,7 @@ export class Vector3 {
     }
 
     /**
-     * Applies quaternion rotation to this vector
+     * Applies quaternion rotation to this vector.
      * @param {Quaternion} q - quaternion to apply
      * @returns {Vector3} this vector for chaining
      */
@@ -86,7 +89,7 @@ export class Vector3 {
     }
 
     /**
-     * Copies values from another vector
+     * Copies values from another vector.
      * @param {Vector3} v - source vector
      * @returns {Vector3} this vector for chaining
      */
@@ -98,7 +101,7 @@ export class Vector3 {
     }
 
     /**
-     * Calculates cross product with another vector
+     * Calculates cross product with another vector.
      * @param {Vector3} v - other vector
      * @returns {Vector3} this vector for chaining
      */
@@ -112,7 +115,7 @@ export class Vector3 {
     }
 
     /**
-     * Sets this vector to cross product of two other vectors
+     * Sets this vector to cross product of two other vectors.
      * @param {Vector3} a - first vector
      * @param {Vector3} b - second vector
      * @returns {Vector3} this vector for chaining
@@ -127,7 +130,7 @@ export class Vector3 {
     }
 
     /**
-     * Calculates distance to another vector
+     * Calculates distance to another vector.
      * @param {Vector3} v - other vector
      * @returns {number} distance
      */
@@ -136,7 +139,7 @@ export class Vector3 {
     }
 
     /**
-     * Calculates squared distance to another vector
+     * Calculates squared distance to another vector.
      * @param {Vector3} v - other vector
      * @returns {number} squared distance
      */
@@ -148,7 +151,7 @@ export class Vector3 {
     }
 
     /**
-     * Divides this vector by another vector (component-wise)
+     * Divides this vector by another vector. (component-wise)
      * @param {Vector3} v - vector to divide by
      * @returns {Vector3} this vector for chaining
      */
@@ -160,7 +163,7 @@ export class Vector3 {
     }
 
     /**
-     * Divides this vector by scalar value
+     * Divides this vector by scalar value.
      * @param {number} scalar - scalar value to divide by
      * @returns {Vector3} this vector for chaining
      */
@@ -172,7 +175,7 @@ export class Vector3 {
     }
 
     /**
-     * Calculates dot product with another vector
+     * Calculates dot product with another vector.
      * @param {Vector3} v - other vector
      * @returns {number} dot product
      */
@@ -181,7 +184,7 @@ export class Vector3 {
     }
 
     /**
-     * Checks if this vector equals another vector
+     * Checks if this vector equals another vector.
      * @param {Vector3} v - other vector
      * @returns {boolean} true if equal
      */
@@ -192,7 +195,7 @@ export class Vector3 {
     }
 
     /**
-     * Sets this vector from array values
+     * Sets this vector from array values.
      * @param {number[]} array - array with x, y, z values
      * @param {number} [offset=0] - offset into array
      * @returns {Vector3} this vector for chaining
@@ -205,7 +208,7 @@ export class Vector3 {
     }
 
     /**
-     * Calculates length of this vector
+     * Calculates length of this vector.
      * @returns {number} length
      */
     length() {
@@ -213,7 +216,7 @@ export class Vector3 {
     }
 
     /**
-     * Calculates squared length of this vector
+     * Calculates squared length of this vector.
      * @returns {number} squared length
      */
     lengthSq() {
@@ -222,7 +225,7 @@ export class Vector3 {
     }
 
     /**
-     * Linearly interpolates between this vector and another
+     * Linearly interpolates between this vector and another.
      * @param {Vector3} v - target vector
      * @param {number} alpha - interpolation factor (0-1)
      * @returns {Vector3} this vector for chaining
@@ -235,7 +238,7 @@ export class Vector3 {
     }
 
     /**
-     * Multiplies this vector by another vector (component-wise)
+     * Multiplies this vector by another vector. (component-wise)
      * @param {Vector3} v - vector to multiply by
      * @returns {Vector3} this vector for chaining
      */
@@ -247,7 +250,7 @@ export class Vector3 {
     }
 
     /**
-     * Multiplies this vector by scalar value
+     * Multiplies this vector by scalar value.
      * @param {number} scalar - scalar value to multiply by
      * @returns {Vector3} this vector for chaining
      */
@@ -259,7 +262,7 @@ export class Vector3 {
     }
 
     /**
-     * Rotates this vector by an angle
+     * Rotates this vector by an angle.
      * @param {number} angle - angle in radians
      * @returns {Vector3} this vector for chaining
      */
@@ -275,7 +278,7 @@ export class Vector3 {
     }
 
     /**
-     * Negates this vector
+     * Negates this vector.
      * @returns {Vector3} this vector for chaining
      */
     neg() {
@@ -286,7 +289,7 @@ export class Vector3 {
     }
 
     /**
-     * Projects this vector onto another vector
+     * Projects this vector onto another vector.
      * @param {Vector3} v - vector to project onto
      * @returns {Vector3} this vector for chaining
      */
@@ -299,7 +302,7 @@ export class Vector3 {
     }
 
     /**
-     * Sets components of this vector
+     * Sets components of this vector.
      * @param {number} x - x component
      * @param {number} y - y component
      * @param {number} z - z component
@@ -313,7 +316,7 @@ export class Vector3 {
     }
 
     /**
-     * Sets this vector from matrix position (translation component)
+     * Sets this vector from matrix position. (translation component)
      * @param {Matrix4} m - source matrix
      * @returns {Vector3} this vector for chaining
      */
@@ -326,7 +329,7 @@ export class Vector3 {
     }
 
     /**
-     * Sets all components to same scalar value
+     * Sets all components to same scalar value.
      * @param {number} scalar - scalar value to set
      * @returns {Vector3} this vector for chaining
      */
@@ -338,7 +341,7 @@ export class Vector3 {
     }
 
     /**
-     * Subtracts another vector from this vector
+     * Subtracts another vector from this vector.
      * @param {Vector3} v - vector to subtract
      * @returns {Vector3} this vector for chaining
      */
@@ -350,7 +353,7 @@ export class Vector3 {
     }
 
     /**
-     * Subtracts scalar value from this vector
+     * Subtracts scalar value from this vector.
      * @param {number} scalar - scalar value to subtract
      * @returns {Vector3} this vector for chaining
      */
@@ -362,7 +365,7 @@ export class Vector3 {
     }
 
     /**
-     * Sets this vector to difference of two vectors (a - b)
+     * Sets this vector to difference of two vectors. (a - b)
      * @param {Vector3} a - first vector
      * @param {Vector3} b - second vector to subtract
      * @returns {Vector3} this vector for chaining
@@ -375,7 +378,7 @@ export class Vector3 {
     }
 
     /**
-     * Returns array representation
+     * Returns array representation.
      * @returns {number[]} [x, y, z]
      */
     toArray() {
@@ -383,7 +386,7 @@ export class Vector3 {
     }
 
     /**
-     * Unitizes this vector
+     * Unitizes this vector.
      * @returns {Vector3} this vector for chaining
      */
     unitize() {
@@ -391,55 +394,55 @@ export class Vector3 {
     }
 
     /**
-     * Vector with zero values
+     * Vector with zero values.
      * @type {Vector3}
      */
     static ZERO = new Vector3(0, 0, 0);
 
     /**
-     * Vector with one values
+     * Vector with one values.
      * @type {Vector3}
      */
     static ONE = new Vector3(1, 1, 1);
 
     /**
-     * Unit vector pointing up
+     * Unit vector pointing up.
      * @type {Vector3}
      */
     static UP = new Vector3(0, 1, 0);
 
     /**
-     * Unit vector pointing down
+     * Unit vector pointing down.
      * @type {Vector3}
      */
     static DOWN = new Vector3(0, -1, 0);
 
     /**
-     * Unit vector pointing left
+     * Unit vector pointing left.
      * @type {Vector3}
      */
     static LEFT = new Vector3(-1, 0, 0);
 
     /**
-     * Unit vector pointing right
+     * Unit vector pointing right.
      * @type {Vector3}
      */
     static RIGHT = new Vector3(1, 0, 0);
 
     /**
-     * Unit vector pointing forward
+     * Unit vector pointing forward.
      * @type {Vector3}
      */
     static FORWARD = new Vector3(0, 0, -1);
 
     /**
-     * Unit vector pointing back
+     * Unit vector pointing back.
      * @type {Vector3}
      */
     static BACK = new Vector3(0, 0, 1);
 
     /**
-     * Calculates cross product of two vectors
+     * Calculates cross product of two vectors.
      * @param {Vector3} a - first vector
      * @param {Vector3} b - second vector
      * @returns {Vector3} new vector with cross product result
@@ -449,7 +452,7 @@ export class Vector3 {
     }
 
     /**
-     * Creates vector from angle and length
+     * Creates vector from angle and length.
      * @param {number} angle - angle in radians
      * @param {number} [length=1] - length of vector
      * @returns {Vector3} new vector
@@ -463,7 +466,7 @@ export class Vector3 {
     }
 
     /**
-     * Linearly interpolates between two vectors
+     * Linearly interpolates between two vectors.
      * @param {Vector3} a - start vector
      * @param {Vector3} b - end vector
      * @param {number} alpha - interpolation factor (0-1)

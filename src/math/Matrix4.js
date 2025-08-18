@@ -1,18 +1,19 @@
 export class Matrix4 {
     /**
-     * Creates new 4x4 identity matrix
+     * Creates new 4x4 identity matrix.
      */
     constructor() {
-        this.elements = [
+        /** @type {Float32Array} */
+        this.elements = new Float32Array([
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
-        ];
+        ]);
     }
 
     /**
-     * Clones this matrix
+     * Clones this matrix.
      * @returns {Matrix4} new matrix with same values
      */
     clone() {
@@ -20,7 +21,7 @@ export class Matrix4 {
     }
 
     /**
-     * Composes transformation matrix from position, quaternion, and scale
+     * Composes transformation matrix from position, quaternion, and scale.
      * @param {Vector3} position - translation vector
      * @param {Quaternion} quaternion - rotation quaternion
      * @param {Vector3} scale - scale vector
@@ -60,7 +61,7 @@ export class Matrix4 {
     }
 
     /**
-     * Copies values from another matrix
+     * Copies values from another matrix.
      * @param {Matrix4} m - source matrix
      * @returns {Matrix4} this matrix for chaining
      */
@@ -74,7 +75,7 @@ export class Matrix4 {
     }
 
     /**
-     * Calculates determinant of this matrix
+     * Calculates determinant of this matrix.
      * @returns {number} determinant value
      */
     determinant() {
@@ -102,7 +103,7 @@ export class Matrix4 {
     }
 
     /**
-     * Extracts rotation component from matrix, removing scale
+     * Extracts rotation component from matrix, removing scale.
      * @param {Matrix4} m - source matrix
      * @returns {Matrix4} this matrix for chaining
      */
@@ -138,7 +139,7 @@ export class Matrix4 {
     }
 
     /**
-     * Resets this matrix to identity
+     * Resets this matrix to identity.
      * @returns {Matrix4} this matrix for chaining
      */
     identity() {
@@ -152,7 +153,7 @@ export class Matrix4 {
     }
 
     /**
-     * Inverts this matrix
+     * Inverts this matrix.
      * @returns {Matrix4} this matrix for chaining
      * @throws {Error} if matrix is not invertible
      */
@@ -229,7 +230,7 @@ export class Matrix4 {
     }
 
     /**
-     * Creates look-at view matrix
+     * Creates look-at view matrix.
      * @param {Vector3} eye - camera position
      * @param {Vector3} target - target position to look at
      * @param {Vector3} up - up direction vector
@@ -277,7 +278,7 @@ export class Matrix4 {
     }
 
     /**
-     * Creates orthographic projection matrix
+     * Creates orthographic projection matrix.
      * @param {number} left - left plane
      * @param {number} right - right plane
      * @param {number} top - top plane
@@ -303,7 +304,7 @@ export class Matrix4 {
     }
 
     /**
-     * Creates perspective projection matrix
+     * Creates perspective projection matrix.
      * @param {number} fov - field of view in radians
      * @param {number} aspect - aspect ratio (width/height)
      * @param {number} near - near clipping plane
@@ -334,7 +335,7 @@ export class Matrix4 {
     }
 
     /**
-     * Creates rotation matrix around X axis
+     * Creates rotation matrix around X axis.
      * @param {number} radians - rotation angle in radians
      * @returns {Matrix4} this matrix for chaining
      */
@@ -351,7 +352,7 @@ export class Matrix4 {
     }
 
     /**
-     * Creates rotation matrix around Y axis
+     * Creates rotation matrix around Y axis.
      * @param {number} radians - rotation angle in radians
      * @returns {Matrix4} this matrix for chaining
      */
@@ -368,7 +369,7 @@ export class Matrix4 {
     }
 
     /**
-     * Creates rotation matrix around Z axis
+     * Creates rotation matrix around Z axis.
      * @param {number} radians - rotation angle in radians
      * @returns {Matrix4} this matrix for chaining
      */
@@ -385,7 +386,7 @@ export class Matrix4 {
     }
 
     /**
-     * Creates scale matrix
+     * Creates scale matrix.
      * @param {number} x - scale x
      * @param {number} y - scale y
      * @param {number} z - scale z
@@ -401,7 +402,7 @@ export class Matrix4 {
     }
 
     /**
-     * Creates translation matrix
+     * Creates translation matrix.
      * @param {number} x - translation x
      * @param {number} y - translation y
      * @param {number} z - translation z
@@ -418,7 +419,7 @@ export class Matrix4 {
     }
 
     /**
-     * Multiplies two matrices and stores result in this matrix
+     * Multiplies two matrices and stores result in this matrix.
      * @param {Matrix4} a - first matrix
      * @param {Matrix4} b - second matrix
      * @returns {Matrix4} this matrix for chaining
@@ -461,7 +462,7 @@ export class Matrix4 {
     }
 
     /**
-     * Multiplies this matrix by another matrix
+     * Multiplies this matrix by another matrix.
      * @param {Matrix4} m - matrix to multiply by
      * @returns {Matrix4} this matrix for chaining
      */
@@ -499,7 +500,7 @@ export class Matrix4 {
     }
 
     /**
-     * Transposes this matrix
+     * Transposes this matrix.
      * @returns {Matrix4} this matrix for chaining
      */
     transpose() {

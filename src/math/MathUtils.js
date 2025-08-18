@@ -1,18 +1,15 @@
+/** @readonly */ const DEG2RAD = 0.017453292519943295;
+/** @readonly */ const RAD2DEG = 57.29577951308232;
+/** @readonly */ const PI = 3.141592653589793;
+/** @readonly */ const TAU = 6.283185307179586;
+/** @readonly */ const EPSILON = 0.0001;
+
 export class MathUtils {
-    /** @readonly */
-    static DEG2RAD = 0.017453292519943295;
-
-    /** @readonly */
-    static RAD2DEG = 57.29577951308232;
-
-    /** @readonly */
-    static PI = 3.141592653589793;
-
-    /** @readonly */
-    static TAU = 6.283185307179586;
-
-    /** @readonly */
-    static EPSILON = 0.0001;
+    /** @readonly */ static DEG2RAD = 0.017453292519943295;
+    /** @readonly */ static RAD2DEG = 57.29577951308232;
+    /** @readonly */ static PI = 3.141592653589793;
+    /** @readonly */ static TAU = 6.283185307179586;
+    /** @readonly */ static EPSILON = 0.0001;
 
     /**
      * Ceils to nearest step
@@ -43,7 +40,7 @@ export class MathUtils {
      */
     static deltaAngle(from, to) {
         const diff = MathUtils.unitizeAngleSigned(to - from);
-        return Math.abs(diff) > MathUtils.PI ? diff - MathUtils.sign(diff) * MathUtils.TAU : diff;
+        return Math.abs(diff) > PI ? diff - MathUtils.sign(diff) * TAU : diff;
     }
 
     /**
@@ -78,10 +75,10 @@ export class MathUtils {
      * Checks if two values are approx. equal
      * @param {number} a - first value
      * @param {number} b - second value
-     * @param {number} [epsilon=MathUtils.EPSILON] - tolerance
+     * @param {number} [epsilon=EPSILON] - tolerance
      * @returns {boolean} `true` if values are approx. equal
      */
-    static equals(a, b, epsilon = MathUtils.EPSILON) {
+    static equals(a, b, epsilon = EPSILON) {
         return Math.abs(a - b) < epsilon;
     }
 
@@ -195,7 +192,7 @@ export class MathUtils {
      * @returns {number} angle in degrees
      */
     static toDegrees(radians) {
-        return radians * MathUtils.RAD2DEG;
+        return radians * RAD2DEG;
     }
 
     /**
@@ -204,7 +201,7 @@ export class MathUtils {
      * @returns {number} angle in radians
      */
     static toRadians(degrees) {
-        return degrees * MathUtils.DEG2RAD;
+        return degrees * DEG2RAD;
     }
 
     /**
@@ -213,7 +210,7 @@ export class MathUtils {
      * @returns {number} normalized angle
      */
     static unitizeAngle(angle) {
-        return MathUtils.wrap(angle, MathUtils.TAU);
+        return MathUtils.wrap(angle, TAU);
     }
 
     /**
@@ -223,7 +220,7 @@ export class MathUtils {
      */
     static unitizeAngleSigned(angle) {
         angle = MathUtils.unitizeAngle(angle);
-        return angle > MathUtils.PI ? angle - MathUtils.TAU : angle;
+        return angle > PI ? angle - TAU : angle;
     }
 
     /**
