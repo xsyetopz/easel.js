@@ -8,50 +8,104 @@ const _m1 = new Matrix4();
 const _q1 = new Quaternion();
 
 export class Object3D {
-    /** @private @type {Euler} */ #rotation;
-    /** @private @type {Quaternion} */ #quaternion;
+    /** @private @type {Euler} */
+    #rotation;
+    /** @private @type {Quaternion} */
+    #quaternion;
 
     /**
      * Creates new Object3D.
+     * @constructor
      */
     constructor() {
-        /** Unique identifier. */
+        /** Unique identifier.
+         * @readonly @type {string}
+         * @default crypto.randomUUID()
+         * @see https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID
+         */
         this.id = crypto.randomUUID();
 
-        /** Optional name. */
+        /** Optional name.
+         * @readonly @type {string}
+         * @default ""
+         */
         this.name = "";
 
-        /** Local position. */
+        /** Local position.
+         *  @type {Vector3}
+         * @default Vector3.ZERO
+         */
         this.position = new Vector3();
 
+        /** Local rotation (Euler angles).
+         * @type {Euler}
+         * @default new Euler()
+         */
         this.#rotation = new Euler();
+
+        /** Local rotation (quaternion).
+         * @type {Quaternion}
+         * @default new Quaternion()
+         */
         this.#quaternion = new Quaternion();
 
-        /** Local scale. */
-        this.scale = new Vector3(1, 1, 1);
+        /** Local scale.
+         * @type {Vector3}
+         * @default Vector3.ONE
+         */
+        this.scale = Vector3.ONE;
 
-        /** Local transformation matrix. */
+        /** Local transformation matrix.
+         * @type {Matrix4}
+         * @default new Matrix4()
+         */
         this.matrix = new Matrix4();
 
-        /** World transformation matrix. */
+        /** World transformation matrix.
+         * @type {Matrix4}
+         * @default new Matrix4()
+         */
         this.worldMatrix = new Matrix4();
 
-        /** If true, updates local matrix automatically. */
+        /** If true, updates local matrix automatically.
+         * @type {boolean}
+         * @default true
+         */
         this.autoUpdateMatrix = true;
 
-        /** Parent object, if any. */
+        /**
+         * Parent object, if any.
+         * @type {Object3D}
+         * @default undefined
+         */
         this.parent = undefined;
 
-        /** Array of child objects. */
+        /**
+         * Array of child objects.
+         * @type {Object3D[]}
+         * @default []
+         */
         this.children = [];
 
-        /** If false, object is not rendered. */
+        /**
+         * If false, object is not rendered.
+         * @readonly @type {boolean}
+         * @default true
+         */
         this.visible = true;
 
-        /** If true, object is subject to frustum culling. */
+        /**
+         * If true, object is subject to frustum culling.
+         * @type {boolean}
+         * @default true
+         */
         this.frustumCulled = true;
 
-        /** User-defined data. */
+        /**
+         * User-defined data.
+         * @type {Object}
+         * @default {}
+         */
         this.userData = {};
 
         this.#rotation.setOnChangeCallback(() => {
