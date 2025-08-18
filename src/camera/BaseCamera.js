@@ -3,13 +3,11 @@ import { Object3D } from "../objects/Object3D.js";
 
 /**
  * Base class for all cameras.
- * @abstract @class
  * @extends Object3D
  */
 export class BaseCamera extends Object3D {
     /**
      * Creates new BaseCamera.
-     * @constructor
      */
     constructor() {
         super();

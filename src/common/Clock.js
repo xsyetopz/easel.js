@@ -29,7 +29,6 @@ export class Clock {
     /**
      * Creates new Clock.
      * @param {boolean} [autoStart=true] - if `true`, clock starts on first delta call
-     * @constructor
      */
     constructor(autoStart = true) {
         this.#autoStart = autoStart;

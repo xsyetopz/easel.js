@@ -7,6 +7,10 @@ const _position = new Vector3();
 const _m1 = new Matrix4();
 const _q1 = new Quaternion();
 
+/**
+ * Base class for all 3D objects in scene graph.
+ * @abstract
+ */
 export class Object3D {
     /** @private @type {Euler} */
     #rotation;
@@ -15,7 +19,6 @@ export class Object3D {
 
     /**
      * Creates new Object3D.
-     * @constructor
      */
     constructor() {
         /** Unique identifier.

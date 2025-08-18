@@ -39,7 +39,6 @@ export class OrthoCamera extends BaseCamera {
 
     /**
      * Creates new OrthoCamera.
-     * @constructor
      * @param {number} [left=-1] - left boundary of view volume
      * @param {number} [right=1] - right boundary of view volume
      * @param {number} [top=1] - top boundary of view volume

@@ -1,7 +1,6 @@
 export class Matrix4 {
     /**
      * Creates new 4x4 identity matrix.
-     * @constructor
      */
     constructor() {
         /**
