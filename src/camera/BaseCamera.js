@@ -1,17 +1,33 @@
 import { Matrix4 } from "../math/Matrix4.js";
 import { Object3D } from "../objects/Object3D.js";
 
+/**
+ * Base class for all cameras.
+ * @abstract @class
+ * @extends Object3D
+ */
 export class BaseCamera extends Object3D {
     /**
      * Creates new BaseCamera.
+     * @constructor
      */
     constructor() {
         super();
-        /** Projection matrix. */
-        this.projectionMatrix = new Matrix4();
-        /** Inverse of world matrix. */
-        this.matrixWorldInverse = new Matrix4();
+
+        /** @readonly @type {string} */
         this.name = "BaseCamera";
+
+        /**
+         * @readonly @type {Matrix4}
+         * @default new Matrix4()
+         */
+        this.projectionMatrix = new Matrix4();
+
+        /**
+         * @readonly @type {Matrix4}
+         * @default new Matrix4()
+         */
+        this.matrixWorldInverse = new Matrix4();
     }
 
     /**

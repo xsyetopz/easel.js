@@ -1,9 +1,13 @@
 export class Matrix4 {
     /**
      * Creates new 4x4 identity matrix.
+     * @constructor
      */
     constructor() {
-        /** @type {Float32Array} */
+        /**
+         * @type {Float32Array}
+         * @default [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+         * */
         this.elements = new Float32Array([
             1, 0, 0, 0,
             0, 1, 0, 0,

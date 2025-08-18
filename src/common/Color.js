@@ -1,8 +1,4 @@
 /**
- * Represents RGB color and provides utilities for color manipulation.
- * @class
- */
-/**
  * @typedef {{ h: number, s: number, l: number }} HSL
  */
 
@@ -12,16 +8,19 @@ export class Color {
     /**
      * Red channel. [0,1]
      * @type {number}
+     * @default 1
      */
     r = 1;
     /**
      * Green channel. [0,1]
      * @type {number}
+     * @default 1
      */
     g = 1;
     /**
      * Blue channel. [0,1]
      * @type {number}
+     * @default 1
      */
     b = 1;
 
@@ -102,7 +101,7 @@ export class Color {
 
     /**
      * Copies value from another Color.
-     * @param {Color} source - source color
+     * @param {Color} source
      * @returns {Color}
      */
     copy(source) {
@@ -155,7 +154,7 @@ export class Color {
 
     /**
      * Sets color from 24-bit hex value.
-     * @param {number} hex - hex value (0xRRGGBB)
+     * @param {number} hex
      * @returns {Color}
      */
     setHex(hex) {
@@ -172,9 +171,9 @@ export class Color {
 
     /**
      * Sets color from HSL values.
-     * @param {number} h - hue
-     * @param {number} s - saturation
-     * @param {number} l - lightness
+     * @param {number} h
+     * @param {number} s
+     * @param {number} l
      * @returns {Color}
      */
     setHSL(h, s, l) {
@@ -203,9 +202,9 @@ export class Color {
 
     /**
      * Sets color from RGB values (0-1).
-     * @param {number} r - red
-     * @param {number} g - green
-     * @param {number} b - blue
+     * @param {number} r
+     * @param {number} g
+     * @param {number} b
      * @returns {Color}
      */
     setRGB(r, g, b) {
@@ -221,7 +220,7 @@ export class Color {
 
     /**
      * Sets tcolor from CSS style string.
-     * @param {string} style - CSS color string (e.g. "#ff00ff", "rgb(255,0,255)", "hsl(300,100%,50%)")
+     * @param {string} style
      * @returns {Color}
      */
     setStyle(style) {
@@ -309,29 +308,10 @@ export class Color {
         );
     }
 
-    /**
-     * @readonly
-     * @type {number}
-     */
-    static HUE_SCALE = 360;
-
-    /**
-     * @readonly
-     * @type {number}
-     */
-    static SATURATION_SCALE = 100;
-
-    /**
-     * @readonly
-     * @type {number}
-     */
-    static LIGHTNESS_SCALE = 100;
-
-    /**
-     * @readonly
-     * @type {number}
-     */
-    static RGB_SCALE = 255;
+    /** @readonly @type {number} */ static HUE_SCALE = 360;
+    /** @readonly @type {number} */ static SATURATION_SCALE = 100;
+    /** @readonly @type {number} */ static LIGHTNESS_SCALE = 100;
+    /** @readonly @type {number} */ static RGB_SCALE = 255;
 
     /**
      * Converts color value to RGB object with integer channels.

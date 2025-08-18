@@ -3,6 +3,7 @@ import { MathUtils } from "./MathUtils.js";
 export class Vector3 {
     /**
      * Creates new 3D vector.
+     * @constructor
      * @param {number} [x=0] - x component
      * @param {number} [y=0] - y component
      * @param {number} [z=0] - z component

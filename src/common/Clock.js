@@ -1,23 +1,42 @@
-/**
- * A high-resolution timer for measuring elapsed time and frame deltas.
- * @class
- */
 export class Clock {
-    /** @private @type {boolean} */ #autoStart;
-    /** @private @type {number} */ #startTime = 0;
-    /** @private @type {number} */ #oldTime = 0;
-    /** @private @type {number} */#elapsedTime = 0;
-    /** @private @type {boolean} */ #running = false;
+    /** @private @type {boolean} */
+    #autoStart;
 
     /**
-     * @param {boolean} [autoStart=true] if true, clock starts on first delta call.
+     * @private @type {number}
+     * @default 0
+     */
+    #startTime = 0;
+
+    /**
+     * @private @type {number}
+     * @default 0
+     */
+    #oldTime = 0;
+
+    /**
+     * @private @type {number}
+     * @default 0
+     */
+    #elapsedTime = 0;
+
+    /**
+     * @private @type {boolean}
+     * @default false
+     */
+    #running = false;
+
+    /**
+     * Creates new Clock.
+     * @param {boolean} [autoStart=true] - if `true`, clock starts on first delta call
+     * @constructor
      */
     constructor(autoStart = true) {
         this.#autoStart = autoStart;
     }
 
     /**
-     * Total elapsed time in seconds.
+     * Returns total elapsed time in seconds.
      * @readonly @type {number}
      */
     get elapsedTime() {
@@ -26,8 +45,9 @@ export class Clock {
     }
 
     /**
-     * Returns time in seconds since last call.
-     * @readonly @type {number}
+     * Calculates time difference since last call in seconds.
+     * If clock is not running, starts automatically if `#autoStart` is `true`.
+     * @returns {number} time difference in seconds
      */
     delta() {
         let diff = 0;
@@ -48,7 +68,9 @@ export class Clock {
     }
 
     /**
-     * Sets start time to current time, resets elapsed time, and marks clock as running.
+     * Starts clock, resetting elapsed time.
+     * If clock is already running, this has no effect.
+     * @returns {Clock}
      */
     start() {
         this.#startTime = _now();
@@ -58,7 +80,8 @@ export class Clock {
     }
 
     /**
-     * Updates final elapsed time, marks clock as not running, and disables auto-start.
+     * Stops clock, updates final elapsed time, and disables auto-start.
+     * @returns {Clock}
      */
     stop() {
         this.elapsedTime;

@@ -1,15 +1,14 @@
-/** @readonly */ const DEG2RAD = 0.017453292519943295;
-/** @readonly */ const RAD2DEG = 57.29577951308232;
-/** @readonly */ const PI = 3.141592653589793;
-/** @readonly */ const TAU = 6.283185307179586;
-/** @readonly */ const EPSILON = 0.0001;
-
 export class MathUtils {
-    /** @readonly */ static DEG2RAD = 0.017453292519943295;
-    /** @readonly */ static RAD2DEG = 57.29577951308232;
-    /** @readonly */ static PI = 3.141592653589793;
-    /** @readonly */ static TAU = 6.283185307179586;
-    /** @readonly */ static EPSILON = 0.0001;
+    /** @readonly */
+    static DEG2RAD = 0.017453292519943295;
+    /** @readonly */
+    static RAD2DEG = 57.29577951308232;
+    /** @readonly */
+    static PI = 3.141592653589793;
+    /** @readonly */
+    static TAU = 6.283185307179586;
+    /** @readonly */
+    static EPSILON = 0.0001;
 
     /**
      * Ceils to nearest step
