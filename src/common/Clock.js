@@ -3,40 +3,11 @@
  * @class
  */
 export class Clock {
-    /**
-     * Whether clock should automatically start on first use.
-     * @private
-     * @type {boolean}
-     */
-    #autoStart;
-
-    /**
-     * Time when clock was started (ms).
-     * @private
-     * @type {number}
-     */
-    #startTime = 0;
-
-    /**
-     * Time of previous tick (ms).
-     * @private
-     * @type {number}
-     */
-    #oldTime = 0;
-
-    /**
-     * Total elapsed time in seconds.
-     * @private
-     * @type {number}
-     */
-    #elapsedTime = 0;
-
-    /**
-     * Whether clock is currently running.
-     * @private
-     * @type {boolean}
-     */
-    #running = false;
+    /** @private @type {boolean} */ #autoStart;
+    /** @private @type {number} */ #startTime = 0;
+    /** @private @type {number} */ #oldTime = 0;
+    /** @private @type {number} */#elapsedTime = 0;
+    /** @private @type {boolean} */ #running = false;
 
     /**
      * @param {boolean} [autoStart=true] if true, clock starts on first delta call.
@@ -47,20 +18,18 @@ export class Clock {
 
     /**
      * Total elapsed time in seconds.
-     * @readonly
-     * @type {number}
+     * @readonly @type {number}
      */
     get elapsedTime() {
-        this.delta;
+        this.delta();
         return this.#elapsedTime;
     }
 
     /**
      * Returns time in seconds since last call.
-     * @readonly
-     * @type {number}
+     * @readonly @type {number}
      */
-    get delta() {
+    delta() {
         let diff = 0;
 
         if (this.#autoStart && !this.#running) {
@@ -78,6 +47,9 @@ export class Clock {
         return diff;
     }
 
+    /**
+     * Sets start time to current time, resets elapsed time, and marks clock as running.
+     */
     start() {
         this.#startTime = _now();
         this.#oldTime = this.#startTime;
@@ -85,6 +57,9 @@ export class Clock {
         this.#running = true;
     }
 
+    /**
+     * Updates final elapsed time, marks clock as not running, and disables auto-start.
+     */
     stop() {
         this.elapsedTime;
         this.#running = false;
