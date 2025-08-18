@@ -5,15 +5,15 @@ import { Object3D } from "../objects/Object3D.js";
  * Base class for all cameras.
  * @extends Object3D
  */
-export class BaseCamera extends Object3D {
+export class Camera extends Object3D {
     /**
-     * Creates new BaseCamera.
+     * Creates new Camera instance.
      */
     constructor() {
         super();
 
         /** @readonly @type {string} */
-        this.name = "BaseCamera";
+        this.name = "Camera";
 
         /**
          * @readonly @type {Matrix4}
@@ -30,16 +30,16 @@ export class BaseCamera extends Object3D {
 
     /**
      * Returns clone of this camera.
-     * @returns {BaseCamera}
+     * @returns {Camera}
      */
     clone() {
-        return new BaseCamera().copy(this);
+        return new Camera().copy(this);
     }
 
     /**
      * Copies properties from another camera.
-     * @param {BaseCamera} source
-     * @returns {BaseCamera}
+     * @param {Camera} source
+     * @returns {Camera}
      */
     copy(source) {
         super.copy(source);
@@ -63,7 +63,7 @@ export class BaseCamera extends Object3D {
      */
     updateProjectionMatrix() {
         throw new Error(
-            "BaseCamera.updateProjectionMatrix(): must be implemented in subclass"
+            "Camera.updateProjectionMatrix(): must be implemented in subclass"
         );
     }
 }
