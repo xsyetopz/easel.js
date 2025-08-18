@@ -28,10 +28,10 @@ export class PerspCamera extends BaseCamera {
 
     /**
      * Creates new PerspCamera.
-     * @param {number} [fov = 50] - field of view in degrees
-     * @param {number} [aspect = 1] - aspect ratio
-     * @param {number} [near = 0.1] - near clipping plane
-     * @param {number} [far = 2000] - far clipping plane
+     * @param {number} [fov=50] - field of view in degrees
+     * @param {number} [aspect=1] - aspect ratio
+     * @param {number} [near=0.1] - near clipping plane
+     * @param {number} [far=2000] - far clipping plane
      */
     constructor(fov = 50, aspect = 1, near = 0.1, far = 2000) {
         super();
