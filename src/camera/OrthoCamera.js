@@ -1,6 +1,6 @@
-import { BaseCamera } from './BaseCamera.js';
+import { Camera } from './Camera.js';
 
-export class OrthoCamera extends BaseCamera {
+export class OrthoCamera extends Camera {
     /**
      * @private @type {number}
      * @default -1
@@ -38,7 +38,7 @@ export class OrthoCamera extends BaseCamera {
     #far = 2000;
 
     /**
-     * Creates new OrthoCamera.
+     * Creates new OrthoCamera instance.
      * @param {number} [left=-1] - left boundary of view volume
      * @param {number} [right=1] - right boundary of view volume
      * @param {number} [top=1] - top boundary of view volume

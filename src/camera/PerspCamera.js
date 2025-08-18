@@ -1,7 +1,7 @@
-import { BaseCamera } from "./BaseCamera.js";
+import { Camera } from "./Camera.js";
 import { MathUtils } from "../math/MathUtils.js";
 
-export class PerspCamera extends BaseCamera {
+export class PerspCamera extends Camera {
     /**
      * @private @type {number}
      * @default 50
@@ -27,7 +27,7 @@ export class PerspCamera extends BaseCamera {
     #far = 2000;
 
     /**
-     * Creates new PerspCamera.
+     * Creates new PerspCamera instance.
      * @param {number} [fov=50] - field of view in degrees
      * @param {number} [aspect=1] - aspect ratio
      * @param {number} [near=0.1] - near clipping plane
