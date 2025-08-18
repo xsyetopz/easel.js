@@ -5,7 +5,7 @@ export { Euler } from './math/Euler.js';
 export { Matrix4 } from './math/Matrix4.js';
 export { MathUtils } from './math/MathUtils.js';
 
-// Core classes
+// Object classes
 export { Object3D } from './objects/Object3D.js';
 
 // Camera classes
