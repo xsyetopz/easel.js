@@ -31,7 +31,7 @@ export class Color {
     b = 1;
 
     /**
-     * Creates new Color.
+     * Creates new Color instance.
      * @param {...(ColorValue|RGBArray)} args Color value or RGB array [r,g,b]
      */
     constructor(...args) {
