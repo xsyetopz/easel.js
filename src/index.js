@@ -9,6 +9,6 @@ export { MathUtils } from './math/MathUtils.js';
 export { Object3D } from './objects/Object3D.js';
 
 // Camera classes
-export { Camera } from './camera/Camera.js';
+export { BaseCamera } from './camera/BaseCamera.js';
 export { PerspCamera } from './camera/PerspCamera.js';
 export { OrthoCamera } from './camera/OrthoCamera.js';
