@@ -1,5 +1,11 @@
 /**
  * @typedef {{ h: number, s: number, l: number }} HSL
+ * @typedef {{ r: number, g: number, b: number }} RGB
+ * @typedef {RGB & { a: number }} RGBA
+ * @typedef {[number, number, number]} HSLArray
+ * @typedef {[number, number, number]} RGBArray
+ * @typedef {[number, number, number, number]} RGBAArray
+ * @typedef {string | number | Color} ColorValue
  */
 
 import { MathUtils } from "../maths/MathUtils.js";
@@ -25,7 +31,8 @@ export class Color {
     b = 1;
 
     /**
-     * @param {...any} args Color value(s) or array
+     * Creates new Color.
+     * @param {...(ColorValue|RGBArray)} args Color value or RGB array [r,g,b]
      */
     constructor(...args) {
         args.length > 0 ? this.set(...args) : (this.r = this.g = this.b = 0);
@@ -113,7 +120,7 @@ export class Color {
 
     /**
      * Parses value into Color.
-     * @param {Color|number|string} value - Color, number, or string
+     * @param {ColorValue} value - Color, number, or string
      * @returns {Color}
      */
     parse(value) {
@@ -131,7 +138,7 @@ export class Color {
 
     /**
      * Sets color from another Color, hex, string, or RGB values.
-     * @param {...any} args - Color value(s) or array
+    * @param {...(ColorValue|RGBArray)} args Color value or RGB array [r,g,b]
      * @returns {Color}
      */
     set(...args) {
@@ -315,7 +322,7 @@ export class Color {
 
     /**
      * Converts color value to RGB object with integer channels.
-     * @param {Color|number|string} color
+     * @param {ColorValue} color
      * @returns {{r: number, g: number, b: number}}
      */
     static toRGB(color) {
