@@ -1,13 +1,14 @@
 export class Matrix4 {
     /**
-     * Creates new 4x4 identity matrix.
+     * Creates new 4x4 matrix.
+     * @param {Float32Array} [elements] - optional elements array
      */
-    constructor() {
+    constructor(elements) {
         /**
          * @type {Float32Array}
-         * @default [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
-         * */
-        this.elements = new Float32Array([
+         * @default [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]
+         */
+        this.elements = elements ? elements : new Float32Array([
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
@@ -17,7 +18,7 @@ export class Matrix4 {
 
     /**
      * Clones this matrix.
-     * @returns {Matrix4} new matrix with same values
+     * @returns {Matrix4}
      */
     clone() {
         return new Matrix4().copy(this);
@@ -315,7 +316,7 @@ export class Matrix4 {
      * @returns {Matrix4} this matrix for chaining
      */
     makePersp(fov, aspect, near, far) {
-        const halfFovTangent = Math.tan(fov / 2);
+        const halfFovTangent = Math.tan(fov * 0.5);
 
         const frustumLeft = -aspect * halfFovTangent * near;
         const frustumRight = aspect * halfFovTangent * near;
