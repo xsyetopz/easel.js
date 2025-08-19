@@ -12,19 +12,16 @@ import { MathUtils } from "../maths/MathUtils.js";
 
 export class Color {
     /**
-     * Red channel. [0,1]
      * @type {number}
      * @default 1
      */
     r = 1;
     /**
-     * Green channel. [0,1]
      * @type {number}
      * @default 1
      */
     g = 1;
     /**
-     * Blue channel. [0,1]
      * @type {number}
      * @default 1
      */
@@ -132,7 +129,6 @@ export class Color {
         } else if (typeof value === "string") {
             return this.setStyle(value);
         }
-
         throw new Error(`Color.parse(): invalid value: ${value}`);
     }
 
@@ -184,26 +180,16 @@ export class Color {
      * @returns {Color}
      */
     setHSL(h, s, l) {
-        const hue2rgb = (p, q, t) => {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 2) return q;
-            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-            return p;
-        };
-
         if (s === 0) {
             this.r = this.g = this.b = l;
         } else {
             const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
             const p = 2 * l - q;
 
-            this.r = hue2rgb(p, q, h + 1 / 3);
-            this.g = hue2rgb(p, q, h);
-            this.b = hue2rgb(p, q, h - 1 / 3);
+            this.r = Color.#hueToRGB(p, q, h + Color.#ONE_THIRD);
+            this.g = Color.#hueToRGB(p, q, h);
+            this.b = Color.#hueToRGB(p, q, h - Color.#ONE_THIRD);
         }
-
         return this;
     }
 
@@ -218,7 +204,6 @@ export class Color {
         if (r > Color.RGB_SCALE || g > Color.RGB_SCALE || b > Color.RGB_SCALE) {
             throw new Error("Color.setRGB(): rgb out of range");
         }
-
         this.r = r;
         this.g = g;
         this.b = b;
@@ -235,7 +220,6 @@ export class Color {
         if (style.startsWith("#")) return this.#parseHex(style);
         if (style.startsWith("rgb")) return this.#parseRGB(style);
         if (style.startsWith("hsl")) return this.#parseHSL(style);
-
         throw new Error(`Color.setStyle(): invalid style: ${style}`);
     }
 
@@ -272,25 +256,16 @@ export class Color {
             );
         }
 
-        const h = Number(values[0]) / Color.HUE_SCALE;
-        const s = Number(values[1]) / Color.SATURATION_SCALE;
-        const l = Number(values[2]) / Color.LIGHTNESS_SCALE;
+        const h = Number(values[0]) * Color.#ONE_OVER_HUE_SCALE;
+        const s = Number(values[1]) * Color.#ONE_OVER_SATURATION_SCALE;
+        const l = Number(values[2]) * Color.#ONE_OVER_LIGHTNESS_SCALE;
 
         const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
         const p = 2 * l - q;
 
-        const hueToRGB = (p, q, t) => {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 2) return q;
-            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-            return p;
-        };
-
-        this.r = hueToRGB(p, q, h + 1 / 3);
-        this.g = hueToRGB(p, q, h);
-        this.b = hueToRGB(p, q, h - 1 / 3);
+        this.r = Color.#hueToRGB(p, q, h + Color.#ONE_THIRD);
+        this.g = Color.#hueToRGB(p, q, h);
+        this.b = Color.#hueToRGB(p, q, h - Color.#ONE_THIRD);
         return this;
     }
 
@@ -320,6 +295,19 @@ export class Color {
     /** @readonly @type {number} */ static LIGHTNESS_SCALE = 100;
     /** @readonly @type {number} */ static RGB_SCALE = 255;
 
+    /** @private @readonly @type {number} */
+    static #ONE_SIXTH = 0.16666666666666666; // 1 / 6
+    /** @private @readonly @type {number} */
+    static #ONE_THIRD = 0.3333333333333333; // 1 / 3
+    /** @private @readonly @type {number} */
+    static #TWO_THIRDS = 0.6666666666666666; // 2 / 3
+    /** @private @readonly @type {number} */
+    static #ONE_OVER_HUE_SCALE = 0.002777777777777778; // 1 / 360
+    /** @private @readonly @type {number} */
+    static #ONE_OVER_SATURATION_SCALE = 0.01; // 1 / 100
+    /** @private @readonly @type {number} */
+    static #ONE_OVER_LIGHTNESS_SCALE = 0.01; // 1 / 100
+
     /**
      * Converts color value to RGB object with integer channels.
      * @param {ColorValue} color
@@ -332,5 +320,21 @@ export class Color {
             g: (tempColor.g * Color.RGB_SCALE) | 0,
             b: (tempColor.b * Color.RGB_SCALE) | 0,
         };
+    }
+
+    /**
+     * Converts HSL values to RGB object.
+     * @param {number} p
+     * @param {number} q
+     * @param {number} t
+     * @returns {number} interpolated RGB value
+     */
+    static #hueToRGB(p, q, t) {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < Color.#ONE_SIXTH) return p + (q - p) * 6 * t;
+        if (t < 0.5) return q;
+        if (t < Color.#TWO_THIRDS) return p + (q - p) * (Color.#TWO_THIRDS - t) * 6;
+        return p;
     }
 }
