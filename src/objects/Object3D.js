@@ -18,7 +18,7 @@ export class Object3D {
     #quaternion;
 
     /**
-     * Creates new Object3D.
+     * Creates new 3D object.
      */
     constructor() {
         /** Unique identifier.
