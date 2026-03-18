@@ -134,11 +134,12 @@ export class Camera extends Node {
 	}
 
 	/**
+	 * @override
 	 * @param {boolean} [force=false]
 	 * @returns {void}
 	 */
 	updateMatrixWorld(force = false) {
-		super.updateWorldMatrix(force, false);
+		super.updateMatrixWorld(force, false);
 		this.matrixWorldInverse.copy(this.matrixWorld).invert();
 	}
 

@@ -129,7 +129,7 @@ export class Node extends EventDispatcher {
 	 * @returns {this}
 	 */
 	lookAt(target, y, z) {
-		this.updateWorldMatrix(true, false);
+		this.updateMatrixWorld(true, false);
 
 		const targetVector =
 			target instanceof Vector3 ? target : new Vector3(target, y, z);
@@ -165,9 +165,9 @@ export class Node extends EventDispatcher {
 	 * @param {boolean} [updateChildren=true]
 	 * @returns {void}
 	 */
-	updateWorldMatrix(updateParents = false, updateChildren = true) {
+	updateMatrixWorld(updateParents = false, updateChildren = true) {
 		if (updateParents && this.parent) {
-			this.parent.updateWorldMatrix(true, false);
+			this.parent.updateMatrixWorld(true, false);
 		}
 		if (this.autoUpdateMatrix) this.updateMatrix();
 
@@ -179,7 +179,7 @@ export class Node extends EventDispatcher {
 
 		if (updateChildren) {
 			for (const child of this.children) {
-				child.updateWorldMatrix(false, true);
+				child.updateMatrixWorld(false, true);
 			}
 		}
 	}

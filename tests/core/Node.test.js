@@ -84,20 +84,20 @@ describe("Node", () => {
 		expect(elems[14]).toBeCloseTo(3);
 	});
 
-	it("updateWorldMatrix without parent copies matrix to matrixWorld", () => {
+	it("updateMatrixWorld without parent copies matrix to matrixWorld", () => {
 		const node = new Node();
 		node.position.set(5, 0, 0);
-		node.updateWorldMatrix(false, false);
+		node.updateMatrixWorld(false, false);
 		expect(node.matrixWorld.elements[12]).toBeCloseTo(5);
 	});
 
-	it("updateWorldMatrix propagates parent transform to child", () => {
+	it("updateMatrixWorld propagates parent transform to child", () => {
 		const parent = new Node();
 		const child = new Node();
 		parent.add(child);
 		parent.position.set(10, 0, 0);
 		child.position.set(1, 0, 0);
-		parent.updateWorldMatrix(false, true);
+		parent.updateMatrixWorld(false, true);
 		expect(child.matrixWorld.elements[12]).toBeCloseTo(11);
 	});
 

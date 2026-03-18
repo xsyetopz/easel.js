@@ -2,7 +2,7 @@ import { MathUtils } from "./MathUtils.js";
 import { Vector3 } from "./Vector3.js";
 
 /**
- * @typedef {{ type: string, matrixWorld: *, updateWorldMatrix: Function, geometry?: { attributes?: { position?: { array: ArrayLike<number>, itemSize: number } } }, children: SceneNode[], visible?: boolean }} SceneNode
+ * @typedef {{ type: string, matrixWorld: *, updateMatrixWorld: Function, geometry?: { attributes?: { position?: { array: ArrayLike<number>, itemSize: number } } }, children: SceneNode[], visible?: boolean }} SceneNode
  */
 
 export class Box3 {
@@ -280,7 +280,7 @@ export class Box3 {
 	 */
 	setFromObject(object) {
 		this.makeEmpty();
-		object.updateWorldMatrix(true, false);
+		object.updateMatrixWorld(true, false);
 		this.#expandFromObject(object);
 		return this;
 	}
@@ -292,7 +292,7 @@ export class Box3 {
 		if (obj.type === "Mesh") {
 			const posAttr = obj.geometry?.attributes?.position;
 			if (posAttr && posAttr.array.length > 0) {
-				obj.updateWorldMatrix(false, false);
+				obj.updateMatrixWorld(false, false);
 				const arr = posAttr.array;
 				const itemSize = posAttr.itemSize ?? 3;
 				const count = arr.length / itemSize;
