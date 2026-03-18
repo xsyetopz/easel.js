@@ -1,0 +1,61 @@
+# Easel.js
+
+Canvas2D software renderer with a THREE.js-like scene graph API, constrained by the RuneTek 3 engine as observed in Old School RuneScape.
+
+## Stack
+
+- **Language**: JavaScript with JSDoc types (no TypeScript source files)
+- **Bundler**: Vite 8
+- **Tests**: Vitest 4 (`tests/**/*.test.js`)
+- **Linter/Formatter**: Biome 2 (tabs, double quotes)
+- **Package manager**: Bun
+- **Type checking**: TypeScript (`checkJs: true`, strict mode, `@/` path alias → `./src/`)
+
+## Commands
+
+```bash
+bun run dev            # Vite dev server
+bun run build          # Vite production build
+bun run test:run       # Vitest (single run)
+bun run typecheck      # tsc --noEmit
+bun run biome:check    # Biome lint + format (with --write)
+```
+
+## Rendering constraints
+
+These are architectural, not bugs. Do not "fix" them.
+
+- **No z-buffer** — painter's algorithm, back-to-front sort by tile distance + layer integer
+- **Affine UV mapping** — no perspective-correct textures, no W divide
+- **HSL16 color** — 16-bit packed (6H/3S/7L), precomputed LUT to RGB
+- **Integer screen coords** — `Math.trunc()` on projected vertices (vertex wobble is correct)
+- **Flat/Gouraud shading only** — no per-pixel lighting
+- **Orthographic camera only** — no perspective camera exists
+- **9-step opacity** — discrete 0–8 integer, not continuous alpha
+- **128x128 max texture** — nearest-neighbor downsample, no mipmaps
+- **Tile-radius fog** — hard cutoff to black, no gradient
+
+## Code conventions
+
+- JSDoc for all public types (`@param`, `@returns`, `@type`, `@typedef`)
+- `@override` on members that override a parent class
+- No inline lint suppressions — fix the code or adjust the rule
+- Class hierarchy: `EventDispatcher` → `Node` → `Mesh`/`Light`/`Camera`/etc.
+- Materials: `Material` base → `BasicMaterial`, `LambertMaterial`, `ToonMaterial`, etc.
+- Pipeline stages: `SceneTraversal` → `PainterSort` → `Shading` → `Rasterizer` → `Framebuffer`
+
+## THREE.js name mapping
+
+| THREE.js             | Easel.js        | Why                     |
+| -------------------- | --------------- | ----------------------- |
+| `Object3D`           | `Node`          | Scene graph node        |
+| `BufferGeometry`     | `Geometry`      | No GPU buffers          |
+| `WebGLRenderer`      | `Renderer`      | One renderer            |
+| `OrthographicCamera` | `Camera`        | One camera type         |
+| `AnimationMixer`     | `Animator`      | Plays clips             |
+| `MeshBasicMaterial`  | `BasicMaterial` | "Mesh" prefix redundant |
+| `KeyframeTrack`      | `Track`         | All tracks are keyframe |
+
+## Design docs
+
+See [`docs/easel-vs-three.md`](docs/easel-vs-three.md) for the full API reference, RuneTek 3 engine study, and THREE.js divergence rationale.
