@@ -144,10 +144,10 @@ export function Home({ onNavigate }) {
 				<Text size="sm" c="dimmed">
 					See{" "}
 					<Anchor
-						href="https://github.com/xsyetopz/easel.js/blob/main/docs/easel-vs-three.md"
+						href="https://github.com/xsyetopz/easel.js/blob/main/docs/EASEL_vs_THREE.md"
 						target="_blank"
 					>
-						docs/easel-vs-three.md
+						docs/EASEL_vs_THREE.md
 					</Anchor>{" "}
 					for the full design reference, RuneTek 3 engine study, and API
 					mapping.
