@@ -28,7 +28,7 @@ function makeMeshNode(visible = true) {
 				array: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
 				itemSize: 3,
 			}),
-			index: null,
+			index: undefined,
 		},
 		material: { color: 0xffffff },
 	};
