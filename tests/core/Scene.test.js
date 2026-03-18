@@ -8,14 +8,14 @@ describe("Scene", () => {
 		expect(scene.type).toBe("Scene");
 	});
 
-	it("fog defaults to null", () => {
+	it("fog defaults to undefined", () => {
 		const scene = new Scene();
-		expect(scene.fog).toBeNull();
+		expect(scene.fog).toBeundefined();
 	});
 
 	it("fog can be assigned", () => {
 		const scene = new Scene();
-		const fog = { type: "Fog", color: null, near: 1, far: 100 };
+		const fog = { type: "Fog", color: undefined, near: 1, far: 100 };
 		scene.fog = fog;
 		expect(scene.fog).toBe(fog);
 	});

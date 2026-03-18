@@ -22,7 +22,7 @@ describe("Rasterizer", () => {
 	it("calls pixelWriter for solid material", () => {
 		const rasterizer = new Rasterizer();
 		const pixelWriter = vi.fn();
-		rasterizer.rasterize(makeDrawCall(), framebuffer, null, pixelWriter);
+		rasterizer.rasterize(makeDrawCall(), framebuffer, undefined, pixelWriter);
 		expect(pixelWriter).toHaveBeenCalled();
 	});
 
@@ -32,7 +32,7 @@ describe("Rasterizer", () => {
 		rasterizer.rasterize(
 			makeDrawCall({ wireframe: true }),
 			framebuffer,
-			null,
+			undefined,
 			pixelWriter,
 		);
 		expect(pixelWriter).toHaveBeenCalled();
@@ -44,7 +44,7 @@ describe("Rasterizer", () => {
 		rasterizer.rasterize(
 			makeDrawCall({ points: true, pointRadius: 1 }),
 			framebuffer,
-			null,
+			undefined,
 			pixelWriter,
 		);
 		expect(pixelWriter).toHaveBeenCalled();
@@ -54,7 +54,7 @@ describe("Rasterizer", () => {
 		const rasterizer = new Rasterizer();
 		const pixelWriter = vi.fn();
 		const drawCall = { triangles: [], material: {} };
-		rasterizer.rasterize(drawCall, framebuffer, null, pixelWriter);
+		rasterizer.rasterize(drawCall, framebuffer, undefined, pixelWriter);
 		expect(pixelWriter).not.toHaveBeenCalled();
 	});
 });

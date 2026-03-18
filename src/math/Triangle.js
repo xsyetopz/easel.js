@@ -197,13 +197,13 @@ export class Triangle {
 
 	/**
 	 * Computes barycentric coordinates of point relative to triangle (a, b, c).
-	 * Returns null if point is not coplanar or triangle is degenerate.
+	 * Returns undefined if point is not coplanar or triangle is degenerate.
 	 * @param {Vector3} point
 	 * @param {Vector3} a
 	 * @param {Vector3} b
 	 * @param {Vector3} c
 	 * @param {Vector3} [target]
-	 * @returns {Vector3|null}
+	 * @returns {Vector3|undefined}
 	 */
 	static getBarycoord(point, a, b, c, target = new Vector3()) {
 		_v0.copy(c).sub(a);
@@ -217,7 +217,7 @@ export class Triangle {
 		const dot12 = _v1.dot(_v2);
 
 		const denom = dot00 * dot11 - dot01 * dot01;
-		if (denom === 0) return null;
+		if (denom === 0) return undefined;
 
 		const invDenom = 1 / denom;
 		const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
@@ -228,7 +228,7 @@ export class Triangle {
 	/**
 	 * @param {Vector3} point
 	 * @param {Vector3} [target]
-	 * @returns {Vector3|null}
+	 * @returns {Vector3|undefined}
 	 */
 	getBarycoord(point, target = new Vector3()) {
 		return Triangle.getBarycoord(point, this.#a, this.#b, this.#c, target);
@@ -243,7 +243,7 @@ export class Triangle {
 	 */
 	static containsPoint(point, a, b, c) {
 		const bary = Triangle.getBarycoord(point, a, b, c, _v3);
-		if (bary === null) return false;
+		if (bary === undefined) return false;
 		return bary.x >= 0 && bary.y >= 0 && bary.x + bary.y <= 1;
 	}
 
@@ -308,11 +308,11 @@ export class Triangle {
 	 * @param {Vector3} v2
 	 * @param {Vector3} v3
 	 * @param {Vector3} [target]
-	 * @returns {Vector3|null}
+	 * @returns {Vector3|undefined}
 	 */
 	static getInterpolation(point, a, b, c, v1, v2, v3, target = new Vector3()) {
 		const bary = Triangle.getBarycoord(point, a, b, c, _v3);
-		if (bary === null) return null;
+		if (bary === undefined) return undefined;
 		target.set(0, 0, 0);
 		target.x += v1.x * bary.x + v2.x * bary.y + v3.x * bary.z;
 		target.y += v1.y * bary.x + v2.y * bary.y + v3.y * bary.z;
@@ -326,7 +326,7 @@ export class Triangle {
 	 * @param {Vector3} v2
 	 * @param {Vector3} v3
 	 * @param {Vector3} [target]
-	 * @returns {Vector3|null}
+	 * @returns {Vector3|undefined}
 	 */
 	getInterpolation(point, v1, v2, v3, target = new Vector3()) {
 		return Triangle.getInterpolation(

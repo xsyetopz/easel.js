@@ -3,8 +3,8 @@
  * subsequent draw pass. CPU render-to-texture.
  */
 export class FramebufferTexture {
-	/** @type {ImageData|null} */
-	#data = null;
+	/** @type {ImageData|undefined} */
+	#data = undefined;
 
 	#width;
 	#height;
@@ -28,7 +28,7 @@ export class FramebufferTexture {
 		return this.#height;
 	}
 
-	/** @returns {ImageData|null} */
+	/** @returns {ImageData|undefined} */
 	get data() {
 		return this.#data;
 	}
@@ -60,6 +60,6 @@ export class FramebufferTexture {
 
 	/** @returns {void} */
 	dispose() {
-		this.#data = null;
+		this.#data = undefined;
 	}
 }

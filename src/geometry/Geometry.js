@@ -17,14 +17,14 @@ export class Geometry {
 	/** @type {Map<string, Attribute>} */
 	#attributes = new Map();
 
-	/** @type {Uint16Array|Uint32Array|null} */
-	#index = null;
+	/** @type {Uint16Array|Uint32Array|undefined} */
+	#index = undefined;
 
-	/** @type {import('../math/Box3.js').Box3|null} */
-	boundingBox = null;
+	/** @type {import('../math/Box3.js').Box3|undefined} */
+	boundingBox = undefined;
 
-	/** @type {import('../math/Sphere.js').Sphere|null} */
-	boundingSphere = null;
+	/** @type {import('../math/Sphere.js').Sphere|undefined} */
+	boundingSphere = undefined;
 
 	/**
 	 * @param {Float32Array|number[]} array Flat array of xyz positions.
@@ -111,7 +111,7 @@ export class Geometry {
 		return this.#attributes.delete(name);
 	}
 
-	/** @returns {Uint16Array|Uint32Array|null} */
+	/** @returns {Uint16Array|Uint32Array|undefined} */
 	get index() {
 		return this.#index;
 	}
@@ -201,6 +201,6 @@ export class Geometry {
 	/** @returns {void} */
 	dispose() {
 		this.#attributes.clear();
-		this.#index = null;
+		this.#index = undefined;
 	}
 }

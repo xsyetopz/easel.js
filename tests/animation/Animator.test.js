@@ -41,10 +41,10 @@ describe("Animator", () => {
 		expect(a1).toBe(a2);
 	});
 
-	it("existingAction returns null before clipAction", () => {
+	it("existingAction returns undefined before clipAction", () => {
 		const animator = new Animator(makeRoot());
 		const clip = makeClip();
-		expect(animator.existingAction(clip)).toBeNull();
+		expect(animator.existingAction(clip)).toBeundefined();
 	});
 
 	it("existingAction returns cached action after clipAction", () => {

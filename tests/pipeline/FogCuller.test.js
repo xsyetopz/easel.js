@@ -18,7 +18,7 @@ describe("FogCuller", () => {
 
 	it("no fog: all draw calls pass", () => {
 		const list = makeList([1, 0], [5, 0], [20, 0]);
-		culler.cull(list, null, camera);
+		culler.cull(list, undefined, camera);
 		expect(list.length).toBe(3);
 	});
 
@@ -45,7 +45,7 @@ describe("FogCuller", () => {
 
 	it("returns the same DrawList instance", () => {
 		const list = makeList([1, 0]);
-		const result = culler.cull(list, null, camera);
+		const result = culler.cull(list, undefined, camera);
 		expect(result).toBe(list);
 	});
 });

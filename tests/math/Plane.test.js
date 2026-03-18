@@ -55,7 +55,7 @@ describe("Plane", () => {
 			new Vector3(),
 		);
 		// line goes from y=-1 to y=1, plane is y=0, should intersect at origin
-		expect(ep).not.toBeNull();
+		expect(ep).not.toBeundefined();
 		expect(ep).toMatchVector({ x: 0, y: 0, z: 0 });
 	});
 

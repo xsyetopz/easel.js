@@ -14,14 +14,14 @@ export class PointsMaterial extends Material {
 	/** @type {number} Integer pixel radius. */
 	size = 1;
 
-	/** @type {import('../textures/Texture.js').Texture|null} */
-	map = null;
+	/** @type {import('../textures/Texture.js').Texture|undefined} */
+	map = undefined;
 
 	/**
 	 * @param {object} [options]
 	 * @param {Color|number|string} [options.color=0xffffff]
 	 * @param {number} [options.size=1]
-	 * @param {import('../textures/Texture.js').Texture|null} [options.map=null]
+	 * @param {import('../textures/Texture.js').Texture|undefined} [options.map=undefined]
 	 * @param {number} [options.layer]
 	 * @param {number} [options.opacity]
 	 */

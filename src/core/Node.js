@@ -21,8 +21,8 @@ export class Node extends EventDispatcher {
 	/** @type {string} */
 	type = "Node";
 
-	/** @type {Node|null} */
-	parent = null;
+	/** @type {Node|undefined} */
+	parent = undefined;
 
 	/** @type {Node[]} */
 	children = [];
@@ -93,7 +93,7 @@ export class Node extends EventDispatcher {
 	remove(object) {
 		const index = this.children.indexOf(object);
 		if (index !== -1) {
-			object.parent = null;
+			object.parent = undefined;
 			this.children.splice(index, 1);
 		}
 		return this;

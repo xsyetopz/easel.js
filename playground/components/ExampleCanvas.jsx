@@ -2,8 +2,8 @@ import { Box } from "@mantine/core";
 import { useEffect, useRef } from "react";
 
 export function ExampleCanvas({ setup, params }) {
-	const canvasRef = useRef(null);
-	const instanceRef = useRef(null);
+	const canvasRef = useRef(undefined);
+	const instanceRef = useRef(undefined);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -21,7 +21,7 @@ export function ExampleCanvas({ setup, params }) {
 			if (instanceRef.current?.cleanup) {
 				instanceRef.current.cleanup();
 			}
-			instanceRef.current = null;
+			instanceRef.current = undefined;
 		};
 	}, [setup, params]);
 

@@ -41,21 +41,21 @@ describe("Ray", () => {
 		const ray = new Ray(new Vector3(0, 0, 5), new Vector3(0, 0, -1));
 		const sphere = new Sphere(new Vector3(0, 0, 0), 1);
 		const hit = ray.intersectSphere(sphere, new Vector3());
-		expect(hit).not.toBeNull();
+		expect(hit).not.toBeundefined();
 		expect(hit.z).toBeCloseTo(1);
 	});
 
 	it("intersectSphere miss", () => {
 		const ray = new Ray(new Vector3(0, 5, 0), new Vector3(0, 0, -1));
 		const sphere = new Sphere(new Vector3(0, 0, 0), 1);
-		expect(ray.intersectSphere(sphere, new Vector3())).toBeNull();
+		expect(ray.intersectSphere(sphere, new Vector3())).toBeundefined();
 	});
 
 	it("intersectPlane", () => {
 		const ray = new Ray(new Vector3(0, 5, 0), new Vector3(0, -1, 0));
 		const plane = new Plane(new Vector3(0, 1, 0), 0);
 		const hit = ray.intersectPlane(plane, new Vector3());
-		expect(hit).not.toBeNull();
+		expect(hit).not.toBeundefined();
 		expect(hit.y).toBeCloseTo(0);
 	});
 
@@ -63,7 +63,7 @@ describe("Ray", () => {
 		const ray = new Ray(new Vector3(0, 0, 5), new Vector3(0, 0, -1));
 		const box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1));
 		const hit = ray.intersectBox3(box, new Vector3());
-		expect(hit).not.toBeNull();
+		expect(hit).not.toBeundefined();
 	});
 
 	it("clone", () => {

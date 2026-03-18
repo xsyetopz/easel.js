@@ -286,18 +286,18 @@ export class Ray {
 	/**
 	 * @param {{ centre: Vector3, radius: number }} sphere
 	 * @param {Vector3} [target]
-	 * @returns {Vector3|null}
+	 * @returns {Vector3|undefined}
 	 */
 	intersectSphere(sphere, target = new Vector3()) {
 		_v1.copy(sphere.centre).sub(this.#origin);
 		const tca = _v1.dot(this.#direction);
 		const d2 = _v1.dot(_v1) - tca * tca;
 		const r2 = sphere.radius * sphere.radius;
-		if (d2 > r2) return null;
+		if (d2 > r2) return undefined;
 		const thc = Math.sqrt(r2 - d2);
 		const t0 = tca - thc;
 		const t1 = tca + thc;
-		if (t1 < 0) return null;
+		if (t1 < 0) return undefined;
 		return this.at(t0 >= 0 ? t0 : t1, target);
 	}
 
@@ -314,11 +314,11 @@ export class Ray {
 	/**
 	 * @param {{ normal: Vector3, constant: number }} plane
 	 * @param {Vector3} [target]
-	 * @returns {Vector3|null}
+	 * @returns {Vector3|undefined}
 	 */
 	intersectPlane(plane, target = new Vector3()) {
 		const t = this.distanceToPlane(plane);
-		if (t === null) return null;
+		if (t === undefined) return undefined;
 		return this.at(t, target);
 	}
 
@@ -335,22 +335,22 @@ export class Ray {
 
 	/**
 	 * @param {{ normal: Vector3, constant: number }} plane
-	 * @returns {number|null}
+	 * @returns {number|undefined}
 	 */
 	distanceToPlane(plane) {
 		const denominator = plane.normal.dot(this.#direction);
 		if (denominator === 0) {
 			if (plane.normal.dot(this.#origin) + plane.constant === 0) return 0;
-			return null;
+			return undefined;
 		}
 		const t = -(this.#origin.dot(plane.normal) + plane.constant) / denominator;
-		return t >= 0 ? t : null;
+		return t >= 0 ? t : undefined;
 	}
 
 	/**
 	 * @param {{ min: Vector3, max: Vector3 }} box
 	 * @param {Vector3} [target]
-	 * @returns {Vector3|null}
+	 * @returns {Vector3|undefined}
 	 */
 	intersectBox3(box, target = new Vector3()) {
 		const origin = this.#origin;
@@ -361,17 +361,17 @@ export class Ray {
 		const x = _boxSlab(box.min.x, box.max.x, origin.x, invdirx);
 		const y = _boxSlab(box.min.y, box.max.y, origin.y, invdiry);
 
-		if (x.lo > y.hi || y.lo > x.hi) return null;
+		if (x.lo > y.hi || y.lo > x.hi) return undefined;
 		const tmin0 = y.lo > x.lo ? y.lo : x.lo;
 		const tmax0 = y.hi < x.hi ? y.hi : x.hi;
 
 		const z = _boxSlab(box.min.z, box.max.z, origin.z, invdirz);
 
-		if (tmin0 > z.hi || z.lo > tmax0) return null;
+		if (tmin0 > z.hi || z.lo > tmax0) return undefined;
 		const tmin = z.lo > tmin0 ? z.lo : tmin0;
 		const tmax = z.hi < tmax0 ? z.hi : tmax0;
 
-		if (tmax < 0) return null;
+		if (tmax < 0) return undefined;
 		return this.at(tmin >= 0 ? tmin : tmax, target);
 	}
 
@@ -380,7 +380,7 @@ export class Ray {
 	 * @returns {boolean}
 	 */
 	intersectsBox3(box) {
-		return this.intersectBox3(box, _v1) !== null;
+		return this.intersectBox3(box, _v1) !== undefined;
 	}
 
 	/**
@@ -390,7 +390,7 @@ export class Ray {
 	 * @param {Vector3} c
 	 * @param {boolean} backfaceCulling
 	 * @param {Vector3} [target]
-	 * @returns {Vector3|null}
+	 * @returns {Vector3|undefined}
 	 */
 	intersectTriangle(a, b, c, backfaceCulling, target = new Vector3()) {
 		_edge1.copy(b).sub(a);
@@ -400,25 +400,25 @@ export class Ray {
 		let DdN = this.#direction.dot(_normal);
 		let sign;
 		if (DdN > 0) {
-			if (backfaceCulling) return null;
+			if (backfaceCulling) return undefined;
 			sign = 1;
 		} else if (DdN < 0) {
 			sign = -1;
 			DdN = -DdN;
 		} else {
-			return null;
+			return undefined;
 		}
 
 		_diff.copy(this.#origin).sub(a);
 		const DdQxE2 = sign * this.#direction.dot(_edge2.copy(_diff).cross(_edge2));
-		if (DdQxE2 < 0) return null;
+		if (DdQxE2 < 0) return undefined;
 
 		const DdE1xQ = sign * this.#direction.dot(_edge1.cross(_diff));
-		if (DdE1xQ < 0) return null;
-		if (DdQxE2 + DdE1xQ > DdN) return null;
+		if (DdE1xQ < 0) return undefined;
+		if (DdQxE2 + DdE1xQ > DdN) return undefined;
 
 		const QdN = -sign * _diff.dot(_normal);
-		if (QdN < 0) return null;
+		if (QdN < 0) return undefined;
 
 		return this.at(QdN / DdN, target);
 	}

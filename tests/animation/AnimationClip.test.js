@@ -29,9 +29,9 @@ describe("AnimationClip", () => {
 		expect(AnimationClip.findByName([a, b], "walk")).toBe(b);
 	});
 
-	it("findByName returns null when not found", () => {
+	it("findByName returns undefined when not found", () => {
 		const a = new AnimationClip("run", 1, []);
-		expect(AnimationClip.findByName([a], "jump")).toBeNull();
+		expect(AnimationClip.findByName([a], "jump")).toBeundefined();
 	});
 
 	it("duration 0 for empty tracks when auto-computed", () => {

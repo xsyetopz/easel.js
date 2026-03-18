@@ -8,10 +8,10 @@ export class Scene extends Node {
 	type = "Scene";
 
 	/**
-	 * Scene-level fog. Set to a Fog instance or null.
-	 * @type {import('../scenes/Fog.js').Fog|null}
+	 * Scene-level fog. Set to a Fog instance or undefined.
+	 * @type {import('../scenes/Fog.js').Fog|undefined}
 	 */
-	fog = null;
+	fog = undefined;
 
 	/**
 	 * @override

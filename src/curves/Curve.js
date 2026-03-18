@@ -2,8 +2,8 @@ export class Curve {
 	type = "Curve";
 	arcLengthDivisions = 200;
 
-	/** @type {number[]|null} */
-	#cacheArcLengths = null;
+	/** @type {number[]|undefined} */
+	#cacheArcLengths = undefined;
 	#needsUpdate = false;
 
 	/**
@@ -11,11 +11,11 @@ export class Curve {
 	 * Abstract — subclasses must override.
 	 * @param {number} _t Parameter in [0, 1]
 	 * @param {*} [_target] Optional target object to receive the result
-	 * @returns {*|null}
+	 * @returns {*|undefined}
 	 */
 	getPoint(_t, _target) {
 		console.warn("Curve: .getPoint() not implemented.");
-		return null;
+		return undefined;
 	}
 
 	/**
@@ -71,7 +71,7 @@ export class Curve {
 	 */
 	getLengths(divisions = this.arcLengthDivisions) {
 		if (
-			this.#cacheArcLengths !== null &&
+			this.#cacheArcLengths !== undefined &&
 			this.#cacheArcLengths.length === divisions + 1 &&
 			!this.#needsUpdate
 		) {
@@ -107,7 +107,7 @@ export class Curve {
 	 */
 	updateArcLengths() {
 		this.#needsUpdate = true;
-		this.#cacheArcLengths = null;
+		this.#cacheArcLengths = undefined;
 	}
 
 	/**

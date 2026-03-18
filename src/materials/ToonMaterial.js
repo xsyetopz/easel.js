@@ -13,13 +13,13 @@ export class ToonMaterial extends Material {
 	/** @type {Color} */
 	color;
 
-	/** @type {import('../textures/Texture.js').Texture|null} */
-	gradientMap = null;
+	/** @type {import('../textures/Texture.js').Texture|undefined} */
+	gradientMap = undefined;
 
 	/**
 	 * @param {object} [options]
 	 * @param {Color|number|string} [options.color=0xffffff]
-	 * @param {import('../textures/Texture.js').Texture|null} [options.gradientMap=null]
+	 * @param {import('../textures/Texture.js').Texture|undefined} [options.gradientMap=undefined]
 	 * @param {number} [options.layer]
 	 * @param {number} [options.opacity]
 	 * @param {number} [options.side]

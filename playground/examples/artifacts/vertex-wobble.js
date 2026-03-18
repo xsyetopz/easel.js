@@ -55,7 +55,7 @@ export function setup(canvas, params = {}) {
 	let speed = params.speed ?? 0.5;
 	const clock = new Clock();
 	let elapsed = 0;
-	let animId = null;
+	let animId;
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
@@ -73,10 +73,10 @@ export function setup(canvas, params = {}) {
 
 	return {
 		cleanup() {
-			if (animId != null) cancelAnimationFrame(animId);
+			if (animId != undefined) cancelAnimationFrame(animId);
 		},
 		update(newParams) {
-			if (newParams.speed != null) speed = newParams.speed;
+			if (newParams.speed != undefined) speed = newParams.speed;
 		},
 	};
 }

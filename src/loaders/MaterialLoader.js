@@ -48,12 +48,14 @@ export class MaterialLoader extends Loader {
 			case "LambertMaterial":
 			case "PhongMaterial":
 			case "StandardMaterial": {
-				material = Object.assign(Object.create(null), { type: json["type"] });
+				material = Object.assign(Object.create(undefined), {
+					type: json["type"],
+				});
 				break;
 			}
 			default:
 				console.warn(`MaterialLoader: unsupported type "${json["type"]}"`);
-				material = Object.assign(Object.create(null), {
+				material = Object.assign(Object.create(undefined), {
 					type: json["type"] ?? "Material",
 				});
 				break;

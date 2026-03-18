@@ -12,7 +12,7 @@ describe("Node", () => {
 		const node = new Node();
 		expect(node.type).toBe("Node");
 		expect(node.name).toBe("");
-		expect(node.parent).toBeNull();
+		expect(node.parent).toBeundefined();
 		expect(node.children).toEqual([]);
 		expect(node.visible).toBe(true);
 	});
@@ -40,7 +40,7 @@ describe("Node", () => {
 		const child = new Node();
 		parent.add(child);
 		parent.remove(child);
-		expect(child.parent).toBeNull();
+		expect(child.parent).toBeundefined();
 		expect(parent.children).not.toContain(child);
 	});
 

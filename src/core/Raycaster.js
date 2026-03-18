@@ -9,8 +9,8 @@ const _intersectPoint = new Vector3();
 
 /**
  * @typedef {{ elements: ArrayLike<number> }} MatrixLike
- * @typedef {{ visible: boolean, layers: Layers, type?: string, geometry?: { attributes?: { position?: { getX: (i: number) => number, getY: (i: number) => number, getZ: (i: number) => number, count: number } }, index?: { array: ArrayLike<number> } | null }, matrixWorld: MatrixLike, children?: SceneObject[] }} SceneObject
- * @typedef {{ distance: number, point: Vector3, face: { a: number, b: number, c: number, normal: Vector3|null }, object: SceneObject }} Intersection
+ * @typedef {{ visible: boolean, layers: Layers, type?: string, geometry?: { attributes?: { position?: { getX: (i: number) => number, getY: (i: number) => number, getZ: (i: number) => number, count: number } }, index?: { array: ArrayLike<number> } | undefined }, matrixWorld: MatrixLike, children?: SceneObject[] }} SceneObject
+ * @typedef {{ distance: number, point: Vector3, face: { a: number, b: number, c: number, normal: Vector3|undefined }, object: SceneObject }} Intersection
  */
 
 export class Raycaster {
@@ -23,7 +23,7 @@ export class Raycaster {
 	/** @type {number} */
 	far;
 
-	/** @type {{ type: string, matrixWorld: MatrixLike, projectionMatrixInverse: MatrixLike }|null} */
+	/** @type {{ type: string, matrixWorld: MatrixLike, projectionMatrixInverse: MatrixLike }|undefined} */
 	camera;
 
 	/** @type {Layers} */
@@ -44,7 +44,7 @@ export class Raycaster {
 		this.ray = new Ray(origin, direction);
 		this.near = near;
 		this.far = far;
-		this.camera = null;
+		this.camera = undefined;
 		this.layers = new Layers();
 	}
 
@@ -211,7 +211,7 @@ function _intersectIndexed(
 			false,
 			_intersectPoint,
 		);
-		if (point === null) continue;
+		if (point === undefined) continue;
 
 		point.applyMatrix4(matrixWorld);
 		const distance = raycaster.ray.origin.distanceTo(point);
@@ -260,7 +260,7 @@ function _intersectNonIndexed(
 			false,
 			_intersectPoint,
 		);
-		if (point === null) continue;
+		if (point === undefined) continue;
 
 		point.applyMatrix4(matrixWorld);
 		const distance = raycaster.ray.origin.distanceTo(point);
@@ -269,7 +269,7 @@ function _intersectNonIndexed(
 		intersects.push({
 			distance,
 			point: point.clone(),
-			face: { a: i, b: i + 1, c: i + 2, normal: null },
+			face: { a: i, b: i + 1, c: i + 2, normal: undefined },
 			object,
 		});
 	}

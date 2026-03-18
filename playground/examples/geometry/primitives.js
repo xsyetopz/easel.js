@@ -76,7 +76,7 @@ export function setup(canvas) {
 	});
 
 	const clock = new Clock();
-	let animId = null;
+	let animId;
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
@@ -91,7 +91,7 @@ export function setup(canvas) {
 
 	return {
 		cleanup() {
-			if (animId != null) cancelAnimationFrame(animId);
+			if (animId != undefined) cancelAnimationFrame(animId);
 		},
 	};
 }

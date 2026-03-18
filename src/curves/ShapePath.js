@@ -5,8 +5,8 @@ export class ShapePath {
 	type = "ShapePath";
 	/** @type {Path[]} */
 	#subPaths = [];
-	/** @type {Path|null} */
-	#currentPath = null;
+	/** @type {Path|undefined} */
+	#currentPath = undefined;
 
 	/**
 	 * Starts a new sub-path at (x, y).

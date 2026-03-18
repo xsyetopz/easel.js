@@ -10,8 +10,8 @@ export class InstancedMesh extends Mesh {
 	/** @type {Float32Array} */
 	#instanceMatrix;
 
-	/** @type {Float32Array|null} */
-	#instanceColor = null;
+	/** @type {Float32Array|undefined} */
+	#instanceColor = undefined;
 
 	/** @override */
 	frustumCulled = false;
@@ -50,12 +50,12 @@ export class InstancedMesh extends Mesh {
 		return this.#instanceMatrix;
 	}
 
-	/** @returns {Float32Array|null} */
+	/** @returns {Float32Array|undefined} */
 	get instanceColor() {
 		return this.#instanceColor;
 	}
 
-	/** @param {Float32Array|null} value */
+	/** @param {Float32Array|undefined} value */
 	set instanceColor(value) {
 		this.#instanceColor = value;
 	}
@@ -92,7 +92,7 @@ export class InstancedMesh extends Mesh {
 	 * @returns {void}
 	 */
 	getColorAt(index, color) {
-		if (this.#instanceColor === null) return;
+		if (this.#instanceColor === undefined) return;
 		const offset = index * 3;
 		color.r = this.#instanceColor[offset + 0];
 		color.g = this.#instanceColor[offset + 1];
@@ -105,7 +105,7 @@ export class InstancedMesh extends Mesh {
 	 * @returns {void}
 	 */
 	setColorAt(index, color) {
-		if (this.#instanceColor === null) {
+		if (this.#instanceColor === undefined) {
 			this.#instanceColor = new Float32Array(this.#count * 3);
 		}
 		const offset = index * 3;
@@ -122,7 +122,7 @@ export class InstancedMesh extends Mesh {
 		const cloned = new InstancedMesh(this.geometry, this.material, this.#count);
 		cloned.copy(this);
 		cloned.#instanceMatrix = this.#instanceMatrix.slice();
-		if (this.#instanceColor !== null) {
+		if (this.#instanceColor !== undefined) {
 			cloned.#instanceColor = this.#instanceColor.slice();
 		}
 		return cloned;
@@ -131,6 +131,6 @@ export class InstancedMesh extends Mesh {
 	/** @returns {void} */
 	dispose() {
 		this.#instanceMatrix = new Float32Array(0);
-		this.#instanceColor = null;
+		this.#instanceColor = undefined;
 	}
 }

@@ -5,7 +5,7 @@ export class FogCuller {
 	 * Removes draw calls beyond the fog tile radius from the draw list.
 	 * If no fog is provided the draw list is returned unchanged.
 	 * @param {import('./DrawList.js').DrawList} drawList
-	 * @param {import('../scenes/Fog.js').Fog|null|undefined} fog
+	 * @param {import('../scenes/Fog.js').Fog|undefined|undefined} fog
 	 * @param {{ x: number, y: number }} cameraPosition
 	 * @returns {import('./DrawList.js').DrawList}
 	 */

@@ -4,8 +4,8 @@ import { Texture } from "./Texture.js";
  * Texture created from raw pixel data.
  */
 export class DataTexture extends Texture {
-	/** @type {ImageData|null} */
-	#imageData = null;
+	/** @type {ImageData|undefined} */
+	#imageData = undefined;
 
 	/**
 	 * @param {Uint8ClampedArray} data RGBA pixel data.
@@ -21,7 +21,7 @@ export class DataTexture extends Texture {
 		);
 	}
 
-	/** @override @returns {ImageData|null} */
+	/** @override @returns {ImageData|undefined} */
 	get data() {
 		return this.#imageData;
 	}
@@ -38,7 +38,7 @@ export class DataTexture extends Texture {
 
 	/** @override @returns {void} */
 	dispose() {
-		this.#imageData = null;
+		this.#imageData = undefined;
 		super.dispose();
 	}
 }

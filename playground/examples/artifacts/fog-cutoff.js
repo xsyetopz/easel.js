@@ -66,7 +66,7 @@ export function setup(canvas, params = {}) {
 	}
 
 	const clock = new Clock();
-	let animId = null;
+	let animId;
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
@@ -79,10 +79,10 @@ export function setup(canvas, params = {}) {
 
 	return {
 		cleanup() {
-			if (animId != null) cancelAnimationFrame(animId);
+			if (animId != undefined) cancelAnimationFrame(animId);
 		},
 		update(newParams) {
-			if (newParams.tiles != null) {
+			if (newParams.tiles != undefined) {
 				scene.fog = new Fog({ tiles: newParams.tiles });
 			}
 		},

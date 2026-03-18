@@ -13,13 +13,13 @@ export class LambertMaterial extends Material {
 	/** @type {Color} */
 	color;
 
-	/** @type {import('../textures/Texture.js').Texture|null} */
-	map = null;
+	/** @type {import('../textures/Texture.js').Texture|undefined} */
+	map = undefined;
 
 	/**
 	 * @param {object} [options]
 	 * @param {Color|number|string} [options.color=0xffffff]
-	 * @param {import('../textures/Texture.js').Texture|null} [options.map=null]
+	 * @param {import('../textures/Texture.js').Texture|undefined} [options.map=undefined]
 	 * @param {number} [options.layer]
 	 * @param {number} [options.opacity]
 	 * @param {number} [options.shading]

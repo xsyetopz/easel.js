@@ -8,7 +8,7 @@ describe("Raycaster", () => {
 		expect(rc.ray).toBeDefined();
 		expect(rc.near).toBe(0);
 		expect(rc.far).toBe(Number.POSITIVE_INFINITY);
-		expect(rc.camera).toBeNull();
+		expect(rc.camera).toBeundefined();
 	});
 
 	it("constructs with provided origin and direction", () => {
@@ -40,7 +40,7 @@ describe("Raycaster", () => {
 		const obj = {
 			visible: true,
 			type: "Mesh",
-			geometry: null,
+			geometry: undefined,
 			layers: rc.layers,
 			children: [],
 			matrixWorld: {

@@ -65,7 +65,7 @@ export class CurvePath extends Curve {
 			}
 			i++;
 		}
-		return null;
+		return undefined;
 	}
 
 	/**

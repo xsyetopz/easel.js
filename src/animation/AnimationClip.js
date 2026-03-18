@@ -56,13 +56,13 @@ export class AnimationClip {
 	 * Finds a clip by name in an array.
 	 * @param {AnimationClip[]} clips
 	 * @param {string} name
-	 * @returns {AnimationClip|null}
+	 * @returns {AnimationClip|undefined}
 	 */
 	static findByName(clips, name) {
 		for (const clip of clips) {
 			if (clip.name === name) return clip;
 		}
-		return null;
+		return undefined;
 	}
 
 	/**

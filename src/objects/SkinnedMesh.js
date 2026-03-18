@@ -17,8 +17,8 @@ export class SkinnedMesh extends Mesh {
 	/** @type {Matrix4} */
 	#bindMatrixInverse = new Matrix4();
 
-	/** @type {import('./Skeleton.js').Skeleton|null} */
-	#skeleton = null;
+	/** @type {import('./Skeleton.js').Skeleton|undefined} */
+	#skeleton = undefined;
 
 	/**
 	 * @param {import('../geometry/Geometry.js').Geometry} [geometry]
@@ -38,7 +38,7 @@ export class SkinnedMesh extends Mesh {
 		return this.#bindMatrixInverse;
 	}
 
-	/** @returns {import('./Skeleton.js').Skeleton|null} */
+	/** @returns {import('./Skeleton.js').Skeleton|undefined} */
 	get skeleton() {
 		return this.#skeleton;
 	}

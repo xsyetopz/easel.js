@@ -16,8 +16,8 @@ export class Texture {
 	/** @type {HTMLImageElement|HTMLCanvasElement|ImageBitmap|undefined} */
 	image;
 
-	/** @type {ImageData|null} */
-	#data = null;
+	/** @type {ImageData|undefined} */
+	#data = undefined;
 
 	#needsUpdate = false;
 
@@ -41,7 +41,7 @@ export class Texture {
 
 	/**
 	 * Cached pixel data, clamped to 128x128.
-	 * @returns {ImageData|null}
+	 * @returns {ImageData|undefined}
 	 */
 	get data() {
 		return this.#data;
@@ -76,7 +76,7 @@ export class Texture {
 		canvas.height = dh;
 
 		const ctx =
-			/** @type {CanvasRenderingContext2D|OffscreenCanvasRenderingContext2D|null} */ (
+			/** @type {CanvasRenderingContext2D|OffscreenCanvasRenderingContext2D|undefined} */ (
 				canvas.getContext("2d")
 			);
 		if (!ctx) return;
@@ -94,6 +94,6 @@ export class Texture {
 	/** @returns {void} */
 	dispose() {
 		this.image = undefined;
-		this.#data = null;
+		this.#data = undefined;
 	}
 }

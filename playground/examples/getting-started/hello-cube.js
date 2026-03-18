@@ -36,7 +36,7 @@ export function setup(canvas, params = {}) {
 	scene.add(box);
 
 	const clock = new Clock();
-	let animId = null;
+	let animId;
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
@@ -49,7 +49,7 @@ export function setup(canvas, params = {}) {
 
 	return {
 		cleanup() {
-			if (animId != null) cancelAnimationFrame(animId);
+			if (animId != undefined) cancelAnimationFrame(animId);
 		},
 		update(newParams) {
 			if (newParams.color) material.color.set(newParams.color);

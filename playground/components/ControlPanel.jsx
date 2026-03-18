@@ -41,12 +41,12 @@ function Control({ control, value, onChange }) {
 				/>
 			);
 		default:
-			return null;
+			return undefined;
 	}
 }
 
 export function ControlPanel({ controls, params, onParamChange }) {
-	if (!controls || controls.length === 0) return null;
+	if (!controls || controls.length === 0) return undefined;
 
 	return (
 		<Stack gap="md">

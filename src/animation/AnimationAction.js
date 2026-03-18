@@ -41,8 +41,8 @@ export class AnimationAction {
 	/** @type {number} */
 	#repetitionCount = 0;
 
-	/** @type {object|null} */
-	#localRoot = null;
+	/** @type {object|undefined} */
+	#localRoot = undefined;
 
 	/** @type {number|undefined} */
 	_fadeTarget = undefined;
@@ -55,9 +55,9 @@ export class AnimationAction {
 
 	/**
 	 * @param {import('./AnimationClip.js').AnimationClip} clip
-	 * @param {object|null} [localRoot=null]
+	 * @param {object|undefined} [localRoot=undefined]
 	 */
-	constructor(clip, localRoot = null) {
+	constructor(clip, localRoot = undefined) {
 		this.#clip = clip;
 		this.#localRoot = localRoot;
 	}
@@ -67,7 +67,7 @@ export class AnimationAction {
 		return this.#clip;
 	}
 
-	/** @returns {object|null} */
+	/** @returns {object|undefined} */
 	get localRoot() {
 		return this.#localRoot;
 	}

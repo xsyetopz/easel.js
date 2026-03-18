@@ -8,7 +8,7 @@ export class Binding {
 	/** @type {string} */
 	#path;
 
-	/** @type {{ nodeName: string|null, propertyName: string, propertyIndex: string|null }} */
+	/** @type {{ nodeName: string|undefined, propertyName: string, propertyIndex: string|undefined }} */
 	#parsedPath;
 
 	/**
@@ -33,7 +33,7 @@ export class Binding {
 
 	/**
 	 * Returns the node referenced by nodeName, or root if no nodeName.
-	 * @returns {object|null}
+	 * @returns {object|undefined}
 	 */
 	resolveNode() {
 		const { nodeName } = this.#parsedPath;
@@ -53,9 +53,9 @@ export class Binding {
 		/** @type {Record<string, unknown>} */
 		const nodeRec = /** @type {Record<string, unknown>} */ (node);
 		const prop = nodeRec[propertyName];
-		if (prop === undefined || prop === null) return;
+		if (prop === undefined || prop === undefined) return;
 
-		if (propertyIndex !== null) {
+		if (propertyIndex !== undefined) {
 			/** @type {Record<string, unknown>} */
 			const propRec = /** @type {Record<string, unknown>} */ (prop);
 			targetArray[offset] = /** @type {number} */ (propRec[propertyIndex] ?? 0);
@@ -85,10 +85,10 @@ export class Binding {
 		/** @type {Record<string, unknown>} */
 		const nodeRec = /** @type {Record<string, unknown>} */ (node);
 		const prop = nodeRec[propertyName];
-		if (prop === undefined && propertyIndex === null) return;
+		if (prop === undefined && propertyIndex === undefined) return;
 
-		if (propertyIndex !== null) {
-			if (prop !== undefined && prop !== null) {
+		if (propertyIndex !== undefined) {
+			if (prop !== undefined && prop !== undefined) {
 				/** @type {Record<string, unknown>} */
 				const propRec = /** @type {Record<string, unknown>} */ (prop);
 				propRec[propertyIndex] = sourceArray[offset];
@@ -97,7 +97,7 @@ export class Binding {
 			}
 		} else if (typeof nodeRec[propertyName] === "number") {
 			nodeRec[propertyName] = sourceArray[offset];
-		} else if (prop !== null && prop !== undefined) {
+		} else if (prop !== undefined && prop !== undefined) {
 			/** @type {Record<string, unknown>} */
 			const propRec = /** @type {Record<string, unknown>} */ (prop);
 			const keys = Object.keys(propRec).filter((k) =>
@@ -112,33 +112,39 @@ export class Binding {
 	/**
 	 * Parses a dotted path into { nodeName, propertyName, propertyIndex }.
 	 * @param {string} path
-	 * @returns {{ nodeName: string|null, propertyName: string, propertyIndex: string|null }}
+	 * @returns {{ nodeName: string|undefined, propertyName: string, propertyIndex: string|undefined }}
 	 */
 	#parse(path) {
 		const parts = path.split(".");
 		const indices = new Set(["x", "y", "z", "w", "r", "g", "b"]);
 
 		if (parts.length === 1) {
-			return { nodeName: null, propertyName: parts[0], propertyIndex: null };
+			return {
+				nodeName: undefined,
+				propertyName: parts[0],
+				propertyIndex: undefined,
+			};
 		}
 
 		const last = parts[parts.length - 1];
 		if (indices.has(last)) {
 			const propName = parts[parts.length - 2];
-			const nodeName = parts.length > 2 ? parts.slice(0, -2).join(".") : null;
+			const nodeName =
+				parts.length > 2 ? parts.slice(0, -2).join(".") : undefined;
 			return { nodeName, propertyName: propName, propertyIndex: last };
 		}
 
 		const propName = last;
-		const nodeName = parts.length > 1 ? parts.slice(0, -1).join(".") : null;
-		return { nodeName, propertyName: propName, propertyIndex: null };
+		const nodeName =
+			parts.length > 1 ? parts.slice(0, -1).join(".") : undefined;
+		return { nodeName, propertyName: propName, propertyIndex: undefined };
 	}
 
 	/**
 	 * Depth-first search for a child node by name.
 	 * @param {object} node
 	 * @param {string} name
-	 * @returns {object|null}
+	 * @returns {object|undefined}
 	 */
 	#findByName(node, name) {
 		/** @type {Record<string, unknown>} */
@@ -150,6 +156,6 @@ export class Binding {
 				if (found) return found;
 			}
 		}
-		return null;
+		return undefined;
 	}
 }

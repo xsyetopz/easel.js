@@ -7,7 +7,7 @@ describe("ConeGeometry", () => {
 		expect(geo.getAttribute("position")).toBeDefined();
 		expect(geo.getAttribute("normal")).toBeDefined();
 		expect(geo.getAttribute("uv")).toBeDefined();
-		expect(geo.index).not.toBeNull();
+		expect(geo.index).not.toBeundefined();
 	});
 
 	it("default — vertex count > 0", () => {

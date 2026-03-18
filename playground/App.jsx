@@ -14,11 +14,11 @@ import { Home } from "./pages/Home.jsx";
 
 function getRoute() {
 	const hash = window.location.hash.slice(1);
-	if (!hash || hash === "home") return { page: "home", id: null };
+	if (!hash || hash === "home") return { page: "home", id: undefined };
 	if (hash.startsWith("example/")) {
 		return { page: "example", id: hash.slice(8) };
 	}
-	return { page: "home", id: null };
+	return { page: "home", id: undefined };
 }
 
 export function App() {

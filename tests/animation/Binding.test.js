@@ -25,10 +25,10 @@ describe("Binding", () => {
 		expect(b.resolveNode()).toBe(child);
 	});
 
-	it("resolveNode returns null for unknown name", () => {
+	it("resolveNode returns undefined for unknown name", () => {
 		const root = new Node();
 		const b = new Binding(root, "unknown.position");
-		expect(b.resolveNode()).toBeNull();
+		expect(b.resolveNode()).toBeundefined();
 	});
 
 	it("getValue reads Vector3 position into array", () => {

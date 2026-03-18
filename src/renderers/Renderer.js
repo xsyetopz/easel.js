@@ -37,7 +37,7 @@ export class Renderer {
 		const {
 			width = 300,
 			height = 150,
-			canvas = null,
+			canvas = undefined,
 			pixelRatio = 1,
 		} = options;
 
@@ -48,7 +48,7 @@ export class Renderer {
 		if (canvas) {
 			this.#canvas = canvas;
 		} else if (typeof document === "undefined") {
-			this.#canvas = null;
+			this.#canvas = undefined;
 		} else {
 			this.#canvas = document.createElement("canvas");
 		}
@@ -71,7 +71,7 @@ export class Renderer {
 		this.#upload = new FramebufferUpload();
 	}
 
-	/** @returns {HTMLCanvasElement|null} */
+	/** @returns {HTMLCanvasElement|undefined} */
 	get domElement() {
 		return this.#canvas;
 	}
@@ -144,7 +144,7 @@ export class Renderer {
 			this.#rasterizer.rasterize(
 				/** @type {*} */ (drawCall),
 				fb,
-				null,
+				undefined,
 				writePixel,
 			);
 		}
@@ -193,8 +193,8 @@ export class Renderer {
 	/** @returns {void} */
 	dispose() {
 		if (this.#canvas && !this.#canvas.isConnected) {
-			this.#canvas = null;
+			this.#canvas = undefined;
 		}
-		this.#context = null;
+		this.#context = undefined;
 	}
 }

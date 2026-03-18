@@ -61,7 +61,7 @@ export function setup(canvas, params = {}) {
 	const meshes = [basic, lambert, toon];
 	const materials = [basicMat, lambertMat, toonMat];
 	const clock = new Clock();
-	let animId = null;
+	let animId;
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
@@ -75,7 +75,7 @@ export function setup(canvas, params = {}) {
 
 	return {
 		cleanup() {
-			if (animId != null) cancelAnimationFrame(animId);
+			if (animId != undefined) cancelAnimationFrame(animId);
 		},
 		update(newParams) {
 			if (newParams.color) {

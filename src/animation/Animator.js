@@ -75,12 +75,12 @@ export class Animator {
 	}
 
 	/**
-	 * Returns an existing action for the clip, or null.
+	 * Returns an existing action for the clip, or undefined.
 	 * @param {import('./AnimationClip.js').AnimationClip} clip
-	 * @returns {AnimationAction|null}
+	 * @returns {AnimationAction|undefined}
 	 */
 	existingAction(clip) {
-		return this.#actionMap.get(clip) ?? null;
+		return this.#actionMap.get(clip) ?? undefined;
 	}
 
 	/**
