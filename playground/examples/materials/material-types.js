@@ -75,7 +75,7 @@ export function setup(canvas, params = {}) {
 
 	return {
 		cleanup() {
-			if (animId != undefined) cancelAnimationFrame(animId);
+			if (animId !== undefined) cancelAnimationFrame(animId);
 		},
 		update(newParams) {
 			if (newParams.color) {

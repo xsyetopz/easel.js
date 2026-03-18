@@ -91,7 +91,7 @@ export function setup(canvas) {
 
 	return {
 		cleanup() {
-			if (animId != undefined) cancelAnimationFrame(animId);
+			if (animId !== undefined) cancelAnimationFrame(animId);
 		},
 	};
 }

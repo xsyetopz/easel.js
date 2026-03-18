@@ -73,10 +73,10 @@ export function setup(canvas, params = {}) {
 
 	return {
 		cleanup() {
-			if (animId != undefined) cancelAnimationFrame(animId);
+			if (animId !== undefined) cancelAnimationFrame(animId);
 		},
 		update(newParams) {
-			if (newParams.speed != undefined) speed = newParams.speed;
+			if (newParams.speed !== undefined) speed = newParams.speed;
 		},
 	};
 }

@@ -108,7 +108,7 @@ export function setup(canvas, params = {}) {
 
 	return {
 		cleanup() {
-			if (animId != undefined) cancelAnimationFrame(animId);
+			if (animId !== undefined) cancelAnimationFrame(animId);
 		},
 		update(newParams) {
 			scene.remove(activeLight);
@@ -116,7 +116,7 @@ export function setup(canvas, params = {}) {
 			const fn = lights[type];
 			if (fn) {
 				activeLight = fn();
-				if (newParams.intensity != undefined) {
+				if (newParams.intensity !== undefined) {
 					activeLight.intensity = newParams.intensity;
 				}
 				scene.add(activeLight);
