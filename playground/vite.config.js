@@ -2,8 +2,8 @@ import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-export default defineConfig({
-	base: "/easel.js/",
+export default defineConfig(({ command }) => ({
+	base: command === "build" ? "/easel.js/" : "/",
 	root: resolve(import.meta.dirname, ".."),
 	plugins: [react()],
 	resolve: {
@@ -15,4 +15,4 @@ export default defineConfig({
 		outDir: "dist/playground",
 		emptyOutDir: true,
 	},
-});
+}));
