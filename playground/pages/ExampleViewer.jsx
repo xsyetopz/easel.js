@@ -7,20 +7,22 @@ import {
 	Text,
 	Title,
 } from "@mantine/core";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CodeBlock } from "../components/CodeBlock.jsx";
 import { ControlPanel } from "../components/ControlPanel.jsx";
 import { ExampleCanvas } from "../components/ExampleCanvas.jsx";
 import { examples } from "../examples/registry.js";
 
 const categoryLabels = {
-	"getting-started": "Getting Started",
 	geometry: "Geometry",
 	materials: "Materials",
-	lighting: "Lighting",
-	color: "Color",
-	artifacts: "Artifacts",
+	lights: "Lights",
+	camera: "Camera",
+	interactive: "Interactive",
+	animation: "Animation",
+	textures: "Textures",
 	"scene-graph": "Scene Graph",
+	artifacts: "Artifacts",
 };
 
 export function ExampleViewer({ exampleId }) {
@@ -36,6 +38,10 @@ export function ExampleViewer({ exampleId }) {
 	}, [example]);
 
 	const [params, setParams] = useState(defaultParams);
+
+	useEffect(() => {
+		setParams(defaultParams);
+	}, [defaultParams]);
 
 	if (!example) {
 		return (
@@ -70,7 +76,11 @@ export function ExampleViewer({ exampleId }) {
 
 			<Grid>
 				<Grid.Col span={hasControls ? { base: 12, md: 9 } : 12}>
-					<ExampleCanvas setup={example.setup} params={params} />
+					<ExampleCanvas
+						key={exampleId}
+						setup={example.setup}
+						params={params}
+					/>
 				</Grid.Col>
 				{hasControls && (
 					<Grid.Col span={{ base: 12, md: 3 }}>

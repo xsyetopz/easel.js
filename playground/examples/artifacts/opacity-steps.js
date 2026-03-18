@@ -1,7 +1,7 @@
 import {
 	BasicMaterial,
-	Camera,
 	Mesh,
+	OrthographicCamera,
 	PlaneGeometry,
 	Renderer,
 	Scene,
@@ -14,7 +14,7 @@ export function setup(canvas) {
 	const size = 6;
 
 	const scene = new Scene();
-	const camera = new Camera({
+	const camera = new OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -54,7 +54,7 @@ export function setup(canvas) {
 }
 
 export const source = `import {
-  Scene, Camera, Renderer,
+  Scene, OrthographicCamera, Renderer,
   PlaneGeometry, BasicMaterial, Mesh,
 } from "easel";
 

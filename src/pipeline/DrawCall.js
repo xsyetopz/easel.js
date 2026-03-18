@@ -18,6 +18,17 @@ export class DrawCall {
 	/** @type {{ x: number, y: number, z: number }} */
 	centroid = { x: 0, y: 0, z: 0 };
 
+	/**
+	 * @type {Array<{
+	 *   screenVerts: Array<{ x: number, y: number }>,
+	 *   normal: { x: number, y: number, z: number },
+	 *   vertices: Array<{ normal: { x: number, y: number, z: number } }>,
+	 *   uvs?: Array<{ u: number, v: number }>,
+	 *   centroidZ: number
+	 * }>}
+	 */
+	triangles = [];
+
 	/** @type {number[]} */
 	shadedColors = [];
 

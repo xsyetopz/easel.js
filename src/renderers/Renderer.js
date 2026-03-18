@@ -57,6 +57,9 @@ export class Renderer {
 			this.#canvas.width = width;
 			this.#canvas.height = height;
 			this.#context = this.#canvas.getContext("2d");
+			if (this.#context) {
+				this.#context.imageSmoothingEnabled = false;
+			}
 		}
 
 		this.#framebuffer = new Framebuffer(width, height);
@@ -107,7 +110,12 @@ export class Renderer {
 		);
 
 		// 2. Scene traversal → DrawList
-		const drawList = this.#traversal.traverse(scene, camera);
+		const drawList = this.#traversal.traverse(
+			scene,
+			camera,
+			this.#width,
+			this.#height,
+		);
 
 		// 3. Fog culling
 		if (scene.fog) {
@@ -118,7 +126,7 @@ export class Renderer {
 		this.#painterSort.sort(drawList, camera.position);
 
 		// 5. Light baking + 6. Rasterize per draw call
-		const lights = scene.lights ?? [];
+		const lights = drawList.lights;
 		const fb = this.#framebuffer;
 		const pw = this.#pixelWriter;
 		/**

@@ -1,10 +1,10 @@
 import {
 	AmbientLight,
-	Camera,
 	Clock,
 	DirectionalLight,
 	LambertMaterial,
 	Mesh,
+	OrthographicCamera,
 	Renderer,
 	Scene,
 	Shading,
@@ -18,7 +18,7 @@ export function setup(canvas) {
 	const size = 4;
 
 	const scene = new Scene();
-	const camera = new Camera({
+	const camera = new OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -71,7 +71,7 @@ export function setup(canvas) {
 }
 
 export const source = `import {
-  Scene, Camera, Renderer, Clock,
+  Scene, OrthographicCamera, Renderer, Clock,
   AmbientLight, DirectionalLight,
   SphereGeometry, LambertMaterial, Mesh,
   Shading,

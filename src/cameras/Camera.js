@@ -2,9 +2,8 @@ import { Node } from "../core/Node.js";
 import { Matrix4 } from "../math/Matrix4.js";
 
 /**
- * Orthographic camera. The only camera type — no PerspectiveCamera exists
- * because the rasterizer performs affine UV interpolation with no W divide,
- * which is only geometrically coherent under orthographic projection.
+ * Abstract base class for all camera types.
+ * Subclasses must override {@link updateProjectionMatrix}.
  */
 export class Camera extends Node {
 	/** @override @type {string} */
@@ -13,82 +12,21 @@ export class Camera extends Node {
 	projectionMatrix = new Matrix4();
 	matrixWorldInverse = new Matrix4();
 
-	#left;
-	#right;
-	#top;
-	#bottom;
 	#near;
 	#far;
 	#tileSize;
 
 	/**
 	 * @param {object} [options]
-	 * @param {number} [options.left=-1]
-	 * @param {number} [options.right=1]
-	 * @param {number} [options.top=1]
-	 * @param {number} [options.bottom=-1]
 	 * @param {number} [options.near=0.1]
 	 * @param {number} [options.far=2000]
 	 * @param {number} [options.tileSize=1] World units per tile. Used for sort distance and fog culling.
 	 */
-	constructor({
-		left = -1,
-		right = 1,
-		top = 1,
-		bottom = -1,
-		near = 0.1,
-		far = 2000,
-		tileSize = 1,
-	} = {}) {
+	constructor({ near = 0.1, far = 2000, tileSize = 1 } = {}) {
 		super();
-		this.#left = left;
-		this.#right = right;
-		this.#top = top;
-		this.#bottom = bottom;
 		this.#near = near;
 		this.#far = far;
 		this.#tileSize = tileSize;
-		this.updateProjectionMatrix();
-	}
-
-	/** @returns {number} */
-	get left() {
-		return this.#left;
-	}
-
-	/** @param {number} value */
-	set left(value) {
-		this.#left = value;
-	}
-
-	/** @returns {number} */
-	get right() {
-		return this.#right;
-	}
-
-	/** @param {number} value */
-	set right(value) {
-		this.#right = value;
-	}
-
-	/** @returns {number} */
-	get top() {
-		return this.#top;
-	}
-
-	/** @param {number} value */
-	set top(value) {
-		this.#top = value;
-	}
-
-	/** @returns {number} */
-	get bottom() {
-		return this.#bottom;
-	}
-
-	/** @param {number} value */
-	set bottom(value) {
-		this.#bottom = value;
 	}
 
 	/** @returns {number} */
@@ -123,14 +61,7 @@ export class Camera extends Node {
 
 	/** @returns {void} */
 	updateProjectionMatrix() {
-		this.projectionMatrix.makeOrthographic(
-			this.#left,
-			this.#right,
-			this.#top,
-			this.#bottom,
-			this.#near,
-			this.#far,
-		);
+		// Subclasses override this to rebuild projectionMatrix.
 	}
 
 	/**
@@ -144,19 +75,14 @@ export class Camera extends Node {
 	}
 
 	/**
+	 * @abstract
 	 * @override
 	 * @returns {Camera}
 	 */
 	clone() {
-		return new Camera({
-			left: this.#left,
-			right: this.#right,
-			top: this.#top,
-			bottom: this.#bottom,
-			near: this.#near,
-			far: this.#far,
-			tileSize: this.#tileSize,
-		});
+		throw new Error(
+			"Camera.clone: use OrthographicCamera or PerspectiveCamera",
+		);
 	}
 
 	/**
@@ -170,10 +96,6 @@ export class Camera extends Node {
 
 		this.projectionMatrix.copy(source.projectionMatrix);
 		this.matrixWorldInverse.copy(source.matrixWorldInverse);
-		this.#left = source.left;
-		this.#right = source.right;
-		this.#top = source.top;
-		this.#bottom = source.bottom;
 		this.#near = source.near;
 		this.#far = source.far;
 		this.#tileSize = source.tileSize;

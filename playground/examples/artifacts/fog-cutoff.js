@@ -1,12 +1,12 @@
 import {
 	AmbientLight,
 	BoxGeometry,
-	Camera,
 	Clock,
 	DirectionalLight,
 	Fog,
 	LambertMaterial,
 	Mesh,
+	OrthographicCamera,
 	Renderer,
 	Scene,
 } from "@/index.js";
@@ -30,7 +30,7 @@ export function setup(canvas, params = {}) {
 	const size = 10;
 
 	const scene = new Scene();
-	const camera = new Camera({
+	const camera = new OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -90,7 +90,7 @@ export function setup(canvas, params = {}) {
 }
 
 export const source = `import {
-  Scene, Camera, Renderer, Clock,
+  Scene, OrthographicCamera, Renderer, Clock,
   AmbientLight, DirectionalLight, Fog,
   BoxGeometry, LambertMaterial, Mesh,
 } from "easel";

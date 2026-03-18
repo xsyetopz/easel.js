@@ -4,7 +4,7 @@ export class FlatShader {
 	/**
 	 * Computes a flat-shaded HSL16 color for a face given its normal and scene lights.
 	 * @param {{ x: number, y: number, z: number }} faceNormal Normalized face normal
-	 * @param {Array<{ direction: { x: number, y: number, z: number }, color: number, intensity: number }>} lights
+	 * @param {Array<{ direction: { x: number, y: number, z: number }, color: import('../../math/Color.js').Color | number, intensity: number }>} lights
 	 * @param {number} [ambientIntensity=0.1]
 	 * @returns {number} HSL16-encoded color
 	 */

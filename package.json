@@ -78,5 +78,8 @@
         "three": "0.183.2",
         "vite": "8.0.0",
         "vitest": "4.1.0"
+    },
+    "dependencies": {
+        "highlight.js": "^11.11.1"
     }
 }

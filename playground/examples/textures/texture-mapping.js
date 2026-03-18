@@ -1,25 +1,22 @@
 import {
 	BasicMaterial,
 	BoxGeometry,
-	Camera,
 	Clock,
 	Mesh,
+	OrthographicCamera,
 	Renderer,
 	Scene,
+	TextureLoader,
 } from "@/index.js";
 
-export const controls = [
-	{ type: "color", key: "color", label: "Color", default: "#ff0000" },
-];
-
-export function setup(canvas, params = {}) {
+export function setup(canvas) {
 	const width = canvas.width;
 	const height = canvas.height;
 	const aspect = width / height;
 	const size = 3;
 
 	const scene = new Scene();
-	const camera = new Camera({
+	const camera = new OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -31,9 +28,15 @@ export function setup(canvas, params = {}) {
 
 	const renderer = new Renderer({ canvas, width, height });
 
-	const material = new BasicMaterial({ color: params.color ?? 0xff0000 });
+	const material = new BasicMaterial({ color: 0xffffff });
 	const box = new Mesh(new BoxGeometry(2, 2, 2), material);
 	scene.add(box);
+
+	const loader = new TextureLoader();
+	loader.load("textures/Brick_01.png", (texture) => {
+		material.map = texture;
+		material.needsUpdate = true;
+	});
 
 	const clock = new Clock();
 	let animId;
@@ -41,8 +44,8 @@ export function setup(canvas, params = {}) {
 	function animate() {
 		animId = requestAnimationFrame(animate);
 		const dt = clock.delta;
-		box.rotation.x += 0.5 * dt;
-		box.rotation.y += 0.7 * dt;
+		box.rotation.x += 0.3 * dt;
+		box.rotation.y += 0.5 * dt;
 		renderer.render(scene, camera);
 	}
 	animate();
@@ -51,19 +54,16 @@ export function setup(canvas, params = {}) {
 		cleanup() {
 			if (animId !== undefined) cancelAnimationFrame(animId);
 		},
-		update(newParams) {
-			if (newParams.color) material.color.set(newParams.color);
-		},
 	};
 }
 
 export const source = `import {
-  Scene, Camera, Renderer, Clock,
-  BoxGeometry, BasicMaterial, Mesh,
+  Scene, OrthographicCamera, Renderer, Clock,
+  BoxGeometry, BasicMaterial, Mesh, TextureLoader,
 } from "easel";
 
 const scene = new Scene();
-const camera = new Camera({
+const camera = new OrthographicCamera({
   left: -4, right: 4, top: 3, bottom: -3,
   near: 0.1, far: 100,
 });
@@ -71,17 +71,23 @@ camera.position.z = 5;
 
 const renderer = new Renderer({ canvas, width: 800, height: 600 });
 
-const box = new Mesh(
-  new BoxGeometry(2, 2, 2),
-  new BasicMaterial({ color: 0xff0000 }),
-);
+// TextureLoader wraps an image in a Texture with needsUpdate = true.
+// Affine UV mapping (no W divide) causes visible warping on angled faces.
+const loader = new TextureLoader();
+loader.load("textures/Brick_01.png", (texture) => {
+  material.map = texture;
+  material.needsUpdate = true;
+});
+
+const material = new BasicMaterial({ color: 0xffffff });
+const box = new Mesh(new BoxGeometry(2, 2, 2), material);
 scene.add(box);
 
 const clock = new Clock();
 function animate() {
   requestAnimationFrame(animate);
-  box.rotation.x += 0.5 * clock.delta;
-  box.rotation.y += 0.7 * clock.delta;
+  box.rotation.x += 0.3 * clock.delta;
+  box.rotation.y += 0.5 * clock.delta;
   renderer.render(scene, camera);
 }
 animate();`;

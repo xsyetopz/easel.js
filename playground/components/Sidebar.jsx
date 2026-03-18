@@ -1,33 +1,39 @@
 import { NavLink, ScrollArea } from "@mantine/core";
 import {
 	IconBulb,
-	IconColorSwatch,
+	IconCamera,
 	IconCube,
 	IconEye,
+	IconHandClick,
+	IconMovie,
 	IconPalette,
-	IconRocket,
+	IconPhoto,
 	IconSitemap,
 } from "@tabler/icons-react";
 import { examples } from "../examples/registry.js";
 
 const categoryIcons = {
-	"getting-started": IconRocket,
 	geometry: IconCube,
 	materials: IconPalette,
-	lighting: IconBulb,
-	color: IconColorSwatch,
-	artifacts: IconEye,
+	lights: IconBulb,
+	camera: IconCamera,
+	interactive: IconHandClick,
+	animation: IconMovie,
+	textures: IconPhoto,
 	"scene-graph": IconSitemap,
+	artifacts: IconEye,
 };
 
 const categoryLabels = {
-	"getting-started": "Getting Started",
 	geometry: "Geometry",
 	materials: "Materials",
-	lighting: "Lighting",
-	color: "Color",
-	artifacts: "Artifacts",
+	lights: "Lights",
+	camera: "Camera",
+	interactive: "Interactive",
+	animation: "Animation",
+	textures: "Textures",
 	"scene-graph": "Scene Graph",
+	artifacts: "Artifacts",
 };
 
 function groupByCategory() {

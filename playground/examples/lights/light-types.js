@@ -1,11 +1,11 @@
 import {
 	AmbientLight,
-	Camera,
 	Clock,
 	DirectionalLight,
 	HemisphereLight,
 	LambertMaterial,
 	Mesh,
+	PerspectiveCamera,
 	PlaneGeometry,
 	PointLight,
 	Renderer,
@@ -36,15 +36,11 @@ export const controls = [
 export function setup(canvas, params = {}) {
 	const width = canvas.width;
 	const height = canvas.height;
-	const aspect = width / height;
-	const size = 5;
 
 	const scene = new Scene();
-	const camera = new Camera({
-		left: -size * aspect,
-		right: size * aspect,
-		top: size,
-		bottom: -size,
+	const camera = new PerspectiveCamera({
+		fov: Math.PI / 4,
+		aspect: width / height,
 		near: 0.1,
 		far: 100,
 	});
@@ -126,11 +122,20 @@ export function setup(canvas, params = {}) {
 }
 
 export const source = `import {
-  Scene, Camera, Renderer,
+  Scene, PerspectiveCamera, Renderer,
   AmbientLight, DirectionalLight, PointLight,
   SpotLight, HemisphereLight,
   SphereGeometry, PlaneGeometry, LambertMaterial, Mesh,
 } from "easel";
+
+const camera = new PerspectiveCamera({
+  fov: Math.PI / 4,
+  aspect: width / height,
+  near: 0.1,
+  far: 100,
+});
+camera.position.z = 8;
+camera.position.y = 2;
 
 scene.add(new AmbientLight(0xffffff, 0.15));
 

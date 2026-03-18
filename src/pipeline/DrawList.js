@@ -2,6 +2,12 @@ export class DrawList {
 	/** @type {import('./DrawCall.js').DrawCall[]} */
 	#calls = [];
 
+	/**
+	 * Lights collected during scene traversal.
+	 * @type {Array<{ direction: { x: number, y: number, z: number }, color: import('../math/Color.js').Color | number, intensity: number }>}
+	 */
+	lights = [];
+
 	/** @returns {import('./DrawCall.js').DrawCall[]} */
 	get calls() {
 		return this.#calls;

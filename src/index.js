@@ -14,7 +14,8 @@ export { NumberTrack } from "./animation/tracks/NumberTrack.js";
 export { QuaternionTrack } from "./animation/tracks/QuaternionTrack.js";
 export { VectorTrack } from "./animation/tracks/VectorTrack.js";
 // cameras
-export { Camera } from "./cameras/Camera.js";
+export { OrthographicCamera } from "./cameras/OrthographicCamera.js";
+export { PerspectiveCamera } from "./cameras/PerspectiveCamera.js";
 export { Clock } from "./core/Clock.js";
 export { Layer, Shading, Side } from "./core/Constants.js";
 export { EventDispatcher } from "./core/EventDispatcher.js";

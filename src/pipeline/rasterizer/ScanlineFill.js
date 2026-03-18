@@ -3,7 +3,8 @@ import { MathUtils } from "../../math/MathUtils.js";
 export class ScanlineFill {
 	/**
 	 * Rasterizes a triangle defined by three screen-space integer points.
-	 * Calls callback for each covered pixel with barycentric coordinates.
+	 * Calls callback for each covered pixel with barycentric coordinates
+	 * relative to the original vertex order (u→v1, v→v2, w→v3).
 	 * @param {number} x1
 	 * @param {number} y1
 	 * @param {number} x2
@@ -16,19 +17,94 @@ export class ScanlineFill {
 	 * @returns {void}
 	 */
 	fill(x1, y1, x2, y2, x3, y3, width, height, callback) {
+		// Barycentric partial derivatives computed from the original (pre-sort) vertices.
+		// denom is shared across all pixels in this triangle.
+		const denom = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+
+		// Degenerate triangle — no area to fill.
+		if (denom === 0) return;
+
 		const [ax, ay, bx, by, cx, cy] = this.#sortByY(x1, y1, x2, y2, x3, y3);
 
 		if (by === cy) {
-			this.#fillFlatBottom(ax, ay, bx, by, cx, cy, width, height, callback);
+			this.#fillFlatBottom(
+				ax,
+				ay,
+				bx,
+				by,
+				cx,
+				cy,
+				width,
+				height,
+				x1,
+				y1,
+				x2,
+				y2,
+				x3,
+				y3,
+				denom,
+				callback,
+			);
 		} else if (ay === by) {
-			this.#fillFlatTop(ax, ay, bx, by, cx, cy, width, height, callback);
+			this.#fillFlatTop(
+				ax,
+				ay,
+				bx,
+				by,
+				cx,
+				cy,
+				width,
+				height,
+				x1,
+				y1,
+				x2,
+				y2,
+				x3,
+				y3,
+				denom,
+				callback,
+			);
 		} else {
-			// Split at middle vertex y into flat-bottom + flat-top
+			// Split at middle-vertex Y into flat-bottom + flat-top.
 			const t = (by - ay) / (cy - ay);
 			const mx = ax + t * (cx - ax);
 			const my = by;
-			this.#fillFlatBottom(ax, ay, bx, by, mx, my, width, height, callback);
-			this.#fillFlatTop(bx, by, mx, my, cx, cy, width, height, callback);
+			this.#fillFlatBottom(
+				ax,
+				ay,
+				bx,
+				by,
+				mx,
+				my,
+				width,
+				height,
+				x1,
+				y1,
+				x2,
+				y2,
+				x3,
+				y3,
+				denom,
+				callback,
+			);
+			this.#fillFlatTop(
+				bx,
+				by,
+				mx,
+				my,
+				cx,
+				cy,
+				width,
+				height,
+				x1,
+				y1,
+				x2,
+				y2,
+				x3,
+				y3,
+				denom,
+				callback,
+			);
 		}
 	}
 
@@ -65,6 +141,13 @@ export class ScanlineFill {
 	 * @param {number} _botRightY
 	 * @param {number} width
 	 * @param {number} height
+	 * @param {number} ox1 Original x1
+	 * @param {number} oy1 Original y1
+	 * @param {number} ox2 Original x2
+	 * @param {number} oy2 Original y2
+	 * @param {number} ox3 Original x3
+	 * @param {number} oy3 Original y3
+	 * @param {number} denom Pre-computed barycentric denominator
 	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
 	 * @returns {void}
 	 */
@@ -77,6 +160,13 @@ export class ScanlineFill {
 		_botRightY,
 		width,
 		height,
+		ox1,
+		oy1,
+		ox2,
+		oy2,
+		ox3,
+		oy3,
+		denom,
 		callback,
 	) {
 		const dy = botLeftY - topY;
@@ -84,13 +174,26 @@ export class ScanlineFill {
 		const slopeL = (botLeftX - topX) / dy;
 		const slopeR = (botRightX - topX) / dy;
 		const startY = Math.ceil(topY);
-		const endY = Math.ceil(botLeftY) - 1;
+		const endY = Math.floor(botLeftY);
 
 		for (let y = startY; y <= endY; y++) {
 			if (y < 0 || y >= height) continue;
 			const xL = topX + (y - topY) * slopeL;
 			const xR = topX + (y - topY) * slopeR;
-			this.#fillScanline(y, xL, xR, width, callback);
+			this.#fillScanline(
+				y,
+				xL,
+				xR,
+				width,
+				ox1,
+				oy1,
+				ox2,
+				oy2,
+				ox3,
+				oy3,
+				denom,
+				callback,
+			);
 		}
 	}
 
@@ -104,6 +207,13 @@ export class ScanlineFill {
 	 * @param {number} botY
 	 * @param {number} width
 	 * @param {number} height
+	 * @param {number} ox1 Original x1
+	 * @param {number} oy1 Original y1
+	 * @param {number} ox2 Original x2
+	 * @param {number} oy2 Original y2
+	 * @param {number} ox3 Original x3
+	 * @param {number} oy3 Original y3
+	 * @param {number} denom Pre-computed barycentric denominator
 	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
 	 * @returns {void}
 	 */
@@ -116,6 +226,13 @@ export class ScanlineFill {
 		botY,
 		width,
 		height,
+		ox1,
+		oy1,
+		ox2,
+		oy2,
+		ox3,
+		oy3,
+		denom,
 		callback,
 	) {
 		const dy = botY - topLeftY;
@@ -123,40 +240,84 @@ export class ScanlineFill {
 		const slopeL = (botX - topLeftX) / dy;
 		const slopeR = (botX - topRightX) / dy;
 		const startY = Math.ceil(topLeftY);
-		const endY = Math.ceil(botY) - 1;
+		const endY = Math.floor(botY);
 
 		for (let y = startY; y <= endY; y++) {
 			if (y < 0 || y >= height) continue;
 			const xL = topLeftX + (y - topLeftY) * slopeL;
 			const xR = topRightX + (y - topLeftY) * slopeR;
-			this.#fillScanline(y, xL, xR, width, callback);
+			this.#fillScanline(
+				y,
+				xL,
+				xR,
+				width,
+				ox1,
+				oy1,
+				ox2,
+				oy2,
+				ox3,
+				oy3,
+				denom,
+				callback,
+			);
 		}
 	}
 
 	/**
-	 * Fills a horizontal scanline from x1 to x2 at row y, clamped to [0, width-1].
+	 * Fills a horizontal scanline from xLeft to xRight at row y.
+	 * Computes proper barycentric (u,v,w) relative to the original triangle vertices.
 	 * @param {number} y
-	 * @param {number} x1
-	 * @param {number} x2
+	 * @param {number} xLeft
+	 * @param {number} xRight
 	 * @param {number} width
+	 * @param {number} ox1 Original x1
+	 * @param {number} oy1 Original y1
+	 * @param {number} ox2 Original x2
+	 * @param {number} oy2 Original y2
+	 * @param {number} ox3 Original x3
+	 * @param {number} oy3 Original y3
+	 * @param {number} denom Pre-computed barycentric denominator
 	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
 	 * @returns {void}
 	 */
-	#fillScanline(y, x1, x2, width, callback) {
+	#fillScanline(
+		y,
+		xLeft,
+		xRight,
+		width,
+		ox1,
+		oy1,
+		ox2,
+		oy2,
+		ox3,
+		oy3,
+		denom,
+		callback,
+	) {
 		const startX = MathUtils.clamp(
-			Math.ceil(MathUtils.fastMin(x1, x2)),
+			Math.ceil(MathUtils.fastMin(xLeft, xRight)),
 			0,
 			width - 1,
 		);
 		const endX = MathUtils.clamp(
-			MathUtils.fastTrunc(MathUtils.fastMax(x1, x2)),
+			MathUtils.fastTrunc(MathUtils.fastMax(xLeft, xRight)),
 			0,
 			width - 1,
 		);
-		const spanW = endX - startX;
+
+		// Pre-compute y-dependent terms once per scanline.
+		const dy3 = y - oy3;
+		const uNumerBase = (ox3 - ox2) * dy3;
+		const vNumerBase = (ox1 - ox3) * dy3;
+		const uDy = oy2 - oy3;
+		const vDy = oy3 - oy1;
+
 		for (let x = startX; x <= endX; x++) {
-			const t = spanW > 0 ? (x - startX) / spanW : 0;
-			callback(x, y, t, 0, 0);
+			const dx3 = x - ox3;
+			const u = (uDy * dx3 + uNumerBase) / denom;
+			const v = (vDy * dx3 + vNumerBase) / denom;
+			const w = 1 - u - v;
+			callback(x, y, u, v, w);
 		}
 	}
 }

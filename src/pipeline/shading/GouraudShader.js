@@ -4,9 +4,9 @@ export class GouraudShader {
 	/**
 	 * Computes a Gouraud-shaded HSL16 color for a vertex given its normal and scene lights.
 	 * @param {{ x: number, y: number, z: number }} vertexNormal Normalized vertex normal
-	 * @param {Array<{ direction: { x: number, y: number, z: number }, color: number, intensity: number }>} lights
+	 * @param {Array<{ direction: { x: number, y: number, z: number }, color: import('../../math/Color.js').Color | number, intensity: number }>} lights
 	 * @param {number} [ambientIntensity=0.1]
-	 * @returns {number} HSL16-encoded color
+	 * @returns {number} Raw float lightness in [0, 1] — quantized at pixel output, not here
 	 */
 	shade(vertexNormal, lights, ambientIntensity = 0.1) {
 		let intensity = ambientIntensity;
@@ -18,7 +18,6 @@ export class GouraudShader {
 			if (dot > 0) intensity += dot * light.intensity;
 		}
 
-		const l = MathUtils.clamp(intensity, 0, 1);
-		return MathUtils.packHsl16(0, 0, l);
+		return MathUtils.clamp(intensity, 0, 1);
 	}
 }

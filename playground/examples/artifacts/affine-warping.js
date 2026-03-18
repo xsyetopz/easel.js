@@ -1,9 +1,10 @@
 import {
 	BasicMaterial,
-	Camera,
 	CanvasTexture,
 	Clock,
 	Mesh,
+	OrthographicCamera,
+	PerspectiveCamera,
 	PlaneGeometry,
 	Renderer,
 	Scene,
@@ -26,70 +27,138 @@ function createCheckerTexture() {
 	return new CanvasTexture(offscreen);
 }
 
-export function setup(canvas) {
-	const width = canvas.width;
-	const height = canvas.height;
-	const aspect = width / height;
-	const size = 4;
-
+/** @param {number} segments */
+function createScene(segments) {
 	const scene = new Scene();
-	const camera = new Camera({
-		left: -size * aspect,
-		right: size * aspect,
-		top: size,
-		bottom: -size,
-		near: 0.1,
-		far: 100,
-	});
-	camera.position.z = 5;
-
-	const renderer = new Renderer({ canvas, width, height });
-
 	const texture = createCheckerTexture();
 	const mesh = new Mesh(
-		new PlaneGeometry(4, 4),
+		new PlaneGeometry(4, 4, segments, segments),
 		new BasicMaterial({ map: texture }),
 	);
 	scene.add(mesh);
+	return { scene, mesh };
+}
+
+export const controls = [
+	{
+		key: "segments",
+		type: "slider",
+		label: "Subdivisions",
+		min: 1,
+		max: 8,
+		step: 1,
+		default: 1,
+	},
+];
+
+export function setup(canvas, params) {
+	const fullWidth = canvas.width;
+	const fullHeight = canvas.height;
+	const halfWidth = Math.floor(fullWidth / 2);
+
+	const segments = params?.segments ?? 1;
+
+	// Left: orthographic
+	const orthoSize = 4;
+	const orthoAspect = halfWidth / fullHeight;
+	const orthoCamera = new OrthographicCamera({
+		left: -orthoSize * orthoAspect,
+		right: orthoSize * orthoAspect,
+		top: orthoSize,
+		bottom: -orthoSize,
+		near: 0.1,
+		far: 100,
+	});
+	orthoCamera.position.z = 5;
+
+	// Right: perspective
+	const perspCamera = new PerspectiveCamera({
+		fov: Math.PI / 3,
+		aspect: halfWidth / fullHeight,
+		near: 0.1,
+		far: 100,
+	});
+	perspCamera.position.z = 7;
+
+	const orthoRenderer = new Renderer({ width: halfWidth, height: fullHeight });
+	const perspRenderer = new Renderer({ width: halfWidth, height: fullHeight });
+
+	let { scene: orthoScene, mesh: orthoMesh } = createScene(segments);
+	let { scene: perspScene, mesh: perspMesh } = createScene(segments);
+
+	const ctx = canvas.getContext("2d");
+	ctx.imageSmoothingEnabled = false;
 
 	const clock = new Clock();
 	let animId;
+	let elapsed = 0;
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
 		const dt = clock.delta;
-		mesh.rotation.x += 0.2 * dt;
-		mesh.rotation.y += 0.5 * dt;
-		renderer.render(scene, camera);
+		elapsed += dt;
+
+		const wobbleAngle = 0.4;
+		orthoMesh.rotation.x = Math.sin(elapsed * 0.8) * wobbleAngle;
+		orthoMesh.rotation.y = Math.sin(elapsed * 0.5) * wobbleAngle;
+		perspMesh.rotation.x = orthoMesh.rotation.x;
+		perspMesh.rotation.y = orthoMesh.rotation.y;
+
+		orthoRenderer.render(orthoScene, orthoCamera);
+		perspRenderer.render(perspScene, perspCamera);
+
+		// Composite both halves onto the main canvas
+		const orthoCanvas = orthoRenderer.domElement;
+		const perspCanvas = perspRenderer.domElement;
+		if (orthoCanvas && perspCanvas) {
+			ctx.drawImage(orthoCanvas, 0, 0);
+			ctx.drawImage(perspCanvas, halfWidth, 0);
+		}
+
+		// Labels
+		ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+		ctx.fillRect(0, 0, 120, 24);
+		ctx.fillRect(halfWidth, 0, 120, 24);
+		ctx.fillStyle = "#fff";
+		ctx.font = "13px monospace";
+		ctx.fillText("Orthographic", 8, 16);
+		ctx.fillText("Perspective", halfWidth + 8, 16);
 	}
 	animate();
 
 	return {
+		update(newParams) {
+			const seg = newParams.segments ?? 1;
+			const result1 = createScene(seg);
+			orthoScene = result1.scene;
+			orthoMesh = result1.mesh;
+			const result2 = createScene(seg);
+			perspScene = result2.scene;
+			perspMesh = result2.mesh;
+		},
 		cleanup() {
 			if (animId !== undefined) cancelAnimationFrame(animId);
+			orthoRenderer.dispose();
+			perspRenderer.dispose();
 		},
 	};
 }
 
 export const source = `import {
-  Scene, Camera, Renderer, Clock,
+  Scene, OrthographicCamera, PerspectiveCamera, Renderer, Clock,
   PlaneGeometry, BasicMaterial, Mesh, CanvasTexture,
 } from "easel";
 
-// Affine texture warping: UVs interpolated linearly in screen space
-// without dividing by W. Large polygons at angle show visible distortion.
-// This is correct — perspective-correct mapping requires a W divide
-// that does not exist in this rasterizer.
+// Split-view: orthographic (left) vs perspective (right).
+// Orthographic produces exact UV mapping — no distortion.
+// Perspective shows affine warping: the diagonal seam and texture
+// swim from linear interpolation without W correction.
+// Increase subdivisions to reduce the artifact.
 
-const texture = createCheckerTexture(); // 128x128 max
+const orthoCamera = new OrthographicCamera({ ... });
+const perspCamera = new PerspectiveCamera({ fov: Math.PI / 3, aspect, ... });
+
 const mesh = new Mesh(
-  new PlaneGeometry(4, 4),
-  new BasicMaterial({ map: texture }),
-);
-
-function animate() {
-  requestAnimationFrame(animate);
-  mesh.rotation.x += 0.2 * clock.delta;
-  mesh.rotation.y += 0.5 * clock.delta;
-  renderer.render(scene, camera);
-}`;
+  new PlaneGeometry(4, 4, segments, segments),
+  new BasicMaterial({ map: checkerTexture }),
+);`;

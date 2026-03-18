@@ -26,11 +26,10 @@ bun run biome:check    # Biome lint + format (with --write)
 These are architectural, not bugs. Do not "fix" them.
 
 - **No z-buffer** — painter's algorithm, back-to-front sort by tile distance + layer integer
-- **Affine UV mapping** — no perspective-correct textures, no W divide
+- **Affine UV mapping** — no perspective-correct textures, visible with PerspectiveCamera
 - **HSL16 color** — 16-bit packed (6H/3S/7L), precomputed LUT to RGB
 - **Integer screen coords** — `Math.trunc()` on projected vertices (vertex wobble is correct)
 - **Flat/Gouraud shading only** — no per-pixel lighting
-- **Orthographic camera only** — no perspective camera exists
 - **9-step opacity** — discrete 0–8 integer, not continuous alpha
 - **128x128 max texture** — nearest-neighbor downsample, no mipmaps
 - **Tile-radius fog** — hard cutoff to black, no gradient
@@ -46,15 +45,16 @@ These are architectural, not bugs. Do not "fix" them.
 
 ## THREE.js name mapping
 
-| THREE.js             | Easel.js        | Why                     |
-| -------------------- | --------------- | ----------------------- |
-| `Object3D`           | `Node`          | Scene graph node        |
-| `BufferGeometry`     | `Geometry`      | No GPU buffers          |
-| `WebGLRenderer`      | `Renderer`      | One renderer            |
-| `OrthographicCamera` | `Camera`        | One camera type         |
-| `AnimationMixer`     | `Animator`      | Plays clips             |
-| `MeshBasicMaterial`  | `BasicMaterial` | "Mesh" prefix redundant |
-| `KeyframeTrack`      | `Track`         | All tracks are keyframe |
+| THREE.js             | Easel.js             | Why                     |
+| -------------------- | -------------------- | ----------------------- |
+| `Object3D`           | `Node`               | Scene graph node        |
+| `BufferGeometry`     | `Geometry`           | No GPU buffers          |
+| `WebGLRenderer`      | `Renderer`           | One renderer            |
+| `OrthographicCamera` | `OrthographicCamera` | Same name               |
+| `PerspectiveCamera`  | `PerspectiveCamera`  | Same name               |
+| `AnimationMixer`     | `Animator`           | Plays clips             |
+| `MeshBasicMaterial`  | `BasicMaterial`      | "Mesh" prefix redundant |
+| `KeyframeTrack`      | `Track`              | All tracks are keyframe |
 
 ## Design docs
 
