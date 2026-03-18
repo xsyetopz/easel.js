@@ -43,7 +43,7 @@ bun run biome:check    # Lint + format
 - Flat and Gouraud shading (no per-pixel lighting)
 - Orthographic projection only
 
-See [`docs/easel-vs-three.md`](docs/easel-vs-three.md) for the full design reference and THREE.js API mapping.
+See [`docs/EASEL_vs_THREE.md`](docs/EASEL_vs_THREE.md) for the full design reference and THREE.js API mapping.
 
 ## License
 

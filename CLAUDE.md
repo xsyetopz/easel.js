@@ -58,4 +58,4 @@ These are architectural, not bugs. Do not "fix" them.
 
 ## Design docs
 
-See [`docs/easel-vs-three.md`](docs/easel-vs-three.md) for the full API reference, RuneTek 3 engine study, and THREE.js divergence rationale.
+See [`docs/EASEL_vs_THREE.md`](docs/EASEL_vs_THREE.md) for the full API reference, RuneTek 3 engine study, and THREE.js divergence rationale.
