@@ -1,31 +1,43 @@
-import { Object3D } from "./Object3D.js";
+import { Node } from "../core/Node.js";
 
-export class Mesh extends Object3D {
-    #shape;
-    constructor(shape, material) {
-        super();
-        this.#shape = shape;
-        this.material = material;
-        this.updateMatrix();
-    }
+export class Mesh extends Node {
+	/** @override @type {string} */
+	type = "Mesh";
 
-    get shape() {
-        return this.#shape;
-    }
+	/** @type {import('../geometry/Geometry.js').Geometry|undefined} */
+	geometry;
 
-    set shape(value) {
-        this.#shape = value;
-        this.updateMatrix();
-    }
+	/** @type {import('../materials/Material.js').Material|undefined} */
+	material;
 
-    clone() {
-        return new Mesh(this.shape.clone(), this.material.clone()).copy(this);
-    }
+	/**
+	 * @param {import('../geometry/Geometry.js').Geometry} [geometry]
+	 * @param {import('../materials/Material.js').Material} [material]
+	 */
+	constructor(geometry = undefined, material = undefined) {
+		super();
+		this.geometry = geometry;
+		this.material = material;
+	}
 
-    copy(source) {
-        super.copy(source);
-        this.shape = source.shape.clone();
-        this.material = source.material.clone();
-        return this;
-    }
+	/**
+	 * @override
+	 * @returns {Mesh}
+	 */
+	clone() {
+		return new Mesh(this.geometry, this.material).copy(this);
+	}
+
+	/**
+	 * @override
+	 * @param {Mesh} source
+	 * @param {boolean} [recursive=true]
+	 * @returns {this}
+	 */
+	copy(source, recursive = true) {
+		super.copy(source, recursive);
+		this.geometry = source.geometry;
+		this.material = source.material;
+		return this;
+	}
 }

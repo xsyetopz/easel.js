@@ -1,478 +1,380 @@
-import { MathUtils } from "./MathUtils.js";
+import { Quaternion } from "./Quaternion.js";
+
+const _q = new Quaternion();
 
 export class Vector3 {
-    /**
-     * Creates new 3D vector.
-     * @param {number} [x=0] - x component
-     * @param {number} [y=0] - y component
-     * @param {number} [z=0] - z component
-     */
-    constructor(x = 0, y = 0, z = 0) {
-        /** @type {number} */
-        this.x = x;
-        /** @type {number} */
-        this.y = y;
-        /** @type {number} */
-        this.z = z;
-    }
+	#x = 0;
+	#y = 0;
+	#z = 0;
 
-    /**
-     * Adds another vector to this vector.
-     * @param {Vector3} v - vector to add
-     * @returns {Vector3} this vector for chaining
-     */
-    add(v) {
-        this.x += v.x;
-        this.y += v.y;
-        this.z += v.z;
-        return this;
-    }
+	/**
+	 * @param {number} [x]
+	 * @param {number} [y]
+	 * @param {number} [z]
+	 */
+	constructor(x = 0, y = 0, z = 0) {
+		this.#x = x;
+		this.#y = y;
+		this.#z = z;
+	}
 
-    /**
-     * Adds scalar value to this vector.
-     * @param {number} scalar - scalar value to add
-     * @returns {Vector3} this vector for chaining
-     */
-    addScalar(scalar) {
-        this.x += scalar;
-        this.y += scalar;
-        this.z += scalar;
-        return this;
-    }
+	/** @returns {number} */
+	get x() {
+		return this.#x;
+	}
 
-    /**
-     * Applies matrix transformation to this vector.
-     * @param {Mat4} m - transformation matrix
-     * @returns {Vector3} this vector for chaining
-     */
-    applyMatrix4(m) {
-        const { x, y, z } = this;
-        const e = m.elements;
+	/** @param {number} value */
+	set x(value) {
+		this.#x = value;
+	}
 
-        const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+	/** @returns {number} */
+	get y() {
+		return this.#y;
+	}
 
-        this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
-        this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
-        this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
-        return this;
-    }
+	/** @param {number} value */
+	set y(value) {
+		this.#y = value;
+	}
 
-    /**
-     * Applies quaternion rotation to this vector.
-     * @param {Quaternion} q - quaternion to apply
-     * @returns {Vector3} this vector for chaining
-     */
-    applyQuaternion(q) {
-        // quaternion * vector * quaternion^-1
-        const { x, y, z } = this;
-        const { x: qx, y: qy, z: qz, w: qw } = q;
+	/** @returns {number} */
+	get z() {
+		return this.#z;
+	}
 
-        // quat * vector
-        const ix = qw * x + qy * z - qz * y;
-        const iy = qw * y + qz * x - qx * z;
-        const iz = qw * z + qx * y - qy * x;
-        const iw = -qx * x - qy * y - qz * z;
+	/** @param {number} value */
+	set z(value) {
+		this.#z = value;
+	}
 
-        // result * inverse quat
-        this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
-        this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
-        this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
-        return this;
-    }
+	/** @returns {number} */
+	get length() {
+		return Math.sqrt(this.lengthSq);
+	}
 
-    /**
-     * Clones this vector
-     * @returns {Vector3} new vector with same values
-     */
-    clone() {
-        return new Vector3(this.x, this.y, this.z);
-    }
+	/** @returns {number} */
+	get lengthSq() {
+		const { x, y, z } = this;
+		return x * x + y * y + z * z;
+	}
 
-    /**
-     * Copies values from another vector.
-     * @param {Vector3} v - source vector
-     * @returns {Vector3} this vector for chaining
-     */
-    copy(v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
-        return this;
-    }
+	/**
+	 * @param {Vector3} v
+	 * @returns {this}
+	 */
+	add(v) {
+		this.x += v.x;
+		this.y += v.y;
+		this.z += v.z;
+		return this;
+	}
 
-    /**
-     * Calculates cross product with another vector.
-     * @param {Vector3} v - other vector
-     * @returns {Vector3} this vector for chaining
-     */
-    cross(v) {
-        const { x: ax, y: ay, z: az } = this;
-        const { x: bx, y: by, z: bz } = v;
-        this.x = ay * bz - az * by;
-        this.y = az * bx - ax * bz;
-        this.z = ax * by - ay * bx;
-        return this;
-    }
+	/**
+	 * Applies an Euler rotation (XYZ order) in-place.
+	 * @param {{ x: number, y: number, z: number, order: string }} euler
+	 * @returns {this}
+	 */
+	applyEuler(euler) {
+		_q.setFromEuler(euler);
+		return this.applyQuaternion(_q);
+	}
 
-    /**
-     * Sets this vector to cross product of two other vectors.
-     * @param {Vector3} a - first vector
-     * @param {Vector3} b - second vector
-     * @returns {Vector3} this vector for chaining
-     */
-    crossVectors(a, b) {
-        const { x: ax, y: ay, z: az } = a;
-        const { x: bx, y: by, z: bz } = b;
-        this.x = ay * bz - az * by;
-        this.y = az * bx - ax * bz;
-        this.z = ax * by - ay * bx;
-        return this;
-    }
+	/**
+	 * Multiplies this vector by a 3x3 matrix (column-major flat array).
+	 * @param {{ elements: ArrayLike<number> }} m
+	 * @returns {this}
+	 */
+	applyMatrix3(m) {
+		const me = m.elements;
+		const { x, y, z } = this;
+		this.x = me[0] * x + me[3] * y + me[6] * z;
+		this.y = me[1] * x + me[4] * y + me[7] * z;
+		this.z = me[2] * x + me[5] * y + me[8] * z;
+		return this;
+	}
 
-    /**
-     * Calculates distance to another vector.
-     * @param {Vector3} v - other vector
-     * @returns {number} distance
-     */
-    distanceTo(v) {
-        return Math.sqrt(this.distanceToSq(v));
-    }
+	/**
+	 * Multiplies this vector by a 4x4 matrix (column-major flat array), treating w=1.
+	 * @param {{ elements: ArrayLike<number> }} m
+	 * @returns {this}
+	 */
+	applyMatrix4(m) {
+		const me = m.elements;
+		const { x, y, z } = this;
+		const w = 1 / (me[3] * x + me[7] * y + me[11] * z + me[15] || 1);
+		this.x = (me[0] * x + me[4] * y + me[8] * z + me[12]) * w;
+		this.y = (me[1] * x + me[5] * y + me[9] * z + me[13]) * w;
+		this.z = (me[2] * x + me[6] * y + me[10] * z + me[14]) * w;
+		return this;
+	}
 
-    /**
-     * Calculates squared distance to another vector.
-     * @param {Vector3} v - other vector
-     * @returns {number} squared distance
-     */
-    distanceToSq(v) {
-        const dx = this.x - v.x;
-        const dy = this.y - v.y;
-        const dz = this.z - v.z;
-        return dx * dx + dy * dy + dz * dz;
-    }
+	/**
+	 * Rotates this vector by a quaternion.
+	 * @param {{ x: number, y: number, z: number, w: number }} q
+	 * @returns {this}
+	 */
+	applyQuaternion(q) {
+		const { x, y, z } = this;
+		const qx = q.x;
+		const qy = q.y;
+		const qz = q.z;
+		const qw = q.w;
+		const ix = qw * x + qy * z - qz * y;
+		const iy = qw * y + qz * x - qx * z;
+		const iz = qw * z + qx * y - qy * x;
+		const iw = -qx * x - qy * y - qz * z;
+		this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+		this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+		this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+		return this;
+	}
 
-    /**
-     * Divides this vector by another vector. (component-wise)
-     * @param {Vector3} v - vector to divide by
-     * @returns {Vector3} this vector for chaining
-     */
-    div(v) {
-        this.x /= v.x;
-        this.y /= v.y;
-        this.z /= v.z;
-        return this;
-    }
+	/**
+	 * @returns {Vector3}
+	 */
+	clone() {
+		return new Vector3(this.x, this.y, this.z);
+	}
 
-    /**
-     * Divides this vector by scalar value.
-     * @param {number} scalar - scalar value to divide by
-     * @returns {Vector3} this vector for chaining
-     */
-    divScalar(scalar) {
-        this.x /= scalar;
-        this.y /= scalar;
-        this.z /= scalar;
-        return this;
-    }
+	/**
+	 * @param {Vector3} v
+	 * @returns {this}
+	 */
+	copy(v) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+		return this;
+	}
 
-    /**
-     * Calculates dot product with another vector.
-     * @param {Vector3} v - other vector
-     * @returns {number} dot product
-     */
-    dot(v) {
-        return this.x * v.x + this.y * v.y + this.z * v.z;
-    }
+	/**
+	 * Cross product of two 3D vectors, returned as a new Vector3.
+	 * @param {number} x1
+	 * @param {number} y1
+	 * @param {number} z1
+	 * @param {number} x2
+	 * @param {number} y2
+	 * @param {number} z2
+	 * @returns {Vector3}
+	 */
+	static cross(x1, y1, z1, x2, y2, z2) {
+		return new Vector3(y1 * z2 - y2 * z1, z1 * x2 - z2 * x1, x1 * y2 - x2 * y1);
+	}
 
-    /**
-     * Checks if this vector equals another vector.
-     * @param {Vector3} v - other vector
-     * @returns {boolean} true if equal
-     */
-    equals(v) {
-        return MathUtils.equals(this.x, v.x) &&
-            MathUtils.equals(this.y, v.y) &&
-            MathUtils.equals(this.z, v.z);
-    }
+	/**
+	 * Sets this vector to the cross product of this × v.
+	 * @param {Vector3} v
+	 * @returns {this}
+	 */
+	cross(v) {
+		return this.crossVectors(this, v);
+	}
 
-    /**
-     * Sets this vector from array values.
-     * @param {number[]} array - array with x, y, z values
-     * @param {number} [offset=0] - offset into array
-     * @returns {Vector3} this vector for chaining
-     */
-    fromArray(array, offset = 0) {
-        this.x = array[offset];
-        this.y = array[offset + 1];
-        this.z = array[offset + 2];
-        return this;
-    }
+	/**
+	 * Sets this vector to the cross product of a × b.
+	 * @param {Vector3} a
+	 * @param {Vector3} b
+	 * @returns {this}
+	 */
+	crossVectors(a, b) {
+		const ax = a.x;
+		const ay = a.y;
+		const az = a.z;
+		const bx = b.x;
+		const by = b.y;
+		const bz = b.z;
+		this.x = ay * bz - az * by;
+		this.y = az * bx - ax * bz;
+		this.z = ax * by - ay * bx;
+		return this;
+	}
 
-    /**
-     * Calculates length of this vector.
-     * @returns {number} length
-     */
-    length() {
-        return Math.sqrt(this.lengthSq());
-    }
+	/**
+	 * @param {Vector3} v
+	 * @returns {number}
+	 */
+	distanceTo(v) {
+		return Math.sqrt(this.distanceSqTo(v));
+	}
 
-    /**
-     * Calculates squared length of this vector.
-     * @returns {number} squared length
-     */
-    lengthSq() {
-        const { x, y, z } = this;
-        return x * x + y * y + z * z;
-    }
+	/**
+	 * @param {Vector3} v
+	 * @returns {number}
+	 */
+	distanceSqTo(v) {
+		const dx = this.x - v.x;
+		const dy = this.y - v.y;
+		const dz = this.z - v.z;
+		return dx * dx + dy * dy + dz * dz;
+	}
 
-    /**
-     * Linearly interpolates between this vector and another.
-     * @param {Vector3} v - target vector
-     * @param {number} alpha - interpolation factor (0-1)
-     * @returns {Vector3} this vector for chaining
-     */
-    lerp(v, alpha) {
-        this.x = MathUtils.lerp(this.x, v.x, alpha);
-        this.y = MathUtils.lerp(this.y, v.y, alpha);
-        this.z = MathUtils.lerp(this.z, v.z, alpha);
-        return this;
-    }
+	/**
+	 * @param {number} scalar
+	 * @returns {this}
+	 */
+	divScalar(scalar) {
+		return this.mulScalar(1 / scalar);
+	}
 
-    /**
-     * Multiplies this vector by another vector. (component-wise)
-     * @param {Vector3} v - vector to multiply by
-     * @returns {Vector3} this vector for chaining
-     */
-    mul(v) {
-        this.x *= v.x;
-        this.y *= v.y;
-        this.z *= v.z;
-        return this;
-    }
+	/**
+	 * Dot product of (x, y, z) with a target vector.
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} z
+	 * @param {Vector3} [target]
+	 * @returns {number}
+	 */
+	static dot(x, y, z, target = new Vector3()) {
+		return x * target.x + y * target.y + z * target.z;
+	}
 
-    /**
-     * Multiplies this vector by scalar value.
-     * @param {number} scalar - scalar value to multiply by
-     * @returns {Vector3} this vector for chaining
-     */
-    mulScalar(scalar) {
-        this.x *= scalar;
-        this.y *= scalar;
-        this.z *= scalar;
-        return this;
-    }
+	/**
+	 * @param {{ x: number, y: number, z: number }} v
+	 * @returns {number}
+	 */
+	dot(v) {
+		return this.x * v.x + this.y * v.y + this.z * v.z;
+	}
 
-    /**
-     * Rotates this vector by an angle.
-     * @param {number} angle - angle in radians
-     * @returns {Vector3} this vector for chaining
-     */
-    rotate(angle) {
-        const cos = Math.cos(angle);
-        const sin = Math.sin(angle);
+	/**
+	 * @param {Vector3} v
+	 * @returns {boolean}
+	 */
+	equals(v) {
+		return this.x === v.x && this.y === v.y && this.z === v.z;
+	}
 
-        const { x, y, z } = this;
-        this.x = x * cos - y * sin;
-        this.y = x * sin + y * cos;
-        this.z = z;
-        return this;
-    }
+	/**
+	 * @param {number[]} array
+	 * @returns {this}
+	 */
+	fromArray(array) {
+		this.x = array[0];
+		this.y = array[1];
+		this.z = array[2];
+		return this;
+	}
 
-    /**
-     * Negates this vector.
-     * @returns {Vector3} this vector for chaining
-     */
-    neg() {
-        this.x = -this.x;
-        this.y = -this.y;
-        this.z = -this.z;
-        return this;
-    }
+	/**
+	 * Linearly interpolates toward v by t.
+	 * @param {Vector3} v
+	 * @param {number} t
+	 * @returns {this}
+	 */
+	lerp(v, t) {
+		this.x += (v.x - this.x) * t;
+		this.y += (v.y - this.y) * t;
+		this.z += (v.z - this.z) * t;
+		return this;
+	}
 
-    /**
-     * Projects this vector onto another vector.
-     * @param {Vector3} v - vector to project onto
-     * @returns {Vector3} this vector for chaining
-     */
-    project(v) {
-        const denominator = v.lengthSq();
-        if (denominator === 0) return this.set(0, 0, 0);
+	/**
+	 * @param {number} scalar
+	 * @returns {this}
+	 */
+	mulScalar(scalar) {
+		this.x *= scalar;
+		this.y *= scalar;
+		this.z *= scalar;
+		return this;
+	}
 
-        const scalar = v.dot(this) / denominator;
-        return this.copy(v).mulScalar(scalar);
-    }
+	/**
+	 * @returns {this}
+	 */
+	negate() {
+		this.x = -this.x;
+		this.y = -this.y;
+		this.z = -this.z;
+		return this;
+	}
 
-    /**
-     * Sets components of this vector.
-     * @param {number} x - x component
-     * @param {number} y - y component
-     * @param {number} z - z component
-     * @returns {Vector3} this vector for chaining
-     */
-    set(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        return this;
-    }
+	/**
+	 * Normalizes this vector to unit length.
+	 * @returns {this}
+	 */
+	normalize() {
+		const len = this.length;
+		return len > 0 ? this.divScalar(len) : this.set(0, 0, 0);
+	}
 
-    /**
-     * Sets this vector from matrix position. (translation component)
-     * @param {Matrix4} m - source matrix
-     * @returns {Vector3} this vector for chaining
-     */
-    setFromMatrixPosition(m) {
-        const me = m.elements;
-        this.x = me[12];
-        this.y = me[13];
-        this.z = me[14];
-        return this;
-    }
+	/**
+	 * Projects this world-space vector into normalized device coordinates
+	 * using the camera's matrixWorldInverse and projectionMatrix.
+	 * @param {{ matrixWorldInverse: { elements: number[] }, projectionMatrix: { elements: number[] } }} camera
+	 * @returns {this}
+	 */
+	project(camera) {
+		return this.applyMatrix4(camera.matrixWorldInverse).applyMatrix4(
+			camera.projectionMatrix,
+		);
+	}
 
-    /**
-     * Sets all components to same scalar value.
-     * @param {number} scalar - scalar value to set
-     * @returns {Vector3} this vector for chaining
-     */
-    setScalar(scalar) {
-        this.x = scalar;
-        this.y = scalar;
-        this.z = scalar;
-        return this;
-    }
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} z
+	 * @returns {this}
+	 */
+	set(x, y, z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		return this;
+	}
 
-    /**
-     * Subtracts another vector from this vector.
-     * @param {Vector3} v - vector to subtract
-     * @returns {Vector3} this vector for chaining
-     */
-    sub(v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        this.z -= v.z;
-        return this;
-    }
+	/**
+	 * Reads the translation column from a 4x4 column-major matrix.
+	 * @param {{ elements: ArrayLike<number> }} m
+	 * @returns {this}
+	 */
+	setFromMatrixPosition(m) {
+		const me = m.elements;
+		this.x = me[12];
+		this.y = me[13];
+		this.z = me[14];
+		return this;
+	}
 
-    /**
-     * Subtracts scalar value from this vector.
-     * @param {number} scalar - scalar value to subtract
-     * @returns {Vector3} this vector for chaining
-     */
-    subScalar(scalar) {
-        this.x -= scalar;
-        this.y -= scalar;
-        this.z -= scalar;
-        return this;
-    }
+	/**
+	 * @param {number} scalar
+	 * @returns {this}
+	 */
+	setScalar(scalar) {
+		this.x = scalar;
+		this.y = scalar;
+		this.z = scalar;
+		return this;
+	}
 
-    /**
-     * Sets this vector to difference of two vectors. (a - b)
-     * @param {Vector3} a - first vector
-     * @param {Vector3} b - second vector to subtract
-     * @returns {Vector3} this vector for chaining
-     */
-    subVectors(a, b) {
-        this.x = a.x - b.x;
-        this.y = a.y - b.y;
-        this.z = a.z - b.z;
-        return this;
-    }
+	/**
+	 * @param {Vector3} v
+	 * @returns {this}
+	 */
+	sub(v) {
+		this.x -= v.x;
+		this.y -= v.y;
+		this.z -= v.z;
+		return this;
+	}
 
-    /**
-     * Returns array representation.
-     * @returns {number[]} [x, y, z]
-     */
-    toArray() {
-        return [this.x, this.y, this.z];
-    }
+	/**
+	 * Sets this vector to a - b.
+	 * @param {Vector3} a
+	 * @param {Vector3} b
+	 * @returns {this}
+	 */
+	subVectors(a, b) {
+		this.x = a.x - b.x;
+		this.y = a.y - b.y;
+		this.z = a.z - b.z;
+		return this;
+	}
 
-    /**
-     * Unitizes this vector.
-     * @returns {Vector3} this vector for chaining
-     */
-    unitize() {
-        return this.divScalar(this.length() || 1);
-    }
-
-    /**
-     * Vector with zero values.
-     * @type {Vector3}
-     */
-    static ZERO = new Vector3(0, 0, 0);
-
-    /**
-     * Vector with one values.
-     * @type {Vector3}
-     */
-    static ONE = new Vector3(1, 1, 1);
-
-    /**
-     * Unit vector pointing up.
-     * @type {Vector3}
-     */
-    static UP = new Vector3(0, 1, 0);
-
-    /**
-     * Unit vector pointing down.
-     * @type {Vector3}
-     */
-    static DOWN = new Vector3(0, -1, 0);
-
-    /**
-     * Unit vector pointing left.
-     * @type {Vector3}
-     */
-    static LEFT = new Vector3(-1, 0, 0);
-
-    /**
-     * Unit vector pointing right.
-     * @type {Vector3}
-     */
-    static RIGHT = new Vector3(1, 0, 0);
-
-    /**
-     * Unit vector pointing forward.
-     * @type {Vector3}
-     */
-    static FORWARD = new Vector3(0, 0, -1);
-
-    /**
-     * Unit vector pointing back.
-     * @type {Vector3}
-     */
-    static BACK = new Vector3(0, 0, 1);
-
-    /**
-     * Calculates cross product of two vectors.
-     * @param {Vector3} a - first vector
-     * @param {Vector3} b - second vector
-     * @returns {Vector3} new vector with cross product result
-     */
-    static crossVectors(a, b) {
-        return new Vector3().copy(a).cross(b);
-    }
-
-    /**
-     * Creates vector from angle and length.
-     * @param {number} angle - angle in radians
-     * @param {number} [length=1] - length of vector
-     * @returns {Vector3} new vector
-     */
-    static fromAngle(angle, length = 1) {
-        return new Vector3(
-            Math.cos(angle) * length,
-            Math.sin(angle) * length,
-            0 // Z component 0 for 2D angles
-        );
-    }
-
-    /**
-     * Linearly interpolates between two vectors.
-     * @param {Vector3} a - start vector
-     * @param {Vector3} b - end vector
-     * @param {number} alpha - interpolation factor (0-1)
-     * @returns {Vector3} new interpolated vector
-     */
-    static lerpVectors(a, b, alpha) {
-        return new Vector3().copy(a).lerp(b, alpha);
-    }
+	*[Symbol.iterator]() {
+		yield this.x;
+		yield this.y;
+		yield this.z;
+	}
 }
