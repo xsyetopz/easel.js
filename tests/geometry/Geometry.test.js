@@ -154,7 +154,7 @@ describe("Geometry", () => {
 			g.setIndex(new Uint16Array([0]));
 			g.dispose();
 			expect(g.getAttribute("position")).toBeUndefined();
-			expect(g.index).toBeundefined();
+			expect(g.index).toBeUndefined();
 		});
 	});
 

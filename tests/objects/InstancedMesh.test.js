@@ -47,7 +47,7 @@ describe("InstancedMesh", () => {
 
 	it("instanceColor is undefined before setColorAt", () => {
 		const mesh = new InstancedMesh(undefined, undefined, 2);
-		expect(mesh.instanceColor).toBeundefined();
+		expect(mesh.instanceColor).toBeUndefined();
 	});
 
 	it("setColorAt lazily allocates instanceColor and round-trips", () => {

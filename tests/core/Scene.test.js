@@ -10,7 +10,7 @@ describe("Scene", () => {
 
 	it("fog defaults to undefined", () => {
 		const scene = new Scene();
-		expect(scene.fog).toBeundefined();
+		expect(scene.fog).toBeUndefined();
 	});
 
 	it("fog can be assigned", () => {

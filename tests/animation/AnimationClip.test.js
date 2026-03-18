@@ -31,7 +31,7 @@ describe("AnimationClip", () => {
 
 	it("findByName returns undefined when not found", () => {
 		const a = new AnimationClip("run", 1, []);
-		expect(AnimationClip.findByName([a], "jump")).toBeundefined();
+		expect(AnimationClip.findByName([a], "jump")).toBeUndefined();
 	});
 
 	it("duration 0 for empty tracks when auto-computed", () => {

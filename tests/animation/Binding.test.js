@@ -28,7 +28,7 @@ describe("Binding", () => {
 	it("resolveNode returns undefined for unknown name", () => {
 		const root = new Node();
 		const b = new Binding(root, "unknown.position");
-		expect(b.resolveNode()).toBeundefined();
+		expect(b.resolveNode()).toBeUndefined();
 	});
 
 	it("getValue reads Vector3 position into array", () => {

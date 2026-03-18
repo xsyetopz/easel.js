@@ -44,7 +44,7 @@ describe("Animator", () => {
 	it("existingAction returns undefined before clipAction", () => {
 		const animator = new Animator(makeRoot());
 		const clip = makeClip();
-		expect(animator.existingAction(clip)).toBeundefined();
+		expect(animator.existingAction(clip)).toBeUndefined();
 	});
 
 	it("existingAction returns cached action after clipAction", () => {

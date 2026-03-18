@@ -8,7 +8,7 @@ describe("Raycaster", () => {
 		expect(rc.ray).toBeDefined();
 		expect(rc.near).toBe(0);
 		expect(rc.far).toBe(Number.POSITIVE_INFINITY);
-		expect(rc.camera).toBeundefined();
+		expect(rc.camera).toBeUndefined();
 	});
 
 	it("constructs with provided origin and direction", () => {
