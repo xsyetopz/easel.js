@@ -1,12 +1,4 @@
-import {
-	BasicMaterial,
-	BoxGeometry,
-	Clock,
-	Mesh,
-	OrthographicCamera,
-	Renderer,
-	Scene,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{
@@ -42,8 +34,8 @@ export function setup(canvas, params = {}) {
 	const aspect = width / height;
 	const size = 3;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -53,17 +45,17 @@ export function setup(canvas, params = {}) {
 	});
 	camera.position.z = 5;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	const material = new BasicMaterial({ color: 0x4488cc });
-	const box = new Mesh(new BoxGeometry(1.5, 1.5, 1.5), material);
+	const material = new EASEL.BasicMaterial({ color: 0x4488cc });
+	const box = new EASEL.Mesh(new EASEL.BoxGeometry(1.5, 1.5, 1.5), material);
 	scene.add(box);
 
 	let rotationSpeed = params.rotationSpeed ?? 1;
 	let bounce = params.bounce ?? "None";
 	let scale = params.scale ?? 1;
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let elapsed = 0;
 	let animId;
 
@@ -106,17 +98,17 @@ export function setup(canvas, params = {}) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, Renderer, Clock,
-  BoxGeometry, BasicMaterial, Mesh,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.BoxGeometry, EASEL.BasicMaterial, EASEL.Mesh,
 } from "easel";
 
-const box = new Mesh(
-  new BoxGeometry(1.5, 1.5, 1.5),
-  new BasicMaterial({ color: 0x4488cc }),
+const box = new EASEL.Mesh(
+  new EASEL.BoxGeometry(1.5, 1.5, 1.5),
+  new EASEL.BasicMaterial({ color: 0x4488cc }),
 );
 scene.add(box);
 
-const clock = new Clock();
+const clock = new EASEL.Clock();
 let elapsed = 0;
 
 function animate() {

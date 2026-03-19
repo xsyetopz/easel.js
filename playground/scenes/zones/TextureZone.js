@@ -1,19 +1,9 @@
-import {
-	AmbientLight,
-	BasicMaterial,
-	BoxGeometry,
-	CanvasTexture,
-	DataTexture,
-	DirectionalLight,
-	Mesh,
-	TextureLoader,
-	Vector3,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 /**
  * Builds a 64x64 CanvasTexture with a colored background and "Easel" text.
  *
- * @returns {CanvasTexture}
+ * @returns {EASEL.CanvasTexture}
  */
 function buildCanvasTexture() {
 	const texCanvas = document.createElement("canvas");
@@ -27,13 +17,13 @@ function buildCanvasTexture() {
 	ctx.font = "bold 20px monospace";
 	ctx.textAlign = "center";
 	ctx.fillText("Easel", 32, 38);
-	return new CanvasTexture(texCanvas);
+	return new EASEL.CanvasTexture(texCanvas);
 }
 
 /**
  * Builds a 32x32 procedural checkerboard DataTexture.
  *
- * @returns {DataTexture}
+ * @returns {EASEL.DataTexture}
  */
 function buildDataTexture() {
 	const size = 32;
@@ -48,7 +38,7 @@ function buildDataTexture() {
 			data[i + 3] = 255;
 		}
 	}
-	const tex = new DataTexture(data, size, size);
+	const tex = new EASEL.DataTexture(data, size, size);
 	tex.needsUpdate = true;
 	return tex;
 }
@@ -56,49 +46,55 @@ function buildDataTexture() {
 /**
  * Texture Workshop zone - loaded texture, canvas texture, and procedural DataTexture.
  *
- * @param {import("@/index.js").Scene} scene
- * @param {import("@/index.js").PerspectiveCamera} camera
+ * @param {EASEL.Scene} scene
+ * @param {EASEL.PerspectiveCamera} camera
  * @param {HTMLCanvasElement} _canvas
  * @returns {{ controls: Array<object>, animate: (dt: number) => void, update: (params: Record<string, unknown>) => void, dispose: () => void }}
  */
 export function setup(scene, camera, _canvas) {
 	camera.position.set(0, 2, 10);
-	camera.lookAt(new Vector3(0, 0, 0));
+	camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
-	const ambient = new AmbientLight(0xffffff, 0.4);
+	const ambient = new EASEL.AmbientLight(0xffffff, 0.4);
 	scene.add(ambient);
 
-	const sun = new DirectionalLight(0xffffff, 0.6);
+	const sun = new EASEL.DirectionalLight(0xffffff, 0.6);
 	sun.position.set(3, 5, 4);
 	scene.add(sun);
 
 	// Left: TextureLoader (async, starts with plain color until loaded)
-	const leftMat = new BasicMaterial({ color: 0x888888 });
-	const leftBox = new Mesh(new BoxGeometry(1.8, 1.8, 1.8), leftMat);
+	const leftMat = new EASEL.BasicMaterial({ color: 0x888888 });
+	const leftBox = new EASEL.Mesh(new EASEL.BoxGeometry(1.8, 1.8, 1.8), leftMat);
 	leftBox.position.set(-3, 0, 0);
 	scene.add(leftBox);
 
-	const loader = new TextureLoader();
+	const loader = new EASEL.TextureLoader();
 	loader.load("textures/Brick_01.png", (tex) => {
 		leftMat.map = tex;
 		leftMat.color = 0xffffff;
 	});
 
 	// Center: CanvasTexture
-	const centerMat = new BasicMaterial({
+	const centerMat = new EASEL.BasicMaterial({
 		color: 0xffffff,
 		map: buildCanvasTexture(),
 	});
-	const centerBox = new Mesh(new BoxGeometry(1.8, 1.8, 1.8), centerMat);
+	const centerBox = new EASEL.Mesh(
+		new EASEL.BoxGeometry(1.8, 1.8, 1.8),
+		centerMat,
+	);
 	centerBox.position.set(0, 0, 0);
 	scene.add(centerBox);
 
 	// Right: DataTexture checkerboard
-	const rightMat = new BasicMaterial({
+	const rightMat = new EASEL.BasicMaterial({
 		color: 0xffffff,
 		map: buildDataTexture(),
 	});
-	const rightBox = new Mesh(new BoxGeometry(1.8, 1.8, 1.8), rightMat);
+	const rightBox = new EASEL.Mesh(
+		new EASEL.BoxGeometry(1.8, 1.8, 1.8),
+		rightMat,
+	);
 	rightBox.position.set(3, 0, 0);
 	scene.add(rightBox);
 

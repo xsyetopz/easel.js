@@ -1,21 +1,10 @@
-import {
-	AmbientLight,
-	BoxGeometry,
-	Clock,
-	DirectionalLight,
-	LambertMaterial,
-	Mesh,
-	OrthographicCamera,
-	PerspectiveCamera,
-	Renderer,
-	Scene,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 function createScene() {
-	const scene = new Scene();
+	const scene = new EASEL.Scene();
 
-	scene.add(new AmbientLight(0xffffff, 0.3));
-	const dirLight = new DirectionalLight(0xffffff, 0.9);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.3));
+	const dirLight = new EASEL.DirectionalLight(0xffffff, 0.9);
 	dirLight.position.set(4, 6, 5);
 	scene.add(dirLight);
 
@@ -25,11 +14,11 @@ function createScene() {
 		{ color: 0x6060e0, z: -6 },
 	];
 
-	/** @type {Mesh[]} */
+	/** @type {EASEL.Mesh[]} */
 	const meshes = configs.map(({ color, z }) => {
-		const mesh = new Mesh(
-			new BoxGeometry(1.5, 1.5, 1.5),
-			new LambertMaterial({ color }),
+		const mesh = new EASEL.Mesh(
+			new EASEL.BoxGeometry(1.5, 1.5, 1.5),
+			new EASEL.LambertMaterial({ color }),
 		);
 		mesh.position.set(0, 0, z);
 		scene.add(mesh);
@@ -47,7 +36,7 @@ export function setup(canvas) {
 	const aspect = halfWidth / fullHeight;
 
 	const orthoSize = 3;
-	const orthoCamera = new OrthographicCamera({
+	const orthoCamera = new EASEL.OrthographicCamera({
 		left: -orthoSize * aspect,
 		right: orthoSize * aspect,
 		top: orthoSize,
@@ -57,7 +46,7 @@ export function setup(canvas) {
 	});
 	orthoCamera.position.z = 8;
 
-	const perspCamera = new PerspectiveCamera({
+	const perspCamera = new EASEL.PerspectiveCamera({
 		fov: Math.PI / 4,
 		aspect,
 		near: 0.1,
@@ -68,13 +57,19 @@ export function setup(canvas) {
 	const { scene: orthoScene, meshes: orthoMeshes } = createScene();
 	const { scene: perspScene, meshes: perspMeshes } = createScene();
 
-	const orthoRenderer = new Renderer({ width: halfWidth, height: fullHeight });
-	const perspRenderer = new Renderer({ width: halfWidth, height: fullHeight });
+	const orthoRenderer = new EASEL.Renderer({
+		width: halfWidth,
+		height: fullHeight,
+	});
+	const perspRenderer = new EASEL.Renderer({
+		width: halfWidth,
+		height: fullHeight,
+	});
 
 	const ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = false;
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let elapsed = 0;
 	let animId;
 
@@ -120,16 +115,16 @@ export function setup(canvas) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, PerspectiveCamera, Renderer, Clock,
-  AmbientLight, DirectionalLight, BoxGeometry, LambertMaterial, Mesh,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.PerspectiveCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.AmbientLight, EASEL.DirectionalLight, EASEL.BoxGeometry, EASEL.LambertMaterial, EASEL.Mesh,
 } from "easel";
 
 // Orthographic: parallel projection - depth doesn't shrink objects.
 // Perspective: frustum projection - distant boxes appear smaller.
 // Both cameras are at z=8, looking at boxes at z=0, -3, -6.
 
-const orthoCamera = new OrthographicCamera({ left: -4, right: 4, top: 3, bottom: -3 });
-const perspCamera = new PerspectiveCamera({ fov: Math.PI / 4, aspect });
+const orthoCamera = new EASEL.OrthographicCamera({ left: -4, right: 4, top: 3, bottom: -3 });
+const perspCamera = new EASEL.PerspectiveCamera({ fov: Math.PI / 4, aspect });
 
 // Composite two half-width renderers onto one canvas:
 ctx.drawImage(orthoRenderer.domElement, 0, 0);

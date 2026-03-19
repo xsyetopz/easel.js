@@ -1,16 +1,4 @@
-import {
-	AmbientLight,
-	Clock,
-	Color,
-	DirectionalLight,
-	LambertMaterial,
-	Mesh,
-	OrthographicCamera,
-	Renderer,
-	Scene,
-	Shading,
-	SphereGeometry,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{
@@ -39,8 +27,8 @@ export function setup(canvas, params = {}) {
 	const aspect = width / height;
 	const size = 3;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -50,24 +38,27 @@ export function setup(canvas, params = {}) {
 	});
 	camera.position.z = 5;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new AmbientLight(0xffffff, 0.2));
-	const dirLight = new DirectionalLight(0xffffff, 1);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.2));
+	const dirLight = new EASEL.DirectionalLight(0xffffff, 1);
 	dirLight.position.set(3, 5, 4);
 	scene.add(dirLight);
 
 	const hue = params.hue ?? 10;
 	const sat = params.saturation ?? 4;
-	const material = new LambertMaterial({
-		color: new Color().setHSL(hue / 63, sat / 7, 0.5),
-		shading: Shading.Gouraud,
+	const material = new EASEL.LambertMaterial({
+		color: new EASEL.Color().setHSL(hue / 63, sat / 7, 0.5),
+		shading: EASEL.Shading.Gouraud,
 	});
 
-	const sphere = new Mesh(new SphereGeometry(2.5, 32, 24), material);
+	const sphere = new EASEL.Mesh(
+		new EASEL.SphereGeometry(2.5, 32, 24),
+		material,
+	);
 	scene.add(sphere);
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -91,23 +82,23 @@ export function setup(canvas, params = {}) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, Renderer, Clock,
-  AmbientLight, DirectionalLight,
-  SphereGeometry, LambertMaterial, Mesh,
-  Shading, Color,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.AmbientLight, EASEL.DirectionalLight,
+  EASEL.SphereGeometry, EASEL.LambertMaterial, EASEL.Mesh,
+  EASEL.Shading, EASEL.Color,
 } from "easel";
 
 // HSL16 packs: 6-bit hue (0-63), 3-bit saturation (0-7), 7-bit lightness (0-127).
 // Gouraud interpolates the quantized values across each face - the banding
 // visible in the gradient is the quantization artifact, not a rendering bug.
 
-const material = new LambertMaterial({
-  color: new Color().setHSL(10 / 63, 4 / 7, 0.5),
-  shading: Shading.Gouraud,
+const material = new EASEL.LambertMaterial({
+  color: new EASEL.Color().setHSL(10 / 63, 4 / 7, 0.5),
+  shading: EASEL.Shading.Gouraud,
 });
 
-const sphere = new Mesh(
-  new SphereGeometry(2.5, 32, 24),
+const sphere = new EASEL.Mesh(
+  new EASEL.SphereGeometry(2.5, 32, 24),
   material,
 );
 

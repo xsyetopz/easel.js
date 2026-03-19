@@ -1,14 +1,4 @@
-import {
-	AmbientLight,
-	DirectionalLight,
-	ExtrudeGeometry,
-	LambertMaterial,
-	Mesh,
-	PlaneGeometry,
-	RingGeometry,
-	Shape,
-	ShapeGeometry,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 const PALETTE = [
 	0xffd54f, // amber
@@ -35,10 +25,10 @@ function gridPosition(i) {
 /**
  * Builds a star Shape for ShapeGeometry / ExtrudeGeometry.
  *
- * @returns {Shape}
+ * @returns {EASEL.Shape}
  */
 function buildStarShape() {
-	const shape = new Shape();
+	const shape = new EASEL.Shape();
 	const points = 5;
 	const outer = 0.6;
 	const inner = 0.3;
@@ -56,37 +46,40 @@ function buildStarShape() {
 /**
  * Planar zone - Plane, Ring, Shape, Extrude.
  *
- * @param {import("@/index.js").Scene} scene
- * @param {import("@/index.js").PerspectiveCamera} camera
+ * @param {EASEL.Scene} scene
+ * @param {EASEL.PerspectiveCamera} camera
  * @returns {{ controls: Array<object>, animate: (dt: number) => void, update: (params: Record<string, unknown>) => void, dispose: () => void }}
  */
 export function setup(scene, camera) {
 	camera.position.set(4, 4, 7);
 	camera.lookAt(0, 0, 0);
 
-	const ambient = new AmbientLight(0xffffff, 0.5);
+	const ambient = new EASEL.AmbientLight(0xffffff, 0.5);
 	scene.add(ambient);
 
-	const sun = new DirectionalLight(0xffffff, 0.6);
+	const sun = new EASEL.DirectionalLight(0xffffff, 0.6);
 	sun.position.set(5, 10, 7);
 	scene.add(sun);
 
 	const star = buildStarShape();
 
 	const geometries = [
-		{ label: "Plane", geometry: new PlaneGeometry(1.4, 1.4) },
-		{ label: "Ring", geometry: new RingGeometry(0.3, 0.7, 12) },
-		{ label: "Shape", geometry: new ShapeGeometry(star, 6) },
+		{ label: "Plane", geometry: new EASEL.PlaneGeometry(1.4, 1.4) },
+		{ label: "Ring", geometry: new EASEL.RingGeometry(0.3, 0.7, 12) },
+		{ label: "Shape", geometry: new EASEL.ShapeGeometry(star, 6) },
 		{
 			label: "Extrude",
-			geometry: new ExtrudeGeometry(star, { depth: 0.4, bevelEnabled: false }),
+			geometry: new EASEL.ExtrudeGeometry(star, {
+				depth: 0.4,
+				bevelEnabled: false,
+			}),
 		},
 	];
 
-	/** @type {Mesh[]} */
+	/** @type {EASEL.Mesh[]} */
 	const meshes = geometries.map(({ geometry }, i) => {
-		const material = new LambertMaterial({ color: PALETTE[i] });
-		const mesh = new Mesh(geometry, material);
+		const material = new EASEL.LambertMaterial({ color: PALETTE[i] });
+		const mesh = new EASEL.Mesh(geometry, material);
 		const { x, z } = gridPosition(i);
 		mesh.position.set(x, 0, z);
 		scene.add(mesh);

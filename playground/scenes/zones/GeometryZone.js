@@ -1,30 +1,4 @@
-import {
-	AmbientLight,
-	BasicMaterial,
-	BoxGeometry,
-	CapsuleGeometry,
-	CatmullRomCurve3,
-	ConeGeometry,
-	CylinderGeometry,
-	DirectionalLight,
-	DodecahedronGeometry,
-	ExtrudeGeometry,
-	IcosahedronGeometry,
-	LatheGeometry,
-	Mesh,
-	OctahedronGeometry,
-	PlaneGeometry,
-	RingGeometry,
-	Shape,
-	ShapeGeometry,
-	SphereGeometry,
-	TetrahedronGeometry,
-	TorusGeometry,
-	TorusKnotGeometry,
-	TubeGeometry,
-	Vector2,
-	Vector3,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 /** Color palette - one distinct hue per geometry slot. */
 const PALETTE = [
@@ -54,10 +28,10 @@ const SPACING = 3;
 /**
  * Builds a simple star Shape for ShapeGeometry / ExtrudeGeometry.
  *
- * @returns {Shape}
+ * @returns {EASEL.Shape}
  */
 function buildStarShape() {
-	const shape = new Shape();
+	const shape = new EASEL.Shape();
 	const points = 5;
 	const outer = 0.6;
 	const inner = 0.3;
@@ -75,26 +49,26 @@ function buildStarShape() {
 /**
  * Builds a vase-profile point array for LatheGeometry.
  *
- * @returns {Vector2[]}
+ * @returns {EASEL.Vector2[]}
  */
 function buildLatheProfile() {
 	return [
-		new Vector2(0.0, 0.0),
-		new Vector2(0.4, 0.2),
-		new Vector2(0.5, 0.5),
-		new Vector2(0.35, 0.8),
-		new Vector2(0.2, 1.0),
-		new Vector2(0.25, 1.2),
-		new Vector2(0.35, 1.4),
-		new Vector2(0.3, 1.6),
-		new Vector2(0.2, 1.8),
+		new EASEL.Vector2(0.0, 0.0),
+		new EASEL.Vector2(0.4, 0.2),
+		new EASEL.Vector2(0.5, 0.5),
+		new EASEL.Vector2(0.35, 0.8),
+		new EASEL.Vector2(0.2, 1.0),
+		new EASEL.Vector2(0.25, 1.2),
+		new EASEL.Vector2(0.35, 1.4),
+		new EASEL.Vector2(0.3, 1.6),
+		new EASEL.Vector2(0.2, 1.8),
 	];
 }
 
 /**
  * Builds a helix CatmullRomCurve3 path for TubeGeometry.
  *
- * @returns {CatmullRomCurve3}
+ * @returns {EASEL.CatmullRomCurve3}
  */
 function buildHelixCurve() {
 	const pts = [];
@@ -104,42 +78,61 @@ function buildHelixCurve() {
 		const t = i / steps;
 		const angle = t * turns * Math.PI * 2;
 		pts.push(
-			new Vector3(Math.cos(angle) * 0.5, t * 1.5 - 0.75, Math.sin(angle) * 0.5),
+			new EASEL.Vector3(
+				Math.cos(angle) * 0.5,
+				t * 1.5 - 0.75,
+				Math.sin(angle) * 0.5,
+			),
 		);
 	}
-	return new CatmullRomCurve3(pts);
+	return new EASEL.CatmullRomCurve3(pts);
 }
 
 /**
  * Returns all 17 geometry descriptors in display order.
  *
- * @returns {Array<{ label: string, geometry: import("@/index.js").Geometry }>}
+ * @returns {Array<{ label: string, geometry: EASEL.Geometry }>}
  */
 function buildGeometries() {
 	const star = buildStarShape();
 	return [
-		{ label: "Box", geometry: new BoxGeometry(1.2, 1.2, 1.2) },
-		{ label: "Sphere", geometry: new SphereGeometry(0.7, 8, 6) },
-		{ label: "Plane", geometry: new PlaneGeometry(1.4, 1.4) },
-		{ label: "Cylinder", geometry: new CylinderGeometry(0.5, 0.5, 1.2, 8) },
-		{ label: "Cone", geometry: new ConeGeometry(0.6, 1.2, 8) },
-		{ label: "Torus", geometry: new TorusGeometry(0.5, 0.2, 8, 16) },
-		{ label: "TorusKnot", geometry: new TorusKnotGeometry(0.4, 0.15, 48, 6) },
-		{ label: "Capsule", geometry: new CapsuleGeometry(0.35, 0.7, 4, 8) },
-		{ label: "Ring", geometry: new RingGeometry(0.3, 0.7, 12) },
-		{ label: "Icosahedron", geometry: new IcosahedronGeometry(0.7, 0) },
-		{ label: "Octahedron", geometry: new OctahedronGeometry(0.7, 0) },
-		{ label: "Tetrahedron", geometry: new TetrahedronGeometry(0.8, 0) },
-		{ label: "Dodecahedron", geometry: new DodecahedronGeometry(0.65, 0) },
-		{ label: "Lathe", geometry: new LatheGeometry(buildLatheProfile(), 10) },
+		{ label: "Box", geometry: new EASEL.BoxGeometry(1.2, 1.2, 1.2) },
+		{ label: "Sphere", geometry: new EASEL.SphereGeometry(0.7, 8, 6) },
+		{ label: "Plane", geometry: new EASEL.PlaneGeometry(1.4, 1.4) },
+		{
+			label: "Cylinder",
+			geometry: new EASEL.CylinderGeometry(0.5, 0.5, 1.2, 8),
+		},
+		{ label: "Cone", geometry: new EASEL.ConeGeometry(0.6, 1.2, 8) },
+		{ label: "Torus", geometry: new EASEL.TorusGeometry(0.5, 0.2, 8, 16) },
+		{
+			label: "TorusKnot",
+			geometry: new EASEL.TorusKnotGeometry(0.4, 0.15, 48, 6),
+		},
+		{ label: "Capsule", geometry: new EASEL.CapsuleGeometry(0.35, 0.7, 4, 8) },
+		{ label: "Ring", geometry: new EASEL.RingGeometry(0.3, 0.7, 12) },
+		{ label: "Icosahedron", geometry: new EASEL.IcosahedronGeometry(0.7, 0) },
+		{ label: "Octahedron", geometry: new EASEL.OctahedronGeometry(0.7, 0) },
+		{ label: "Tetrahedron", geometry: new EASEL.TetrahedronGeometry(0.8, 0) },
+		{
+			label: "Dodecahedron",
+			geometry: new EASEL.DodecahedronGeometry(0.65, 0),
+		},
+		{
+			label: "Lathe",
+			geometry: new EASEL.LatheGeometry(buildLatheProfile(), 10),
+		},
 		{
 			label: "Tube",
-			geometry: new TubeGeometry(buildHelixCurve(), 30, 0.15, 6, false),
+			geometry: new EASEL.TubeGeometry(buildHelixCurve(), 30, 0.15, 6, false),
 		},
-		{ label: "Shape", geometry: new ShapeGeometry(star, 6) },
+		{ label: "Shape", geometry: new EASEL.ShapeGeometry(star, 6) },
 		{
 			label: "Extrude",
-			geometry: new ExtrudeGeometry(star, { depth: 0.4, bevelEnabled: false }),
+			geometry: new EASEL.ExtrudeGeometry(star, {
+				depth: 0.4,
+				bevelEnabled: false,
+			}),
 		},
 	];
 }
@@ -163,27 +156,29 @@ function gridPosition(i) {
 /**
  * Geometry Gallery zone - displays all 17 geometry primitives in a 5x4 grid.
  *
- * @param {import("@/index.js").Scene} scene
- * @param {import("@/index.js").PerspectiveCamera} camera
+ * @param {EASEL.Scene} scene
+ * @param {EASEL.PerspectiveCamera} camera
  * @returns {{ controls: Array<object>, animate: (dt: number) => void, update: (params: Record<string, unknown>) => void, dispose: () => void }}
  */
 export function setup(scene, camera) {
 	camera.position.set(10, 8, 15);
 	camera.lookAt(0, 0, 0);
 
-	const ambient = new AmbientLight(0xffffff, 0.5);
+	const ambient = new EASEL.AmbientLight(0xffffff, 0.5);
 	scene.add(ambient);
 
-	const sun = new DirectionalLight(0xffffff, 0.6);
+	const sun = new EASEL.DirectionalLight(0xffffff, 0.6);
 	sun.position.set(5, 10, 7);
 	scene.add(sun);
 
 	const descriptors = buildGeometries();
 
-	/** @type {Mesh[]} */
+	/** @type {EASEL.Mesh[]} */
 	const meshes = descriptors.map(({ geometry }, i) => {
-		const material = new BasicMaterial({ color: PALETTE[i % PALETTE.length] });
-		const mesh = new Mesh(geometry, material);
+		const material = new EASEL.BasicMaterial({
+			color: PALETTE[i % PALETTE.length],
+		});
+		const mesh = new EASEL.Mesh(geometry, material);
 		const { x, z } = gridPosition(i);
 		mesh.position.set(x, 0, z);
 		scene.add(mesh);

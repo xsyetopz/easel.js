@@ -1,17 +1,4 @@
-import {
-	BasicMaterial,
-	BoxGeometry,
-	Clock,
-	ConeGeometry,
-	CylinderGeometry,
-	IcosahedronGeometry,
-	Mesh,
-	OrthographicCamera,
-	Renderer,
-	Scene,
-	SphereGeometry,
-	TorusGeometry,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{
@@ -31,9 +18,9 @@ const SPACING = 3.5;
 
 function buildEntries(segments) {
 	return [
-		{ geo: new BoxGeometry(1.6, 1.6, 1.6), color: 0xe06060 },
+		{ geo: new EASEL.BoxGeometry(1.6, 1.6, 1.6), color: 0xe06060 },
 		{
-			geo: new SphereGeometry(
+			geo: new EASEL.SphereGeometry(
 				1.0,
 				segments,
 				Math.max(3, Math.floor(segments * 0.75)),
@@ -41,12 +28,15 @@ function buildEntries(segments) {
 			color: 0x60e060,
 		},
 		{
-			geo: new TorusGeometry(0.7, 0.28, segments, segments * 2),
+			geo: new EASEL.TorusGeometry(0.7, 0.28, segments, segments * 2),
 			color: 0x6060e0,
 		},
-		{ geo: new CylinderGeometry(0.6, 0.6, 1.6, segments), color: 0xe0e060 },
-		{ geo: new ConeGeometry(0.8, 1.6, segments), color: 0xe060e0 },
-		{ geo: new IcosahedronGeometry(1.0), color: 0x60e0e0 },
+		{
+			geo: new EASEL.CylinderGeometry(0.6, 0.6, 1.6, segments),
+			color: 0xe0e060,
+		},
+		{ geo: new EASEL.ConeGeometry(0.8, 1.6, segments), color: 0xe060e0 },
+		{ geo: new EASEL.IcosahedronGeometry(1.0), color: 0x60e0e0 },
 	];
 }
 
@@ -56,8 +46,8 @@ export function setup(canvas, params = {}) {
 	const aspect = width / height;
 	const size = 5;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -67,7 +57,7 @@ export function setup(canvas, params = {}) {
 	});
 	camera.position.z = 8;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
 	let currentSegments = params.segments ?? 12;
 	let meshes = [];
@@ -80,9 +70,9 @@ export function setup(canvas, params = {}) {
 		entries.forEach((entry, i) => {
 			const col = i % COLS;
 			const row = Math.floor(i / COLS);
-			const mat = new BasicMaterial({ color: entry.color });
+			const mat = new EASEL.BasicMaterial({ color: entry.color });
 			mat.wireframe = true;
-			const mesh = new Mesh(entry.geo, mat);
+			const mesh = new EASEL.Mesh(entry.geo, mat);
 			mesh.position.x = (col - (COLS - 1) / 2) * SPACING;
 			mesh.position.y = -(row - (ROWS - 1) / 2) * SPACING;
 			scene.add(mesh);
@@ -92,7 +82,7 @@ export function setup(canvas, params = {}) {
 
 	buildGrid(currentSegments);
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -127,7 +117,7 @@ export const source = `import {
 } from "easel";
 
 // wireframe is checked by the rasterizer on drawCall.material.wireframe
-const mat = new BasicMaterial({ color: 0xe06060 });
+const mat = new EASEL.BasicMaterial({ color: 0xe06060 });
 mat.wireframe = true;
 
 const mesh = new Mesh(new SphereGeometry(1.0, 12, 9), mat);

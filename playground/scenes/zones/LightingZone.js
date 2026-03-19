@@ -1,42 +1,34 @@
-import {
-	AmbientLight,
-	DirectionalLight,
-	HemisphereLight,
-	LambertMaterial,
-	Mesh,
-	PlaneGeometry,
-	PointLight,
-	SphereGeometry,
-	SpotLight,
-	Vector3,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 /**
  * Interactive showcase of all 5 light types with controls for type, intensity,
  * and color. One active light at a time, swapped via update().
  *
- * @param {import("@/index.js").Scene} scene
- * @param {import("@/index.js").PerspectiveCamera} camera
+ * @param {EASEL.Scene} scene
+ * @param {EASEL.PerspectiveCamera} camera
  * @returns {{ controls: Array<object>, animate: (dt: number) => void, update: (params: Record<string, unknown>) => void, dispose: () => void }}
  */
 export function setup(scene, camera) {
 	camera.position.set(0, 2, 8);
-	camera.lookAt(new Vector3(0, 0, 0));
+	camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
-	const baseAmbient = new AmbientLight(0xffffff, 0.1);
+	const baseAmbient = new EASEL.AmbientLight(0xffffff, 0.1);
 	scene.add(baseAmbient);
 
-	const sphereMat = new LambertMaterial({ color: 0xcccccc });
-	const sphere = new Mesh(new SphereGeometry(1.5, 16, 12), sphereMat);
+	const sphereMat = new EASEL.LambertMaterial({ color: 0xcccccc });
+	const sphere = new EASEL.Mesh(
+		new EASEL.SphereGeometry(1.5, 16, 12),
+		sphereMat,
+	);
 	scene.add(sphere);
 
-	const groundMat = new LambertMaterial({ color: 0x888888 });
-	const ground = new Mesh(new PlaneGeometry(14, 14), groundMat);
+	const groundMat = new EASEL.LambertMaterial({ color: 0x888888 });
+	const ground = new EASEL.Mesh(new EASEL.PlaneGeometry(14, 14), groundMat);
 	ground.rotation.x = -Math.PI / 2;
 	ground.position.y = -2;
 	scene.add(ground);
 
-	/** @type {import("@/index.js").Light|null} */
+	/** @type {EASEL.Light|null} */
 	let activeLight = null;
 
 	/**
@@ -55,13 +47,13 @@ export function setup(scene, camera) {
 
 		switch (params.lightType) {
 			case "Point": {
-				const light = new PointLight(colorInt, intensity, 20, 2);
+				const light = new EASEL.PointLight(colorInt, intensity, 20, 2);
 				light.position.set(2, 3, 2);
 				activeLight = light;
 				break;
 			}
 			case "Spot": {
-				const light = new SpotLight(
+				const light = new EASEL.SpotLight(
 					colorInt,
 					intensity,
 					20,
@@ -75,16 +67,16 @@ export function setup(scene, camera) {
 			}
 			case "Hemisphere": {
 				// Hemisphere uses sky/ground colors; intensity from slider, color ignored
-				activeLight = new HemisphereLight(0x8888ff, 0x443322, intensity);
+				activeLight = new EASEL.HemisphereLight(0x8888ff, 0x443322, intensity);
 				break;
 			}
 			case "Ambient": {
-				activeLight = new AmbientLight(colorInt, intensity);
+				activeLight = new EASEL.AmbientLight(colorInt, intensity);
 				break;
 			}
 			default: {
 				// "Directional" and any unrecognised value
-				const light = new DirectionalLight(colorInt, intensity);
+				const light = new EASEL.DirectionalLight(colorInt, intensity);
 				light.position.set(3, 5, 4);
 				activeLight = light;
 				break;

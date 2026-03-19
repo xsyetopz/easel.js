@@ -36,12 +36,12 @@ bun run biome:check    # Lint + format
 
 ## Design
 
-- Painter's algorithm (no z-buffer)
+- Painter's algorithm + Uint16 depth buffer for residual overlap
 - Affine UV mapping (no perspective correction)
 - HSL16 color space (16-bit packed)
 - Integer screen coordinates (vertex snapping)
 - Flat and Gouraud shading (no per-pixel lighting)
-- Orthographic projection only
+- Orthographic and perspective cameras (affine texturing on both)
 
 See [`docs/EASEL_vs_THREE.md`](docs/EASEL_vs_THREE.md) for the full design reference and THREE.js API mapping.
 

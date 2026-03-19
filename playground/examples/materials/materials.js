@@ -1,16 +1,4 @@
-import {
-	AmbientLight,
-	BasicMaterial,
-	Clock,
-	DirectionalLight,
-	LambertMaterial,
-	Mesh,
-	OrthographicCamera,
-	Renderer,
-	Scene,
-	SphereGeometry,
-	ToonMaterial,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{ type: "color", key: "color", label: "Base Color", default: "#4488ff" },
@@ -22,8 +10,8 @@ export function setup(canvas, params = {}) {
 	const aspect = width / height;
 	const size = 5;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -33,34 +21,34 @@ export function setup(canvas, params = {}) {
 	});
 	camera.position.z = 8;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new AmbientLight(0xffffff, 0.3));
-	const dirLight = new DirectionalLight(0xffffff, 0.9);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.3));
+	const dirLight = new EASEL.DirectionalLight(0xffffff, 0.9);
 	dirLight.position.set(3, 5, 4);
 	scene.add(dirLight);
 
-	const geo = new SphereGeometry(1.2, 24, 16);
+	const geo = new EASEL.SphereGeometry(1.2, 24, 16);
 	const color = params.color ?? 0x4488ff;
 
-	const basicMat = new BasicMaterial({ color });
-	const lambertMat = new LambertMaterial({ color });
-	const toonMat = new ToonMaterial({ color });
+	const basicMat = new EASEL.BasicMaterial({ color });
+	const lambertMat = new EASEL.LambertMaterial({ color });
+	const toonMat = new EASEL.ToonMaterial({ color });
 
-	const basic = new Mesh(geo, basicMat);
+	const basic = new EASEL.Mesh(geo, basicMat);
 	basic.position.x = -3.5;
 	scene.add(basic);
 
-	const lambert = new Mesh(geo, lambertMat);
+	const lambert = new EASEL.Mesh(geo, lambertMat);
 	scene.add(lambert);
 
-	const toon = new Mesh(geo, toonMat);
+	const toon = new EASEL.Mesh(geo, toonMat);
 	toon.position.x = 3.5;
 	scene.add(toon);
 
 	const meshes = [basic, lambert, toon];
 	const materials = [basicMat, lambertMat, toonMat];
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -86,22 +74,22 @@ export function setup(canvas, params = {}) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, Renderer, Clock,
-  AmbientLight, DirectionalLight,
-  SphereGeometry, Mesh,
-  BasicMaterial, LambertMaterial, ToonMaterial,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.AmbientLight, EASEL.DirectionalLight,
+  EASEL.SphereGeometry, EASEL.Mesh,
+  EASEL.BasicMaterial, EASEL.LambertMaterial, EASEL.ToonMaterial,
 } from "easel";
 
-// Three spheres: BasicMaterial, LambertMaterial, ToonMaterial
+// Three spheres: EASEL.BasicMaterial, EASEL.LambertMaterial, EASEL.ToonMaterial
 // Same geometry, same light - different shading models.
 
-const geo = new SphereGeometry(1.2, 24, 16);
+const geo = new EASEL.SphereGeometry(1.2, 24, 16);
 
-const basic = new Mesh(geo, new BasicMaterial({ color: 0x4488ff }));
+const basic = new EASEL.Mesh(geo, new EASEL.BasicMaterial({ color: 0x4488ff }));
 basic.position.x = -3.5;  // No lighting response
 
-const lambert = new Mesh(geo, new LambertMaterial({ color: 0x4488ff }));
+const lambert = new EASEL.Mesh(geo, new EASEL.LambertMaterial({ color: 0x4488ff }));
 // Gouraud shading: per-vertex lighting, interpolated
 
-const toon = new Mesh(geo, new ToonMaterial({ color: 0x4488ff }));
+const toon = new EASEL.Mesh(geo, new EASEL.ToonMaterial({ color: 0x4488ff }));
 toon.position.x = 3.5;  // Stepped shading via gradientMap`;

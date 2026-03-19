@@ -1,14 +1,4 @@
-import {
-	BasicMaterial,
-	BoxGeometry,
-	Clock,
-	Mesh,
-	OrthographicCamera,
-	PerspectiveCamera,
-	Renderer,
-	Scene,
-	TextureLoader,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export function setup(canvas) {
 	const width = canvas.width;
@@ -20,10 +10,10 @@ export function setup(canvas) {
 	orthoCanvas.width = halfWidth;
 	orthoCanvas.height = height;
 
-	const orthoScene = new Scene();
+	const orthoScene = new EASEL.Scene();
 	const orthoSize = 3;
 	const orthoAspect = halfWidth / height;
-	const orthoCamera = new OrthographicCamera({
+	const orthoCamera = new EASEL.OrthographicCamera({
 		left: -orthoSize * orthoAspect,
 		right: orthoSize * orthoAspect,
 		top: orthoSize,
@@ -33,22 +23,22 @@ export function setup(canvas) {
 	});
 	orthoCamera.position.z = 5;
 
-	const orthoRenderer = new Renderer({
+	const orthoRenderer = new EASEL.Renderer({
 		canvas: orthoCanvas,
 		width: halfWidth,
 		height,
 	});
 
-	const orthoMat = new BasicMaterial({ color: 0xffffff });
-	const orthoBox = new Mesh(new BoxGeometry(2, 2, 2), orthoMat);
+	const orthoMat = new EASEL.BasicMaterial({ color: 0xffffff });
+	const orthoBox = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), orthoMat);
 	orthoScene.add(orthoBox);
 
 	const perspCanvas = document.createElement("canvas");
 	perspCanvas.width = halfWidth;
 	perspCanvas.height = height;
 
-	const perspScene = new Scene();
-	const perspCamera = new PerspectiveCamera({
+	const perspScene = new EASEL.Scene();
+	const perspCamera = new EASEL.PerspectiveCamera({
 		fov: Math.PI / 4,
 		aspect: halfWidth / height,
 		near: 0.1,
@@ -56,17 +46,17 @@ export function setup(canvas) {
 	});
 	perspCamera.position.z = 5;
 
-	const perspRenderer = new Renderer({
+	const perspRenderer = new EASEL.Renderer({
 		canvas: perspCanvas,
 		width: halfWidth,
 		height,
 	});
 
-	const perspMat = new BasicMaterial({ color: 0xffffff });
-	const perspBox = new Mesh(new BoxGeometry(2, 2, 2), perspMat);
+	const perspMat = new EASEL.BasicMaterial({ color: 0xffffff });
+	const perspBox = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), perspMat);
 	perspScene.add(perspBox);
 
-	const loader = new TextureLoader();
+	const loader = new EASEL.TextureLoader();
 	loader.load("textures/Brick_01.png", (texture) => {
 		orthoMat.map = texture;
 		orthoMat.needsUpdate = true;
@@ -74,7 +64,7 @@ export function setup(canvas) {
 		perspMat.needsUpdate = true;
 	});
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -115,16 +105,16 @@ export function setup(canvas) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, PerspectiveCamera,
-  Renderer, Clock, BoxGeometry, BasicMaterial,
-  Mesh, TextureLoader,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.PerspectiveCamera,
+  EASEL.Renderer, EASEL.Clock, EASEL.BoxGeometry, EASEL.BasicMaterial,
+  EASEL.Mesh, EASEL.TextureLoader,
 } from "easel";
 
 // Ortho: affine UV is exact. Perspective: no W-divide causes warping.
-const orthoRenderer = new Renderer({ canvas: leftCanvas, width: half, height });
-const perspRenderer = new Renderer({ canvas: rightCanvas, width: half, height });
+const orthoRenderer = new EASEL.Renderer({ canvas: leftCanvas, width: half, height });
+const perspRenderer = new EASEL.Renderer({ canvas: rightCanvas, width: half, height });
 
-const loader = new TextureLoader();
+const loader = new EASEL.TextureLoader();
 loader.load("textures/Brick_01.png", (texture) => {
   orthoMat.map = texture;
   perspMat.map = texture;

@@ -1,18 +1,4 @@
-import {
-	AmbientLight,
-	Clock,
-	DirectionalLight,
-	HemisphereLight,
-	LambertMaterial,
-	Mesh,
-	PerspectiveCamera,
-	PlaneGeometry,
-	PointLight,
-	Renderer,
-	Scene,
-	SphereGeometry,
-	SpotLight,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{
@@ -37,8 +23,8 @@ export function setup(canvas, params = {}) {
 	const width = canvas.width;
 	const height = canvas.height;
 
-	const scene = new Scene();
-	const camera = new PerspectiveCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.PerspectiveCamera({
 		fov: Math.PI / 4,
 		aspect: width / height,
 		near: 0.1,
@@ -47,21 +33,21 @@ export function setup(canvas, params = {}) {
 	camera.position.z = 8;
 	camera.position.y = 2;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new AmbientLight(0xffffff, 0.15));
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.15));
 
-	const ground = new Mesh(
-		new PlaneGeometry(12, 12),
-		new LambertMaterial({ color: 0x666666 }),
+	const ground = new EASEL.Mesh(
+		new EASEL.PlaneGeometry(12, 12),
+		new EASEL.LambertMaterial({ color: 0x666666 }),
 	);
 	ground.rotation.x = -Math.PI / 2;
 	ground.position.y = -1.5;
 	scene.add(ground);
 
-	const sphere = new Mesh(
-		new SphereGeometry(1.2, 24, 16),
-		new LambertMaterial({ color: 0xcc6644 }),
+	const sphere = new EASEL.Mesh(
+		new EASEL.SphereGeometry(1.2, 24, 16),
+		new EASEL.LambertMaterial({ color: 0xcc6644 }),
 	);
 	scene.add(sphere);
 
@@ -69,29 +55,36 @@ export function setup(canvas, params = {}) {
 
 	const lights = {
 		Directional: () => {
-			const l = new DirectionalLight(0xffffff, intensity);
+			const l = new EASEL.DirectionalLight(0xffffff, intensity);
 			l.position.set(3, 5, 4);
 			return l;
 		},
 		Point: () => {
-			const l = new PointLight(0xffffff, intensity, 20, 2);
+			const l = new EASEL.PointLight(0xffffff, intensity, 20, 2);
 			l.position.set(2, 3, 2);
 			return l;
 		},
 		Spot: () => {
-			const l = new SpotLight(0xffffff, intensity, 20, Math.PI / 6, 0.5, 2);
+			const l = new EASEL.SpotLight(
+				0xffffff,
+				intensity,
+				20,
+				Math.PI / 6,
+				0.5,
+				2,
+			);
 			l.position.set(2, 4, 2);
 			return l;
 		},
 		Hemisphere: () => {
-			return new HemisphereLight(0x8888ff, 0x443322, intensity);
+			return new EASEL.HemisphereLight(0x8888ff, 0x443322, intensity);
 		},
 	};
 
 	let activeLight = lights[params.lightType ?? "Directional"]();
 	scene.add(activeLight);
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {

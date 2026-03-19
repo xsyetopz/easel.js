@@ -1,22 +1,15 @@
-import {
-	Clock,
-	OrbitControls,
-	PerspectiveCamera,
-	Renderer,
-	Scene,
-	Vector3,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export class PlaygroundScene {
-	/** @type {Renderer} */
+	/** @type {EASEL.Renderer} */
 	#renderer;
-	/** @type {Scene} */
+	/** @type {EASEL.Scene} */
 	#scene;
-	/** @type {PerspectiveCamera} */
+	/** @type {EASEL.PerspectiveCamera} */
 	#camera;
-	/** @type {OrbitControls} */
+	/** @type {EASEL.OrbitControls} */
 	#controls;
-	/** @type {Clock} */
+	/** @type {EASEL.Clock} */
 	#clock;
 	/** @type {object|null} */
 	#activeZone = null;
@@ -33,33 +26,33 @@ export class PlaygroundScene {
 		const width = canvas.width;
 		const height = canvas.height;
 
-		this.#scene = new Scene();
-		this.#camera = new PerspectiveCamera({
+		this.#scene = new EASEL.Scene();
+		this.#camera = new EASEL.PerspectiveCamera({
 			fov: Math.PI / 4,
 			aspect: width / height,
 			near: 0.1,
 			far: 100,
 		});
 		this.#camera.position.set(5, 3, 8);
-		this.#camera.lookAt(new Vector3(0, 0, 0));
+		this.#camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
-		this.#controls = new OrbitControls(this.#camera, canvas);
+		this.#controls = new EASEL.OrbitControls(this.#camera, canvas);
 		this.#controls.enableDamping = true;
 		this.#controls.dampingFactor = 0.12;
 		this.#controls.rotateSpeed = 0.5;
 		this.#controls.zoomSpeed = 0.7;
 		this.#controls.panSpeed = 0.5;
 
-		this.#renderer = new Renderer({ canvas, width, height });
-		this.#clock = new Clock();
+		this.#renderer = new EASEL.Renderer({ canvas, width, height });
+		this.#clock = new EASEL.Clock();
 	}
 
-	/** @returns {Scene} */
+	/** @returns {EASEL.Scene} */
 	get scene() {
 		return this.#scene;
 	}
 
-	/** @returns {PerspectiveCamera} */
+	/** @returns {EASEL.PerspectiveCamera} */
 	get camera() {
 		return this.#camera;
 	}
@@ -68,7 +61,7 @@ export class PlaygroundScene {
 	 * Tear down the current zone, clear the scene, and activate a new zone.
 	 * Returns the control definitions from the new zone.
 	 *
-	 * @param {{ setup: (scene: Scene, camera: PerspectiveCamera) => object }} zone
+	 * @param {{ setup: (scene: EASEL.Scene, camera: EASEL.PerspectiveCamera) => object }} zone
 	 * @returns {Array<object>} control definitions
 	 */
 	switchZone(zone) {

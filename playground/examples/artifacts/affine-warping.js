@@ -1,14 +1,4 @@
-import {
-	BasicMaterial,
-	CanvasTexture,
-	Clock,
-	Mesh,
-	OrthographicCamera,
-	PerspectiveCamera,
-	PlaneGeometry,
-	Renderer,
-	Scene,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 function createCheckerTexture() {
 	const size = 128;
@@ -24,16 +14,16 @@ function createCheckerTexture() {
 			ctx.fillRect(x, y, tileSize, tileSize);
 		}
 	}
-	return new CanvasTexture(offscreen);
+	return new EASEL.CanvasTexture(offscreen);
 }
 
 /** @param {number} segments */
 function createScene(segments) {
-	const scene = new Scene();
+	const scene = new EASEL.Scene();
 	const texture = createCheckerTexture();
-	const mesh = new Mesh(
-		new PlaneGeometry(4, 4, segments, segments),
-		new BasicMaterial({ map: texture }),
+	const mesh = new EASEL.Mesh(
+		new EASEL.PlaneGeometry(4, 4, segments, segments),
+		new EASEL.BasicMaterial({ map: texture }),
 	);
 	scene.add(mesh);
 	return { scene, mesh };
@@ -61,7 +51,7 @@ export function setup(canvas, params) {
 	// Left: orthographic
 	const orthoSize = 4;
 	const orthoAspect = halfWidth / fullHeight;
-	const orthoCamera = new OrthographicCamera({
+	const orthoCamera = new EASEL.OrthographicCamera({
 		left: -orthoSize * orthoAspect,
 		right: orthoSize * orthoAspect,
 		top: orthoSize,
@@ -72,7 +62,7 @@ export function setup(canvas, params) {
 	orthoCamera.position.z = 5;
 
 	// Right: perspective
-	const perspCamera = new PerspectiveCamera({
+	const perspCamera = new EASEL.PerspectiveCamera({
 		fov: Math.PI / 3,
 		aspect: halfWidth / fullHeight,
 		near: 0.1,
@@ -80,8 +70,14 @@ export function setup(canvas, params) {
 	});
 	perspCamera.position.z = 7;
 
-	const orthoRenderer = new Renderer({ width: halfWidth, height: fullHeight });
-	const perspRenderer = new Renderer({ width: halfWidth, height: fullHeight });
+	const orthoRenderer = new EASEL.Renderer({
+		width: halfWidth,
+		height: fullHeight,
+	});
+	const perspRenderer = new EASEL.Renderer({
+		width: halfWidth,
+		height: fullHeight,
+	});
 
 	let { scene: orthoScene, mesh: orthoMesh } = createScene(segments);
 	let { scene: perspScene, mesh: perspMesh } = createScene(segments);
@@ -89,7 +85,7 @@ export function setup(canvas, params) {
 	const ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = false;
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 	let elapsed = 0;
 
@@ -145,8 +141,8 @@ export function setup(canvas, params) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, PerspectiveCamera, Renderer, Clock,
-  PlaneGeometry, BasicMaterial, Mesh, CanvasTexture,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.PerspectiveCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.PlaneGeometry, EASEL.BasicMaterial, EASEL.Mesh, EASEL.CanvasTexture,
 } from "easel";
 
 // Split-view: orthographic (left) vs perspective (right).
@@ -155,10 +151,10 @@ export const source = `import {
 // swim from linear interpolation without W correction.
 // Increase subdivisions to reduce the artifact.
 
-const orthoCamera = new OrthographicCamera({ ... });
-const perspCamera = new PerspectiveCamera({ fov: Math.PI / 3, aspect, ... });
+const orthoCamera = new EASEL.OrthographicCamera({ ... });
+const perspCamera = new EASEL.PerspectiveCamera({ fov: Math.PI / 3, aspect, ... });
 
-const mesh = new Mesh(
-  new PlaneGeometry(4, 4, segments, segments),
-  new BasicMaterial({ map: checkerTexture }),
+const mesh = new EASEL.Mesh(
+  new EASEL.PlaneGeometry(4, 4, segments, segments),
+  new EASEL.BasicMaterial({ map: checkerTexture }),
 );`;

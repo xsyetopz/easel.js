@@ -1,13 +1,4 @@
-import {
-	AmbientLight,
-	DirectionalLight,
-	DodecahedronGeometry,
-	IcosahedronGeometry,
-	LambertMaterial,
-	Mesh,
-	OctahedronGeometry,
-	TetrahedronGeometry,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 const PALETTE = [
 	0x3498db, // blue
@@ -34,32 +25,32 @@ function gridPosition(i) {
 /**
  * Polyhedra zone - Icosahedron, Octahedron, Tetrahedron, Dodecahedron.
  *
- * @param {import("@/index.js").Scene} scene
- * @param {import("@/index.js").PerspectiveCamera} camera
+ * @param {EASEL.Scene} scene
+ * @param {EASEL.PerspectiveCamera} camera
  * @returns {{ controls: Array<object>, animate: (dt: number) => void, update: (params: Record<string, unknown>) => void, dispose: () => void }}
  */
 export function setup(scene, camera) {
 	camera.position.set(4, 4, 7);
 	camera.lookAt(0, 0, 0);
 
-	const ambient = new AmbientLight(0xffffff, 0.5);
+	const ambient = new EASEL.AmbientLight(0xffffff, 0.5);
 	scene.add(ambient);
 
-	const sun = new DirectionalLight(0xffffff, 0.6);
+	const sun = new EASEL.DirectionalLight(0xffffff, 0.6);
 	sun.position.set(5, 10, 7);
 	scene.add(sun);
 
 	const geometries = [
-		{ label: "Icosahedron", geometry: new IcosahedronGeometry(0.8, 0) },
-		{ label: "Octahedron", geometry: new OctahedronGeometry(0.8, 0) },
-		{ label: "Tetrahedron", geometry: new TetrahedronGeometry(0.9, 0) },
-		{ label: "Dodecahedron", geometry: new DodecahedronGeometry(0.7, 0) },
+		{ label: "Icosahedron", geometry: new EASEL.IcosahedronGeometry(0.8, 0) },
+		{ label: "Octahedron", geometry: new EASEL.OctahedronGeometry(0.8, 0) },
+		{ label: "Tetrahedron", geometry: new EASEL.TetrahedronGeometry(0.9, 0) },
+		{ label: "Dodecahedron", geometry: new EASEL.DodecahedronGeometry(0.7, 0) },
 	];
 
-	/** @type {Mesh[]} */
+	/** @type {EASEL.Mesh[]} */
 	const meshes = geometries.map(({ geometry }, i) => {
-		const material = new LambertMaterial({ color: PALETTE[i] });
-		const mesh = new Mesh(geometry, material);
+		const material = new EASEL.LambertMaterial({ color: PALETTE[i] });
+		const mesh = new EASEL.Mesh(geometry, material);
 		const { x, z } = gridPosition(i);
 		mesh.position.set(x, 0, z);
 		scene.add(mesh);

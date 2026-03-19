@@ -1,17 +1,4 @@
-import {
-	AmbientLight,
-	Clock,
-	ConeGeometry,
-	CylinderGeometry,
-	DirectionalLight,
-	LambertMaterial,
-	Mesh,
-	OrthographicCamera,
-	Renderer,
-	Scene,
-	SphereGeometry,
-	TorusGeometry,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{
@@ -35,13 +22,13 @@ export const controls = [
 function buildGeometry(shape, segments) {
 	switch (shape) {
 		case "Torus":
-			return new TorusGeometry(0.9, 0.35, segments, segments * 2);
+			return new EASEL.TorusGeometry(0.9, 0.35, segments, segments * 2);
 		case "Cylinder":
-			return new CylinderGeometry(0.7, 0.7, 1.8, segments);
+			return new EASEL.CylinderGeometry(0.7, 0.7, 1.8, segments);
 		case "Cone":
-			return new ConeGeometry(0.9, 1.8, segments);
+			return new EASEL.ConeGeometry(0.9, 1.8, segments);
 		default:
-			return new SphereGeometry(
+			return new EASEL.SphereGeometry(
 				1.1,
 				segments,
 				Math.max(3, Math.floor(segments * 0.75)),
@@ -55,8 +42,8 @@ export function setup(canvas, params = {}) {
 	const aspect = width / height;
 	const size = 3;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -66,21 +53,24 @@ export function setup(canvas, params = {}) {
 	});
 	camera.position.z = 5;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new AmbientLight(0xffffff, 0.4));
-	const dirLight = new DirectionalLight(0xffffff, 0.8);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+	const dirLight = new EASEL.DirectionalLight(0xffffff, 0.8);
 	dirLight.position.set(3, 5, 4);
 	scene.add(dirLight);
 
 	let currentShape = params.shape ?? "Sphere";
 	let currentSegments = params.segments ?? 16;
 
-	const material = new LambertMaterial({ color: 0x5577dd });
-	let mesh = new Mesh(buildGeometry(currentShape, currentSegments), material);
+	const material = new EASEL.LambertMaterial({ color: 0x5577dd });
+	let mesh = new EASEL.Mesh(
+		buildGeometry(currentShape, currentSegments),
+		material,
+	);
 	scene.add(mesh);
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -104,7 +94,10 @@ export function setup(canvas, params = {}) {
 
 			const rotation = { x: mesh.rotation.x, y: mesh.rotation.y };
 			scene.remove(mesh);
-			mesh = new Mesh(buildGeometry(currentShape, currentSegments), material);
+			mesh = new EASEL.Mesh(
+				buildGeometry(currentShape, currentSegments),
+				material,
+			);
 			mesh.rotation.x = rotation.x;
 			mesh.rotation.y = rotation.y;
 			scene.add(mesh);

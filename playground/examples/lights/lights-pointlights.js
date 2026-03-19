@@ -1,15 +1,4 @@
-import {
-	AmbientLight,
-	Clock,
-	LambertMaterial,
-	Mesh,
-	PerspectiveCamera,
-	PlaneGeometry,
-	PointLight,
-	Renderer,
-	Scene,
-	TorusKnotGeometry,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{
@@ -36,8 +25,8 @@ export function setup(canvas, params = {}) {
 	const width = canvas.width;
 	const height = canvas.height;
 
-	const scene = new Scene();
-	const camera = new PerspectiveCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.PerspectiveCamera({
 		fov: Math.PI / 4,
 		aspect: width / height,
 		near: 0.1,
@@ -45,35 +34,35 @@ export function setup(canvas, params = {}) {
 	});
 	camera.position.set(0, 3, 10);
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new AmbientLight(0xffffff, 0.1));
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.1));
 
-	const knot = new Mesh(
-		new TorusKnotGeometry(2, 0.6, 128, 16),
-		new LambertMaterial({ color: 0xdddddd }),
+	const knot = new EASEL.Mesh(
+		new EASEL.TorusKnotGeometry(2, 0.6, 128, 16),
+		new EASEL.LambertMaterial({ color: 0xdddddd }),
 	);
 	scene.add(knot);
 
-	const ground = new Mesh(
-		new PlaneGeometry(20, 20),
-		new LambertMaterial({ color: 0x444444 }),
+	const ground = new EASEL.Mesh(
+		new EASEL.PlaneGeometry(20, 20),
+		new EASEL.LambertMaterial({ color: 0x444444 }),
 	);
 	ground.rotation.x = -Math.PI / 2;
 	ground.position.y = -3;
 	scene.add(ground);
 
 	const intensity = params.intensity ?? 1.5;
-	const red = new PointLight(0xff0000, intensity, 20, 2);
-	const green = new PointLight(0x00ff00, intensity, 20, 2);
-	const blue = new PointLight(0x0000ff, intensity, 20, 2);
+	const red = new EASEL.PointLight(0xff0000, intensity, 20, 2);
+	const green = new EASEL.PointLight(0x00ff00, intensity, 20, 2);
+	const blue = new EASEL.PointLight(0x0000ff, intensity, 20, 2);
 	scene.add(red);
 	scene.add(green);
 	scene.add(blue);
 
 	const lights = [red, green, blue];
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let elapsed = 0;
 	let animId;
 	let currentSpeed = params.speed ?? 1;
@@ -124,16 +113,16 @@ export function setup(canvas, params = {}) {
 }
 
 export const source = `import {
-  Scene, PerspectiveCamera, Renderer, Clock,
-  AmbientLight, PointLight, LambertMaterial, Mesh,
-  TorusKnotGeometry, PlaneGeometry,
+  EASEL.Scene, EASEL.PerspectiveCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.AmbientLight, EASEL.PointLight, EASEL.LambertMaterial, EASEL.Mesh,
+  EASEL.TorusKnotGeometry, EASEL.PlaneGeometry,
 } from "easel";
 
 // Three PointLights (RGB) orbit the central torus knot
 // at different radii and speeds.
-const red   = new PointLight(0xff0000, 1.5, 20, 2);
-const green = new PointLight(0x00ff00, 1.5, 20, 2);
-const blue  = new PointLight(0x0000ff, 1.5, 20, 2);
+const red   = new EASEL.PointLight(0xff0000, 1.5, 20, 2);
+const green = new EASEL.PointLight(0x00ff00, 1.5, 20, 2);
+const blue  = new EASEL.PointLight(0x0000ff, 1.5, 20, 2);
 
 function animate() {
   red.position.set(Math.cos(t * speed) * 4, 2, Math.sin(t * speed) * 4);

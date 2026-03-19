@@ -1,17 +1,4 @@
-import {
-	AmbientLight,
-	AnimationClip,
-	Animator,
-	BoxGeometry,
-	Clock,
-	DirectionalLight,
-	LambertMaterial,
-	Mesh,
-	PerspectiveCamera,
-	Renderer,
-	Scene,
-	VectorTrack,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{
@@ -29,8 +16,8 @@ export function setup(canvas, params = {}) {
 	const width = canvas.width;
 	const height = canvas.height;
 
-	const scene = new Scene();
-	const camera = new PerspectiveCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.PerspectiveCamera({
 		fov: Math.PI / 4,
 		aspect: width / height,
 		near: 0.1,
@@ -38,40 +25,40 @@ export function setup(canvas, params = {}) {
 	});
 	camera.position.set(0, 2, 8);
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new AmbientLight(0xffffff, 0.4));
-	const dirLight = new DirectionalLight(0xffffff, 0.8);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+	const dirLight = new EASEL.DirectionalLight(0xffffff, 0.8);
 	dirLight.position.set(4, 6, 5);
 	scene.add(dirLight);
 
-	const box = new Mesh(
-		new BoxGeometry(1.2, 1.2, 1.2),
-		new LambertMaterial({ color: 0x5080e0 }),
+	const box = new EASEL.Mesh(
+		new EASEL.BoxGeometry(1.2, 1.2, 1.2),
+		new EASEL.LambertMaterial({ color: 0x5080e0 }),
 	);
 	scene.add(box);
 
-	const posTrack = new VectorTrack(
+	const posTrack = new EASEL.VectorTrack(
 		"position",
 		[0, 1, 2, 3, 4],
 		[0, 0, 0, 2, 1, 0, 0, 2, 0, -2, 1, 0, 0, 0, 0],
 		3,
 	);
 
-	const scaleTrack = new VectorTrack(
+	const scaleTrack = new EASEL.VectorTrack(
 		"scale",
 		[0, 2, 4],
 		[1, 1, 1, 1.5, 0.5, 1.5, 1, 1, 1],
 		3,
 	);
 
-	const clip = new AnimationClip("bounce", -1, [posTrack, scaleTrack]);
-	const animator = new Animator(box);
+	const clip = new EASEL.AnimationClip("bounce", -1, [posTrack, scaleTrack]);
+	const animator = new EASEL.Animator(box);
 	const action = animator.clipAction(clip);
 	action.timeScale = params.timeScale ?? 1;
 	action.play();
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -95,28 +82,28 @@ export function setup(canvas, params = {}) {
 }
 
 export const source = `import {
-  Scene, PerspectiveCamera, Renderer, Clock,
-  AmbientLight, DirectionalLight,
-  BoxGeometry, LambertMaterial, Mesh,
-  AnimationClip, Animator, VectorTrack,
+  EASEL.Scene, EASEL.PerspectiveCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.AmbientLight, EASEL.DirectionalLight,
+  EASEL.BoxGeometry, EASEL.LambertMaterial, EASEL.Mesh,
+  EASEL.AnimationClip, EASEL.Animator, EASEL.VectorTrack,
 } from "easel";
 
-// VectorTrack(property, times[], values[], itemSize)
-const posTrack = new VectorTrack(
+// EASEL.VectorTrack(property, times[], values[], itemSize)
+const posTrack = new EASEL.VectorTrack(
   "position",
   [0, 1, 2, 3, 4],
   [0,0,0, 2,1,0, 0,2,0, -2,1,0, 0,0,0],
   3,
 );
-const scaleTrack = new VectorTrack(
+const scaleTrack = new EASEL.VectorTrack(
   "scale",
   [0, 2, 4],
   [1,1,1, 1.5,0.5,1.5, 1,1,1],
   3,
 );
 
-const clip = new AnimationClip("bounce", -1, [posTrack, scaleTrack]);
-const animator = new Animator(box);
+const clip = new EASEL.AnimationClip("bounce", -1, [posTrack, scaleTrack]);
+const animator = new EASEL.Animator(box);
 const action = animator.clipAction(clip);
 action.play();
 

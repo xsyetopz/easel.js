@@ -1,15 +1,4 @@
-import {
-	AmbientLight,
-	Clock,
-	DirectionalLight,
-	LambertMaterial,
-	Mesh,
-	OrthographicCamera,
-	Renderer,
-	Scene,
-	Shading,
-	SphereGeometry,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export function setup(canvas) {
 	const width = canvas.width;
@@ -17,8 +6,8 @@ export function setup(canvas) {
 	const aspect = width / height;
 	const size = 4;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -28,30 +17,33 @@ export function setup(canvas) {
 	});
 	camera.position.z = 6;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new AmbientLight(0xffffff, 0.3));
-	const dirLight = new DirectionalLight(0xffffff, 0.9);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.3));
+	const dirLight = new EASEL.DirectionalLight(0xffffff, 0.9);
 	dirLight.position.set(3, 5, 4);
 	scene.add(dirLight);
 
-	const geo = new SphereGeometry(1.4, 12, 8);
+	const geo = new EASEL.SphereGeometry(1.4, 12, 8);
 
-	const flat = new Mesh(
+	const flat = new EASEL.Mesh(
 		geo,
-		new LambertMaterial({ color: 0x44aa88, shading: Shading.Flat }),
+		new EASEL.LambertMaterial({ color: 0x44aa88, shading: EASEL.Shading.Flat }),
 	);
 	flat.position.x = -2.5;
 	scene.add(flat);
 
-	const gouraud = new Mesh(
+	const gouraud = new EASEL.Mesh(
 		geo,
-		new LambertMaterial({ color: 0x44aa88, shading: Shading.Gouraud }),
+		new EASEL.LambertMaterial({
+			color: 0x44aa88,
+			shading: EASEL.Shading.Gouraud,
+		}),
 	);
 	gouraud.position.x = 2.5;
 	scene.add(gouraud);
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -71,25 +63,25 @@ export function setup(canvas) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, Renderer, Clock,
-  AmbientLight, DirectionalLight,
-  SphereGeometry, LambertMaterial, Mesh,
-  Shading,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.AmbientLight, EASEL.DirectionalLight,
+  EASEL.SphereGeometry, EASEL.LambertMaterial, EASEL.Mesh,
+  EASEL.Shading,
 } from "easel";
 
 // Left: Flat shading - one color per face
 // Right: Gouraud shading - per-vertex, interpolated across face
 
-const geo = new SphereGeometry(1.4, 12, 8);
+const geo = new EASEL.SphereGeometry(1.4, 12, 8);
 
-const flat = new Mesh(
+const flat = new EASEL.Mesh(
   geo,
-  new LambertMaterial({ color: 0x44aa88, shading: Shading.Flat }),
+  new EASEL.LambertMaterial({ color: 0x44aa88, shading: EASEL.Shading.Flat }),
 );
 flat.position.x = -2.5;
 
-const gouraud = new Mesh(
+const gouraud = new EASEL.Mesh(
   geo,
-  new LambertMaterial({ color: 0x44aa88, shading: Shading.Gouraud }),
+  new EASEL.LambertMaterial({ color: 0x44aa88, shading: EASEL.Shading.Gouraud }),
 );
 gouraud.position.x = 2.5;`;

@@ -1,16 +1,4 @@
-import {
-	AmbientLight,
-	CatmullRomCurve3,
-	DirectionalLight,
-	LambertMaterial,
-	LatheGeometry,
-	Mesh,
-	TorusGeometry,
-	TorusKnotGeometry,
-	TubeGeometry,
-	Vector2,
-	Vector3,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 const PALETTE = [
 	0xff5722, // deep-orange
@@ -37,26 +25,26 @@ function gridPosition(i) {
 /**
  * Builds a vase-profile point array for LatheGeometry.
  *
- * @returns {Vector2[]}
+ * @returns {EASEL.Vector2[]}
  */
 function buildLatheProfile() {
 	return [
-		new Vector2(0.0, 0.0),
-		new Vector2(0.4, 0.2),
-		new Vector2(0.5, 0.5),
-		new Vector2(0.35, 0.8),
-		new Vector2(0.2, 1.0),
-		new Vector2(0.25, 1.2),
-		new Vector2(0.35, 1.4),
-		new Vector2(0.3, 1.6),
-		new Vector2(0.2, 1.8),
+		new EASEL.Vector2(0.0, 0.0),
+		new EASEL.Vector2(0.4, 0.2),
+		new EASEL.Vector2(0.5, 0.5),
+		new EASEL.Vector2(0.35, 0.8),
+		new EASEL.Vector2(0.2, 1.0),
+		new EASEL.Vector2(0.25, 1.2),
+		new EASEL.Vector2(0.35, 1.4),
+		new EASEL.Vector2(0.3, 1.6),
+		new EASEL.Vector2(0.2, 1.8),
 	];
 }
 
 /**
  * Builds a helix path for TubeGeometry.
  *
- * @returns {CatmullRomCurve3}
+ * @returns {EASEL.CatmullRomCurve3}
  */
 function buildHelixCurve() {
 	const pts = [];
@@ -66,47 +54,54 @@ function buildHelixCurve() {
 		const t = i / steps;
 		const angle = t * turns * Math.PI * 2;
 		pts.push(
-			new Vector3(Math.cos(angle) * 0.5, t * 1.5 - 0.75, Math.sin(angle) * 0.5),
+			new EASEL.Vector3(
+				Math.cos(angle) * 0.5,
+				t * 1.5 - 0.75,
+				Math.sin(angle) * 0.5,
+			),
 		);
 	}
-	return new CatmullRomCurve3(pts);
+	return new EASEL.CatmullRomCurve3(pts);
 }
 
 /**
  * Parametric zone - Torus, TorusKnot, Lathe, Tube.
  *
- * @param {import("@/index.js").Scene} scene
- * @param {import("@/index.js").PerspectiveCamera} camera
+ * @param {EASEL.Scene} scene
+ * @param {EASEL.PerspectiveCamera} camera
  * @returns {{ controls: Array<object>, animate: (dt: number) => void, update: (params: Record<string, unknown>) => void, dispose: () => void }}
  */
 export function setup(scene, camera) {
 	camera.position.set(4, 4, 7);
 	camera.lookAt(0, 0, 0);
 
-	const ambient = new AmbientLight(0xffffff, 0.5);
+	const ambient = new EASEL.AmbientLight(0xffffff, 0.5);
 	scene.add(ambient);
 
-	const sun = new DirectionalLight(0xffffff, 0.6);
+	const sun = new EASEL.DirectionalLight(0xffffff, 0.6);
 	sun.position.set(5, 10, 7);
 	scene.add(sun);
 
 	const geometries = [
-		{ label: "Torus", geometry: new TorusGeometry(0.5, 0.2, 8, 16) },
+		{ label: "Torus", geometry: new EASEL.TorusGeometry(0.5, 0.2, 8, 16) },
 		{
 			label: "TorusKnot",
-			geometry: new TorusKnotGeometry(0.4, 0.15, 48, 6),
+			geometry: new EASEL.TorusKnotGeometry(0.4, 0.15, 48, 6),
 		},
-		{ label: "Lathe", geometry: new LatheGeometry(buildLatheProfile(), 10) },
+		{
+			label: "Lathe",
+			geometry: new EASEL.LatheGeometry(buildLatheProfile(), 10),
+		},
 		{
 			label: "Tube",
-			geometry: new TubeGeometry(buildHelixCurve(), 30, 0.15, 6, false),
+			geometry: new EASEL.TubeGeometry(buildHelixCurve(), 30, 0.15, 6, false),
 		},
 	];
 
-	/** @type {Mesh[]} */
+	/** @type {EASEL.Mesh[]} */
 	const meshes = geometries.map(({ geometry }, i) => {
-		const material = new LambertMaterial({ color: PALETTE[i] });
-		const mesh = new Mesh(geometry, material);
+		const material = new EASEL.LambertMaterial({ color: PALETTE[i] });
+		const mesh = new EASEL.Mesh(geometry, material);
 		const { x, z } = gridPosition(i);
 		mesh.position.set(x, 0, z);
 		scene.add(mesh);

@@ -1,21 +1,10 @@
-import {
-	AmbientLight,
-	BoxGeometry,
-	Clock,
-	DirectionalLight,
-	Fog,
-	LambertMaterial,
-	Mesh,
-	OrthographicCamera,
-	Renderer,
-	Scene,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{
 		type: "slider",
 		key: "tiles",
-		label: "Fog Tiles",
+		label: "EASEL.Fog Tiles",
 		min: 2,
 		max: 20,
 		step: 1,
@@ -29,8 +18,8 @@ export function setup(canvas, params = {}) {
 	const aspect = width / height;
 	const size = 10;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -40,22 +29,22 @@ export function setup(canvas, params = {}) {
 	});
 	camera.position.z = 5;
 
-	scene.fog = new Fog({ tiles: params.tiles ?? 8 });
+	scene.fog = new EASEL.Fog({ tiles: params.tiles ?? 8 });
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new AmbientLight(0xffffff, 0.3));
-	const dirLight = new DirectionalLight(0xffffff, 0.7);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.3));
+	const dirLight = new EASEL.DirectionalLight(0xffffff, 0.7);
 	dirLight.position.set(3, 5, 4);
 	scene.add(dirLight);
 
-	const geo = new BoxGeometry(1, 1, 1);
+	const geo = new EASEL.BoxGeometry(1, 1, 1);
 	const colors = [0xe06060, 0x60e060, 0x6060e0, 0xe0e060, 0xe060e0];
 
 	for (let i = 0; i < 30; i++) {
-		const mesh = new Mesh(
+		const mesh = new EASEL.Mesh(
 			geo,
-			new LambertMaterial({ color: colors[i % colors.length] }),
+			new EASEL.LambertMaterial({ color: colors[i % colors.length] }),
 		);
 		mesh.position.x = (Math.random() - 0.5) * 30;
 		mesh.position.y = (Math.random() - 0.5) * 10;
@@ -65,7 +54,7 @@ export function setup(canvas, params = {}) {
 		scene.add(mesh);
 	}
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -83,25 +72,25 @@ export function setup(canvas, params = {}) {
 		},
 		update(newParams) {
 			if (newParams.tiles !== undefined) {
-				scene.fog = new Fog({ tiles: newParams.tiles });
+				scene.fog = new EASEL.Fog({ tiles: newParams.tiles });
 			}
 		},
 	};
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, Renderer, Clock,
-  AmbientLight, DirectionalLight, Fog,
-  BoxGeometry, LambertMaterial, Mesh,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.AmbientLight, EASEL.DirectionalLight, EASEL.Fog,
+  EASEL.BoxGeometry, EASEL.LambertMaterial, EASEL.Mesh,
 } from "easel";
 
 // Tile-radius fog: hard cutoff to black at fog.tiles distance.
 // No color, no gradient, no transition. The scene just ends.
 
-scene.fog = new Fog({ tiles: 8 });
+scene.fog = new EASEL.Fog({ tiles: 8 });
 
 for (let i = 0; i < 30; i++) {
-  const mesh = new Mesh(geo, new LambertMaterial({ color }));
+  const mesh = new EASEL.Mesh(geo, new EASEL.LambertMaterial({ color }));
   mesh.position.z = -Math.random() * 40;
   scene.add(mesh);
 }`;

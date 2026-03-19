@@ -1,13 +1,4 @@
-import {
-	BasicMaterial,
-	BoxGeometry,
-	CanvasTexture,
-	Clock,
-	Mesh,
-	OrthographicCamera,
-	Renderer,
-	Scene,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export const controls = [
 	{
@@ -74,8 +65,8 @@ export function setup(canvas, params = {}) {
 	const aspect = width / height;
 	const size = 3;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -85,7 +76,7 @@ export function setup(canvas, params = {}) {
 	});
 	camera.position.z = 5;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
 	let currentPattern = params.pattern ?? "Checkerboard";
 	let currentCells = params.cells ?? 4;
@@ -96,13 +87,13 @@ export function setup(canvas, params = {}) {
 	const ctx = offscreen.getContext("2d");
 
 	drawPattern(ctx, currentPattern, currentCells);
-	let texture = new CanvasTexture(offscreen);
+	let texture = new EASEL.CanvasTexture(offscreen);
 
-	const material = new BasicMaterial({ color: 0xffffff, map: texture });
-	const box = new Mesh(new BoxGeometry(2.5, 2.5, 2.5), material);
+	const material = new EASEL.BasicMaterial({ color: 0xffffff, map: texture });
+	const box = new EASEL.Mesh(new EASEL.BoxGeometry(2.5, 2.5, 2.5), material);
 	scene.add(box);
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -123,7 +114,7 @@ export function setup(canvas, params = {}) {
 			if (newParams.cells !== undefined) currentCells = newParams.cells;
 
 			drawPattern(ctx, currentPattern, currentCells);
-			texture = new CanvasTexture(offscreen);
+			texture = new EASEL.CanvasTexture(offscreen);
 			material.map = texture;
 			material.needsUpdate = true;
 		},
@@ -131,12 +122,12 @@ export function setup(canvas, params = {}) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, Renderer, Clock,
-  BoxGeometry, BasicMaterial, Mesh, CanvasTexture,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.BoxGeometry, EASEL.BasicMaterial, EASEL.Mesh, EASEL.CanvasTexture,
 } from "easel";
 
 // Draw a procedural pattern onto an offscreen canvas,
-// then wrap it in CanvasTexture - no file loading required.
+// then wrap it in EASEL.CanvasTexture - no file loading required.
 
 const offscreen = document.createElement("canvas");
 offscreen.width = 64;
@@ -152,7 +143,7 @@ for (let row = 0; row < cells; row++) {
   }
 }
 
-const texture = new CanvasTexture(offscreen); // needsUpdate set in constructor
-const material = new BasicMaterial({ color: 0xffffff, map: texture });
-const box = new Mesh(new BoxGeometry(2.5, 2.5, 2.5), material);
+const texture = new EASEL.CanvasTexture(offscreen); // needsUpdate set in constructor
+const material = new EASEL.BasicMaterial({ color: 0xffffff, map: texture });
+const box = new EASEL.Mesh(new EASEL.BoxGeometry(2.5, 2.5, 2.5), material);
 scene.add(box);`;

@@ -1,13 +1,4 @@
-import {
-	AmbientLight,
-	BoxGeometry,
-	DirectionalLight,
-	LambertMaterial,
-	Matrix4,
-	Mesh,
-	Raycaster,
-	Vector3,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 /** 4×4 grid layout constants. */
 const GRID = 4;
@@ -26,23 +17,23 @@ const PALETTE = [
 /**
  * Interaction zone - hover over cubes to highlight them via Raycaster picking.
  *
- * @param {import("@/index.js").Scene} scene
- * @param {import("@/index.js").PerspectiveCamera} camera
+ * @param {EASEL.Scene} scene
+ * @param {EASEL.PerspectiveCamera} camera
  * @param {HTMLCanvasElement} canvas
  * @returns {{ controls: Array<object>, animate: (dt: number) => void, update: (params: Record<string, unknown>) => void, dispose: () => void }}
  */
 export function setup(scene, camera, canvas) {
 	camera.position.set(0, 2, 10);
-	camera.lookAt(new Vector3(0, 0, 0));
+	camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
-	const ambient = new AmbientLight(0xffffff, 0.4);
+	const ambient = new EASEL.AmbientLight(0xffffff, 0.4);
 	scene.add(ambient);
 
-	const sun = new DirectionalLight(0xffffff, 0.7);
+	const sun = new EASEL.DirectionalLight(0xffffff, 0.7);
 	sun.position.set(3, 5, 4);
 	scene.add(sun);
 
-	/** @type {Mesh[]} */
+	/** @type {EASEL.Mesh[]} */
 	const cubes = [];
 	/** @type {number[]} */
 	const baseColors = [];
@@ -51,8 +42,8 @@ export function setup(scene, camera, canvas) {
 		for (let col = 0; col < GRID; col++) {
 			const idx = row * GRID + col;
 			const color = PALETTE[idx];
-			const mat = new LambertMaterial({ color });
-			const mesh = new Mesh(new BoxGeometry(0.8, 0.8, 0.8), mat);
+			const mat = new EASEL.LambertMaterial({ color });
+			const mesh = new EASEL.Mesh(new EASEL.BoxGeometry(0.8, 0.8, 0.8), mat);
 			mesh.position.set(
 				(col - (GRID - 1) / 2) * SPACING,
 				(row - (GRID - 1) / 2) * SPACING,
@@ -64,8 +55,8 @@ export function setup(scene, camera, canvas) {
 		}
 	}
 
-	const raycaster = new Raycaster();
-	/** @type {Mesh|null} */
+	const raycaster = new EASEL.Raycaster();
+	/** @type {EASEL.Mesh|null} */
 	let hoveredCube = null;
 
 	/**
@@ -76,7 +67,7 @@ export function setup(scene, camera, canvas) {
 		const y = -(event.offsetY / canvas.clientHeight) * 2 + 1;
 
 		camera.updateMatrixWorld();
-		const projInv = new Matrix4().copy(camera.projectionMatrix).invert();
+		const projInv = new EASEL.Matrix4().copy(camera.projectionMatrix).invert();
 
 		raycaster.setFromCamera(
 			{ x, y },
@@ -99,7 +90,9 @@ export function setup(scene, camera, canvas) {
 		}
 
 		if (hits.length > 0) {
-			const hit = /** @type {Mesh} */ (/** @type {unknown} */ (hits[0].object));
+			const hit = /** @type {EASEL.Mesh} */ (
+				/** @type {unknown} */ (hits[0].object)
+			);
 			hit.material.color = 0xffffff;
 			hoveredCube = hit;
 		}

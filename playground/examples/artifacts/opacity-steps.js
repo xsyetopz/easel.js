@@ -1,11 +1,4 @@
-import {
-	BasicMaterial,
-	Mesh,
-	OrthographicCamera,
-	PlaneGeometry,
-	Renderer,
-	Scene,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export function setup(canvas) {
 	const width = canvas.width;
@@ -13,8 +6,8 @@ export function setup(canvas) {
 	const aspect = width / height;
 	const size = 6;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -size * aspect,
 		right: size * aspect,
 		top: size,
@@ -24,22 +17,25 @@ export function setup(canvas) {
 	});
 	camera.position.z = 5;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	const bgGeo = new PlaneGeometry(20, 12);
-	const bg = new Mesh(bgGeo, new BasicMaterial({ color: 0xffffff }));
+	const bgGeo = new EASEL.PlaneGeometry(20, 12);
+	const bg = new EASEL.Mesh(
+		bgGeo,
+		new EASEL.BasicMaterial({ color: 0xffffff }),
+	);
 	bg.position.z = -2;
 	scene.add(bg);
 
-	const planeGeo = new PlaneGeometry(2, 8);
+	const planeGeo = new EASEL.PlaneGeometry(2, 8);
 	const colors = [
 		0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0xffff00, 0x00ffff, 0xff8800,
 		0x8800ff, 0x88ff00,
 	];
 
 	for (let i = 0; i < 9; i++) {
-		const mat = new BasicMaterial({ color: colors[i], opacity: i });
-		const mesh = new Mesh(planeGeo, mat);
+		const mat = new EASEL.BasicMaterial({ color: colors[i], opacity: i });
+		const mesh = new EASEL.Mesh(planeGeo, mat);
 		mesh.position.x = (i - 4) * 1.8;
 		scene.add(mesh);
 	}
@@ -54,19 +50,19 @@ export function setup(canvas) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, Renderer,
-  PlaneGeometry, BasicMaterial, Mesh,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.Renderer,
+  EASEL.PlaneGeometry, EASEL.BasicMaterial, EASEL.Mesh,
 } from "easel";
 
 // 9 discrete opacity levels: 0 (opaque) through 8 (nearly transparent)
 // No continuous alpha - precomputed blend lookup table.
 
 for (let i = 0; i < 9; i++) {
-  const mat = new BasicMaterial({
+  const mat = new EASEL.BasicMaterial({
     color: colors[i],
     opacity: i,  // integer 0–8
   });
-  const mesh = new Mesh(planeGeo, mat);
+  const mesh = new EASEL.Mesh(planeGeo, mat);
   mesh.position.x = (i - 4) * 1.8;
   scene.add(mesh);
 }`;

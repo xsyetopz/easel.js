@@ -41,7 +41,7 @@ These are architectural, not bugs. Do not "fix" them.
 - No inline lint suppressions - fix the code or adjust the rule
 - Class hierarchy: `EventDispatcher` → `Node` → `Mesh`/`Light`/`Camera`/etc.
 - Materials: `Material` base → `BasicMaterial`, `LambertMaterial`, `ToonMaterial`, etc.
-- Pipeline stages: `SceneTraversal` → `PainterSort` → `Shading` → `Rasterizer` → `Framebuffer`
+- Pipeline stages: `SceneTraversal` → `FogCuller` → `PainterSort` → `LightBaker` → `Rasterizer` → `Framebuffer` (with `DepthBuffer`)
 
 ## THREE.js name mapping
 

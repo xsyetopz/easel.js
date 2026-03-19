@@ -20,7 +20,7 @@
 
 **Constraints are architectural, not limitations.** Easel.js is not a degraded THREE.js. Its rendering model defines what exists in the API - features outside that model are absent, not stubbed.
 
-**Names describe what they do.** Where THREE.js names things after GPU abstractions, Easel.js names things after what a CPU scanline rasterizer actually does. `Geometry` not `BufferGeometry`. `Camera` not `OrthographicCamera`.
+**Names describe what they do.** Where THREE.js names things after GPU abstractions, Easel.js names things after what a CPU scanline rasterizer actually does. `Geometry` not `BufferGeometry`. `Node` not `Object3D`.
 
 **Absence is documentation.** A property that does nothing is worse than no property. If the rendering model cannot evaluate it, the API does not expose it.
 
@@ -28,15 +28,16 @@
 
 ## Rendering Model
 
-### No Z-Buffer
+### Depth Model: Painter's Algorithm + Uint16 Depth Buffer
 
-**Depth is resolved by sort order, not per-pixel testing.**
+**Primary depth resolution is sort order. A Uint16 depth buffer handles residual overlap within sorted draw calls.**
 
-The renderer draws all geometry back-to-front using the painter's algorithm. Distant objects are drawn first; closer objects overwrite them in the framebuffer.
+The renderer draws all geometry back-to-front using the painter's algorithm. Distant objects are drawn first; closer objects overwrite them in the framebuffer. A `DepthBuffer` (`Uint16Array`, one value per pixel, initialized to `0xFFFF`) is cleared each frame and consulted during rasterization to reject fragments that are farther than what is already drawn.
 
-- Two meshes occupying the same space have no automatic depth resolution
 - Draw order is determined by tile distance and explicit `layer` integers
-- Content authors must manually tune geometry to minimize overlap conflicts
+- The depth buffer handles sub-pixel overlap errors that the sort cannot resolve
+- Two meshes at the same layer may still flicker (centroid sort is coarse)
+- Content authors must tune geometry or `layer` values to minimize persistent conflicts
 
 ### Orthographic Projection, Integer Coordinates
 
@@ -95,7 +96,7 @@ Beyond the fog radius, the framebuffer is black. No color, no gradient, no skybo
 ```text
 src/
 ├── core/           Scene, Node, Renderer, EventDispatcher
-├── cameras/        Camera (orthographic only)
+├── cameras/        OrthographicCamera, PerspectiveCamera
 ├── geometries/     Geometry, Attribute, InterleavedAttribute
 ├── materials/      BasicMaterial, LambertMaterial, ToonMaterial, LineMaterial, etc.
 ├── lights/         AmbientLight, DirectionalLight, PointLight, SpotLight, HemisphereLight
@@ -103,7 +104,7 @@ src/
 ├── math/           Vector2, Vector3, Matrix4, Quaternion, Color, MathUtils
 ├── textures/       Texture, FramebufferTexture
 ├── objects/        Mesh, Line, LineSegments, LineLoop, Points
-├── pipeline/       SceneTraversal, PainterSort, Shading, Rasterizer, Framebuffer
+├── pipeline/       SceneTraversal, FogCuller, PainterSort, LightBaker, Rasterizer, Framebuffer (+ DepthBuffer)
 └── fog/            Fog
 ```
 
@@ -119,9 +120,9 @@ Root of the scene graph. `add()`, `remove()`, `traverse()`. Holds `fog` referenc
 
 ---
 
-### `new Camera({ left, right, top, bottom, near, far, tileSize })`
+### `new OrthographicCamera({ left, right, top, bottom, near, far, tileSize })`
 
-Orthographic camera. The only camera type - no perspective camera exists because the rasterizer performs affine UV interpolation with no W divide.
+Orthographic camera. The rasterizer performs affine UV interpolation with no W divide - perspective-correct texturing is not available.
 
 `tileSize: number` - world units per tile. Used internally for sort distance and fog culling. Default `1`.
 
@@ -129,11 +130,17 @@ Orthographic camera. The only camera type - no perspective camera exists because
 
 ---
 
+### `new PerspectiveCamera({ fov, aspect, near, far })`
+
+Perspective camera. Available but affine UV interpolation produces visible warping on oblique faces - perspective-correct UV mapping does not exist in the pipeline.
+
+---
+
 ### `new Renderer({ canvas, width, height, pixelRatio })`
 
 The only renderer. `render(scene, camera)`, `setSize(w, h)`, `setPixelRatio(r)`, `dispose()`.
 
-Does not have: `shadowMap`, `toneMapping`, `outputColorSpace`, `xr`, `setClearColor`, `capabilities`, `extensions`, `info.render`.
+Does not have: `shadowMap`, `toneMapping`, `outputColorSpace`, `xr`, `capabilities`, `extensions`, `info.render`.
 
 ---
 
@@ -340,7 +347,7 @@ All standard utilities. Adds:
 | `MeshToonMaterial`           | `ToonMaterial`         | Same.                                                                                                        |
 | `LineBasicMaterial`          | `LineMaterial`         | "Basic" is redundant - there is only one line material.                                                      |
 | `LineDashedMaterial`         | `DashedLineMaterial`   | Adjective before noun.                                                                                       |
-| `OrthographicCamera`         | `Camera`               | One camera type exists. The qualifier is noise.                                                              |
+| `OrthographicCamera`         | `OrthographicCamera`   | Name retained - `PerspectiveCamera` also exists (affine-only).                                               |
 | `AnimationMixer`             | `Animator`             | It plays clips on an object. "Mixer" implies a metaphor the user never observes.                             |
 | `KeyframeTrack`              | `Track`                | All tracks are keyframe-based. The prefix is redundant.                                                      |
 | `PropertyBinding`            | `Binding`              | "Property" is redundant - bindings bind properties by definition.                                            |
@@ -358,44 +365,43 @@ All standard utilities. Adds:
 
 ### Removed
 
-| Removed                                                        | Reason                                                                                             |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `PerspectiveCamera`                                            | Affine UV interpolation is only coherent under orthographic projection. No correction path exists. |
-| `MeshStandardMaterial`                                         | PBR requires per-pixel roughness/metalness evaluation. No per-pixel lighting pass exists.          |
-| `MeshPhongMaterial`                                            | Requires per-pixel specular. Lighting is baked before rasterization.                               |
-| `MeshPhysicalMaterial`                                         | Superset of Standard. All PBR properties have no pipeline to evaluate them.                        |
-| `MeshDepthMaterial`                                            | Encodes z-buffer depth as per-pixel grayscale. No z-buffer exists.                                 |
-| `MeshNormalMaterial`                                           | Renders normals as per-pixel RGB. The rasterizer writes only final shaded color.                   |
-| `MeshMatcapMaterial`                                           | Requires per-pixel normal data and spherical UV projection. Neither exists.                        |
-| `ShaderMaterial`                                               | Requires a GLSL shader pipeline. The rasterizer is JavaScript - not programmable via shader code.  |
-| `RawShaderMaterial`                                            | Same.                                                                                              |
-| `ShadowMaterial`                                               | Displays shadow map data. No shadow maps, no z-buffer.                                             |
-| `CubeTexture`                                                  | Environment map. No skybox, no environment reflections - the void is black.                        |
-| `CompressedTexture`                                            | GPU compression formats require GPU-side decoding.                                                 |
-| `CompressedTextureLoader`                                      | Same.                                                                                              |
-| `CubeTextureLoader`                                            | Loads into `CubeTexture`. `CubeTexture` is removed.                                                |
-| `RectAreaLight`                                                | Area lighting requires integration over the light surface without a per-pixel pass.                |
-| `LightProbe`                                                   | Environment lighting via spherical harmonics. The void is black.                                   |
-| `SphericalHarmonics3`                                          | Used by `LightProbe`. Same reason.                                                                 |
-| `DirectionalLightShadow`                                       | No z-buffer, no shadow maps.                                                                       |
-| `SpotLightShadow`                                              | Same.                                                                                              |
-| `PointLightShadow`                                             | Same.                                                                                              |
-| `BatchedMesh`                                                  | Designed around GPU interleaved buffers. The CPU equivalent is iterating meshes in a draw list.    |
-| `FogExp2`                                                      | Exponential distance fog. The fog model is a hard tile-count cutoff.                               |
-| `Audio` / `PositionalAudio` / `AudioContext` / `AudioAnalyser` | Web Audio API wrappers. Easel.js is a renderer - audio is out of scope.                            |
-| `renderer.shadowMap`                                           | No shadow system.                                                                                  |
-| `renderer.toneMapping`                                         | The framebuffer is 8-bit RGBA - no HDR range to tone map.                                          |
-| `renderer.outputColorSpace`                                    | `putImageData` writes raw bytes - no color space transform.                                        |
-| `renderer.xr`                                                  | No VR/AR support.                                                                                  |
-| `renderer.setClearColor()`                                     | Clear is always void black.                                                                        |
-| `renderer.capabilities`                                        | GPU feature queries. Not applicable.                                                               |
-| `renderer.extensions`                                          | WebGL extension queries. Not applicable.                                                           |
-| `Node.castShadow` / `.receiveShadow`                           | No shadow system.                                                                                  |
-| `Scene.background`                                             | The void is black. Not configurable.                                                               |
-| `Material.transparent`                                         | Merged into `opacity`. Two properties encoding one concept, collapsed to one.                      |
-| `Material.fog` toggle                                          | Fog is scene-level and architectural. Per-material opt-out does not exist.                         |
-| `Material.castShadow` / `.receiveShadow`                       | No shadow system.                                                                                  |
-| `Material.toneMapped`                                          | No tone mapping.                                                                                   |
+| Removed                                                        | Reason                                                                                            |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `PerspectiveCamera`                                            | Exported but affine-only. UV warping is visible on oblique faces - no perspective-correct path.   |
+| `MeshStandardMaterial`                                         | PBR requires per-pixel roughness/metalness evaluation. No per-pixel lighting pass exists.         |
+| `MeshPhongMaterial`                                            | Requires per-pixel specular. Lighting is baked before rasterization.                              |
+| `MeshPhysicalMaterial`                                         | Superset of Standard. All PBR properties have no pipeline to evaluate them.                       |
+| `MeshDepthMaterial`                                            | Encodes z-buffer depth as per-pixel grayscale. No z-buffer exists.                                |
+| `MeshNormalMaterial`                                           | Renders normals as per-pixel RGB. The rasterizer writes only final shaded color.                  |
+| `MeshMatcapMaterial`                                           | Requires per-pixel normal data and spherical UV projection. Neither exists.                       |
+| `ShaderMaterial`                                               | Requires a GLSL shader pipeline. The rasterizer is JavaScript - not programmable via shader code. |
+| `RawShaderMaterial`                                            | Same.                                                                                             |
+| `ShadowMaterial`                                               | Displays shadow map data. No shadow maps, no z-buffer.                                            |
+| `CubeTexture`                                                  | Environment map. No skybox, no environment reflections - the void is black.                       |
+| `CompressedTexture`                                            | GPU compression formats require GPU-side decoding.                                                |
+| `CompressedTextureLoader`                                      | Same.                                                                                             |
+| `CubeTextureLoader`                                            | Loads into `CubeTexture`. `CubeTexture` is removed.                                               |
+| `RectAreaLight`                                                | Area lighting requires integration over the light surface without a per-pixel pass.               |
+| `LightProbe`                                                   | Environment lighting via spherical harmonics. The void is black.                                  |
+| `SphericalHarmonics3`                                          | Used by `LightProbe`. Same reason.                                                                |
+| `DirectionalLightShadow`                                       | No z-buffer, no shadow maps.                                                                      |
+| `SpotLightShadow`                                              | Same.                                                                                             |
+| `PointLightShadow`                                             | Same.                                                                                             |
+| `BatchedMesh`                                                  | Designed around GPU interleaved buffers. The CPU equivalent is iterating meshes in a draw list.   |
+| `FogExp2`                                                      | Exponential distance fog. The fog model is a hard tile-count cutoff.                              |
+| `Audio` / `PositionalAudio` / `AudioContext` / `AudioAnalyser` | Web Audio API wrappers. Easel.js is a renderer - audio is out of scope.                           |
+| `renderer.shadowMap`                                           | No shadow system.                                                                                 |
+| `renderer.toneMapping`                                         | The framebuffer is 8-bit RGBA - no HDR range to tone map.                                         |
+| `renderer.outputColorSpace`                                    | `putImageData` writes raw bytes - no color space transform.                                       |
+| `renderer.xr`                                                  | No VR/AR support.                                                                                 |
+| `renderer.capabilities`                                        | GPU feature queries. Not applicable.                                                              |
+| `renderer.extensions`                                          | WebGL extension queries. Not applicable.                                                          |
+| `Node.castShadow` / `.receiveShadow`                           | No shadow system.                                                                                 |
+| `Scene.background`                                             | The void is black. Not configurable.                                                              |
+| `Material.transparent`                                         | Merged into `opacity`. Two properties encoding one concept, collapsed to one.                     |
+| `Material.fog` toggle                                          | Fog is scene-level and architectural. Per-material opt-out does not exist.                        |
+| `Material.castShadow` / `.receiveShadow`                       | No shadow system.                                                                                 |
+| `Material.toneMapped`                                          | No tone mapping.                                                                                  |
 
 ---
 
@@ -421,7 +427,7 @@ The following visual behaviors are correct outputs of this renderer. They are no
 
 **Vertex wobble.** Models shimmer and edges stutter during movement. Floating-point screen coordinates are truncated to integers - different vertices cross integer boundaries at different frames, briefly distorting shape. Animations amplify this.
 
-**Polygon sort flicker.** Two faces at the same tile and `layer` will flicker as the camera rotates. Sub-tile ordering uses triangle centroid depth, and small rotations flip which centroid is deeper. Overlapping geometry at the same layer is resolved by adjusting geometry, not code.
+**Polygon sort flicker.** Two faces at the same tile and `layer` may flicker as the camera rotates. Primary sort uses triangle centroid Z; the `DepthBuffer` rejects fragments that are farther than what has already been drawn within the sorted sequence. Persistent flickering on coplanar geometry at the same layer is resolved by adjusting `layer` values or geometry, not code.
 
 **Affine texture warping.** Textured polygons warp at oblique angles, particularly on large faces. UV coordinates are interpolated linearly without W division. Perspective-correct mapping is not available.
 

@@ -1,24 +1,11 @@
-import {
-	AmbientLight,
-	BoxGeometry,
-	Clock,
-	Color,
-	DirectionalLight,
-	LambertMaterial,
-	Matrix4,
-	Mesh,
-	PerspectiveCamera,
-	Raycaster,
-	Renderer,
-	Scene,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export function setup(canvas, _params = {}) {
 	const width = canvas.width;
 	const height = canvas.height;
 
-	const scene = new Scene();
-	const camera = new PerspectiveCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.PerspectiveCamera({
 		fov: Math.PI / 4,
 		aspect: width / height,
 		near: 0.1,
@@ -26,10 +13,10 @@ export function setup(canvas, _params = {}) {
 	});
 	camera.position.set(0, 1, 12);
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new AmbientLight(0xffffff, 0.4));
-	const dirLight = new DirectionalLight(0xffffff, 0.8);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+	const dirLight = new EASEL.DirectionalLight(0xffffff, 0.8);
 	dirLight.position.set(5, 8, 6);
 	scene.add(dirLight);
 
@@ -37,9 +24,9 @@ export function setup(canvas, _params = {}) {
 	const boxSize = 0.8;
 	const spacing = 1.4;
 
-	/** @type {Mesh[]} */
+	/** @type {EASEL.Mesh[]} */
 	const cubes = [];
-	/** @type {Map<Mesh, number>} */
+	/** @type {Map<EASEL.Mesh, number>} */
 	const originalColors = new Map();
 
 	for (let row = 0; row < gridSize; row++) {
@@ -49,9 +36,9 @@ export function setup(canvas, _params = {}) {
 				0x404040 +
 				(Math.floor(Math.random() * 0x40) << 16) +
 				(Math.floor(Math.random() * 0x40) << 8);
-			const mesh = new Mesh(
-				new BoxGeometry(boxSize, boxSize, boxSize),
-				new LambertMaterial({ color }),
+			const mesh = new EASEL.Mesh(
+				new EASEL.BoxGeometry(boxSize, boxSize, boxSize),
+				new EASEL.LambertMaterial({ color }),
 			);
 			mesh.position.set(
 				(col - (gridSize - 1) / 2) * spacing,
@@ -64,17 +51,17 @@ export function setup(canvas, _params = {}) {
 		}
 	}
 
-	const raycaster = new Raycaster();
-	/** @type {Mesh|null} */
+	const raycaster = new EASEL.Raycaster();
+	/** @type {EASEL.Mesh|null} */
 	let hoveredCube = null;
 
 	/**
 	 * Compute a camera-compatible object with projectionMatrixInverse
-	 * for use with Raycaster.setFromCamera.
+	 * for use with EASEL.Raycaster.setFromCamera.
 	 */
 	function getCameraForRaycaster() {
 		camera.updateMatrixWorld();
-		const projInv = new Matrix4().copy(camera.projectionMatrix).invert();
+		const projInv = new EASEL.Matrix4().copy(camera.projectionMatrix).invert();
 		return {
 			type: camera.type,
 			matrixWorld: camera.matrixWorld,
@@ -88,7 +75,8 @@ export function setup(canvas, _params = {}) {
 
 		raycaster.setFromCamera({ x, y }, getCameraForRaycaster());
 		const hits = raycaster.intersectObjects(cubes);
-		const hit = hits.length > 0 ? /** @type {Mesh} */ (hits[0].object) : null;
+		const hit =
+			hits.length > 0 ? /** @type {EASEL.Mesh} */ (hits[0].object) : null;
 
 		if (hit !== hoveredCube) {
 			if (hoveredCube !== null) {
@@ -100,7 +88,7 @@ export function setup(canvas, _params = {}) {
 			hoveredCube = hit;
 			if (hoveredCube !== null) {
 				const orig = originalColors.get(hoveredCube) ?? 0xffffff;
-				const bright = new Color(orig);
+				const bright = new EASEL.Color(orig);
 				bright.r = Math.min(1, bright.r * 1.6);
 				bright.g = Math.min(1, bright.g * 1.6);
 				bright.b = Math.min(1, bright.b * 1.6);
@@ -111,7 +99,7 @@ export function setup(canvas, _params = {}) {
 
 	canvas.addEventListener("mousemove", onMouseMove);
 
-	const clock = new Clock();
+	const clock = new EASEL.Clock();
 	let animId;
 
 	function animate() {
@@ -130,9 +118,9 @@ export function setup(canvas, _params = {}) {
 }
 
 export const source = `import {
-  Scene, PerspectiveCamera, Renderer, Clock,
-  AmbientLight, DirectionalLight, Raycaster, Color, Matrix4,
-  BoxGeometry, LambertMaterial, Mesh,
+  EASEL.Scene, EASEL.PerspectiveCamera, EASEL.Renderer, EASEL.Clock,
+  EASEL.AmbientLight, EASEL.DirectionalLight, EASEL.Raycaster, EASEL.Color, EASEL.Matrix4,
+  EASEL.BoxGeometry, EASEL.LambertMaterial, EASEL.Mesh,
 } from "easel";
 
 // On mousemove: convert to NDC, raycast, highlight hit cube.
@@ -144,7 +132,7 @@ canvas.addEventListener("mousemove", (event) => {
   const camForRay = {
     type: camera.type,
     matrixWorld: camera.matrixWorld,
-    projectionMatrixInverse: new Matrix4().copy(camera.projectionMatrix).invert(),
+    projectionMatrixInverse: new EASEL.Matrix4().copy(camera.projectionMatrix).invert(),
   };
 
   raycaster.setFromCamera({ x, y }, camForRay);

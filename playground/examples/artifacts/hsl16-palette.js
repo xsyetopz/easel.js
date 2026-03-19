@@ -1,12 +1,4 @@
-import {
-	BasicMaterial,
-	Color,
-	Mesh,
-	OrthographicCamera,
-	PlaneGeometry,
-	Renderer,
-	Scene,
-} from "@/index.js";
+import * as EASEL from "@/index.js";
 
 export function setup(canvas) {
 	const width = canvas.width;
@@ -21,8 +13,8 @@ export function setup(canvas) {
 	const sizeX = 10 * aspect;
 	const sizeY = 10;
 
-	const scene = new Scene();
-	const camera = new OrthographicCamera({
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.OrthographicCamera({
 		left: -sizeX / 2,
 		right: sizeX / 2,
 		top: sizeY / 2,
@@ -32,17 +24,17 @@ export function setup(canvas) {
 	});
 	camera.position.z = 1;
 
-	const renderer = new Renderer({ canvas, width, height });
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
 	const cellW = sizeX / gridW;
 	const cellH = sizeY / gridH;
-	const geo = new PlaneGeometry(cellW, cellH);
+	const geo = new EASEL.PlaneGeometry(cellW, cellH);
 
 	for (let h = 0; h < hues; h++) {
 		for (let l = 0; l < lightSteps; l++) {
-			const color = new Color();
+			const color = new EASEL.Color();
 			color.setHSL(h / hues, 1.0, l / lightSteps);
-			const mesh = new Mesh(geo, new BasicMaterial({ color }));
+			const mesh = new EASEL.Mesh(geo, new EASEL.BasicMaterial({ color }));
 			mesh.position.x = (h - gridW / 2 + 0.5) * cellW;
 			mesh.position.y = (l - gridH / 2 + 0.5) * cellH;
 			scene.add(mesh);
@@ -59,8 +51,8 @@ export function setup(canvas) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, Renderer,
-  PlaneGeometry, BasicMaterial, Mesh, Color,
+  EASEL.Scene, EASEL.OrthographicCamera, EASEL.Renderer,
+  EASEL.PlaneGeometry, EASEL.BasicMaterial, EASEL.Mesh, EASEL.Color,
 } from "easel";
 
 // HSL16: 6-bit hue (64 steps), 3-bit saturation, 7-bit lightness (128 steps)
@@ -69,10 +61,10 @@ export const source = `import {
 
 for (let h = 0; h < 64; h++) {
   for (let l = 0; l < 128; l++) {
-    const color = new Color();
+    const color = new EASEL.Color();
     color.setHSL(h / 64, 1.0, l / 128);
     // color.hsl16 gives the packed 16-bit integer
-    const mesh = new Mesh(cellGeo, new BasicMaterial({ color }));
+    const mesh = new EASEL.Mesh(cellGeo, new EASEL.BasicMaterial({ color }));
     scene.add(mesh);
   }
 }`;
