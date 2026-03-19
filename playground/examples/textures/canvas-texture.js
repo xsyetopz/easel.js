@@ -133,7 +133,7 @@ export function setup(canvas, params = {}) {
 export const easelSource = `import * as EASEL from "easel";
 
 // Draw a procedural pattern onto an offscreen canvas,
-// then wrap it in EASEL.CanvasTexture — no file loading required.
+// then wrap it in EASEL.CanvasTexture - no file loading required.
 
 const offscreen = document.createElement("canvas");
 offscreen.width = 64;
@@ -161,7 +161,7 @@ scene.add(box);
 
 export const threeSource = `import * as THREE from "three";
 
-// THREE.CanvasTexture works the same way — same API.
+// THREE.CanvasTexture works the same way - same API.
 
 const offscreen = document.createElement("canvas");
 offscreen.width = 64;

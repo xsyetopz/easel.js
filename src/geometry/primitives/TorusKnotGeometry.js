@@ -51,7 +51,7 @@ export class TorusKnotGeometry extends Geometry {
 			const Ty = P2[1] - P1[1];
 			const Tz = P2[2] - P1[2];
 
-			// N = -normalize(P1 + P2) — points away from center of curvature
+			// N = -normalize(P1 + P2) - points away from center of curvature
 			let Nx = -(P1[0] + P2[0]);
 			let Ny = -(P1[1] + P2[1]);
 			let Nz = -(P1[2] + P2[2]);

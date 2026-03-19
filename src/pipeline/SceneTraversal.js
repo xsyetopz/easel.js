@@ -216,7 +216,7 @@ export class SceneTraversal {
 		}
 		drawCall.worldPositions = wp;
 
-		// M2: Inline 4×4 matrix multiply — avoids Vector3 method dispatch per vertex.
+		// M2: Inline 4×4 matrix multiply - avoids Vector3 method dispatch per vertex.
 		const mw = node.matrixWorld.elements;
 		for (let i = 0; i < count; i++) {
 			const lx = arr[i * itemSize];

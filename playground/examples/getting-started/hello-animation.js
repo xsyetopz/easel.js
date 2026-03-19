@@ -30,7 +30,7 @@ export function setup(canvas, params = {}) {
 		near: 0.1,
 		far: 100,
 	});
-	camera.position.set(3, 2, 5);
+	camera.position.set(0, 0, 5);
 
 	const renderer = new EASEL.Renderer({ canvas, width, height });
 

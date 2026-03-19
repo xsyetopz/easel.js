@@ -9,7 +9,7 @@ export class Loader {
 	#path = "";
 
 	/** @type {string} */
-	#crossOrigin = "anonymous";
+	#crossOrigin = "";
 
 	/** @type {Record<string, string>} */
 	#requestHeader = {};

@@ -31,11 +31,11 @@ export function setup(canvas) {
 	dirLight.position.set(4, 6, 5);
 	scene.add(dirLight);
 
-	// Outer group rotates around Y — all children orbit with it
+	// Outer group rotates around Y - all children orbit with it
 	const outerGroup = new EASEL.Group();
 	scene.add(outerGroup);
 
-	// Inner group scales — meshes inside get both the outer rotation and this scale
+	// Inner group scales - meshes inside get both the outer rotation and this scale
 	const innerGroup = new EASEL.Group();
 	outerGroup.add(innerGroup);
 
@@ -56,7 +56,7 @@ export function setup(canvas) {
 		innerGroup.add(mesh);
 	}
 
-	// Center marker stays in outerGroup only — no inner scale
+	// Center marker stays in outerGroup only - no inner scale
 	const center = new EASEL.Mesh(
 		new EASEL.SphereGeometry(0.2, 8, 6),
 		new EASEL.BasicMaterial({ color: 0xffffff }),
@@ -112,7 +112,7 @@ innerGroup.scale.set(s, s, s);
 
 export const threeSource = `import * as THREE from "three";
 
-// Identical API — Group nesting works the same way in THREE.js.
+// Identical API - Group nesting works the same way in THREE.js.
 const outerGroup = new THREE.Group();
 scene.add(outerGroup);
 

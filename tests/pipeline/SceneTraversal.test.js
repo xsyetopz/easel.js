@@ -117,7 +117,7 @@ describe("SceneTraversal", () => {
 		expect(result.calls[0].triangles.length).toBe(1);
 	});
 
-	it("Side.Front: CW (back-facing) triangle is culled — triangle buffer empty", () => {
+	it("Side.Front: CW (back-facing) triangle is culled - triangle buffer empty", () => {
 		const scene = makeScene(makeMeshNodeWithSide(cwPositions, Side.Front));
 		const result = traversal.traverse(scene, makeCamera(), 100, 100);
 		// Draw call is still created (node is visible), but backface culled
@@ -253,7 +253,7 @@ describe("SceneTraversal", () => {
 	});
 
 	// UV caching: _uvCache is built on first traversal and reused on second
-	it("second traversal reuses _uvCache — same Float32Array reference", () => {
+	it("second traversal reuses _uvCache - same Float32Array reference", () => {
 		const geometry = {
 			getAttribute: (name) => {
 				if (name === "position")

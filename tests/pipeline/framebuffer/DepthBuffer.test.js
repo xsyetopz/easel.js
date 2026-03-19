@@ -50,7 +50,7 @@ describe("DepthBuffer", () => {
 	it("testAndSet does not update stored depth on fail", () => {
 		const db = new DepthBuffer(4, 4);
 		db.testAndSet(3, 1, 400);
-		db.testAndSet(3, 1, 900); // farther — should not overwrite
+		db.testAndSet(3, 1, 900); // farther - should not overwrite
 		const idx = 1 * 4 + 3;
 		expect(db.data[idx]).toBe(400);
 	});
@@ -67,17 +67,17 @@ describe("DepthBuffer", () => {
 		}
 	});
 
-	it("multiple writes to same pixel — closest depth wins", () => {
+	it("multiple writes to same pixel - closest depth wins", () => {
 		const db = new DepthBuffer(8, 8);
 		const x = 4;
 		const y = 3;
 		const idx = y * 8 + x;
 
 		db.testAndSet(x, y, 5000);
-		db.testAndSet(x, y, 2000); // closer — wins
-		db.testAndSet(x, y, 8000); // farther — rejected
-		db.testAndSet(x, y, 1500); // closer still — wins
-		db.testAndSet(x, y, 3000); // farther than 1500 — rejected
+		db.testAndSet(x, y, 2000); // closer - wins
+		db.testAndSet(x, y, 8000); // farther - rejected
+		db.testAndSet(x, y, 1500); // closer still - wins
+		db.testAndSet(x, y, 3000); // farther than 1500 - rejected
 
 		expect(db.data[idx]).toBe(1500);
 	});
@@ -90,7 +90,7 @@ describe("DepthBuffer", () => {
 
 	it("testAndSet at depth=0xFFFF (far plane boundary) returns true", () => {
 		const db = new DepthBuffer(4, 4);
-		// Equal to initial stored value — coplanar is allowed
+		// Equal to initial stored value - coplanar is allowed
 		expect(db.testAndSet(1, 1, 0xffff)).toBe(true);
 	});
 

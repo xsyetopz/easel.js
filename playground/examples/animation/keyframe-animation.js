@@ -47,15 +47,12 @@ export function setup(canvas, params = {}) {
 	);
 	scene.add(box);
 
-	// Bounce: y goes 0 → 3 → 0 over 1 second
 	const posTrack = new EASEL.VectorTrack(
 		"position",
 		[0, 0.5, 1],
 		[0, 0, 0, 0, 3, 0, 0, 0, 0],
 		3,
 	);
-
-	// Squash at apex, stretch at bottom
 	const scaleTrack = new EASEL.VectorTrack(
 		"scale",
 		[0, 0.5, 1],
@@ -98,7 +95,7 @@ import { LoopRepeat } from "easel";
 
 // VectorTrack(property, times[], values[], itemSize)
 // times: keyframe timestamps in seconds
-// values: flat array — itemSize values per keyframe
+// values: flat array - itemSize values per keyframe
 const posTrack = new EASEL.VectorTrack(
   "position",
   [0,   0.5,   1  ],
@@ -120,7 +117,7 @@ action.setLoop(LoopRepeat, Infinity);
 action.timeScale = speed;   // speed slider maps directly to timeScale
 action.play();
 
-// Call once per frame — drives all active clips on this animator
+// Call once per frame - drives all active clips on this animator
 animator.update(dt);`;
 
 export const threeSource = `import * as THREE from "three";

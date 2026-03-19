@@ -3,7 +3,7 @@
 [![CI](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Canvas2D software renderer with a THREE.js-compatible scene graph API. Every pixel is drawn by the CPU using a painter's-algorithm scanline rasterizer — no WebGL, no GPU.
+Canvas2D software renderer with a THREE.js-compatible scene graph API. Every pixel is drawn by the CPU using a painter's-algorithm scanline rasterizer - no WebGL, no GPU.
 
 ## Quick start
 
@@ -27,7 +27,7 @@ const renderer = new Renderer({
 
 const scene = new Scene();
 const camera = new PerspectiveCamera({
-  fov: 45,               // degrees
+  fov: 45,
   aspect: 800 / 600,
   near: 0.1,
   far: 100,
@@ -57,45 +57,52 @@ animate();
 
 Easel.js mirrors the THREE.js API wherever it makes sense. If you know THREE.js, you already know the basics.
 
-| Category | Classes |
-|---|---|
-| **Core** | `Scene`, `Node`, `Group`, `Mesh`, `Raycaster`, `Clock` |
-| **Cameras** | `PerspectiveCamera`, `OrthographicCamera` |
-| **Lights** | `AmbientLight`, `DirectionalLight`, `PointLight`, `SpotLight`, `HemisphereLight` |
-| **Materials** | `BasicMaterial`, `LambertMaterial`, `ToonMaterial`, `LineMaterial` |
-| **Geometry** | `BoxGeometry`, `SphereGeometry`, `PlaneGeometry`, `CylinderGeometry`, `TorusGeometry`, + 15 more |
-| **Textures** | `Texture`, `CanvasTexture`, `DataTexture`, `VideoTexture` |
-| **Helpers** | `BoxHelper`, `GridHelper`, `AxesHelper`, `SpotLightHelper` |
-| **Controls** | `OrbitControls` |
-| **Animation** | `Animator`, `AnimationClip`, `Track` |
-| **Math** | `Vector3`, `Matrix4`, `Quaternion`, `Color`, `Ray`, `MathUtils` |
+| Category      | Classes                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| **Core**      | `Scene`, `Node`, `Group`, `Mesh`, `Raycaster`, `Clock`                                           |
+| **Cameras**   | `PerspectiveCamera`, `OrthographicCamera`                                                        |
+| **Lights**    | `AmbientLight`, `DirectionalLight`, `PointLight`, `SpotLight`, `HemisphereLight`                 |
+| **Materials** | `BasicMaterial`, `LambertMaterial`, `ToonMaterial`, `LineMaterial`                               |
+| **Geometry**  | `BoxGeometry`, `SphereGeometry`, `PlaneGeometry`, `CylinderGeometry`, `TorusGeometry`, + 15 more |
+| **Textures**  | `Texture`, `CanvasTexture`, `DataTexture`, `VideoTexture`                                        |
+| **Helpers**   | `BoxHelper`, `GridHelper`, `AxesHelper`, `SpotLightHelper`                                       |
+| **Controls**  | `OrbitControls`                                                                                  |
+| **Animation** | `Animator`, `AnimationClip`, `Track`                                                             |
+| **Math**      | `Vector3`, `Matrix4`, `Quaternion`, `Color`, `Ray`, `MathUtils`                                  |
 
 ### THREE.js name mapping
 
-| THREE.js | Easel.js | Reason |
-|---|---|---|
-| `Object3D` | `Node` | Scene graph node |
-| `BufferGeometry` | `Geometry` | No GPU buffers |
-| `WebGLRenderer` | `Renderer` | Single renderer |
-| `MeshBasicMaterial` | `BasicMaterial` | "Mesh" prefix redundant |
-| `MeshLambertMaterial` | `LambertMaterial` | Same |
-| `MeshToonMaterial` | `ToonMaterial` | Same |
-| `AnimationMixer` | `Animator` | Plays clips |
-| `KeyframeTrack` | `Track` | All tracks are keyframe |
+| THREE.js              | Easel.js          | Reason                  |
+| --------------------- | ----------------- | ----------------------- |
+| `Object3D`            | `Node`            | Scene graph node        |
+| `BufferGeometry`      | `Geometry`        | No GPU buffers          |
+| `WebGLRenderer`       | `Renderer`        | Single renderer         |
+| `MeshBasicMaterial`   | `BasicMaterial`   | "Mesh" prefix redundant |
+| `MeshLambertMaterial` | `LambertMaterial` | Same                    |
+| `MeshToonMaterial`    | `ToonMaterial`    | Same                    |
+| `AnimationMixer`      | `Animator`        | Plays clips             |
+| `KeyframeTrack`       | `Track`           | All tracks are keyframe |
 
 ## Rendering pipeline
 
-```
-SceneTraversal → FogCuller → PainterSort → LightBaker → Rasterizer → Framebuffer
+```mermaid
+graph LR
+  ST["SceneTraversal"]
+  FC["FogCuller"]
+  PS["PainterSort"]
+  LB["LightBaker"]
+  R["Rasterizer"]
+  FB["Framebuffer"]
+  ST --> FC --> PS --> LB --> R --> FB
 ```
 
-- **Painter's algorithm** — back-to-front sort by tile distance, Uint16 depth buffer for residual overlap
-- **Flat & Gouraud shading** — per-face and per-vertex lighting, no per-pixel
-- **Affine UV mapping** — no perspective correction (visible warping on large quads)
-- **Linear fog** — per-vertex depth fog with configurable color, near, and far
-- **Integer screen coords** — `(x + 0.5) | 0` on projected vertices
-- **128x128 max texture** — nearest-neighbor, no mipmaps
-- **9-step opacity** — discrete 0-8, not continuous alpha
+- **Painter's algorithm** - back-to-front sort by tile distance, Uint16 depth buffer for residual overlap
+- **Flat & Gouraud shading** - per-face and per-vertex lighting, no per-pixel
+- **Affine UV mapping** - no perspective correction (visible warping on large quads)
+- **Linear fog** - per-vertex depth fog with configurable color, near, and far
+- **Integer screen coords** - `(x + 0.5) | 0` on projected vertices
+- **128x128 max texture** - nearest-neighbor, no mipmaps
+- **9-step opacity** - discrete 0-8, not continuous alpha
 
 ## Development
 

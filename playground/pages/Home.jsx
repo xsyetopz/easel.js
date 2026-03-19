@@ -77,7 +77,7 @@ const highlights = [
 	{
 		title: "THREE.js-like API",
 		description:
-			"Same scene graph concepts — Scene, Mesh, Camera, Light. If you know THREE.js, you already know the API.",
+			"Same scene graph concepts - Scene, Mesh, Camera, Light. If you know THREE.js, you already know the API.",
 	},
 	{
 		title: "CPU Software Renderer",

@@ -5,7 +5,7 @@ export const meta = {
 	name: "Animation Basics",
 	category: "animation",
 	description:
-		"Manual position/rotation/scale animation driven by Clock.delta — no keyframes needed.",
+		"Manual position/rotation/scale animation driven by Clock.delta - no keyframes needed.",
 };
 
 export const controls = [
@@ -58,17 +58,14 @@ export function setup(canvas, params = {}) {
 		const dt = clock.delta;
 		elapsed += dt * speed;
 
-		// Rotation driven by elapsed time × speed
 		box.rotation.y = elapsed * 1.2;
 		box.rotation.x = elapsed * 0.4;
 
-		// Bounce on Y using sin
 		box.position.y = Math.sin(elapsed * 2) * 1.5;
 
-		// Squash/stretch: compress vertically at bottom of bounce
 		const bounce = Math.sin(elapsed * 2);
 		const scaleY = 0.8 + 0.4 * ((bounce + 1) / 2);
-		const scaleXZ = 1 / Math.sqrt(scaleY); // volume-preserving
+		const scaleXZ = 1 / Math.sqrt(scaleY);
 		box.scale.set(scaleXZ, scaleY, scaleXZ);
 
 		renderer.render(scene, camera);
@@ -93,7 +90,7 @@ let elapsed = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.delta;   // seconds since last call — getter, not getDelta()
+  const dt = clock.delta;   // seconds since last call - getter, not getDelta()
   elapsed += dt * speed;
 
   box.rotation.y = elapsed * 1.2;

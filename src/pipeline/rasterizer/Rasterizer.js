@@ -69,7 +69,7 @@ export class Rasterizer {
 	/** @type {number} */
 	#fogF2 = 0;
 
-	// Bound callbacks — created once, reused for every triangle.
+	// Bound callbacks - created once, reused for every triangle.
 	#cbFlat = this.#fillFlat.bind(this);
 	#cbGouraud = this.#fillGouraud.bind(this);
 	#cbFlatTex = this.#fillFlatTex.bind(this);

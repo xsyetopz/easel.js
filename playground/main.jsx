@@ -1,5 +1,6 @@
 import "@mantine/core/styles.css";
 import "@mantine/code-highlight/styles.css";
+import "./hljs-theme.css";
 
 import {
 	CodeHighlightAdapterProvider,
@@ -16,7 +17,7 @@ hljs.registerLanguage("javascript", javascript);
 const highlightJsAdapter = createHighlightJsAdapter(hljs);
 
 createRoot(document.getElementById("root")).render(
-	<MantineProvider theme={theme} defaultColorScheme="dark">
+	<MantineProvider theme={theme} defaultColorScheme="auto">
 		<CodeHighlightAdapterProvider adapter={highlightJsAdapter}>
 			<App />
 		</CodeHighlightAdapterProvider>

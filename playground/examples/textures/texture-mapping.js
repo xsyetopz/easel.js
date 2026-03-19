@@ -34,10 +34,14 @@ export function setup(canvas) {
 	scene.add(box);
 
 	const loader = new EASEL.TextureLoader();
-	loader.load("textures/Brick_01.png", (texture) => {
-		material.map = texture;
-		material.needsUpdate = true;
-	});
+	loader.load(
+		"textures/Brick_01.png",
+		(texture) => {
+			material.map = texture;
+		},
+		undefined,
+		(err) => console.error("Texture load failed:", err),
+	);
 
 	const clock = new EASEL.Clock();
 	let animId;

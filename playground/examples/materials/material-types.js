@@ -91,7 +91,7 @@ export function setup(canvas, params = {}) {
 export const easelSource = `import * as EASEL from "easel";
 
 const scene = new EASEL.Scene();
-// OrthographicCamera — no perspective distortion for a fair comparison
+// OrthographicCamera - no perspective distortion for a fair comparison
 const camera = new EASEL.OrthographicCamera({
   left: -size * aspect, right: size * aspect,
   top: size, bottom: -size,

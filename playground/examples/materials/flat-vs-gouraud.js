@@ -89,14 +89,14 @@ scene.add(dirLight);
 
 const geo = new EASEL.SphereGeometry(1.4, 12, 8);
 
-// Left: Flat — one lighting sample per face
+// Left: Flat - one lighting sample per face
 const flat = new EASEL.Mesh(
   geo,
   new EASEL.LambertMaterial({ color: 0x44aa88, shading: EASEL.Shading.Flat }),
 );
 flat.position.x = -2.5;
 
-// Right: Gouraud — per-vertex lighting, bilinearly interpolated
+// Right: Gouraud - per-vertex lighting, bilinearly interpolated
 const gouraud = new EASEL.Mesh(
   geo,
   new EASEL.LambertMaterial({ color: 0x44aa88, shading: EASEL.Shading.Gouraud }),
@@ -104,5 +104,5 @@ const gouraud = new EASEL.Mesh(
 gouraud.position.x = 2.5;`;
 
 // THREE.js does not expose a Flat/Gouraud toggle on MeshLambertMaterial the
-// same way — FlatShading is a geometry/normal flag, not a material property.
+// same way - FlatShading is a geometry/normal flag, not a material property.
 export const threeSource = null;

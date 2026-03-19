@@ -91,7 +91,7 @@ describe("GouraudShader", () => {
 		// normal (0,0,-1), light direction (0,0,1): dot = 0*0 + 0*0 + (-1)*(-1) = 1
 		const result = shader.shade(0, 0, -1, [redLight], 0.1);
 		expect(result.r).toBeGreaterThan(0.5);
-		// g and b get no directional contribution — only scene ambient
+		// g and b get no directional contribution - only scene ambient
 		expect(result.g).toBeCloseTo(0.1, 2);
 		expect(result.b).toBeCloseTo(0.1, 2);
 	});

@@ -99,7 +99,7 @@ const dirLight = new EASEL.DirectionalLight(0xffffff, 1);
 dirLight.position.set(4, 6, 5);
 scene.add(dirLight);
 
-// EASEL.ToonMaterial: stepped shading — hard transitions between bands.
+// EASEL.ToonMaterial: stepped shading - hard transitions between bands.
 // Adjust light intensity to see how bands shift.
 const colors = [0xe05050, 0x50b050, 0x5080e0, 0xe0b040];
 colors.forEach((color, i) => {

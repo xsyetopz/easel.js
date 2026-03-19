@@ -27,7 +27,9 @@ export class ImageLoader extends Loader {
 		manager.itemStart(fullUrl);
 
 		const image = new Image();
-		image.crossOrigin = this.crossOrigin;
+		if (this.crossOrigin) {
+			image.crossOrigin = this.crossOrigin;
+		}
 
 		image.onload = () => {
 			onLoad?.(image);

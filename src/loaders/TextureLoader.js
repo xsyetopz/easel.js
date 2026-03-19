@@ -1,9 +1,13 @@
 import { Texture } from "../textures/Texture.js";
-import { ImageLoader } from "./ImageLoader.js";
+import { ImageBitmapLoader } from "./ImageBitmapLoader.js";
 import { Loader } from "./Loader.js";
 
 /**
  * Loads an image URL and wraps it in a Texture.
+ *
+ * Uses fetch + createImageBitmap internally, which avoids canvas taint
+ * issues that occur with HTMLImageElement + crossOrigin on 2D canvas
+ * renderers that call getImageData().
  */
 export class TextureLoader extends Loader {
 	/**
@@ -22,15 +26,14 @@ export class TextureLoader extends Loader {
 	 * @returns {void}
 	 */
 	load(url, onLoad, onProgress = undefined, onError = undefined) {
-		const imageLoader = new ImageLoader(this.manager);
-		imageLoader.setPath(this.path);
-		imageLoader.setCrossOrigin(this.crossOrigin);
-		imageLoader.setRequestHeader(this.requestHeader);
+		const loader = new ImageBitmapLoader(this.manager);
+		loader.setPath(this.path);
+		loader.setRequestHeader(this.requestHeader);
 
-		imageLoader.load(
+		loader.load(
 			url,
-			(image) => {
-				const texture = new Texture(image);
+			(bitmap) => {
+				const texture = new Texture(bitmap);
 				texture.needsUpdate = true;
 				onLoad?.(texture);
 			},

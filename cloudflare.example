@@ -1,6 +1,0 @@
-# Copy to .env.local
-# https://dash.cloudflare.com → right sidebar for Account ID
-# My Profile → API Tokens → Create Token → Custom (Cloudflare Pages: Edit)
-
-CLOUDFLARE_ACCOUNT_ID=
-CLOUDFLARE_API_TOKEN=

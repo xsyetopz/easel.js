@@ -102,7 +102,7 @@ export function setup(canvas, params = {}) {
 
 export const easelSource = `import * as EASEL from "easel";
 
-// OrthographicCamera takes an options object — no positional args.
+// OrthographicCamera takes an options object - no positional args.
 // Adjusting left/right/top/bottom changes the visible world area
 // without any perspective distortion.
 const camera = new EASEL.OrthographicCamera({

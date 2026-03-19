@@ -179,7 +179,7 @@ export const docClasses = [
 		],
 		threeEquivalent: "THREE.Object3D",
 		divergence:
-			"Named Node instead of Object3D. No layers.enable/disable helpers — assign the Layers bitmask directly.",
+			"Named Node instead of Object3D. No layers.enable/disable helpers - assign the Layers bitmask directly.",
 	},
 	{
 		id: "Scene",
@@ -205,7 +205,7 @@ export const docClasses = [
 		],
 		threeEquivalent: "THREE.Scene",
 		divergence:
-			"No background color or environment map — clear color is set on Renderer via setClearColor(). When fog is set, its color overrides the clear color.",
+			"No background color or environment map - clear color is set on Renderer via setClearColor(). When fog is set, its color overrides the clear color.",
 	},
 	{
 		id: "Clock",
@@ -309,7 +309,7 @@ export const docClasses = [
 		],
 		threeEquivalent: "THREE.Raycaster",
 		divergence:
-			"Only Mesh objects are tested — Line and other types are not intersected. No threshold parameter.",
+			"Only Mesh objects are tested - Line and other types are not intersected. No threshold parameter.",
 	},
 
 	// ── Cameras ───────────────────────────────────────────────────────────────
@@ -320,7 +320,7 @@ export const docClasses = [
 		signature:
 			"new PerspectiveCamera({ fov?, aspect?, near?, far?, tileSize? })",
 		description:
-			"Perspective projection camera. Produces non-unit W values that make affine UV interpolation visibly incorrect — the classic RuneTek 3 artifact.",
+			"Perspective projection camera. Produces non-unit W values that make affine UV interpolation visibly incorrect - the classic RuneTek 3 artifact.",
 		properties: [
 			{
 				name: "fov",
@@ -378,7 +378,7 @@ export const docClasses = [
 		signature:
 			"new OrthographicCamera({ left?, right?, top?, bottom?, near?, far?, tileSize? })",
 		description:
-			"Orthographic projection camera. Produces unit W, so affine UV mapping is exact — no visible RuneTek 3 warping.",
+			"Orthographic projection camera. Produces unit W, so affine UV mapping is exact - no visible RuneTek 3 warping.",
 		properties: [
 			{
 				name: "left",
@@ -556,7 +556,7 @@ export const docClasses = [
 				name: "parameters",
 				type: "object",
 				description:
-					"{ width, height, depth, widthSegments, heightSegments, depthSegments } — stored for reference.",
+					"{ width, height, depth, widthSegments, heightSegments, depthSegments } - stored for reference.",
 			},
 		],
 		methods: [],
@@ -576,7 +576,7 @@ export const docClasses = [
 				name: "parameters",
 				type: "object",
 				description:
-					"{ radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength } — stored for reference.",
+					"{ radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength } - stored for reference.",
 			},
 		],
 		methods: [],
@@ -596,7 +596,7 @@ export const docClasses = [
 				name: "parameters",
 				type: "object",
 				description:
-					"{ radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength } — stored for reference.",
+					"{ radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength } - stored for reference.",
 			},
 		],
 		methods: [],
@@ -616,7 +616,7 @@ export const docClasses = [
 				name: "parameters",
 				type: "object",
 				description:
-					"{ width, height, widthSegments, heightSegments } — stored for reference.",
+					"{ width, height, widthSegments, heightSegments } - stored for reference.",
 			},
 		],
 		methods: [],
@@ -636,7 +636,7 @@ export const docClasses = [
 				name: "parameters",
 				type: "object",
 				description:
-					"{ radius, tube, tubularSegments, radialSegments, p, q } — stored for reference.",
+					"{ radius, tube, tubularSegments, radialSegments, p, q } - stored for reference.",
 			},
 		],
 		methods: [],
@@ -651,7 +651,7 @@ export const docClasses = [
 		category: "Materials",
 		signature: "new Material({ layer?, opacity?, shading?, side? })",
 		description:
-			"Base material. All materials share the layer, opacity, shading, and side properties. Not intended to be used directly — use a subclass.",
+			"Base material. All materials share the layer, opacity, shading, and side properties. Not intended to be used directly - use a subclass.",
 		properties: [
 			{
 				name: "id",
@@ -757,7 +757,7 @@ export const docClasses = [
 		methods: [],
 		threeEquivalent: "THREE.MeshLambertMaterial",
 		divergence:
-			"Named LambertMaterial. Gouraud shading is per-vertex on the CPU — no fragment-shader interpolation.",
+			"Named LambertMaterial. Gouraud shading is per-vertex on the CPU - no fragment-shader interpolation.",
 	},
 	{
 		id: "ToonMaterial",
@@ -946,7 +946,7 @@ export const docClasses = [
 		methods: [],
 		threeEquivalent: "THREE.SpotLight",
 		divergence:
-			"No shadow support. No separate target object — point the light using position and lookAt.",
+			"No shadow support. No separate target object - point the light using position and lookAt.",
 	},
 
 	// ── Objects ───────────────────────────────────────────────────────────────
@@ -1240,7 +1240,7 @@ export const docClasses = [
 			{
 				name: "values",
 				type: "Float32Array",
-				description: "Flat keyframe values — itemSize floats per keyframe.",
+				description: "Flat keyframe values - itemSize floats per keyframe.",
 			},
 			{
 				name: "itemSize",
@@ -1265,7 +1265,7 @@ export const docClasses = [
 		],
 		threeEquivalent: "THREE.KeyframeTrack",
 		divergence:
-			"Named Track instead of KeyframeTrack — all tracks are keyframe-based. No separate NumberKeyframeTrack/VectorKeyframeTrack subclasses.",
+			"Named Track instead of KeyframeTrack - all tracks are keyframe-based. No separate NumberKeyframeTrack/VectorKeyframeTrack subclasses.",
 	},
 
 	// ── Textures ──────────────────────────────────────────────────────────────
@@ -1324,7 +1324,7 @@ export const docClasses = [
 		],
 		threeEquivalent: "THREE.Texture",
 		divergence:
-			"Hard 128×128 cap — larger images are nearest-neighbor downsampled on needsUpdate. No GPU upload; pixel data lives in a plain ImageData.",
+			"Hard 128×128 cap - larger images are nearest-neighbor downsampled on needsUpdate. No GPU upload; pixel data lives in a plain ImageData.",
 	},
 	{
 		id: "CanvasTexture",
@@ -1346,7 +1346,7 @@ export const docClasses = [
 		signature:
 			"new DataTexture(data: Uint8ClampedArray, width: number, height: number)",
 		description:
-			"Texture created directly from raw RGBA pixel data. Bypasses the needsUpdate / clamp-and-cache path — the ImageData is stored as-is.",
+			"Texture created directly from raw RGBA pixel data. Bypasses the needsUpdate / clamp-and-cache path - the ImageData is stored as-is.",
 		properties: [
 			{
 				name: "data",
@@ -1604,7 +1604,7 @@ export const docClasses = [
 		],
 		threeEquivalent: "THREE.BoxHelper",
 		divergence:
-			"color parameter is accepted but currently unused — the wireframe renders with vertex colors from the geometry.",
+			"color parameter is accepted but currently unused - the wireframe renders with vertex colors from the geometry.",
 	},
 
 	// ── Math ──────────────────────────────────────────────────────────────────
@@ -1702,7 +1702,7 @@ export const docClasses = [
 		category: "Math",
 		signature: "new Color(color?)",
 		description:
-			"RGB color stored as linear floats (0–1). Accepts a hex number, CSS string, or another Color. The renderer works internally in HSL16 — use Color as the input/output boundary.",
+			"RGB color stored as linear floats (0–1). Accepts a hex number, CSS string, or another Color. The renderer works internally in HSL16 - use Color as the input/output boundary.",
 		properties: [
 			{ name: "r", type: "number", description: "Red channel, 0–1." },
 			{ name: "g", type: "number", description: "Green channel, 0–1." },

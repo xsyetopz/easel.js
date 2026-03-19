@@ -39,7 +39,7 @@ export class ImageBitmapLoader extends Loader {
 
 		manager.itemStart(fullUrl);
 
-		fetch(fullUrl, { headers: this.requestHeader })
+		fetch(fullUrl, { headers: { Accept: "image/*", ...this.requestHeader } })
 			.then((response) => {
 				if (!response.ok) {
 					throw new Error(

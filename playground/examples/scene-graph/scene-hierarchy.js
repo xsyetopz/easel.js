@@ -99,14 +99,14 @@ const moon = new EASEL.Mesh(new EASEL.SphereGeometry(0.15), new EASEL.LambertMat
 moon.position.x = 1;
 moonPivot.add(moon);
 
-// Rotate pivots each frame — children orbit automatically
+// Rotate pivots each frame - children orbit automatically
 sun.rotation.y       += 0.1 * dt;
 planetPivot.rotation.y += 0.5 * dt;
 moonPivot.rotation.y   += 2.0 * dt;`;
 
 export const threeSource = `import * as THREE from "three";
 
-// Identical API — THREE also uses Group pivots for parent-child orbits.
+// Identical API - THREE also uses Group pivots for parent-child orbits.
 const sun = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshBasicMaterial({ color: 0xffcc00 }));
 scene.add(sun);
 
