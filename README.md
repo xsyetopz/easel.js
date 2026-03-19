@@ -1,23 +1,27 @@
 # Easel.js
 
 [![CI](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
+[![JSR](https://jsr.io/badges/@xsyetopz/easel)](https://jsr.io/@xsyetopz/easel)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Canvas2D software renderer with a THREE.js-compatible scene graph API. Every pixel is drawn by the CPU using a painter's-algorithm scanline rasterizer - no WebGL, no GPU.
 
-## Quick start
+## Install
 
 ```bash
-bun install
-bun run dev
+npm install @xsyetopz/easel    # npm
+bunx jsr add @xsyetopz/easel   # jsr
 ```
+
+## Quick start
 
 ```js
 import {
   Scene, PerspectiveCamera, Mesh,
   BoxGeometry, LambertMaterial, Renderer,
   AmbientLight, DirectionalLight,
-} from "easel";
+} from "@xsyetopz/easel";
 
 const renderer = new Renderer({
   canvas: document.querySelector("canvas"),

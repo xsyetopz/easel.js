@@ -1,0 +1,12 @@
+{
+	"name": "@xsyetopz/easel",
+	"version": "0.1.0",
+	"exports": "./src/index.js",
+	"publish": {
+		"include": [
+			"src/**/*.js",
+			"LICENSE",
+			"README.md"
+		]
+	}
+}

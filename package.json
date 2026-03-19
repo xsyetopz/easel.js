@@ -1,8 +1,7 @@
 {
-    "name": "easel",
+    "name": "@xsyetopz/easel",
     "version": "0.1.0",
-    "description": "Legacy JavaScript 3D library",
-    "private": true,
+    "description": "Legacy JavaScript 3D library with a THREE.js-compatible scene graph API",
     "type": "module",
     "main": "./dist/index.umd.js",
     "types": "./dist/index.d.ts",
@@ -38,13 +37,20 @@
         "biome:lint": "bunx biome lint . --write --max-diagnostics 16384"
     },
     "keywords": [
-        "easel",
-        "easel.ts",
-        "typescript",
         "3d",
         "canvas",
-        "svg",
-        "html5"
+        "canvas2d",
+        "easel",
+        "easel.js",
+        "html5",
+        "javascript",
+        "polygon",
+        "png",
+        "render",
+        "renderer",
+        "rendering",
+        "rasterize",
+        "rasterizer"
     ],
     "author": {
         "name": "xsyetopz"
@@ -61,25 +67,24 @@
     "homepage": "https://github.com/xsyetopz/easel.js",
     "readme": "README.md",
     "devDependencies": {
-        "@biomejs/biome": "2.4.8",
+        "@biomejs/biome": "^2.4.8",
         "@mantine/code-highlight": "^8.3.18",
         "@mantine/core": "^8.3.18",
         "@mantine/hooks": "^8.3.18",
         "@tabler/icons-react": "^3.40.0",
-        "@types/bun": "1.3.11",
+        "@types/bun": "^1.3.11",
         "@vitejs/plugin-react": "^6.0.1",
-        "@vitest/ui": "4.1.0",
-        "bun-types": "1.3.11",
-        "jsdom": "29.0.0",
+        "@vitest/ui": "^4.1.0",
+        "bun-types": "^1.3.11",
+        "jsdom": "^29.0.0",
         "postcss": "^8.5.8",
         "postcss-preset-mantine": "^1.18.0",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
         "three": "0.183.2",
-        "vite": "8.0.0",
-        "vitest": "4.1.0"
+        "vite": "8.0.1",
+        "highlight.js": "^11.11.1",
+        "vitest": "^4.1.0"
     },
-    "dependencies": {
-        "highlight.js": "^11.11.1"
-    }
+    "dependencies": {}
 }
