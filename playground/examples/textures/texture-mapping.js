@@ -1,67 +1,42 @@
 import * as EASEL from "@/index.js";
 
+export const meta = {
+	id: "texture-mapping",
+	name: "Texture Mapping",
+	category: "textures",
+	description: "UV mapping on a box using TextureLoader with LambertMaterial.",
+};
+
+export const controls = [];
+
 export function setup(canvas) {
 	const width = canvas.width;
 	const height = canvas.height;
-	const halfWidth = Math.floor(width / 2);
-	const ctx = canvas.getContext("2d");
 
-	const orthoCanvas = document.createElement("canvas");
-	orthoCanvas.width = halfWidth;
-	orthoCanvas.height = height;
-
-	const orthoScene = new EASEL.Scene();
-	const orthoSize = 3;
-	const orthoAspect = halfWidth / height;
-	const orthoCamera = new EASEL.OrthographicCamera({
-		left: -orthoSize * orthoAspect,
-		right: orthoSize * orthoAspect,
-		top: orthoSize,
-		bottom: -orthoSize,
+	const scene = new EASEL.Scene();
+	const camera = new EASEL.PerspectiveCamera({
+		fov: 45,
+		aspect: width / height,
 		near: 0.1,
 		far: 100,
 	});
-	orthoCamera.position.z = 5;
+	camera.position.set(0, 1, 5);
 
-	const orthoRenderer = new EASEL.Renderer({
-		canvas: orthoCanvas,
-		width: halfWidth,
-		height,
-	});
+	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	const orthoMat = new EASEL.BasicMaterial({ color: 0xffffff });
-	const orthoBox = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), orthoMat);
-	orthoScene.add(orthoBox);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.5));
+	const light = new EASEL.DirectionalLight(0xffffff, 0.8);
+	light.position.set(4, 6, 5);
+	scene.add(light);
 
-	const perspCanvas = document.createElement("canvas");
-	perspCanvas.width = halfWidth;
-	perspCanvas.height = height;
-
-	const perspScene = new EASEL.Scene();
-	const perspCamera = new EASEL.PerspectiveCamera({
-		fov: Math.PI / 4,
-		aspect: halfWidth / height,
-		near: 0.1,
-		far: 100,
-	});
-	perspCamera.position.z = 5;
-
-	const perspRenderer = new EASEL.Renderer({
-		canvas: perspCanvas,
-		width: halfWidth,
-		height,
-	});
-
-	const perspMat = new EASEL.BasicMaterial({ color: 0xffffff });
-	const perspBox = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), perspMat);
-	perspScene.add(perspBox);
+	const material = new EASEL.LambertMaterial({ color: 0xffffff });
+	const box = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), material);
+	scene.add(box);
 
 	const loader = new EASEL.TextureLoader();
 	loader.load("textures/Brick_01.png", (texture) => {
-		orthoMat.map = texture;
-		orthoMat.needsUpdate = true;
-		perspMat.map = texture;
-		perspMat.needsUpdate = true;
+		material.map = texture;
+		material.needsUpdate = true;
 	});
 
 	const clock = new EASEL.Clock();
@@ -70,30 +45,9 @@ export function setup(canvas) {
 	function animate() {
 		animId = requestAnimationFrame(animate);
 		const dt = clock.delta;
-
-		orthoBox.rotation.x += 0.3 * dt;
-		orthoBox.rotation.y += 0.5 * dt;
-		perspBox.rotation.x += 0.3 * dt;
-		perspBox.rotation.y += 0.5 * dt;
-
-		orthoRenderer.render(orthoScene, orthoCamera);
-		perspRenderer.render(perspScene, perspCamera);
-
-		ctx.drawImage(orthoCanvas, 0, 0);
-		ctx.drawImage(perspCanvas, halfWidth, 0);
-
-		ctx.strokeStyle = "#444";
-		ctx.lineWidth = 2;
-		ctx.beginPath();
-		ctx.moveTo(halfWidth, 0);
-		ctx.lineTo(halfWidth, height);
-		ctx.stroke();
-
-		ctx.font = "bold 14px monospace";
-		ctx.textAlign = "center";
-		ctx.fillStyle = "#fff";
-		ctx.fillText("Orthographic", halfWidth / 2, 24);
-		ctx.fillText("Perspective", halfWidth + halfWidth / 2, 24);
+		box.rotation.x += 0.3 * dt;
+		box.rotation.y += 0.5 * dt;
+		renderer.render(scene, camera);
 	}
 	animate();
 
@@ -104,24 +58,77 @@ export function setup(canvas) {
 	};
 }
 
-export const source = `import {
-  EASEL.Scene, EASEL.OrthographicCamera, EASEL.PerspectiveCamera,
-  EASEL.Renderer, EASEL.Clock, EASEL.BoxGeometry, EASEL.BasicMaterial,
-  EASEL.Mesh, EASEL.TextureLoader,
-} from "easel";
+export const easelSource = `import * as EASEL from "easel";
 
-// Ortho: affine UV is exact. Perspective: no W-divide causes warping.
-const orthoRenderer = new EASEL.Renderer({ canvas: leftCanvas, width: half, height });
-const perspRenderer = new EASEL.Renderer({ canvas: rightCanvas, width: half, height });
+const scene = new EASEL.Scene();
+const camera = new EASEL.PerspectiveCamera({
+  fov: 45,
+  aspect: width / height,
+  near: 0.1,
+  far: 100,
+});
+camera.position.set(0, 1, 5);
+
+const renderer = new EASEL.Renderer({ canvas, width, height });
+
+scene.add(new EASEL.AmbientLight(0xffffff, 0.5));
+const light = new EASEL.DirectionalLight(0xffffff, 0.8);
+light.position.set(4, 6, 5);
+scene.add(light);
+
+const material = new EASEL.LambertMaterial({ color: 0xffffff });
+const box = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), material);
+scene.add(box);
 
 const loader = new EASEL.TextureLoader();
 loader.load("textures/Brick_01.png", (texture) => {
-  orthoMat.map = texture;
-  perspMat.map = texture;
+  material.map = texture;
+  material.needsUpdate = true;
 });
 
-box.rotation.x += 0.3 * dt;
-box.rotation.y += 0.5 * dt;
+const clock = new EASEL.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  box.rotation.x += 0.3 * clock.delta;
+  box.rotation.y += 0.5 * clock.delta;
+  renderer.render(scene, camera);
+}
+animate();`;
 
-ctx.drawImage(leftCanvas, 0, 0);
-ctx.drawImage(rightCanvas, halfWidth, 0);`;
+export const threeSource = `import * as THREE from "three";
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(
+  45,           // degrees, not radians
+  width / height,
+  0.1,
+  100,
+);
+camera.position.set(0, 1, 5);
+
+const renderer = new THREE.WebGLRenderer({ canvas });
+renderer.setSize(width, height);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const light = new THREE.DirectionalLight(0xffffff, 0.8);
+light.position.set(4, 6, 5);
+scene.add(light);
+
+const material = new THREE.MeshLambertMaterial({ color: 0xffffff });
+const box = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), material);
+scene.add(box);
+
+const loader = new THREE.TextureLoader();
+loader.load("textures/Brick_01.png", (texture) => {
+  material.map = texture;
+  material.needsUpdate = true;
+});
+
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  box.rotation.x += 0.3 * clock.getDelta();
+  box.rotation.y += 0.5 * clock.getDelta();
+  renderer.render(scene, camera);
+}
+animate();`;

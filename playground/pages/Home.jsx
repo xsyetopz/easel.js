@@ -9,148 +9,161 @@ import {
 	Text,
 	Title,
 } from "@mantine/core";
-import { CodeBlock } from "../components/CodeBlock.jsx";
-import { ThreeComparison } from "../components/ThreeComparison.jsx";
+import { CodeToggle } from "../components/CodeToggle.jsx";
+import { navigate } from "../hooks/navigate.js";
 
-const constraints = [
-	{
-		title: "No Z-Buffer",
-		description:
-			"Painter's algorithm - back-to-front sort by tile distance + layer integer.",
-	},
-	{
-		title: "Affine UV",
-		description:
-			"No perspective-correct textures. UVs interpolated linearly, no W divide.",
-	},
-	{
-		title: "HSL16 Color",
-		description:
-			"16-bit packed color (6H/3S/7L). Precomputed LUT to RGB. Visible banding.",
-	},
-	{
-		title: "Integer Coords",
-		description:
-			"Math.trunc() on projected vertices. Vertex wobble is correct behavior.",
-	},
-	{
-		title: "Flat + Gouraud Only",
-		description:
-			"No per-pixel lighting. All shading baked per-vertex or per-face.",
-	},
-	{
-		title: "Orthographic Only",
-		description:
-			"No perspective camera. Affine rasterizer is only coherent under ortho.",
-	},
-];
+const easelQuickStart = `import * as EASEL from "easel";
 
-const quickStart = `import {
-  Scene, Camera, Renderer,
-  BoxGeometry, BasicMaterial, Mesh,
-} from "easel";
-
-const renderer = new Renderer({
+const renderer = new EASEL.Renderer({
   canvas: document.querySelector("canvas"),
-  width: 800,
-  height: 600,
+  width: 800, height: 600,
 });
-const scene = new Scene();
-const camera = new Camera({
-  left: -400, right: 400,
-  top: 300, bottom: -300,
+const scene = new EASEL.Scene();
+const camera = new EASEL.PerspectiveCamera({
+  fov: 45,
+  aspect: 800 / 600,
 });
+camera.position.z = 5;
 
-const box = new Mesh(
-  new BoxGeometry(1, 1, 1),
-  new BasicMaterial({ color: 0xff0000 }),
+scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+const light = new EASEL.DirectionalLight(0xffffff, 0.8);
+light.position.set(3, 5, 4);
+scene.add(light);
+
+const box = new EASEL.Mesh(
+  new EASEL.BoxGeometry(1, 1, 1),
+  new EASEL.LambertMaterial({ color: 0xff4444 }),
 );
 scene.add(box);
 
-renderer.render(scene, camera);`;
+function animate() {
+  requestAnimationFrame(animate);
+  box.rotation.y += 0.01;
+  renderer.render(scene, camera);
+}
+animate();`;
 
-export function Home({ onNavigate }) {
+const threeQuickStart = `import * as THREE from "three";
+
+const renderer = new THREE.WebGLRenderer({
+  canvas: document.querySelector("canvas"),
+});
+renderer.setSize(800, 600);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(
+  45, 800 / 600, 0.1, 1000,
+);
+camera.position.z = 5;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const light = new THREE.DirectionalLight(0xffffff, 0.8);
+light.position.set(3, 5, 4);
+scene.add(light);
+
+const box = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshLambertMaterial({ color: 0xff4444 }),
+);
+scene.add(box);
+
+function animate() {
+  requestAnimationFrame(animate);
+  box.rotation.y += 0.01;
+  renderer.render(scene, camera);
+}
+animate();`;
+
+const highlights = [
+	{
+		title: "THREE.js-like API",
+		description:
+			"Same scene graph concepts — Scene, Mesh, Camera, Light. If you know THREE.js, you already know the API.",
+	},
+	{
+		title: "CPU Software Renderer",
+		description:
+			"Every pixel drawn by the CPU using a painter's-algorithm scanline rasterizer. No WebGL required.",
+	},
+	{
+		title: "Canvas2D Output",
+		description:
+			"Renders to a standard HTML5 Canvas via ImageData. Works everywhere, no GPU needed.",
+	},
+];
+
+export function Home() {
 	return (
 		<Container size="lg" py="xl">
 			<Stack gap="xl">
 				<div>
 					<Title order={1} mb="xs">
-						Easel.js
+						easel.js
 					</Title>
 					<Text size="xl" c="dimmed" maw={600}>
 						Canvas2D software renderer with a THREE.js-like scene graph API.
-						Every polygon drawn by the CPU using a painter's-algorithm scanline
-						rasterizer. Modeled after RuneTek 3 as observed in Old School
-						RuneScape.
+						Build 3D scenes rendered entirely by the CPU.
 					</Text>
 					<Group mt="md">
 						<Button
 							variant="filled"
-							onClick={() => onNavigate("example/hello-cube")}
+							onClick={() => navigate("examples/hello-cube")}
 						>
-							Try it
+							Get Started
 						</Button>
-						<Button
-							variant="light"
-							component="a"
-							href="https://github.com/xsyetopz/easel.js"
-							target="_blank"
-						>
-							GitHub
+						<Button variant="light" onClick={() => navigate("examples")}>
+							Examples
 						</Button>
 					</Group>
 				</div>
 
-				<div>
-					<Title order={2} mb="md">
-						Rendering Constraints
-					</Title>
-					<Text size="sm" c="dimmed" mb="md">
-						These are architectural, not bugs. They emerge from a commitment to
-						the RuneTek 3 rendering model.
-					</Text>
-					<SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-						{constraints.map((c) => (
-							<Paper key={c.title} p="md" withBorder={true}>
-								<Text fw={600} mb={4}>
-									{c.title}
-								</Text>
-								<Text size="sm" c="dimmed">
-									{c.description}
-								</Text>
-							</Paper>
-						))}
-					</SimpleGrid>
-				</div>
-
-				<div>
-					<Title order={2} mb="md">
-						THREE.js vs Easel.js
-					</Title>
-					<Text size="sm" c="dimmed" mb="md">
-						Same scene, different renderer. The API is familiar - the
-						constraints are what differ.
-					</Text>
-					<ThreeComparison />
-				</div>
+				<SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="md">
+					{highlights.map((h) => (
+						<Paper key={h.title} p="md" withBorder={true}>
+							<Text fw={600} mb={4}>
+								{h.title}
+							</Text>
+							<Text size="sm" c="dimmed">
+								{h.description}
+							</Text>
+						</Paper>
+					))}
+				</SimpleGrid>
 
 				<div>
 					<Title order={2} mb="md">
 						Quick Start
 					</Title>
-					<CodeBlock code={quickStart} />
+					<Text size="sm" c="dimmed" mb="md">
+						Same scene setup, different renderer. Toggle to compare.
+					</Text>
+					<CodeToggle
+						easelSource={easelQuickStart}
+						threeSource={threeQuickStart}
+					/>
 				</div>
 
 				<Text size="sm" c="dimmed">
-					See{" "}
+					See the{" "}
 					<Anchor
-						href="https://github.com/xsyetopz/easel.js/blob/main/docs/EASEL_vs_THREE.md"
-						target="_blank"
+						onClick={(e) => {
+							e.preventDefault();
+							navigate("docs");
+						}}
+						style={{ cursor: "pointer" }}
 					>
-						docs/EASEL_vs_THREE.md
+						API documentation
 					</Anchor>{" "}
-					for the full design reference, RuneTek 3 engine study, and API
-					mapping.
+					for the full reference, or browse{" "}
+					<Anchor
+						onClick={(e) => {
+							e.preventDefault();
+							navigate("examples");
+						}}
+						style={{ cursor: "pointer" }}
+					>
+						examples
+					</Anchor>{" "}
+					to see it in action.
 				</Text>
 			</Stack>
 		</Container>

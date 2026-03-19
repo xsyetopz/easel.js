@@ -1,28 +1,20 @@
 import * as EASEL from "@/index.js";
 
+export const meta = {
+	id: "animation-basics",
+	name: "Animation Basics",
+	category: "animation",
+	description:
+		"Manual position/rotation/scale animation driven by Clock.delta — no keyframes needed.",
+};
+
 export const controls = [
 	{
 		type: "slider",
-		key: "rotationSpeed",
-		label: "Rotation Speed",
-		min: 0,
+		key: "speed",
+		label: "Speed",
+		min: 0.1,
 		max: 3,
-		step: 0.1,
-		default: 1,
-	},
-	{
-		type: "select",
-		key: "bounce",
-		label: "Bounce",
-		options: ["None", "Vertical", "Horizontal"],
-		default: "None",
-	},
-	{
-		type: "slider",
-		key: "scale",
-		label: "Scale",
-		min: 0.5,
-		max: 2,
 		step: 0.1,
 		default: 1,
 	},
@@ -31,29 +23,31 @@ export const controls = [
 export function setup(canvas, params = {}) {
 	const width = canvas.width;
 	const height = canvas.height;
-	const aspect = width / height;
-	const size = 3;
 
 	const scene = new EASEL.Scene();
-	const camera = new EASEL.OrthographicCamera({
-		left: -size * aspect,
-		right: size * aspect,
-		top: size,
-		bottom: -size,
+	const camera = new EASEL.PerspectiveCamera({
+		fov: 45,
+		aspect: width / height,
 		near: 0.1,
 		far: 100,
 	});
-	camera.position.z = 5;
+	camera.position.set(0, 2, 8);
+	camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
 	const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	const material = new EASEL.BasicMaterial({ color: 0x4488cc });
-	const box = new EASEL.Mesh(new EASEL.BoxGeometry(1.5, 1.5, 1.5), material);
+	scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+	const dirLight = new EASEL.DirectionalLight(0xffffff, 0.8);
+	dirLight.position.set(4, 6, 5);
+	scene.add(dirLight);
+
+	const box = new EASEL.Mesh(
+		new EASEL.BoxGeometry(1.2, 1.2, 1.2),
+		new EASEL.LambertMaterial({ color: 0xe07030 }),
+	);
 	scene.add(box);
 
-	let rotationSpeed = params.rotationSpeed ?? 1;
-	let bounce = params.bounce ?? "None";
-	let scale = params.scale ?? 1;
+	let speed = params.speed ?? 1;
 
 	const clock = new EASEL.Clock();
 	let elapsed = 0;
@@ -62,22 +56,20 @@ export function setup(canvas, params = {}) {
 	function animate() {
 		animId = requestAnimationFrame(animate);
 		const dt = clock.delta;
-		elapsed += dt;
+		elapsed += dt * speed;
 
-		box.rotation.y += rotationSpeed * dt;
+		// Rotation driven by elapsed time × speed
+		box.rotation.y = elapsed * 1.2;
+		box.rotation.x = elapsed * 0.4;
 
-		if (bounce === "Vertical") {
-			box.position.y = Math.sin(elapsed * 2) * 1.5;
-			box.position.x = 0;
-		} else if (bounce === "Horizontal") {
-			box.position.x = Math.sin(elapsed * 2) * 1.5;
-			box.position.y = 0;
-		} else {
-			box.position.x = 0;
-			box.position.y = 0;
-		}
+		// Bounce on Y using sin
+		box.position.y = Math.sin(elapsed * 2) * 1.5;
 
-		box.scale.set(scale, scale, scale);
+		// Squash/stretch: compress vertically at bottom of bounce
+		const bounce = Math.sin(elapsed * 2);
+		const scaleY = 0.8 + 0.4 * ((bounce + 1) / 2);
+		const scaleXZ = 1 / Math.sqrt(scaleY); // volume-preserving
+		box.scale.set(scaleXZ, scaleY, scaleXZ);
 
 		renderer.render(scene, camera);
 	}
@@ -88,46 +80,56 @@ export function setup(canvas, params = {}) {
 			if (animId !== undefined) cancelAnimationFrame(animId);
 		},
 		update(newParams) {
-			if (newParams.rotationSpeed !== undefined) {
-				rotationSpeed = newParams.rotationSpeed;
-			}
-			if (newParams.bounce !== undefined) bounce = newParams.bounce;
-			if (newParams.scale !== undefined) scale = newParams.scale;
+			if (newParams.speed !== undefined) speed = newParams.speed;
 		},
 	};
 }
 
-export const source = `import {
-  EASEL.Scene, EASEL.OrthographicCamera, EASEL.Renderer, EASEL.Clock,
-  EASEL.BoxGeometry, EASEL.BasicMaterial, EASEL.Mesh,
-} from "easel";
+export const easelSource = `import * as EASEL from "easel";
 
-const box = new EASEL.Mesh(
-  new EASEL.BoxGeometry(1.5, 1.5, 1.5),
-  new EASEL.BasicMaterial({ color: 0x4488cc }),
-);
-scene.add(box);
-
+// EASEL: Clock.delta is a getter, not a method.
 const clock = new EASEL.Clock();
 let elapsed = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.delta;
-  elapsed += dt;
+  const dt = clock.delta;   // seconds since last call — getter, not getDelta()
+  elapsed += dt * speed;
 
-  // Rotation: scales with rotationSpeed param
-  box.rotation.y += rotationSpeed * dt;
+  box.rotation.y = elapsed * 1.2;
+  box.rotation.x = elapsed * 0.4;
 
-  // Bounce: sinusoidal position offset
-  if (bounce === "Vertical") {
-    box.position.y = Math.sin(elapsed * 2) * 1.5;
-  } else if (bounce === "Horizontal") {
-    box.position.x = Math.sin(elapsed * 2) * 1.5;
-  }
+  box.position.y = Math.sin(elapsed * 2) * 1.5;
 
-  // Uniform scale
-  box.scale.set(scale, scale, scale);
+  const bounce = Math.sin(elapsed * 2);
+  const scaleY  = 0.8 + 0.4 * ((bounce + 1) / 2);
+  const scaleXZ = 1 / Math.sqrt(scaleY);
+  box.scale.set(scaleXZ, scaleY, scaleXZ);
+
+  renderer.render(scene, camera);
+}
+animate();`;
+
+export const threeSource = `import * as THREE from "three";
+
+// THREE: clock.getDelta() is a method call.
+const clock = new THREE.Clock();
+let elapsed = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();   // method, not a getter
+  elapsed += dt * speed;
+
+  box.rotation.y = elapsed * 1.2;
+  box.rotation.x = elapsed * 0.4;
+
+  box.position.y = Math.sin(elapsed * 2) * 1.5;
+
+  const bounce = Math.sin(elapsed * 2);
+  const scaleY  = 0.8 + 0.4 * ((bounce + 1) / 2);
+  const scaleXZ = 1 / Math.sqrt(scaleY);
+  box.scale.set(scaleXZ, scaleY, scaleXZ);
 
   renderer.render(scene, camera);
 }

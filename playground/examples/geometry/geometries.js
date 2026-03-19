@@ -1,5 +1,14 @@
 import * as EASEL from "@/index.js";
 
+export const meta = {
+	id: "geometries",
+	name: "Geometry Types",
+	category: "geometry",
+	description: "14 built-in geometry types displayed in a 4-column grid.",
+};
+
+export const controls = [];
+
 function buildLathePoints() {
 	/** @type {EASEL.Vector2[]} */
 	const pts = [];
@@ -15,7 +24,7 @@ export function setup(canvas) {
 
 	const scene = new EASEL.Scene();
 	const camera = new EASEL.PerspectiveCamera({
-		fov: Math.PI / 4,
+		fov: 45,
 		aspect: width / height,
 		near: 0.1,
 		far: 100,
@@ -93,34 +102,93 @@ export function setup(canvas) {
 	};
 }
 
-export const source = `import {
-  Scene, PerspectiveCamera, Renderer, Clock,
-  AmbientLight, DirectionalLight, LambertMaterial, Mesh,
-  BoxGeometry, SphereGeometry, CylinderGeometry, ConeGeometry,
-  TorusGeometry, TorusKnotGeometry, PlaneGeometry, RingGeometry,
-  IcosahedronGeometry, OctahedronGeometry, TetrahedronGeometry,
-  DodecahedronGeometry, CapsuleGeometry, LatheGeometry, Vector2,
-} from "easel";
+export const easelSource = `import * as EASEL from "easel";
 
-// LatheGeometry takes Vector2[] - x=radius, y=height
+const scene = new EASEL.Scene();
+const camera = new EASEL.PerspectiveCamera({
+  fov: 45,
+  aspect: 800 / 600,
+  near: 0.1,
+  far: 100,
+});
+camera.position.z = 20;
+
+scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+const dirLight = new EASEL.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5, 10, 7);
+scene.add(dirLight);
+
+// LatheGeometry: Vector2[] where x=radius, y=height
 const pts = [];
 for (let i = 0; i < 10; i++) {
-  pts.push(new Vector2(Math.sin(i * 0.2) * 0.5 + 0.3, (i - 5) * 0.15));
+  pts.push(new EASEL.Vector2(Math.sin(i * 0.2) * 0.5 + 0.3, (i - 5) * 0.15));
 }
-const lathe = new LatheGeometry(pts, 16);
 
-// 14 geometry types in a 4-column grid
 const entries = [
-  new BoxGeometry(1.2, 1.2, 1.2),
-  new SphereGeometry(0.8, 16, 12),
-  new CylinderGeometry(0.5, 0.5, 1.4, 16),
-  new ConeGeometry(0.7, 1.4, 16),
-  // ... 10 more
+  { geo: new EASEL.BoxGeometry(1.2, 1.2, 1.2), color: 0xe06060 },
+  { geo: new EASEL.SphereGeometry(0.8, 16, 12), color: 0x60e060 },
+  { geo: new EASEL.CylinderGeometry(0.5, 0.5, 1.4, 16), color: 0x6060e0 },
+  { geo: new EASEL.ConeGeometry(0.7, 1.4, 16), color: 0xe0e060 },
+  { geo: new EASEL.TorusGeometry(0.6, 0.25, 12, 24), color: 0xe060e0 },
+  { geo: new EASEL.TorusKnotGeometry(0.5, 0.18, 48, 8), color: 0x60e0e0 },
+  { geo: new EASEL.PlaneGeometry(1.2, 1.2), color: 0xe09040, side: EASEL.Side.Double },
+  { geo: new EASEL.RingGeometry(0.3, 0.8, 24), color: 0x40e090, side: EASEL.Side.Double },
+  { geo: new EASEL.IcosahedronGeometry(0.8), color: 0x9040e0 },
+  { geo: new EASEL.OctahedronGeometry(0.8), color: 0xe04090 },
+  { geo: new EASEL.TetrahedronGeometry(0.9), color: 0x90e040 },
+  { geo: new EASEL.DodecahedronGeometry(0.7), color: 0x40a0e0 },
+  { geo: new EASEL.CapsuleGeometry(0.35, 0.7, 8, 12), color: 0xe0a040 },
+  { geo: new EASEL.LatheGeometry(pts, 16), color: 0xa040e0 },
 ];
 
-entries.forEach((geo, i) => {
-  const mesh = new Mesh(geo, new LambertMaterial({ color: 0xe06060 }));
+entries.forEach((entry, i) => {
+  const mesh = new EASEL.Mesh(
+    entry.geo,
+    new EASEL.LambertMaterial({ color: entry.color, side: entry.side }),
+  );
   mesh.position.x = (i % 4 - 1.5) * 3;
-  mesh.position.y = -(Math.floor(i / 4) - 1) * 3;
+  mesh.position.y = -(Math.floor(i / 4) - 1.5) * 3;
+  scene.add(mesh);
+});`;
+
+export const threeSource = `import * as THREE from "three";
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(
+  45,              // degrees, not radians
+  800 / 600,
+  0.1,
+  100,
+);
+camera.position.z = 20;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5, 10, 7);
+scene.add(dirLight);
+
+const entries = [
+  { geo: new THREE.BoxGeometry(1.2, 1.2, 1.2), color: 0xe06060 },
+  { geo: new THREE.SphereGeometry(0.8, 16, 12), color: 0x60e060 },
+  { geo: new THREE.CylinderGeometry(0.5, 0.5, 1.4, 16), color: 0x6060e0 },
+  { geo: new THREE.ConeGeometry(0.7, 1.4, 16), color: 0xe0e060 },
+  { geo: new THREE.TorusGeometry(0.6, 0.25, 12, 24), color: 0xe060e0 },
+  { geo: new THREE.TorusKnotGeometry(0.5, 0.18, 48, 8), color: 0x60e0e0 },
+  { geo: new THREE.PlaneGeometry(1.2, 1.2), color: 0xe09040 },
+  { geo: new THREE.RingGeometry(0.3, 0.8, 24), color: 0x40e090 },
+  { geo: new THREE.IcosahedronGeometry(0.8), color: 0x9040e0 },
+  { geo: new THREE.OctahedronGeometry(0.8), color: 0xe04090 },
+  { geo: new THREE.TetrahedronGeometry(0.9), color: 0x90e040 },
+  { geo: new THREE.DodecahedronGeometry(0.7), color: 0x40a0e0 },
+  { geo: new THREE.CapsuleGeometry(0.35, 0.7, 8, 12), color: 0xe0a040 },
+];
+
+entries.forEach((entry, i) => {
+  const mesh = new THREE.Mesh(
+    entry.geo,
+    new THREE.MeshLambertMaterial({ color: entry.color }),
+  );
+  mesh.position.x = (i % 4 - 1.5) * 3;
+  mesh.position.y = -(Math.floor(i / 4) - 1.5) * 3;
   scene.add(mesh);
 });`;

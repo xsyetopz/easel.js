@@ -1,32 +1,12 @@
-import {
-	Breadcrumbs,
-	Grid,
-	Paper,
-	Stack,
-	Tabs,
-	Text,
-	Title,
-} from "@mantine/core";
+import { Grid, Paper, Stack, Text, Title } from "@mantine/core";
 import { useEffect, useMemo, useState } from "react";
-import { CodeBlock } from "../components/CodeBlock.jsx";
+import { CodeToggle } from "../components/CodeToggle.jsx";
 import { ControlPanel } from "../components/ControlPanel.jsx";
 import { ExampleCanvas } from "../components/ExampleCanvas.jsx";
 import { examples } from "../examples/registry.js";
 
-const categoryLabels = {
-	geometry: "Geometry",
-	materials: "Materials",
-	lights: "Lights",
-	camera: "Camera",
-	interactive: "Interactive",
-	animation: "Animation",
-	textures: "Textures",
-	"scene-graph": "Scene Graph",
-	artifacts: "Artifacts",
-};
-
 export function ExampleViewer({ exampleId }) {
-	const example = examples.find((e) => e.id === exampleId);
+	const example = examples.find((e) => e.meta.id === exampleId);
 
 	const defaultParams = useMemo(() => {
 		if (!example?.controls) return {};
@@ -60,16 +40,10 @@ export function ExampleViewer({ exampleId }) {
 	return (
 		<Stack gap="md">
 			<div>
-				<Breadcrumbs mb="xs">
-					<Text size="sm" c="dimmed">
-						{categoryLabels[example.category] || example.category}
-					</Text>
-					<Text size="sm">{example.name}</Text>
-				</Breadcrumbs>
-				<Title order={3}>{example.name}</Title>
-				{example.description && (
+				<Title order={3}>{example.meta.name}</Title>
+				{example.meta.description && (
 					<Text size="sm" c="dimmed" mt={4}>
-						{example.description}
+						{example.meta.description}
 					</Text>
 				)}
 			</div>
@@ -98,14 +72,10 @@ export function ExampleViewer({ exampleId }) {
 				)}
 			</Grid>
 
-			<Tabs defaultValue="source">
-				<Tabs.List>
-					<Tabs.Tab value="source">Source</Tabs.Tab>
-				</Tabs.List>
-				<Tabs.Panel value="source" pt="md">
-					<CodeBlock code={example.source} />
-				</Tabs.Panel>
-			</Tabs>
+			<CodeToggle
+				easelSource={example.easelSource}
+				threeSource={example.threeSource}
+			/>
 		</Stack>
 	);
 }

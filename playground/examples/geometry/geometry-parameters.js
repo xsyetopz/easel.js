@@ -1,19 +1,19 @@
 import * as EASEL from "@/index.js";
 
+export const meta = {
+	id: "geometry-parameters",
+	name: "Geometry Parameters",
+	category: "geometry",
+	description: "Adjust segment count on Sphere, Torus, Cylinder, and Cone.",
+};
+
 export const controls = [
-	{
-		type: "select",
-		key: "shape",
-		label: "Shape",
-		options: ["Sphere", "Torus", "Cylinder", "Cone"],
-		default: "Sphere",
-	},
 	{
 		type: "slider",
 		key: "segments",
 		label: "Segments",
-		min: 3,
-		max: 32,
+		min: 4,
+		max: 64,
 		step: 1,
 		default: 16,
 	},
@@ -36,11 +36,19 @@ function buildGeometry(shape, segments) {
 	}
 }
 
+const SHAPES = ["Sphere", "Torus", "Cylinder", "Cone"];
+const COLS = 2;
+const SPACING = 3.5;
+
+/**
+ * @param {HTMLCanvasElement} canvas
+ * @param {Record<string, unknown>} [params]
+ */
 export function setup(canvas, params = {}) {
 	const width = canvas.width;
 	const height = canvas.height;
 	const aspect = width / height;
-	const size = 3;
+	const size = 5;
 
 	const scene = new EASEL.Scene();
 	const camera = new EASEL.OrthographicCamera({
@@ -51,7 +59,7 @@ export function setup(canvas, params = {}) {
 		near: 0.1,
 		far: 100,
 	});
-	camera.position.z = 5;
+	camera.position.z = 8;
 
 	const renderer = new EASEL.Renderer({ canvas, width, height });
 
@@ -60,15 +68,31 @@ export function setup(canvas, params = {}) {
 	dirLight.position.set(3, 5, 4);
 	scene.add(dirLight);
 
-	let currentShape = params.shape ?? "Sphere";
+	const colors = [0x5577dd, 0xe07050, 0x50c080, 0xd0a030];
 	let currentSegments = params.segments ?? 16;
 
-	const material = new EASEL.LambertMaterial({ color: 0x5577dd });
-	let mesh = new EASEL.Mesh(
-		buildGeometry(currentShape, currentSegments),
-		material,
-	);
-	scene.add(mesh);
+	/** @type {EASEL.Mesh[]} */
+	let meshes = [];
+
+	function buildGrid(segments) {
+		for (const m of meshes) scene.remove(m);
+		meshes = [];
+
+		SHAPES.forEach((shape, i) => {
+			const col = i % COLS;
+			const row = Math.floor(i / COLS);
+			const mesh = new EASEL.Mesh(
+				buildGeometry(shape, segments),
+				new EASEL.LambertMaterial({ color: colors[i] }),
+			);
+			mesh.position.x = (col - (COLS - 1) / 2) * SPACING;
+			mesh.position.y = -(row - 0.5) * SPACING;
+			scene.add(mesh);
+			meshes.push(mesh);
+		});
+	}
+
+	buildGrid(currentSegments);
 
 	const clock = new EASEL.Clock();
 	let animId;
@@ -76,8 +100,9 @@ export function setup(canvas, params = {}) {
 	function animate() {
 		animId = requestAnimationFrame(animate);
 		const dt = clock.delta;
-		mesh.rotation.x += 0.3 * dt;
-		mesh.rotation.y += 0.5 * dt;
+		for (const mesh of meshes) {
+			mesh.rotation.y += 0.5 * dt;
+		}
 		renderer.render(scene, camera);
 	}
 	animate();
@@ -87,39 +112,41 @@ export function setup(canvas, params = {}) {
 			if (animId !== undefined) cancelAnimationFrame(animId);
 		},
 		update(newParams) {
-			if (newParams.shape !== undefined) currentShape = newParams.shape;
 			if (newParams.segments !== undefined) {
 				currentSegments = newParams.segments;
+				buildGrid(currentSegments);
 			}
-
-			const rotation = { x: mesh.rotation.x, y: mesh.rotation.y };
-			scene.remove(mesh);
-			mesh = new EASEL.Mesh(
-				buildGeometry(currentShape, currentSegments),
-				material,
-			);
-			mesh.rotation.x = rotation.x;
-			mesh.rotation.y = rotation.y;
-			scene.add(mesh);
 		},
 	};
 }
 
-export const source = `import {
-  Scene, OrthographicCamera, Renderer, Clock,
-  AmbientLight, DirectionalLight,
-  SphereGeometry, TorusGeometry, CylinderGeometry, ConeGeometry,
-  LambertMaterial, Mesh,
-} from "easel";
+export const easelSource = `import * as EASEL from "easel";
 
+const scene = new EASEL.Scene();
+const size = 5;
+const camera = new EASEL.OrthographicCamera({
+  left: -size * aspect,
+  right: size * aspect,
+  top: size,
+  bottom: -size,
+  near: 0.1,
+  far: 100,
+});
+
+// Rebuild geometry when segments slider changes
 function buildGeometry(shape, segments) {
-  if (shape === "Torus") return new TorusGeometry(0.9, 0.35, segments, segments * 2);
-  if (shape === "Cylinder") return new CylinderGeometry(0.7, 0.7, 1.8, segments);
-  if (shape === "Cone") return new ConeGeometry(0.9, 1.8, segments);
-  return new SphereGeometry(1.1, segments, Math.floor(segments * 0.75));
+  if (shape === "Torus")
+    return new EASEL.TorusGeometry(0.9, 0.35, segments, segments * 2);
+  if (shape === "Cylinder")
+    return new EASEL.CylinderGeometry(0.7, 0.7, 1.8, segments);
+  if (shape === "Cone")
+    return new EASEL.ConeGeometry(0.9, 1.8, segments);
+  return new EASEL.SphereGeometry(1.1, segments, Math.floor(segments * 0.75));
 }
 
-// On param change: remove old mesh, rebuild with new segments, re-add.
+// On param change: remove old meshes, rebuild with new segments, re-add.
 scene.remove(mesh);
-mesh = new Mesh(buildGeometry(shape, segments), material);
+mesh = new EASEL.Mesh(buildGeometry(shape, segments), material);
 scene.add(mesh);`;
+
+export const threeSource = null;

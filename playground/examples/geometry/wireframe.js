@@ -1,12 +1,19 @@
 import * as EASEL from "@/index.js";
 
+export const meta = {
+	id: "wireframe",
+	name: "Wireframe",
+	category: "geometry",
+	description: "Six geometry types rendered in wireframe mode.",
+};
+
 export const controls = [
 	{
 		type: "slider",
 		key: "segments",
 		label: "Segments",
 		min: 4,
-		max: 24,
+		max: 32,
 		step: 1,
 		default: 12,
 	},
@@ -40,6 +47,10 @@ function buildEntries(segments) {
 	];
 }
 
+/**
+ * @param {HTMLCanvasElement} canvas
+ * @param {Record<string, unknown>} [params]
+ */
 export function setup(canvas, params = {}) {
 	const width = canvas.width;
 	const height = canvas.height;
@@ -60,6 +71,7 @@ export function setup(canvas, params = {}) {
 	const renderer = new EASEL.Renderer({ canvas, width, height });
 
 	let currentSegments = params.segments ?? 12;
+	/** @type {EASEL.Mesh[]} */
 	let meshes = [];
 
 	function buildGrid(segments) {
@@ -109,19 +121,38 @@ export function setup(canvas, params = {}) {
 	};
 }
 
-export const source = `import {
-  Scene, OrthographicCamera, Renderer, Clock,
-  BoxGeometry, SphereGeometry, TorusGeometry,
-  CylinderGeometry, ConeGeometry, IcosahedronGeometry,
-  BasicMaterial, Mesh,
-} from "easel";
+export const easelSource = `import * as EASEL from "easel";
 
-// wireframe is checked by the rasterizer on drawCall.material.wireframe
+const scene = new EASEL.Scene();
+const camera = new EASEL.OrthographicCamera({
+  left: -size * aspect,
+  right: size * aspect,
+  top: size,
+  bottom: -size,
+  near: 0.1,
+  far: 100,
+});
+
+// wireframe is a property on the material, read by the rasterizer
 const mat = new EASEL.BasicMaterial({ color: 0xe06060 });
 mat.wireframe = true;
 
-const mesh = new Mesh(new SphereGeometry(1.0, 12, 9), mat);
+const mesh = new EASEL.Mesh(new EASEL.SphereGeometry(1.0, 12, 9), mat);
 scene.add(mesh);
 
-// Drag the Segments slider to see how triangle count changes.
-// Lower segment counts expose the faceted polygon structure.`;
+// Lower segment counts make the polygon structure more visible.`;
+
+export const threeSource = `import * as THREE from "three";
+
+const scene = new THREE.Scene();
+const camera = new THREE.OrthographicCamera(
+  -size * aspect, size * aspect, size, -size, 0.1, 100,
+);
+
+const mat = new THREE.MeshBasicMaterial({
+  color: 0xe06060,
+  wireframe: true,
+});
+
+const mesh = new THREE.Mesh(new THREE.SphereGeometry(1.0, 12, 9), mat);
+scene.add(mesh);`;
