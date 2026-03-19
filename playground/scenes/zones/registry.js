@@ -5,10 +5,28 @@
 /** @type {ZoneMeta[]} */
 export const zones = [
 	{
-		id: "geometry",
-		name: "Geometry Gallery",
+		id: "primitives",
+		name: "Primitives",
 		icon: "cube",
-		description: "All 17 geometry primitives",
+		description: "Box, Sphere, Cylinder, Cone, Capsule",
+	},
+	{
+		id: "polyhedra",
+		name: "Polyhedra",
+		icon: "diamond",
+		description: "Icosahedron, Octahedron, Tetrahedron, Dodecahedron",
+	},
+	{
+		id: "parametric",
+		name: "Parametric",
+		icon: "rotate",
+		description: "Torus, TorusKnot, Lathe, Tube",
+	},
+	{
+		id: "planar",
+		name: "Planar",
+		icon: "square",
+		description: "Plane, Ring, Shape, Extrude",
 	},
 	{
 		id: "materials",

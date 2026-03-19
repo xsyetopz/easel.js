@@ -60,11 +60,11 @@ export class PlaneGeometry extends Geometry {
 				const c = ix + 1 + gridX1 * (iy + 1);
 				const d = ix + 1 + gridX1 * iy;
 				indices[ii++] = a;
-				indices[ii++] = b;
 				indices[ii++] = d;
 				indices[ii++] = b;
+				indices[ii++] = b;
+				indices[ii++] = d;
 				indices[ii++] = c;
-				indices[ii++] = d;
 			}
 		}
 

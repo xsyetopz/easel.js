@@ -42,16 +42,16 @@ export class TorusGeometry extends Geometry {
 				const sinV = Math.sin(v);
 
 				const px = (radius + tube * cosV) * cosU;
-				const py = (radius + tube * cosV) * sinU;
-				const pz = tube * sinV;
+				const py = tube * sinV;
+				const pz = -(radius + tube * cosV) * sinU;
 
 				positions.push(px, py, pz);
 
 				const cx = radius * cosU;
-				const cy = radius * sinU;
+				const cz = -radius * sinU;
 				const nx = (px - cx) / tube;
-				const ny = (py - cy) / tube;
-				const nz = pz / tube;
+				const ny = py / tube;
+				const nz = (pz - cz) / tube;
 				normals.push(nx, ny, nz);
 
 				uvs.push(i / ts, j / rs);

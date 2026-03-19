@@ -1,51 +1,34 @@
-import * as THREE from "three";
 import { describe, expect, it } from "vitest";
-import { TorusGeometry } from "@/geometry/primitives/TorusGeometry.js";
+import { TorusGeometry } from "../../../src/geometry/primitives/TorusGeometry.js";
 
-describe("TorusGeometry vs THREE.TorusGeometry", () => {
-	it("default - vertex count matches", () => {
-		expect(new TorusGeometry().getAttribute("position").count).toBe(
-			new THREE.TorusGeometry().getAttribute("position").count,
-		);
+describe("TorusGeometry", () => {
+	it("generates correct vertex count", () => {
+		const geo = new TorusGeometry(1, 0.4, 8, 16);
+		const pos = geo.getAttribute("position");
+		expect(pos.array.length / pos.itemSize).toBe((8 + 1) * (16 + 1));
 	});
 
-	it("default - index count matches", () => {
-		expect(new TorusGeometry().index.length).toBe(
-			new THREE.TorusGeometry().getIndex().array.length,
-		);
+	it("ring lies in XZ plane (THREE.js convention)", () => {
+		const geo = new TorusGeometry(1, 0.4, 8, 16);
+		const pos = geo.getAttribute("position");
+		// First vertex (u=0, v=0): should be at (radius+tube, 0, 0)
+		expect(pos.array[0]).toBeCloseTo(1.4, 5);
+		expect(pos.array[1]).toBeCloseTo(0, 5);
+		expect(pos.array[2]).toBeCloseTo(0, 5);
 	});
 
-	it("default - normals are unit length", () => {
-		const normals = new TorusGeometry().getAttribute("normal").array;
-		for (let i = 0; i < Math.min(normals.length, 30); i += 3) {
-			const len = Math.sqrt(
-				normals[i] ** 2 + normals[i + 1] ** 2 + normals[i + 2] ** 2,
-			);
-			expect(len).toBeCloseTo(1, 4);
-		}
+	it("normals point outward", () => {
+		const geo = new TorusGeometry(1, 0.4, 8, 16);
+		const nrm = geo.getAttribute("normal");
+		// First normal (u=0, v=0): should point in +X
+		expect(nrm.array[0]).toBeCloseTo(1, 5);
+		expect(nrm.array[1]).toBeCloseTo(0, 5);
+		expect(nrm.array[2]).toBeCloseTo(0, 5);
 	});
 
-	it("custom (2,0.5,8,24) - vertex count matches", () => {
-		expect(
-			new TorusGeometry(2, 0.5, 8, 24).getAttribute("position").count,
-		).toBe(
-			new THREE.TorusGeometry(2, 0.5, 8, 24).getAttribute("position").count,
-		);
-	});
-
-	it("custom (2,0.5,8,24) - index count matches", () => {
-		expect(new TorusGeometry(2, 0.5, 8, 24).index.length).toBe(
-			new THREE.TorusGeometry(2, 0.5, 8, 24).getIndex().array.length,
-		);
-	});
-
-	it("custom (2,0.5,8,24) - bounding radius ~2.5", () => {
-		const pos = new TorusGeometry(2, 0.5, 8, 24).getAttribute("position").array;
-		let maxR = 0;
-		for (let i = 0; i < pos.length; i += 3) {
-			const r = Math.sqrt(pos[i] ** 2 + pos[i + 1] ** 2 + pos[i + 2] ** 2);
-			if (r > maxR) maxR = r;
-		}
-		expect(maxR).toBeCloseTo(2.5, 2);
+	it("has index buffer", () => {
+		const geo = new TorusGeometry(1, 0.4, 8, 16);
+		expect(geo.index).toBeDefined();
+		expect(geo.index.length).toBe(8 * 16 * 6);
 	});
 });

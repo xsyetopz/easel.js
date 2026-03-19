@@ -1,8 +1,11 @@
+import { DepthBuffer } from "./DepthBuffer.js";
+
 export class Framebuffer {
 	#width;
 	#height;
 	#imageData;
 	#data;
+	#depthBuffer;
 
 	/**
 	 * @param {number} width
@@ -13,6 +16,7 @@ export class Framebuffer {
 		this.#height = height;
 		this.#imageData = this.#createImageData(width, height);
 		this.#data = this.#imageData.data;
+		this.#depthBuffer = new DepthBuffer(width, height);
 	}
 
 	/**
@@ -45,6 +49,11 @@ export class Framebuffer {
 	/** @returns {Uint8ClampedArray} */
 	get data() {
 		return this.#data;
+	}
+
+	/** @returns {DepthBuffer} */
+	get depthBuffer() {
+		return this.#depthBuffer;
 	}
 
 	/**
@@ -87,5 +96,6 @@ export class Framebuffer {
 		this.#height = height;
 		this.#imageData = this.#createImageData(width, height);
 		this.#data = this.#imageData.data;
+		this.#depthBuffer.resize(width, height);
 	}
 }

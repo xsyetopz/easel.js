@@ -15,10 +15,13 @@ import { StatusBar } from "../components/StatusBar.jsx";
 import { ZoneSidebar } from "../components/ZoneSidebar.jsx";
 import * as AnimationZone from "../scenes/zones/AnimationZone.js";
 import * as ArtifactsZone from "../scenes/zones/ArtifactsZone.js";
-import * as GeometryZone from "../scenes/zones/GeometryZone.js";
 import * as InteractionZone from "../scenes/zones/InteractionZone.js";
 import * as LightingZone from "../scenes/zones/LightingZone.js";
 import * as MaterialsZone from "../scenes/zones/MaterialsZone.js";
+import * as ParametricZone from "../scenes/zones/ParametricZone.js";
+import * as PlanarZone from "../scenes/zones/PlanarZone.js";
+import * as PolyhedraZone from "../scenes/zones/PolyhedraZone.js";
+import * as PrimitivesZone from "../scenes/zones/PrimitivesZone.js";
 import { zones } from "../scenes/zones/registry.js";
 import * as TextureZone from "../scenes/zones/TextureZone.js";
 
@@ -30,8 +33,14 @@ const STATUS_BAR_HEIGHT = 32;
  */
 function resolveZone(id) {
 	switch (id) {
-		case "geometry":
-			return GeometryZone;
+		case "primitives":
+			return PrimitivesZone;
+		case "polyhedra":
+			return PolyhedraZone;
+		case "parametric":
+			return ParametricZone;
+		case "planar":
+			return PlanarZone;
 		case "materials":
 			return MaterialsZone;
 		case "lighting":
@@ -45,7 +54,7 @@ function resolveZone(id) {
 		case "artifacts":
 			return ArtifactsZone;
 		default:
-			return GeometryZone;
+			return PrimitivesZone;
 	}
 }
 

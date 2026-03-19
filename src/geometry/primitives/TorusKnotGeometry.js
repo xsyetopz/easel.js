@@ -51,37 +51,41 @@ export class TorusKnotGeometry extends Geometry {
 			const Ty = P2[1] - P1[1];
 			const Tz = P2[2] - P1[2];
 
-			// normal via rotation minimizing frame (simple approximation: B = T x N, N = T x up)
-			let Nx = Ty * 0 - Tz * 1;
-			let Ny = Tz * 0 - Tx * 0;
-			let Nz = Tx * 1 - Ty * 0;
-			let Nlen = Math.sqrt(Nx * Nx + Ny * Ny + Nz * Nz);
-			if (Nlen === 0) {
-				Nx = 1;
-				Ny = 0;
-				Nz = 0;
-				Nlen = 1;
-			}
+			// N = -normalize(P1 + P2) — points away from center of curvature
+			let Nx = -(P1[0] + P2[0]);
+			let Ny = -(P1[1] + P2[1]);
+			let Nz = -(P1[2] + P2[2]);
+			let Nlen = Math.sqrt(Nx * Nx + Ny * Ny + Nz * Nz) || 1;
 			Nx /= Nlen;
 			Ny /= Nlen;
 			Nz /= Nlen;
 
-			const Bx = Ty * Nz - Tz * Ny;
-			const By = Tz * Nx - Tx * Nz;
-			const Bz = Tx * Ny - Ty * Nx;
-			const Blen = Math.sqrt(Bx * Bx + By * By + Bz * Bz);
-			const Bnx = Bx / Blen;
-			const Bny = By / Blen;
-			const Bnz = Bz / Blen;
+			// B = normalize(T x N)
+			let Bx = Ty * Nz - Tz * Ny;
+			let By = Tz * Nx - Tx * Nz;
+			let Bz = Tx * Ny - Ty * Nx;
+			const Blen = Math.sqrt(Bx * Bx + By * By + Bz * Bz) || 1;
+			Bx /= Blen;
+			By /= Blen;
+			Bz /= Blen;
+
+			// Re-orthogonalize N = B x T (already unit-ish)
+			Nx = By * Tz - Bz * Ty;
+			Ny = Bz * Tx - Bx * Tz;
+			Nz = Bx * Ty - By * Tx;
+			Nlen = Math.sqrt(Nx * Nx + Ny * Ny + Nz * Nz) || 1;
+			Nx /= Nlen;
+			Ny /= Nlen;
+			Nz /= Nlen;
 
 			for (let j = 0; j <= rs; j++) {
 				const v = (j / rs) * Math.PI * 2;
 				const cosV = Math.cos(v);
 				const sinV = Math.sin(v);
 
-				const nx = cosV * Nx + sinV * Bnx;
-				const ny = cosV * Ny + sinV * Bny;
-				const nz = cosV * Nz + sinV * Bnz;
+				const nx = cosV * Nx + sinV * Bx;
+				const ny = cosV * Ny + sinV * By;
+				const nz = cosV * Nz + sinV * Bz;
 
 				positions.push(P1[0] + tube * nx, P1[1] + tube * ny, P1[2] + tube * nz);
 				normals.push(nx, ny, nz);
@@ -95,8 +99,8 @@ export class TorusKnotGeometry extends Geometry {
 				const b = (rs + 1) * i + (j - 1);
 				const c = (rs + 1) * i + j;
 				const d = (rs + 1) * (i - 1) + j;
-				indices.push(a, b, d);
-				indices.push(b, c, d);
+				indices.push(a, d, b);
+				indices.push(b, d, c);
 			}
 		}
 
@@ -119,7 +123,7 @@ export class TorusKnotGeometry extends Geometry {
 			const r = 0.5 * (2 + Math.cos(quOverP * u));
 			out[0] = r * cs * radius;
 			out[1] = r * sn * radius;
-			out[2] = -Math.sin(quOverP * u) * radius;
+			out[2] = Math.sin(quOverP * u) * radius * 0.5;
 		}
 	}
 }

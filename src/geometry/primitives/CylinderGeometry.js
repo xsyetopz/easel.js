@@ -132,9 +132,9 @@ export class CylinderGeometry extends Geometry {
 				const first = centerIndex + x + 1;
 				const second = centerIndex + x + 2;
 				if (top) {
-					indices.push(second, first, centerIndex);
-				} else {
 					indices.push(centerIndex, first, second);
+				} else {
+					indices.push(second, first, centerIndex);
 				}
 			}
 		}

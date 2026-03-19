@@ -41,9 +41,10 @@ describe("DrawCall", () => {
 		expect(dc.centroid.z).toBeCloseTo(0, 5);
 	});
 
-	it("projectedVerts starts empty", () => {
+	it("projectedVerts starts as empty Float32Array", () => {
 		const dc = new DrawCall(makeMesh(), makeMaterial());
-		expect(Array.isArray(dc.projectedVerts)).toBe(true);
+		expect(dc.projectedVerts).toBeInstanceOf(Float32Array);
 		expect(dc.projectedVerts.length).toBe(0);
+		expect(dc.vertCount).toBe(0);
 	});
 });

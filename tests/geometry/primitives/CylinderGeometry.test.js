@@ -71,3 +71,68 @@ describe("CylinderGeometry", () => {
 		expect(new CylinderGeometry().type).toBe("CylinderGeometry");
 	});
 });
+
+/**
+ * Computes cross product of (b-a) x (c-a).
+ *
+ * @param {Float32Array} pos
+ * @param {number} ai
+ * @param {number} bi
+ * @param {number} ci
+ * @returns {{ nx: number, ny: number, nz: number }}
+ */
+function faceNormal(pos, ai, bi, ci) {
+	const ax = pos[ai * 3];
+	const ay = pos[ai * 3 + 1];
+	const az = pos[ai * 3 + 2];
+	const bx = pos[bi * 3];
+	const by = pos[bi * 3 + 1];
+	const bz = pos[bi * 3 + 2];
+	const cx = pos[ci * 3];
+	const cy = pos[ci * 3 + 1];
+	const cz = pos[ci * 3 + 2];
+	const abx = bx - ax;
+	const aby = by - ay;
+	const abz = bz - az;
+	const acx = cx - ax;
+	const acy = cy - ay;
+	const acz = cz - az;
+	return {
+		nx: aby * acz - abz * acy,
+		ny: abz * acx - abx * acz,
+		nz: abx * acy - aby * acx,
+	};
+}
+
+describe("CylinderGeometry cap winding", () => {
+	it("top cap normals point +Y", () => {
+		const geo = new CylinderGeometry(1, 1, 2, 8, 1, false);
+		const pos = geo.getAttribute("position").array;
+		const idx = geo.index;
+
+		// Body: 8 cols * 1 row * 2 triangles = 16 triangles = 48 indices
+		// Top cap starts at 48
+		const bodyIdxCount = 8 * 1 * 2 * 3;
+		for (let f = 0; f < 8; f++) {
+			const off = bodyIdxCount + f * 3;
+			const { ny } = faceNormal(pos, idx[off], idx[off + 1], idx[off + 2]);
+			expect(ny).toBeGreaterThan(0);
+		}
+	});
+
+	it("bottom cap normals point -Y", () => {
+		const geo = new CylinderGeometry(1, 1, 2, 8, 1, false);
+		const pos = geo.getAttribute("position").array;
+		const idx = geo.index;
+
+		// Body: 48 indices, top cap: 8*3=24, bottom cap starts at 72
+		const bodyIdxCount = 8 * 1 * 2 * 3;
+		const topCapIdxCount = 8 * 3;
+		const bottomStart = bodyIdxCount + topCapIdxCount;
+		for (let f = 0; f < 8; f++) {
+			const off = bottomStart + f * 3;
+			const { ny } = faceNormal(pos, idx[off], idx[off + 1], idx[off + 2]);
+			expect(ny).toBeLessThan(0);
+		}
+	});
+});

@@ -6,8 +6,15 @@ export class DrawCall {
 	/** @type {import('../objects/Mesh.js').Mesh} */
 	mesh;
 
-	/** @type {Array<{ x: number, y: number, z: number, w: number, wx: number, wy: number, wz: number }>} */
-	projectedVerts = [];
+	/**
+	 * Flat Float32Array of projected vertex data, stride 4.
+	 * Layout per vertex: [x, y, z, w] (NDC xyz, clip-space w).
+	 * @type {Float32Array}
+	 */
+	projectedVerts = new Float32Array(0);
+
+	/** @type {number} */
+	vertCount = 0;
 
 	/** @type {import('../materials/Material.js').Material} */
 	material;

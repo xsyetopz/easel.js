@@ -15,8 +15,8 @@ export class CapsuleGeometry extends LatheGeometry {
 		const path = [];
 		const halfLength = length / 2;
 
-		// bottom hemisphere
-		for (let i = 0; i <= capSegments; i++) {
+		// bottom hemisphere (south pole → equator)
+		for (let i = capSegments; i >= 0; i--) {
 			const angle = (Math.PI / 2) * (i / capSegments);
 			path.push(
 				new Vector2(
@@ -26,8 +26,8 @@ export class CapsuleGeometry extends LatheGeometry {
 			);
 		}
 
-		// top hemisphere
-		for (let i = capSegments; i >= 0; i--) {
+		// top hemisphere (equator → north pole)
+		for (let i = 0; i <= capSegments; i++) {
 			const angle = (Math.PI / 2) * (i / capSegments);
 			path.push(
 				new Vector2(

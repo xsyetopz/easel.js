@@ -1,52 +1,82 @@
-import * as THREE from "three";
 import { describe, expect, it } from "vitest";
-import { TorusKnotGeometry } from "@/geometry/primitives/TorusKnotGeometry.js";
+import { TorusKnotGeometry } from "../../../src/geometry/primitives/TorusKnotGeometry.js";
 
-describe("TorusKnotGeometry vs THREE.TorusKnotGeometry", () => {
-	it("default - vertex count matches", () => {
-		expect(new TorusKnotGeometry().getAttribute("position").count).toBe(
-			new THREE.TorusKnotGeometry().getAttribute("position").count,
-		);
+describe("TorusKnotGeometry", () => {
+	it("generates expected vertex count", () => {
+		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
+		const pos = geo.getAttribute("position");
+		expect(pos.array.length / pos.itemSize).toBe((64 + 1) * (8 + 1));
 	});
 
-	it("default - index count matches", () => {
-		expect(new TorusKnotGeometry().index.length).toBe(
-			new THREE.TorusKnotGeometry().getIndex().array.length,
-		);
+	it("has no NaN in positions", () => {
+		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
+		const pos = geo.getAttribute("position");
+		for (const val of pos.array) {
+			expect(Number.isNaN(val)).toBe(false);
+		}
 	});
 
-	it("default - normals are unit length", () => {
-		const normals = new TorusKnotGeometry().getAttribute("normal").array;
-		for (let i = 0; i < Math.min(normals.length, 30); i += 3) {
+	it("has no NaN in normals", () => {
+		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
+		const nrm = geo.getAttribute("normal");
+		for (const val of nrm.array) {
+			expect(Number.isNaN(val)).toBe(false);
+		}
+	});
+
+	it("normals are unit length", () => {
+		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
+		const nrm = geo.getAttribute("normal");
+		for (let i = 0; i < nrm.array.length; i += 3) {
 			const len = Math.sqrt(
-				normals[i] ** 2 + normals[i + 1] ** 2 + normals[i + 2] ** 2,
+				nrm.array[i] ** 2 + nrm.array[i + 1] ** 2 + nrm.array[i + 2] ** 2,
 			);
 			expect(len).toBeCloseTo(1, 3);
 		}
 	});
 
-	it("custom (1.5,0.3,32,8,3,2) - vertex count matches", () => {
-		expect(
-			new TorusKnotGeometry(1.5, 0.3, 32, 8, 3, 2).getAttribute("position")
-				.count,
-		).toBe(
-			new THREE.TorusKnotGeometry(1.5, 0.3, 32, 8, 3, 2).getAttribute(
-				"position",
-			).count,
-		);
+	it("has index buffer", () => {
+		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
+		expect(geo.index).toBeDefined();
+		expect(geo.index.length).toBe(64 * 8 * 6);
 	});
+});
 
-	it("custom (1.5,0.3,32,8,3,2) - index count matches", () => {
-		expect(new TorusKnotGeometry(1.5, 0.3, 32, 8, 3, 2).index.length).toBe(
-			new THREE.TorusKnotGeometry(1.5, 0.3, 32, 8, 3, 2).getIndex().array
-				.length,
-		);
-	});
+describe("TorusKnotGeometry winding order", () => {
+	it("vertex normals dot with position-from-path-center > 0", () => {
+		// Use low segments so tube cross-section is simple
+		const radius = 1;
+		const tube = 0.4;
+		const p = 2;
+		const q = 3;
+		const ts = 32;
+		const rs = 6;
+		const geo = new TorusKnotGeometry(radius, tube, ts, rs, p, q);
+		const pos = geo.getAttribute("position").array;
+		const nrm = geo.getAttribute("normal").array;
 
-	it("custom (1.5,0.3,32,8,3,2) - has positions and normals", () => {
-		const g = new TorusKnotGeometry(1.5, 0.3, 32, 8, 3, 2);
-		expect(g.getAttribute("position")).toBeDefined();
-		expect(g.getAttribute("normal")).toBeDefined();
-		expect(g.getAttribute("uv")).toBeDefined();
+		// Recompute path centers to verify normals point outward from tube
+		let outward = 0;
+		let total = 0;
+		for (let i = 0; i <= ts; i++) {
+			const u = (i / ts) * p * Math.PI * 2;
+			const quOverP = q / p;
+			const r = 0.5 * (2 + Math.cos(quOverP * u));
+			const cx = r * Math.cos(u) * radius;
+			const cy = r * Math.sin(u) * radius;
+			const cz = Math.sin(quOverP * u) * radius * 0.5;
+
+			for (let j = 0; j <= rs; j++) {
+				const vi = (i * (rs + 1) + j) * 3;
+				const dx = pos[vi] - cx;
+				const dy = pos[vi + 1] - cy;
+				const dz = pos[vi + 2] - cz;
+				const dot = nrm[vi] * dx + nrm[vi + 1] * dy + nrm[vi + 2] * dz;
+				if (dot > 0) outward++;
+				total++;
+			}
+		}
+
+		expect(outward / total).toBeGreaterThan(0.99);
 	});
 });

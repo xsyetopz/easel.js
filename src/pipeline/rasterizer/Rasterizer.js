@@ -16,6 +16,7 @@ export class Rasterizer {
 	 * @param {{
 	 *   triangles: Array<{
 	 *     screenVerts: Array<{ x: number, y: number }>,
+	 *     ndcVerts: Array<{ x: number, y: number, z: number }>,
 	 *     uvs?: Array<{ u: number, v: number }>
 	 *   }>,
 	 *   material: {
@@ -27,7 +28,7 @@ export class Rasterizer {
 	 *   },
 	 *   shadedColors?: Array<{ r: number, g: number, b: number } | { r: number, g: number, b: number }[]>
 	 * }} drawCall
-	 * @param {{ width: number, height: number }} framebuffer
+	 * @param {import('../framebuffer/Framebuffer.js').Framebuffer} framebuffer
 	 * @param {unknown} _colorTable Ignored - internal ColorTable is used
 	 * @param {(x: number, y: number, r: number, g: number, b: number, a: number) => void} pixelWriter
 	 * @returns {void}
@@ -68,8 +69,19 @@ export class Rasterizer {
 				flatB = Math.round(baseB * sc.b);
 			}
 
+			const ndcV = tri.ndcVerts;
+			const depthBuf = framebuffer.depthBuffer;
+
 			/** @type {(px: number, py: number, bu: number, bv: number, bw: number) => void} */
 			const colorCb = (px, py, bu, bv, bw) => {
+				const ndcZ = bu * ndcV[0].z + bv * ndcV[1].z + bw * ndcV[2].z;
+				const depth16 = MathUtils.clamp(
+					((ndcZ + 1) * 32767.5 + 0.5) | 0,
+					0,
+					65535,
+				);
+				if (!depthBuf.testAndSet(px, py, depth16)) return;
+
 				let r = flatR;
 				let g = flatG;
 				let bl = flatB;

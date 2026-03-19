@@ -17,6 +17,7 @@ import {
 	Renderer,
 	RingGeometry,
 	Scene,
+	Side,
 	SphereGeometry,
 	TetrahedronGeometry,
 	TorusGeometry,
@@ -60,8 +61,8 @@ export function setup(canvas) {
 		{ geo: new ConeGeometry(0.7, 1.4, 16), color: 0xe0e060 },
 		{ geo: new TorusGeometry(0.6, 0.25, 12, 24), color: 0xe060e0 },
 		{ geo: new TorusKnotGeometry(0.5, 0.18, 48, 8), color: 0x60e0e0 },
-		{ geo: new PlaneGeometry(1.2, 1.2), color: 0xe09040 },
-		{ geo: new RingGeometry(0.3, 0.8, 24), color: 0x40e090 },
+		{ geo: new PlaneGeometry(1.2, 1.2), color: 0xe09040, side: Side.Double },
+		{ geo: new RingGeometry(0.3, 0.8, 24), color: 0x40e090, side: Side.Double },
 		{ geo: new IcosahedronGeometry(0.8), color: 0x9040e0 },
 		{ geo: new OctahedronGeometry(0.8), color: 0xe04090 },
 		{ geo: new TetrahedronGeometry(0.9), color: 0x90e040 },
@@ -80,7 +81,7 @@ export function setup(canvas) {
 		const row = Math.floor(i / cols);
 		const mesh = new Mesh(
 			entry.geo,
-			new LambertMaterial({ color: entry.color }),
+			new LambertMaterial({ color: entry.color, side: entry.side }),
 		);
 		mesh.position.x = (col - (cols - 1) / 2) * spacing;
 		mesh.position.y =

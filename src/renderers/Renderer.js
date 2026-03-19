@@ -101,13 +101,14 @@ export class Renderer {
 	 * @returns {void}
 	 */
 	render(scene, camera) {
-		// 1. Clear framebuffer
+		// 1. Clear framebuffer + depth buffer
 		this.#clear.clear(
 			this.#framebuffer,
 			this.#clearColor.r,
 			this.#clearColor.g,
 			this.#clearColor.b,
 		);
+		this.#framebuffer.depthBuffer.clear();
 
 		// 2. Scene traversal → DrawList
 		const drawList = this.#traversal.traverse(

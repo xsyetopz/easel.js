@@ -25,10 +25,10 @@ bun run biome:check    # Biome lint + format (with --write)
 
 These are architectural, not bugs. Do not "fix" them.
 
-- **No z-buffer** - painter's algorithm, back-to-front sort by tile distance + layer integer
+- **Painter's algorithm primary** - back-to-front sort by tile distance + layer integer, `Uint16Array` depth buffer for early-Z rejection within sorted draw calls
 - **Affine UV mapping** - no perspective-correct textures, visible with PerspectiveCamera
 - **HSL16 color** - 16-bit packed (6H/3S/7L), precomputed LUT to RGB
-- **Integer screen coords** - `Math.trunc()` on projected vertices (vertex wobble is correct)
+- **Integer screen coords** - round-half `(x + 0.5) | 0` on projected vertices (vertex wobble is correct)
 - **Flat/Gouraud shading only** - no per-pixel lighting
 - **9-step opacity** - discrete 0–8 integer, not continuous alpha
 - **128x128 max texture** - nearest-neighbor downsample, no mipmaps

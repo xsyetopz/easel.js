@@ -10,8 +10,14 @@ const _vp = new Matrix4();
 const _worldPos = new Vector3();
 const _frustum = new Frustum();
 
-/** @typedef {{ x: number, y: number, z: number, w: number, wx: number, wy: number, wz: number }} ProjectedVert */
+/**
+ * Conceptual layout of one entry in the Float32Array vertex buffer (stride 4).
+ * The data lives flat; this typedef is for documentation only.
+ * @typedef {{ x: number, y: number, z: number, w: number }} ProjectedVert
+ */
 /** @typedef {{ x: number, y: number, z: number }} Vec3 */
+
+const VERT_STRIDE = 4;
 
 export class SceneTraversal {
 	/**
@@ -27,16 +33,12 @@ export class SceneTraversal {
 		_vp.copy(camera.projectionMatrix).mul(camera.matrixWorldInverse);
 		_frustum.setFromProjectionMatrix(_vp);
 
-		const camPos = camera.position ?? { x: 0, y: 0, z: 0 };
 		const drawList = new DrawList();
 		this.#walk(
 			/** @type {*} */ (scene),
 			drawList,
 			camera,
 			_frustum,
-			camPos.x ?? 0,
-			camPos.y ?? 0,
-			camPos.z ?? 0,
 			width,
 			height,
 		);
@@ -48,14 +50,11 @@ export class SceneTraversal {
 	 * @param {DrawList} drawList
 	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4 }} camera
 	 * @param {Frustum} frustum
-	 * @param {number} camX
-	 * @param {number} camY
-	 * @param {number} camZ
 	 * @param {number} width
 	 * @param {number} height
 	 * @returns {void}
 	 */
-	#walk(node, drawList, camera, frustum, camX, camY, camZ, width, height) {
+	#walk(node, drawList, camera, frustum, width, height) {
 		if (!node.visible) return;
 
 		if (node.type === "Mesh" && node.geometry && node.material) {
@@ -70,9 +69,6 @@ export class SceneTraversal {
 						/** @type {unknown} */ (node)
 					),
 					camera,
-					camX,
-					camY,
-					camZ,
 					width,
 					height,
 				);
@@ -83,17 +79,7 @@ export class SceneTraversal {
 		}
 
 		for (const child of node.children) {
-			this.#walk(
-				child,
-				drawList,
-				camera,
-				frustum,
-				camX,
-				camY,
-				camZ,
-				width,
-				height,
-			);
+			this.#walk(child, drawList, camera, frustum, width, height);
 		}
 	}
 
@@ -127,14 +113,11 @@ export class SceneTraversal {
 	/**
 	 * @param {{ matrixWorld: Matrix4, geometry: *, material: *, updateMatrixWorld: (p: boolean, c: boolean) => void }} node
 	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4 }} camera
-	 * @param {number} camX
-	 * @param {number} camY
-	 * @param {number} camZ
 	 * @param {number} width
 	 * @param {number} height
 	 * @returns {import('./DrawCall.js').DrawCall}
 	 */
-	#buildDrawCall(node, camera, camX, camY, camZ, width, height) {
+	#buildDrawCall(node, camera, width, height) {
 		node.updateMatrixWorld(false, false);
 
 		const drawCall = new DrawCall(
@@ -155,8 +138,8 @@ export class SceneTraversal {
 			const itemSize = posAttr.itemSize ?? 3;
 			const count = arr.length / itemSize;
 			const me = _mvp.elements;
-			const mw = node.matrixWorld.elements;
-			drawCall.projectedVerts = new Array(count);
+			drawCall.projectedVerts = new Float32Array(count * VERT_STRIDE);
+			drawCall.vertCount = count;
 
 			for (let i = 0; i < count; i++) {
 				const lx = arr[i * itemSize];
@@ -166,22 +149,13 @@ export class SceneTraversal {
 				// Clip-space w for near-plane guard
 				const rawW = me[3] * lx + me[7] * ly + me[11] * lz + me[15];
 
-				// World-space position for hybrid backface culling
-				const wx = mw[0] * lx + mw[4] * ly + mw[8] * lz + mw[12];
-				const wy = mw[1] * lx + mw[5] * ly + mw[9] * lz + mw[13];
-				const wz = mw[2] * lx + mw[6] * ly + mw[10] * lz + mw[14];
-
 				_worldPos.set(lx, ly, lz).applyMatrix4(_mvp);
 
-				drawCall.projectedVerts[i] = {
-					x: _worldPos.x,
-					y: _worldPos.y,
-					z: _worldPos.z,
-					w: rawW,
-					wx,
-					wy,
-					wz,
-				};
+				const base = i * VERT_STRIDE;
+				drawCall.projectedVerts[base] = _worldPos.x;
+				drawCall.projectedVerts[base + 1] = _worldPos.y;
+				drawCall.projectedVerts[base + 2] = _worldPos.z;
+				drawCall.projectedVerts[base + 3] = rawW;
 			}
 		}
 
@@ -190,8 +164,10 @@ export class SceneTraversal {
 		if (index) {
 			drawCall.faceIndices = Array.from(index.array ?? index);
 		} else {
-			const vertCount = drawCall.projectedVerts.length;
-			drawCall.faceIndices = Array.from({ length: vertCount }, (_, i) => i);
+			drawCall.faceIndices = Array.from(
+				{ length: drawCall.vertCount },
+				(_, i) => i,
+			);
 		}
 
 		const worldNormals = this.#buildWorldNormals(node);
@@ -204,9 +180,6 @@ export class SceneTraversal {
 			width,
 			height,
 			node.material,
-			camX,
-			camY,
-			camZ,
 		);
 
 		return drawCall;
@@ -214,18 +187,17 @@ export class SceneTraversal {
 
 	/**
 	 * @param {{ matrixWorld: Matrix4, geometry: * }} node
-	 * @returns {Array<Vec3>}
+	 * @returns {Float32Array} Stride-3 flat array: [x0,y0,z0, x1,y1,z1, ...]
 	 */
 	#buildWorldNormals(node) {
 		const normAttr = node.geometry.getAttribute("normal");
-		/** @type {Array<Vec3>} */
-		const worldNormals = [];
-		if (!normAttr) return worldNormals;
+		if (!normAttr) return new Float32Array(0);
 
 		const nArr = normAttr.array;
 		const nSize = normAttr.itemSize ?? 3;
 		const nCount = nArr.length / nSize;
 		const m = node.matrixWorld.elements;
+		const result = new Float32Array(nCount * 3);
 
 		for (let i = 0; i < nCount; i++) {
 			const nx = nArr[i * nSize];
@@ -235,42 +207,41 @@ export class SceneTraversal {
 			const wy = m[1] * nx + m[5] * ny + m[9] * nz;
 			const wz = m[2] * nx + m[6] * ny + m[10] * nz;
 			const len = Math.sqrt(wx * wx + wy * wy + wz * wz) || 1;
-			worldNormals[i] = { x: wx / len, y: wy / len, z: wz / len };
+			result[i * 3] = wx / len;
+			result[i * 3 + 1] = wy / len;
+			result[i * 3 + 2] = wz / len;
 		}
 
-		return worldNormals;
+		return result;
 	}
 
 	/**
 	 * @param {{ geometry: * }} node
-	 * @returns {Array<{ u: number, v: number }>}
+	 * @returns {Float32Array} Stride-2 flat array: [u0,v0, u1,v1, ...]
 	 */
 	#buildUvs(node) {
 		const uvAttr = node.geometry.getAttribute("uv");
-		/** @type {Array<{ u: number, v: number }>} */
-		const uvs = [];
-		if (!uvAttr) return uvs;
+		if (!uvAttr) return new Float32Array(0);
 
 		const arr = uvAttr.array;
 		const itemSize = uvAttr.itemSize ?? 2;
 		const count = arr.length / itemSize;
+		const result = new Float32Array(count * 2);
 		for (let i = 0; i < count; i++) {
-			uvs[i] = { u: arr[i * itemSize], v: arr[i * itemSize + 1] };
+			result[i * 2] = arr[i * itemSize];
+			result[i * 2 + 1] = arr[i * itemSize + 1];
 		}
-		return uvs;
+		return result;
 	}
 
 	/**
 	 * @param {number[]} indices
-	 * @param {ProjectedVert[]} verts
-	 * @param {Array<Vec3>} worldNormals
-	 * @param {Array<{ u: number, v: number }>} uvs
+	 * @param {Float32Array} verts Stride-4 flat buffer (see VERT_STRIDE)
+	 * @param {Float32Array} worldNormals Stride-3 flat buffer
+	 * @param {Float32Array} uvs Stride-2 flat buffer
 	 * @param {number} width
 	 * @param {number} height
 	 * @param {import('../materials/Material.js').Material} material
-	 * @param {number} camX
-	 * @param {number} camY
-	 * @param {number} camZ
 	 * @returns {import('./DrawCall.js').DrawCall['triangles']}
 	 */
 	#assembleTriangles(
@@ -281,9 +252,6 @@ export class SceneTraversal {
 		width,
 		height,
 		material,
-		camX,
-		camY,
-		camZ,
 	) {
 		const triCount = Math.floor(indices.length / 3);
 		/** @type {import('./DrawCall.js').DrawCall['triangles']} */
@@ -294,14 +262,24 @@ export class SceneTraversal {
 			const i0 = indices[t * 3];
 			const i1 = indices[t * 3 + 1];
 			const i2 = indices[t * 3 + 2];
-			const v0 = verts[i0];
-			const v1 = verts[i1];
-			const v2 = verts[i2];
+
+			const b0 = i0 * VERT_STRIDE;
+			const b1 = i1 * VERT_STRIDE;
+			const b2 = i2 * VERT_STRIDE;
 
 			const tri = this.#buildTriangle(
-				v0,
-				v1,
-				v2,
+				verts[b0],
+				verts[b0 + 1],
+				verts[b0 + 2],
+				verts[b0 + 3],
+				verts[b1],
+				verts[b1 + 1],
+				verts[b1 + 2],
+				verts[b1 + 3],
+				verts[b2],
+				verts[b2 + 1],
+				verts[b2 + 2],
+				verts[b2 + 3],
 				i0,
 				i1,
 				i2,
@@ -310,9 +288,6 @@ export class SceneTraversal {
 				width,
 				height,
 				side,
-				camX,
-				camY,
-				camZ,
 			);
 			if (tri) {
 				triangles.push(tri);
@@ -323,26 +298,32 @@ export class SceneTraversal {
 	}
 
 	/**
-	 * @param {ProjectedVert} v0
-	 * @param {ProjectedVert} v1
-	 * @param {ProjectedVert} v2
+	 * @param {number} x0 @param {number} y0 @param {number} z0 @param {number} w0
+	 * @param {number} x1 @param {number} y1 @param {number} z1 @param {number} w1
+	 * @param {number} x2 @param {number} y2 @param {number} z2 @param {number} w2
 	 * @param {number} i0
 	 * @param {number} i1
 	 * @param {number} i2
-	 * @param {Array<Vec3>} worldNormals
-	 * @param {Array<{ u: number, v: number }>} uvs
+	 * @param {Float32Array} worldNormals Stride-3 flat buffer
+	 * @param {Float32Array} uvs Stride-2 flat buffer
 	 * @param {number} width
 	 * @param {number} height
 	 * @param {number} side
-	 * @param {number} camX
-	 * @param {number} camY
-	 * @param {number} camZ
 	 * @returns {import('./DrawCall.js').DrawCall['triangles'][0] | null}
 	 */
 	#buildTriangle(
-		v0,
-		v1,
-		v2,
+		x0,
+		y0,
+		z0,
+		w0,
+		x1,
+		y1,
+		z1,
+		w1,
+		x2,
+		y2,
+		z2,
+		w2,
 		i0,
 		i1,
 		i2,
@@ -351,21 +332,22 @@ export class SceneTraversal {
 		width,
 		height,
 		side,
-		camX,
-		camY,
-		camZ,
 	) {
-		// Fix 3: Near-plane guard - skip triangles with any vertex behind camera
-		if (v0.w <= 0 || v1.w <= 0 || v2.w <= 0) return null;
+		// Near-plane guard - skip triangles with any vertex behind camera
+		if (w0 <= 0 || w1 <= 0 || w2 <= 0) return null;
 
-		// Fix 4: World-space backface cull (early-out before screen projection)
 		const normal = this.#avgNormal(worldNormals, i0, i1, i2);
 
-		if (!this.#passBackfaceCull(v0, v1, v2, normal, side, camX, camY, camZ)) {
-			return null;
-		}
-
-		const screenVerts = this.#projectToScreen(v0, v1, v2, width, height);
+		const screenVerts = this.#projectToScreen(
+			x0,
+			y0,
+			x1,
+			y1,
+			x2,
+			y2,
+			width,
+			height,
+		);
 		const cross =
 			(screenVerts[1].x - screenVerts[0].x) *
 				(screenVerts[2].y - screenVerts[0].y) -
@@ -374,26 +356,58 @@ export class SceneTraversal {
 
 		if (this.#isCulled(cross, side)) return null;
 
+		// Build per-vertex normal objects for LightBaker consumption
+		const vn0 =
+			worldNormals.length >= (i0 + 1) * 3
+				? {
+						x: worldNormals[i0 * 3],
+						y: worldNormals[i0 * 3 + 1],
+						z: worldNormals[i0 * 3 + 2],
+					}
+				: normal;
+		const vn1 =
+			worldNormals.length >= (i1 + 1) * 3
+				? {
+						x: worldNormals[i1 * 3],
+						y: worldNormals[i1 * 3 + 1],
+						z: worldNormals[i1 * 3 + 2],
+					}
+				: normal;
+		const vn2 =
+			worldNormals.length >= (i2 + 1) * 3
+				? {
+						x: worldNormals[i2 * 3],
+						y: worldNormals[i2 * 3 + 1],
+						z: worldNormals[i2 * 3 + 2],
+					}
+				: normal;
+
 		/** @type {import('./DrawCall.js').DrawCall['triangles'][0]} */
 		const tri = {
 			screenVerts,
 			normal,
-			vertices: [
-				{ normal: worldNormals[i0] ?? normal },
-				{ normal: worldNormals[i1] ?? normal },
-				{ normal: worldNormals[i2] ?? normal },
+			vertices: [{ normal: vn0 }, { normal: vn1 }, { normal: vn2 }],
+			centroidZ: (z0 + z1 + z2) / 3,
+			minZ: Math.min(z0, z1, z2),
+			maxZ: Math.max(z0, z1, z2),
+			ndcVerts: [
+				{ x: x0, y: y0, z: z0 },
+				{ x: x1, y: y1, z: z1 },
+				{ x: x2, y: y2, z: z2 },
 			],
-			centroidZ: (v0.z + v1.z + v2.z) / 3,
-			minZ: Math.min(v0.z, v1.z, v2.z),
-			maxZ: Math.max(v0.z, v1.z, v2.z),
-			ndcVerts: [v0, v1, v2],
 		};
 
 		if (uvs.length > 0) {
 			tri.uvs = [
-				uvs[i0] ?? { u: 0, v: 0 },
-				uvs[i1] ?? { u: 0, v: 0 },
-				uvs[i2] ?? { u: 0, v: 0 },
+				uvs.length >= (i0 + 1) * 2
+					? { u: uvs[i0 * 2], v: uvs[i0 * 2 + 1] }
+					: { u: 0, v: 0 },
+				uvs.length >= (i1 + 1) * 2
+					? { u: uvs[i1 * 2], v: uvs[i1 * 2 + 1] }
+					: { u: 0, v: 0 },
+				uvs.length >= (i2 + 1) * 2
+					? { u: uvs[i2 * 2], v: uvs[i2 * 2 + 1] }
+					: { u: 0, v: 0 },
 			];
 		}
 
@@ -401,53 +415,26 @@ export class SceneTraversal {
 	}
 
 	/**
-	 * @param {ProjectedVert} v0
-	 * @param {ProjectedVert} v1
-	 * @param {ProjectedVert} v2
-	 * @param {Vec3} faceNormal
-	 * @param {number} side
-	 * @param {number} camX
-	 * @param {number} camY
-	 * @param {number} camZ
-	 * @returns {boolean}
-	 */
-	#passBackfaceCull(v0, v1, v2, faceNormal, side, camX, camY, camZ) {
-		if (side === Side.Double) return true;
-
-		const fcx = (v0.wx + v1.wx + v2.wx) / 3;
-		const fcy = (v0.wy + v1.wy + v2.wy) / 3;
-		const fcz = (v0.wz + v1.wz + v2.wz) / 3;
-		const dot =
-			faceNormal.x * (camX - fcx) +
-			faceNormal.y * (camY - fcy) +
-			faceNormal.z * (camZ - fcz);
-
-		if (side === Side.Front) return dot >= 0;
-		if (side === Side.Back) return dot <= 0;
-		return true;
-	}
-
-	/**
-	 * @param {ProjectedVert} v0
-	 * @param {ProjectedVert} v1
-	 * @param {ProjectedVert} v2
+	 * @param {number} x0 @param {number} y0
+	 * @param {number} x1 @param {number} y1
+	 * @param {number} x2 @param {number} y2
 	 * @param {number} width
 	 * @param {number} height
 	 * @returns {Array<{ x: number, y: number }>}
 	 */
-	#projectToScreen(v0, v1, v2, width, height) {
+	#projectToScreen(x0, y0, x1, y1, x2, y2, width, height) {
 		return [
 			{
-				x: Math.trunc(((v0.x + 1) * width) / 2),
-				y: Math.trunc(((1 - v0.y) * height) / 2),
+				x: ((x0 + 1) * width * 0.5 + 0.5) | 0,
+				y: ((1 - y0) * height * 0.5 + 0.5) | 0,
 			},
 			{
-				x: Math.trunc(((v1.x + 1) * width) / 2),
-				y: Math.trunc(((1 - v1.y) * height) / 2),
+				x: ((x1 + 1) * width * 0.5 + 0.5) | 0,
+				y: ((1 - y1) * height * 0.5 + 0.5) | 0,
 			},
 			{
-				x: Math.trunc(((v2.x + 1) * width) / 2),
-				y: Math.trunc(((1 - v2.y) * height) / 2),
+				x: ((x2 + 1) * width * 0.5 + 0.5) | 0,
+				y: ((1 - y2) * height * 0.5 + 0.5) | 0,
 			},
 		];
 	}
@@ -467,7 +454,7 @@ export class SceneTraversal {
 	}
 
 	/**
-	 * @param {Array<Vec3>} worldNormals
+	 * @param {Float32Array} worldNormals Stride-3 flat buffer
 	 * @param {number} i0
 	 * @param {number} i1
 	 * @param {number} i2
@@ -475,13 +462,18 @@ export class SceneTraversal {
 	 */
 	#avgNormal(worldNormals, i0, i1, i2) {
 		if (worldNormals.length === 0) return { x: 0, y: 1, z: 0 };
-		const zero = { x: 0, y: 0, z: 0 };
-		const n0 = worldNormals[i0] ?? zero;
-		const n1 = worldNormals[i1] ?? zero;
-		const n2 = worldNormals[i2] ?? zero;
-		const ax = (n0.x + n1.x + n2.x) / 3;
-		const ay = (n0.y + n1.y + n2.y) / 3;
-		const az = (n0.z + n1.z + n2.z) / 3;
+		const n0x = worldNormals[i0 * 3] ?? 0;
+		const n0y = worldNormals[i0 * 3 + 1] ?? 0;
+		const n0z = worldNormals[i0 * 3 + 2] ?? 0;
+		const n1x = worldNormals[i1 * 3] ?? 0;
+		const n1y = worldNormals[i1 * 3 + 1] ?? 0;
+		const n1z = worldNormals[i1 * 3 + 2] ?? 0;
+		const n2x = worldNormals[i2 * 3] ?? 0;
+		const n2y = worldNormals[i2 * 3 + 1] ?? 0;
+		const n2z = worldNormals[i2 * 3 + 2] ?? 0;
+		const ax = (n0x + n1x + n2x) / 3;
+		const ay = (n0y + n1y + n2y) / 3;
+		const az = (n0z + n1z + n2z) / 3;
 		const al = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
 		return { x: ax / al, y: ay / al, z: az / al };
 	}

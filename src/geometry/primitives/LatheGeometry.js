@@ -1,6 +1,129 @@
 import { Geometry } from "../Geometry.js";
 
 /**
+ * @typedef {{
+ *   positions: number[],
+ *   normals: number[],
+ *   uvs: number[],
+ *   indices: number[],
+ *   index: number,
+ *   seg: number,
+ *   phiStart: number,
+ *   inverseSegments: number,
+ *   phiLength: number,
+ *   points: import('../../math/Vector2.js').Vector2[],
+ * }} LatheState
+ */
+
+/**
+ * @param {LatheState} state
+ * @param {number} pointIndex
+ * @param {number} sign -1 for bottom cap, 1 for top cap.
+ * @returns {number} Updated index counter.
+ */
+function buildCap(state, pointIndex, sign) {
+	const {
+		positions,
+		normals,
+		uvs,
+		indices,
+		seg,
+		phiStart,
+		inverseSegments,
+		phiLength,
+		points,
+	} = state;
+	let { index } = state;
+
+	const centerY = points[pointIndex].y;
+	const centerIdx = index;
+	positions.push(0, centerY, 0);
+	normals.push(0, sign, 0);
+	uvs.push(0.5, 0.5);
+	index++;
+
+	for (let s = 0; s <= seg; s++) {
+		const phi = phiStart + s * inverseSegments * phiLength;
+		const cos = Math.cos(phi);
+		const sin = Math.sin(phi);
+		const r = points[pointIndex].x;
+		positions.push(r * sin, centerY, r * cos);
+		normals.push(0, sign, 0);
+		uvs.push(sin * 0.5 * sign + 0.5, cos * 0.5 + 0.5);
+		index++;
+	}
+
+	for (let s = 0; s < seg; s++) {
+		const first = centerIdx + s + 1;
+		const second = centerIdx + s + 2;
+		if (sign > 0) {
+			indices.push(centerIdx, first, second);
+		} else {
+			indices.push(second, first, centerIdx);
+		}
+	}
+
+	return index;
+}
+
+/**
+ * @param {import('../../math/Vector2.js').Vector2[]} points
+ * @param {number[]} normals Output array.
+ * @param {number} seg
+ * @param {number} phiStart
+ * @param {number} inverseSegments
+ * @param {number} phiLength
+ */
+function computeNormals(
+	points,
+	normals,
+	seg,
+	phiStart,
+	inverseSegments,
+	phiLength,
+) {
+	for (let i = 0; i < points.length; i++) {
+		const ip = Math.min(i + 1, points.length - 1);
+		const im = Math.max(i - 1, 0);
+		const tx = points[ip].x - points[im].x;
+		const ty = points[ip].y - points[im].y;
+		for (let s = 0; s <= seg; s++) {
+			const phi = phiStart + s * inverseSegments * phiLength;
+			const sin = Math.sin(phi);
+			const cos = Math.cos(phi);
+			const nx = ty * cos;
+			const ny = -tx;
+			const nz = ty * sin;
+			const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+			if (len > 0) {
+				normals.push(nx / len, ny / len, nz / len);
+			} else {
+				normals.push(0, 1, 0);
+			}
+		}
+	}
+}
+
+/**
+ * @param {number[][]} grid
+ * @param {number[]} indices Output array.
+ * @param {number} pointCount
+ * @param {number} seg
+ */
+function buildIndices(grid, indices, pointCount, seg) {
+	for (let i = 0; i < pointCount - 1; i++) {
+		for (let s = 0; s < seg; s++) {
+			const a = grid[i][s];
+			const b = grid[i + 1][s];
+			const c = grid[i + 1][s + 1];
+			const d = grid[i][s + 1];
+			indices.push(a, d, b);
+			indices.push(b, d, c);
+		}
+	}
+}
+
+/**
  * Lathe geometry - revolves an array of Vector2 points around the Y axis.
  */
 export class LatheGeometry extends Geometry {
@@ -18,15 +141,18 @@ export class LatheGeometry extends Geometry {
 		this.parameters = { points, segments, phiStart, phiLength };
 
 		const seg = Math.floor(segments);
+		/** @type {number[]} */
 		const positions = [];
+		/** @type {number[]} */
 		const normals = [];
+		/** @type {number[]} */
 		const uvs = [];
+		/** @type {number[]} */
 		const indices = [];
 
 		const inversePointCount = 1 / (points.length - 1);
 		const inverseSegments = 1 / seg;
 
-		// Build vertex grid
 		const grid = [];
 		let index = 0;
 
@@ -37,47 +163,38 @@ export class LatheGeometry extends Geometry {
 				const phi = phiStart + s * inverseSegments * phiLength;
 				const sin = Math.sin(phi);
 				const cos = Math.cos(phi);
-				const px = points[i].x * sin;
-				const py = points[i].y;
-				const pz = points[i].x * cos;
-				positions.push(px, py, pz);
+				positions.push(points[i].x * sin, points[i].y, points[i].x * cos);
 				uvs.push(s * inverseSegments, t);
 				row.push(index++);
 			}
 			grid.push(row);
 		}
 
-		// Compute normals from tangents
-		for (let i = 0; i < points.length; i++) {
-			for (let s = 0; s <= seg; s++) {
-				const ip = Math.min(i + 1, points.length - 1);
-				const im = Math.max(i - 1, 0);
-				const tx = points[ip].x - points[im].x;
-				const ty = points[ip].y - points[im].y;
-				const phi = phiStart + s * inverseSegments * phiLength;
-				const sin = Math.sin(phi);
-				const cos = Math.cos(phi);
-				const nx = ty * cos;
-				const ny = -tx;
-				const nz = ty * sin;
-				const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
-				if (len > 0) {
-					normals.push(nx / len, ny / len, nz / len);
-				} else {
-					normals.push(0, 1, 0);
-				}
-			}
-		}
+		computeNormals(points, normals, seg, phiStart, inverseSegments, phiLength);
+		buildIndices(grid, indices, points.length, seg);
 
-		// Indices
-		for (let i = 0; i < points.length - 1; i++) {
-			for (let s = 0; s < seg; s++) {
-				const a = grid[i][s];
-				const b = grid[i + 1][s];
-				const c = grid[i + 1][s + 1];
-				const d = grid[i][s + 1];
-				indices.push(a, b, d);
-				indices.push(b, c, d);
+		const fullRevolution = phiLength >= Math.PI * 2 - 1e-6;
+
+		if (fullRevolution) {
+			/** @type {LatheState} */
+			const state = {
+				positions,
+				normals,
+				uvs,
+				indices,
+				index,
+				seg,
+				phiStart,
+				inverseSegments,
+				phiLength,
+				points,
+			};
+			if (points[0].x > 1e-6) {
+				index = buildCap(state, 0, -1);
+				state.index = index;
+			}
+			if (points[points.length - 1].x > 1e-6) {
+				index = buildCap(state, points.length - 1, 1);
 			}
 		}
 

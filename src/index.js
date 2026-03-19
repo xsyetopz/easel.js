@@ -155,6 +155,7 @@ export { TranslucencyTable } from "./pipeline/color/TranslucencyTable.js";
 export { DrawCall } from "./pipeline/DrawCall.js";
 export { DrawList } from "./pipeline/DrawList.js";
 export { FogCuller } from "./pipeline/FogCuller.js";
+export { DepthBuffer } from "./pipeline/framebuffer/DepthBuffer.js";
 export { Framebuffer } from "./pipeline/framebuffer/Framebuffer.js";
 export { FramebufferClear } from "./pipeline/framebuffer/FramebufferClear.js";
 export { FramebufferUpload } from "./pipeline/framebuffer/FramebufferUpload.js";

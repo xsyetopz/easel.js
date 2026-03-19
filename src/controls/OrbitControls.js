@@ -92,6 +92,9 @@ export class OrbitControls extends EventDispatcher {
 	/** @type {number} */
 	#activePointerId = -1;
 
+	/** @type {boolean} */
+	#needsInit = true;
+
 	// ── bound event handlers (stored so dispose() can remove them) ───────────
 
 	#onPointerDown;
@@ -113,6 +116,10 @@ export class OrbitControls extends EventDispatcher {
 			position: camera.position.clone(),
 			target: this.target.clone(),
 		};
+
+		const offset = new Vector3().copy(camera.position).sub(this.target);
+		this.#spherical.setFromVector3(offset);
+		this.#needsInit = false;
 
 		this.#onPointerDown = this.#handlePointerDown.bind(this);
 		this.#onPointerMove = this.#handlePointerMove.bind(this);
@@ -137,8 +144,11 @@ export class OrbitControls extends EventDispatcher {
 	update() {
 		if (!this.enabled) return false;
 
-		const offset = new Vector3().copy(this.camera.position).sub(this.target);
-		this.#spherical.setFromVector3(offset);
+		if (this.#needsInit) {
+			const offset = new Vector3().copy(this.camera.position).sub(this.target);
+			this.#spherical.setFromVector3(offset);
+			this.#needsInit = false;
+		}
 
 		this.#spherical.theta += this.#sphericalDelta.theta;
 		this.#spherical.phi += this.#sphericalDelta.phi;
@@ -157,7 +167,7 @@ export class OrbitControls extends EventDispatcher {
 
 		this.target.add(this.#panOffset);
 
-		offset.setFromSpherical(this.#spherical);
+		const offset = new Vector3().setFromSpherical(this.#spherical);
 		this.camera.position.copy(this.target).add(offset);
 		this.camera.lookAt(this.target);
 
@@ -206,6 +216,7 @@ export class OrbitControls extends EventDispatcher {
 		this.target.copy(this.#initialState.target);
 		this.#sphericalDelta.set(0, 0, 0);
 		this.#panOffset.set(0, 0, 0);
+		this.#needsInit = true;
 		this.update();
 	}
 
@@ -296,13 +307,12 @@ export class OrbitControls extends EventDispatcher {
 			event.deltaY > 0
 				? 1 / (1 - 0.1 * this.zoomSpeed)
 				: 1 - 0.1 * this.zoomSpeed;
-		const offset = new Vector3().copy(this.camera.position).sub(this.target);
-		this.#spherical.setFromVector3(offset);
 		this.#spherical.radius = Math.max(
 			this.minDistance,
 			Math.min(this.maxDistance, this.#spherical.radius * delta),
 		);
-		offset.setFromSpherical(this.#spherical);
+
+		const offset = new Vector3().setFromSpherical(this.#spherical);
 		this.camera.position.copy(this.target).add(offset);
 		this.camera.lookAt(this.target);
 		this.dispatchEvent(_changeEvent);

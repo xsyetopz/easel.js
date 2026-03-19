@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";
 import { Rasterizer } from "@/pipeline/rasterizer/Rasterizer.js";
 
 function makeDrawCall(opts = {}) {
@@ -10,6 +11,11 @@ function makeDrawCall(opts = {}) {
 					{ x: 5, y: 0 },
 					{ x: 2, y: 5 },
 				],
+				ndcVerts: [
+					{ x: -1, y: 1, z: 0 },
+					{ x: 0, y: 1, z: 0 },
+					{ x: -0.5, y: 0, z: 0 },
+				],
 			},
 		],
 		material: { wireframe: false, points: false, ...opts },
@@ -17,7 +23,7 @@ function makeDrawCall(opts = {}) {
 }
 
 describe("Rasterizer", () => {
-	const framebuffer = { width: 20, height: 20 };
+	const framebuffer = new Framebuffer(20, 20);
 
 	it("calls pixelWriter for solid material", () => {
 		const rasterizer = new Rasterizer();
