@@ -6,28 +6,26 @@ import {
 	Group,
 	LambertMaterial,
 	Mesh,
-	OrthographicCamera,
+	PerspectiveCamera,
 	Renderer,
 	Scene,
 	SphereGeometry,
+	Vector3,
 } from "@/index.js";
 
 export function setup(canvas) {
 	const width = canvas.width;
 	const height = canvas.height;
-	const aspect = width / height;
-	const size = 6;
 
 	const scene = new Scene();
-	const camera = new OrthographicCamera({
-		left: -size * aspect,
-		right: size * aspect,
-		top: size,
-		bottom: -size,
+	const camera = new PerspectiveCamera({
+		fov: Math.PI / 4,
+		aspect: width / height,
 		near: 0.1,
 		far: 100,
 	});
-	camera.position.z = 12;
+	camera.position.set(8, 6, 12);
+	camera.lookAt(new Vector3(0, 0, 0));
 
 	const renderer = new Renderer({ canvas, width, height });
 
@@ -83,18 +81,22 @@ export function setup(canvas) {
 }
 
 export const source = `import {
-  Scene, OrthographicCamera, Renderer, Clock,
+  Scene, PerspectiveCamera, Renderer, Clock, Vector3,
   AmbientLight, DirectionalLight,
   SphereGeometry, BasicMaterial, LambertMaterial,
   Mesh, Group,
 } from "easel";
 
+// Elevated camera reveals orbital planes
+const camera = new PerspectiveCamera({
+  fov: Math.PI / 4, aspect: width / height,
+  near: 0.1, far: 100,
+});
+camera.position.set(8, 6, 12);
+camera.lookAt(new Vector3(0, 0, 0));
+
 // Parent-child transforms: sun → planet pivot → planet → moon pivot → moon
-// Each child inherits its parent's world matrix.
-
 const sun = new Mesh(new SphereGeometry(1), new BasicMaterial({ color: 0xffcc00 }));
-scene.add(sun);
-
 const planetPivot = new Group();
 sun.add(planetPivot);
 

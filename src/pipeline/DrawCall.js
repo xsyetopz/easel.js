@@ -6,7 +6,7 @@ export class DrawCall {
 	/** @type {import('../objects/Mesh.js').Mesh} */
 	mesh;
 
-	/** @type {Array<{ x: number, y: number, z: number }>} */
+	/** @type {Array<{ x: number, y: number, z: number, w: number, wx: number, wy: number, wz: number }>} */
 	projectedVerts = [];
 
 	/** @type {import('../materials/Material.js').Material} */
@@ -24,7 +24,10 @@ export class DrawCall {
 	 *   normal: { x: number, y: number, z: number },
 	 *   vertices: Array<{ normal: { x: number, y: number, z: number } }>,
 	 *   uvs?: Array<{ u: number, v: number }>,
-	 *   centroidZ: number
+	 *   centroidZ: number,
+	 *   minZ: number,
+	 *   maxZ: number,
+	 *   ndcVerts: Array<{ x: number, y: number, z: number }>
 	 * }>}
 	 */
 	triangles = [];

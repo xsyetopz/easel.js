@@ -28,9 +28,8 @@ describe("PropertyMixer", () => {
 		root.opacity = 1.0;
 		const binding = new Binding(root, "opacity");
 		const mixer = new PropertyMixer(binding, 1);
-		mixer.accumulate(0, 1.0);
+		mixer.accumulate(0, 1.0, [1.0]);
 		mixer.apply(0);
-		// should write 1.0 * weight / totalWeight = 1.0
 		expect(root.opacity).toBeCloseTo(1.0);
 	});
 
@@ -39,12 +38,11 @@ describe("PropertyMixer", () => {
 		root.position.set(2, 0, 0);
 		const binding = new Binding(root, "position");
 		const mixer = new PropertyMixer(binding, 3);
-		mixer.accumulate(0, 1);
+		mixer.accumulate(0, 1, [2, 0, 0]);
 		mixer.apply(0);
 		// Second apply with no accumulate should not write (w=0)
 		root.position.set(5, 5, 5);
 		mixer.apply(0);
-		// position should remain at 5 since no accumulation happened
 		expect(root.position.x).toBeCloseTo(5);
 	});
 
@@ -52,7 +50,7 @@ describe("PropertyMixer", () => {
 		const { binding, root } = makeVec3Binding();
 		root.position.set(3, 0, 0);
 		const mixer = new PropertyMixer(binding, 3);
-		mixer.accumulate(0, 0);
+		mixer.accumulate(0, 0, [7, 7, 7]);
 		mixer.apply(0);
 		// cumulativeWeight is 0, apply should skip write
 		expect(root.position.x).toBeCloseTo(3);

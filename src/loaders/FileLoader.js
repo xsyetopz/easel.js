@@ -61,7 +61,7 @@ export class FileLoader extends Loader {
 			.then((response) => {
 				if (!response.ok) {
 					throw new Error(
-						`FileLoader: fetch failed — ${response.status} ${response.statusText}`,
+						`FileLoader: fetch failed - ${response.status} ${response.statusText}`,
 					);
 				}
 				return /** @type {Record<string, () => Promise<*>>} */ (

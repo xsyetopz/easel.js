@@ -4,7 +4,7 @@ import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import { compareArrays } from "../../_helpers/three-bridge.js";
 
 describe("BoxGeometry vs THREE.BoxGeometry", () => {
-	it("default constructor — positions match", () => {
+	it("default constructor - positions match", () => {
 		const e = new BoxGeometry();
 		const t = new THREE.BoxGeometry();
 		const { pass, failures } = compareArrays(
@@ -15,7 +15,7 @@ describe("BoxGeometry vs THREE.BoxGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("default constructor — normals match", () => {
+	it("default constructor - normals match", () => {
 		const e = new BoxGeometry();
 		const t = new THREE.BoxGeometry();
 		const { pass, failures } = compareArrays(
@@ -26,7 +26,7 @@ describe("BoxGeometry vs THREE.BoxGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("default constructor — uvs match", () => {
+	it("default constructor - uvs match", () => {
 		const e = new BoxGeometry();
 		const t = new THREE.BoxGeometry();
 		const { pass, failures } = compareArrays(
@@ -37,13 +37,13 @@ describe("BoxGeometry vs THREE.BoxGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("default constructor — index count matches", () => {
+	it("default constructor - index count matches", () => {
 		const e = new BoxGeometry();
 		const t = new THREE.BoxGeometry();
 		expect(e.index.length).toBe(t.getIndex().array.length);
 	});
 
-	it("custom dimensions + segments — positions match", () => {
+	it("custom dimensions + segments - positions match", () => {
 		const e = new BoxGeometry(2, 3, 4, 2, 3, 4);
 		const t = new THREE.BoxGeometry(2, 3, 4, 2, 3, 4);
 		const { pass, failures } = compareArrays(
@@ -54,7 +54,7 @@ describe("BoxGeometry vs THREE.BoxGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("custom dimensions + segments — normals match", () => {
+	it("custom dimensions + segments - normals match", () => {
 		const e = new BoxGeometry(2, 3, 4, 2, 3, 4);
 		const t = new THREE.BoxGeometry(2, 3, 4, 2, 3, 4);
 		const { pass, failures } = compareArrays(
@@ -65,7 +65,7 @@ describe("BoxGeometry vs THREE.BoxGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("custom dimensions + segments — uvs match", () => {
+	it("custom dimensions + segments - uvs match", () => {
 		const e = new BoxGeometry(2, 3, 4, 2, 3, 4);
 		const t = new THREE.BoxGeometry(2, 3, 4, 2, 3, 4);
 		const { pass, failures } = compareArrays(
@@ -76,7 +76,7 @@ describe("BoxGeometry vs THREE.BoxGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("custom dimensions + segments — index count matches", () => {
+	it("custom dimensions + segments - index count matches", () => {
 		const e = new BoxGeometry(2, 3, 4, 2, 3, 4);
 		const t = new THREE.BoxGeometry(2, 3, 4, 2, 3, 4);
 		expect(e.index.length).toBe(t.getIndex().array.length);

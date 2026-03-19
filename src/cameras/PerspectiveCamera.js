@@ -2,7 +2,7 @@ import { Camera } from "./Camera.js";
 
 /**
  * Perspective projection camera. Produces the non-unit W values that make
- * affine UV interpolation visibly incorrect — the classic RuneTek 3 artifact.
+ * affine UV interpolation visibly incorrect - the classic RuneTek 3 artifact.
  */
 export class PerspectiveCamera extends Camera {
 	/** @override @type {string} */

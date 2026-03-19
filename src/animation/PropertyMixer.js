@@ -28,17 +28,16 @@ export class PropertyMixer {
 	}
 
 	/**
-	 * Reads current property value, adds weighted contribution to accumulation buffer.
+	 * Adds weighted contribution of interpolated values to the accumulation buffer.
 	 * @param {number} accuIndex - Buffer slot index (0-based)
 	 * @param {number} weight
+	 * @param {number[]} values - Interpolated values from the track
 	 */
-	accumulate(accuIndex, weight) {
+	accumulate(accuIndex, weight, values) {
 		const itemSize = this.#itemSize;
 		const offset = accuIndex * itemSize;
-		const tmp = new Array(itemSize);
-		this.#binding.getValue(tmp, 0);
 		for (let j = 0; j < itemSize; j++) {
-			this.#buffer[offset + j] += tmp[j] * weight;
+			this.#buffer[offset + j] += values[j] * weight;
 		}
 		this.#cumulativeWeight += weight;
 	}

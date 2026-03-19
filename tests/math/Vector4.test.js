@@ -25,7 +25,7 @@ describe("Vector4", () => {
 		expect(e).toMatchVector({ x: 1, y: 2, z: 3, w: 4 });
 	});
 
-	it("add — manual check", () => {
+	it("add - manual check", () => {
 		const e = new Vector4(1, 2, 3, 4);
 		e.x += 1;
 		e.y += 1;
@@ -62,7 +62,7 @@ describe("Vector4", () => {
 		expect(orig.x).toBe(1);
 	});
 
-	it("equals — not a method on Vector4, use manual compare", () => {
+	it("equals - not a method on Vector4, use manual compare", () => {
 		const a = new Vector4(1, 2, 3, 4);
 		const b = new Vector4(1, 2, 3, 4);
 		expect(a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w).toBe(true);

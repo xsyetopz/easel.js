@@ -69,7 +69,7 @@ export class Loader {
 	}
 
 	/**
-	 * Abstract — subclasses override.
+	 * Abstract - subclasses override.
 	 * @param {string} _url
 	 * @param {((data: *) => void) | undefined} _onLoad
 	 * @param {((event: ProgressEvent) => void) | undefined} _onProgress

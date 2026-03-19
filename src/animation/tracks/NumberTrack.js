@@ -1,7 +1,7 @@
 import { Track } from "../Track.js";
 
 /**
- * Keyframe track for scalar number values — uses linear interpolation.
+ * Keyframe track for scalar number values - uses linear interpolation.
  */
 export class NumberTrack extends Track {
 	/**

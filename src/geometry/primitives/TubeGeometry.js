@@ -27,7 +27,7 @@ export class TubeGeometry extends Geometry {
 
 		// STUB: compute rotation-minimizing frames along path.getPoints(tubularSegments),
 		// build ring cross-sections at each frame, connect rings with quads.
-		// Requires Curve3D.getPoints() and Curve3D.getTangent() — implement when curves land.
+		// Requires Curve3D.getPoints() and Curve3D.getTangent() - implement when curves land.
 
 		this.setPositions(new Float32Array(0));
 		this.setNormals(new Float32Array(0));

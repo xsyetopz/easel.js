@@ -1,5 +1,5 @@
 /**
- * Base keyframe track — stores a sequence of timed values and interpolates between them.
+ * Base keyframe track - stores a sequence of timed values and interpolates between them.
  */
 export class Track {
 	/** @type {string} */

@@ -47,7 +47,7 @@ export class DataTextureLoader extends Loader {
 	}
 
 	/**
-	 * Abstract — subclasses override to decode buffer.
+	 * Abstract - subclasses override to decode buffer.
 	 * @param {ArrayBuffer} _data
 	 * @returns {{ data: Uint8ClampedArray, width: number, height: number } | undefined}
 	 */

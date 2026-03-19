@@ -118,7 +118,7 @@ export const source = `import {
   DodecahedronGeometry, CapsuleGeometry, LatheGeometry, Vector2,
 } from "easel";
 
-// LatheGeometry takes Vector2[] — x=radius, y=height
+// LatheGeometry takes Vector2[] - x=radius, y=height
 const pts = [];
 for (let i = 0; i < 10; i++) {
   pts.push(new Vector2(Math.sin(i * 0.2) * 0.5 + 0.3, (i - 5) * 0.15));

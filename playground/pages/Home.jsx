@@ -16,7 +16,7 @@ const constraints = [
 	{
 		title: "No Z-Buffer",
 		description:
-			"Painter's algorithm — back-to-front sort by tile distance + layer integer.",
+			"Painter's algorithm - back-to-front sort by tile distance + layer integer.",
 	},
 	{
 		title: "Affine UV",
@@ -128,7 +128,7 @@ export function Home({ onNavigate }) {
 						THREE.js vs Easel.js
 					</Title>
 					<Text size="sm" c="dimmed" mb="md">
-						Same scene, different renderer. The API is familiar — the
+						Same scene, different renderer. The API is familiar - the
 						constraints are what differ.
 					</Text>
 					<ThreeComparison />

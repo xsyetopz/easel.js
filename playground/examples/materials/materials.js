@@ -93,7 +93,7 @@ export const source = `import {
 } from "easel";
 
 // Three spheres: BasicMaterial, LambertMaterial, ToonMaterial
-// Same geometry, same light — different shading models.
+// Same geometry, same light - different shading models.
 
 const geo = new SphereGeometry(1.2, 24, 16);
 

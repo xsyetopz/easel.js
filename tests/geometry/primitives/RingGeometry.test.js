@@ -10,7 +10,7 @@ function cmp(e, t, key, eps = 1e-4) {
 }
 
 describe("RingGeometry vs THREE.RingGeometry", () => {
-	it("default — positions match", () => {
+	it("default - positions match", () => {
 		const { pass, failures } = cmp(
 			new RingGeometry(),
 			new THREE.RingGeometry(),
@@ -19,7 +19,7 @@ describe("RingGeometry vs THREE.RingGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("default — normals match", () => {
+	it("default - normals match", () => {
 		const { pass, failures } = cmp(
 			new RingGeometry(),
 			new THREE.RingGeometry(),
@@ -28,7 +28,7 @@ describe("RingGeometry vs THREE.RingGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("default — uvs match", () => {
+	it("default - uvs match", () => {
 		const { pass, failures } = cmp(
 			new RingGeometry(),
 			new THREE.RingGeometry(),
@@ -37,13 +37,13 @@ describe("RingGeometry vs THREE.RingGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("default — index count matches", () => {
+	it("default - index count matches", () => {
 		expect(new RingGeometry().index.length).toBe(
 			new THREE.RingGeometry().getIndex().array.length,
 		);
 	});
 
-	it("custom (0.5,2,16,2) — positions match", () => {
+	it("custom (0.5,2,16,2) - positions match", () => {
 		const { pass, failures } = cmp(
 			new RingGeometry(0.5, 2, 16, 2),
 			new THREE.RingGeometry(0.5, 2, 16, 2),
@@ -52,7 +52,7 @@ describe("RingGeometry vs THREE.RingGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("custom (0.5,2,16,2) — normals match", () => {
+	it("custom (0.5,2,16,2) - normals match", () => {
 		const { pass, failures } = cmp(
 			new RingGeometry(0.5, 2, 16, 2),
 			new THREE.RingGeometry(0.5, 2, 16, 2),
@@ -61,7 +61,7 @@ describe("RingGeometry vs THREE.RingGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("custom (0.5,2,16,2) — uvs match", () => {
+	it("custom (0.5,2,16,2) - uvs match", () => {
 		const { pass, failures } = cmp(
 			new RingGeometry(0.5, 2, 16, 2),
 			new THREE.RingGeometry(0.5, 2, 16, 2),
@@ -70,7 +70,7 @@ describe("RingGeometry vs THREE.RingGeometry", () => {
 		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
-	it("custom (0.5,2,16,2) — index count matches", () => {
+	it("custom (0.5,2,16,2) - index count matches", () => {
 		expect(new RingGeometry(0.5, 2, 16, 2).index.length).toBe(
 			new THREE.RingGeometry(0.5, 2, 16, 2).getIndex().array.length,
 		);

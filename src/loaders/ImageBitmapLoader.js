@@ -43,7 +43,7 @@ export class ImageBitmapLoader extends Loader {
 			.then((response) => {
 				if (!response.ok) {
 					throw new Error(
-						`ImageBitmapLoader: fetch failed — ${response.status} ${response.statusText}`,
+						`ImageBitmapLoader: fetch failed - ${response.status} ${response.statusText}`,
 					);
 				}
 				return response.blob();

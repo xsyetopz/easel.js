@@ -1,7 +1,7 @@
 import { CylinderGeometry } from "./CylinderGeometry.js";
 
 /**
- * Cone geometry — a cylinder with radiusTop=0.
+ * Cone geometry - a cylinder with radiusTop=0.
  */
 export class ConeGeometry extends CylinderGeometry {
 	/**

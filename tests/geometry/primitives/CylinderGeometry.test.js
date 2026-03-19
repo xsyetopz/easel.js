@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CylinderGeometry } from "@/geometry/primitives/CylinderGeometry.js";
 
 describe("CylinderGeometry", () => {
-	it("default — has position, normal, uv, index", () => {
+	it("default - has position, normal, uv, index", () => {
 		const geo = new CylinderGeometry();
 		expect(geo.getAttribute("position")).toBeDefined();
 		expect(geo.getAttribute("normal")).toBeDefined();
@@ -10,12 +10,12 @@ describe("CylinderGeometry", () => {
 		expect(geo.index).not.toBeUndefined();
 	});
 
-	it("default — vertex count > 0", () => {
+	it("default - vertex count > 0", () => {
 		const geo = new CylinderGeometry();
 		expect(geo.getAttribute("position").count).toBeGreaterThan(0);
 	});
 
-	it("default — normals are unit length", () => {
+	it("default - normals are unit length", () => {
 		const normals = new CylinderGeometry().getAttribute("normal").array;
 		for (let i = 0; i < Math.min(normals.length, 30); i += 3) {
 			const len = Math.sqrt(
@@ -25,7 +25,7 @@ describe("CylinderGeometry", () => {
 		}
 	});
 
-	it("custom (1,0.5,3,16,2) — bounding box height matches", () => {
+	it("custom (1,0.5,3,16,2) - bounding box height matches", () => {
 		const pos = new CylinderGeometry(1, 0.5, 3, 16, 2).getAttribute(
 			"position",
 		).array;
@@ -38,7 +38,7 @@ describe("CylinderGeometry", () => {
 		expect(maxY - minY).toBeCloseTo(3, 3);
 	});
 
-	it("custom (1,0.5,3,16,2) — radii match constructor args", () => {
+	it("custom (1,0.5,3,16,2) - radii match constructor args", () => {
 		// CylinderGeometry(radiusTop=1, radiusBottom=0.5, ...)
 		const pos = new CylinderGeometry(1, 0.5, 3, 16, 2).getAttribute(
 			"position",

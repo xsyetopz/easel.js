@@ -1,7 +1,20 @@
-// core
+export const REVISION = "0.1.0";
+
+if (typeof globalThis !== "undefined") {
+	if (globalThis.__EASEL__) {
+		console.warn("WARNING: Multiple instances of Easel.js being imported.");
+	} else {
+		globalThis.__EASEL__ = REVISION;
+	}
+}
 
 // animation
-export { AnimationAction } from "./animation/AnimationAction.js";
+export {
+	AnimationAction,
+	LoopOnce,
+	LoopPingPong,
+	LoopRepeat,
+} from "./animation/AnimationAction.js";
 export { AnimationClip } from "./animation/AnimationClip.js";
 export { AnimationUtils } from "./animation/AnimationUtils.js";
 export { Animator } from "./animation/Animator.js";
@@ -16,6 +29,8 @@ export { VectorTrack } from "./animation/tracks/VectorTrack.js";
 // cameras
 export { OrthographicCamera } from "./cameras/OrthographicCamera.js";
 export { PerspectiveCamera } from "./cameras/PerspectiveCamera.js";
+// controls
+export { OrbitControls } from "./controls/OrbitControls.js";
 export { Clock } from "./core/Clock.js";
 export { Layer, Shading, Side } from "./core/Constants.js";
 export { EventDispatcher } from "./core/EventDispatcher.js";
@@ -163,7 +178,7 @@ export { PolygonSorter } from "./pipeline/sorting/PolygonSorter.js";
 export { TileDistanceSorter } from "./pipeline/sorting/TileDistanceSorter.js";
 export { TextureClamp } from "./pipeline/texture/TextureClamp.js";
 export { TextureSampler } from "./pipeline/texture/TextureSampler.js";
-// pipeline (advanced — typically consumed via Renderer)
+// pipeline (advanced - typically consumed via Renderer)
 export { Renderer } from "./renderers/Renderer.js";
 // scenes
 export { Fog } from "./scenes/Fog.js";

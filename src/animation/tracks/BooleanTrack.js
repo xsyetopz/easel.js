@@ -1,7 +1,7 @@
 import { Track } from "../Track.js";
 
 /**
- * Keyframe track for boolean values — uses step interpolation (no blending).
+ * Keyframe track for boolean values - uses step interpolation (no blending).
  */
 export class BooleanTrack extends Track {
 	/**
@@ -14,7 +14,7 @@ export class BooleanTrack extends Track {
 	}
 
 	/**
-	 * Step interpolation — returns the value at index with no blending.
+	 * Step interpolation - returns the value at index with no blending.
 	 * @override
 	 * @param {number} index - Index of the keyframe just before time t
 	 * @param {number} _t0 - Time of keyframe at index (unused)

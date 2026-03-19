@@ -1,4 +1,4 @@
-# Easel.js — Design Reference & API Guide
+# Easel.js - Design Reference & API Guide
 
 > **Easel.js** is a Canvas2D software renderer with a scene graph API modeled after THREE.js, rebuilt for a painter's-algorithm scanline rasterizer. This document covers the rendering model, full public API, and every divergence from THREE.js.
 
@@ -18,7 +18,7 @@
 
 ## Philosophy
 
-**Constraints are architectural, not limitations.** Easel.js is not a degraded THREE.js. Its rendering model defines what exists in the API — features outside that model are absent, not stubbed.
+**Constraints are architectural, not limitations.** Easel.js is not a degraded THREE.js. Its rendering model defines what exists in the API - features outside that model are absent, not stubbed.
 
 **Names describe what they do.** Where THREE.js names things after GPU abstractions, Easel.js names things after what a CPU scanline rasterizer actually does. `Geometry` not `BufferGeometry`. `Camera` not `OrthographicCamera`.
 
@@ -46,9 +46,9 @@ The projection pipeline converts 3D coordinates to 2D floats, then truncates via
 
 - Vertices hold still for several frames as movement accumulates below the truncation threshold, then jump
 - Different vertices on the same model cross integer boundaries at different frames, briefly distorting shape
-- Animations compound this — keyframe interpolation produces large per-frame deltas
+- Animations compound this - keyframe interpolation produces large per-frame deltas
 
-**No perspective projection.** Perspective requires dividing UV coordinates by W per-pixel. That division never occurs — UVs are interpolated linearly across the scanline (affine texture mapping). Affine interpolation is only geometrically coherent under orthographic projection.
+**No perspective projection.** Perspective requires dividing UV coordinates by W per-pixel. That division never occurs - UVs are interpolated linearly across the scanline (affine texture mapping). Affine interpolation is only geometrically coherent under orthographic projection.
 
 ### Flat and Gouraud Shading
 
@@ -56,8 +56,8 @@ The projection pipeline converts 3D coordinates to 2D floats, then truncates via
 
 Lighting is baked into vertex or face colors before rasterization.
 
-- **Flat shading** — one color per face (face normal · light direction + ambient)
-- **Gouraud shading** — one color per vertex, linearly interpolated across the scanline
+- **Flat shading** - one color per face (face normal · light direction + ambient)
+- **Gouraud shading** - one color per vertex, linearly interpolated across the scanline
 - No specular highlights, normal maps, shadow maps, or post-processing
 
 ### HSL16 Color
@@ -74,13 +74,13 @@ The bit layout: hue (6 bits), lightness (7 bits), saturation (3 bits). All face 
 
 **Nine discrete opacity levels, not continuous alpha.**
 
-Translucency is precomputed as a blend lookup table — given a source and destination HSL16 color, each of the nine steps produces a fixed result. No per-pixel alpha compositing.
+Translucency is precomputed as a blend lookup table - given a source and destination HSL16 color, each of the nine steps produces a fixed result. No per-pixel alpha compositing.
 
 ### 128×128 Texture Cap
 
 **Textures are clamped to 128×128 pixels.**
 
-Higher-resolution source textures are downsampled automatically. Nearest-neighbor only — no bilinear filtering, no mipmapping.
+Higher-resolution source textures are downsampled automatically. Nearest-neighbor only - no bilinear filtering, no mipmapping.
 
 ### Tile-Radius Fog
 
@@ -115,15 +115,15 @@ src/
 
 Root of the scene graph. `add()`, `remove()`, `traverse()`. Holds `fog` reference.
 
-`background` does not exist — the void is black and that is not configurable.
+`background` does not exist - the void is black and that is not configurable.
 
 ---
 
 ### `new Camera({ left, right, top, bottom, near, far, tileSize })`
 
-Orthographic camera. The only camera type — no perspective camera exists because the rasterizer performs affine UV interpolation with no W divide.
+Orthographic camera. The only camera type - no perspective camera exists because the rasterizer performs affine UV interpolation with no W divide.
 
-`tileSize: number` — world units per tile. Used internally for sort distance and fog culling. Default `1`.
+`tileSize: number` - world units per tile. Used internally for sort distance and fog culling. Default `1`.
 
 `updateProjectionMatrix()`, `matrixWorldInverse`, `projectionMatrix`.
 
@@ -153,7 +153,7 @@ Vertex data store.
 
 `setPositions(array)`, `setUVs(array)`, `setColors(array)`, `setNormals(array)`, `setIndex(array)`.
 
-`setColors()` is first-class alongside positions and UVs — per-vertex color is a primary shading path, not an afterthought achieved via a named attribute.
+`setColors()` is first-class alongside positions and UVs - per-vertex color is a primary shading path, not an afterthought achieved via a named attribute.
 
 `getAttribute(name)`, `setAttribute(name, attribute)`, `computeVertexNormals()` (flat, cross-product per face).
 
@@ -199,7 +199,7 @@ Solid color or textured, no lighting. Defaults to `Shading.Flat`.
 
 ### `new LambertMaterial({ color, map, layer, opacity, shading, side })`
 
-Diffuse lighting from all lights in scene. Defaults to `Shading.Gouraud` — per-vertex lighting interpolated across faces.
+Diffuse lighting from all lights in scene. Defaults to `Shading.Gouraud` - per-vertex lighting interpolated across faces.
 
 ---
 
@@ -227,9 +227,9 @@ For `Line`, `LineSegments`, `LineLoop`. Rendered via Bresenham integer line.
 
 ### `new Color(r, g, b)`
 
-Standard RGB float construction. Also: `Color.fromHsl16(value)` — construct directly from a packed HSL16 integer.
+Standard RGB float construction. Also: `Color.fromHsl16(value)` - construct directly from a packed HSL16 integer.
 
-**`.hsl16`** — readable property. Returns the nearest packed HSL16 representation of the current color, updated on every mutation. The quantization is visible and intentional.
+**`.hsl16`** - readable property. Returns the nearest packed HSL16 representation of the current color, updated on every mutation. The quantization is visible and intentional.
 
 `set()`, `setHSL()`, `getHSL()`, `lerpColors()`, `clone()`.
 
@@ -251,7 +251,7 @@ Reads a region of the current framebuffer into a texture for a subsequent draw p
 
 ### `new Fog({ tiles })`
 
-`tiles: number` — hard tile-count cutoff. Beyond this radius the framebuffer is black. No color, no gradient.
+`tiles: number` - hard tile-count cutoff. Beyond this radius the framebuffer is black. No color, no gradient.
 
 ---
 
@@ -316,11 +316,11 @@ Truncates `x` and `y` to integers via `Math.trunc()`. Named after what it does.
 
 All standard utilities. Adds:
 
-**`tileDistance(a: Vector2, b: Vector2) → number`** — Manhattan distance between two tile coordinates.
+**`tileDistance(a: Vector2, b: Vector2) → number`** - Manhattan distance between two tile coordinates.
 
-**`packHsl16(h, s, l) → number`** — packs normalized HSL (0–1 each) into a 16-bit integer.
+**`packHsl16(h, s, l) → number`** - packs normalized HSL (0–1 each) into a 16-bit integer.
 
-**`unpackHsl16(value) → { h, s, l }`** — inverse of `packHsl16`.
+**`unpackHsl16(value) → { h, s, l }`** - inverse of `packHsl16`.
 
 ---
 
@@ -332,18 +332,18 @@ All standard utilities. Adds:
 | ---------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `WebGLRenderer`              | `Renderer`             | One renderer exists. The qualifier described a now-absent implementation detail.                             |
 | `Object3D`                   | `Node`                 | It is a scene graph node. Every engine outside THREE.js calls it that.                                       |
-| `BufferGeometry`             | `Geometry`             | "Buffer" refers to WebGL vertex buffer objects — no such concept exists here.                                |
+| `BufferGeometry`             | `Geometry`             | "Buffer" refers to WebGL vertex buffer objects - no such concept exists here.                                |
 | `BufferAttribute`            | `Attribute`            | Same reason.                                                                                                 |
 | `InterleavedBufferAttribute` | `InterleavedAttribute` | Same.                                                                                                        |
-| `MeshBasicMaterial`          | `BasicMaterial`        | "Mesh" prefix is redundant — every material is used on meshes.                                               |
+| `MeshBasicMaterial`          | `BasicMaterial`        | "Mesh" prefix is redundant - every material is used on meshes.                                               |
 | `MeshLambertMaterial`        | `LambertMaterial`      | Same.                                                                                                        |
 | `MeshToonMaterial`           | `ToonMaterial`         | Same.                                                                                                        |
-| `LineBasicMaterial`          | `LineMaterial`         | "Basic" is redundant — there is only one line material.                                                      |
+| `LineBasicMaterial`          | `LineMaterial`         | "Basic" is redundant - there is only one line material.                                                      |
 | `LineDashedMaterial`         | `DashedLineMaterial`   | Adjective before noun.                                                                                       |
 | `OrthographicCamera`         | `Camera`               | One camera type exists. The qualifier is noise.                                                              |
 | `AnimationMixer`             | `Animator`             | It plays clips on an object. "Mixer" implies a metaphor the user never observes.                             |
 | `KeyframeTrack`              | `Track`                | All tracks are keyframe-based. The prefix is redundant.                                                      |
-| `PropertyBinding`            | `Binding`              | "Property" is redundant — bindings bind properties by definition.                                            |
+| `PropertyBinding`            | `Binding`              | "Property" is redundant - bindings bind properties by definition.                                            |
 | `BooleanKeyframeTrack`       | `BooleanTrack`         | Follows from Track rename.                                                                                   |
 | `ColorKeyframeTrack`         | `ColorTrack`           | Same.                                                                                                        |
 | `NumberKeyframeTrack`        | `NumberTrack`          | Same.                                                                                                        |
@@ -367,10 +367,10 @@ All standard utilities. Adds:
 | `MeshDepthMaterial`                                            | Encodes z-buffer depth as per-pixel grayscale. No z-buffer exists.                                 |
 | `MeshNormalMaterial`                                           | Renders normals as per-pixel RGB. The rasterizer writes only final shaded color.                   |
 | `MeshMatcapMaterial`                                           | Requires per-pixel normal data and spherical UV projection. Neither exists.                        |
-| `ShaderMaterial`                                               | Requires a GLSL shader pipeline. The rasterizer is JavaScript — not programmable via shader code.  |
+| `ShaderMaterial`                                               | Requires a GLSL shader pipeline. The rasterizer is JavaScript - not programmable via shader code.  |
 | `RawShaderMaterial`                                            | Same.                                                                                              |
 | `ShadowMaterial`                                               | Displays shadow map data. No shadow maps, no z-buffer.                                             |
-| `CubeTexture`                                                  | Environment map. No skybox, no environment reflections — the void is black.                        |
+| `CubeTexture`                                                  | Environment map. No skybox, no environment reflections - the void is black.                        |
 | `CompressedTexture`                                            | GPU compression formats require GPU-side decoding.                                                 |
 | `CompressedTextureLoader`                                      | Same.                                                                                              |
 | `CubeTextureLoader`                                            | Loads into `CubeTexture`. `CubeTexture` is removed.                                                |
@@ -382,10 +382,10 @@ All standard utilities. Adds:
 | `PointLightShadow`                                             | Same.                                                                                              |
 | `BatchedMesh`                                                  | Designed around GPU interleaved buffers. The CPU equivalent is iterating meshes in a draw list.    |
 | `FogExp2`                                                      | Exponential distance fog. The fog model is a hard tile-count cutoff.                               |
-| `Audio` / `PositionalAudio` / `AudioContext` / `AudioAnalyser` | Web Audio API wrappers. Easel.js is a renderer — audio is out of scope.                            |
+| `Audio` / `PositionalAudio` / `AudioContext` / `AudioAnalyser` | Web Audio API wrappers. Easel.js is a renderer - audio is out of scope.                            |
 | `renderer.shadowMap`                                           | No shadow system.                                                                                  |
-| `renderer.toneMapping`                                         | The framebuffer is 8-bit RGBA — no HDR range to tone map.                                          |
-| `renderer.outputColorSpace`                                    | `putImageData` writes raw bytes — no color space transform.                                        |
+| `renderer.toneMapping`                                         | The framebuffer is 8-bit RGBA - no HDR range to tone map.                                          |
+| `renderer.outputColorSpace`                                    | `putImageData` writes raw bytes - no color space transform.                                        |
 | `renderer.xr`                                                  | No VR/AR support.                                                                                  |
 | `renderer.setClearColor()`                                     | Clear is always void black.                                                                        |
 | `renderer.capabilities`                                        | GPU feature queries. Not applicable.                                                               |
@@ -402,13 +402,13 @@ All standard utilities. Adds:
 ### Restructured
 
 **`Geometry.setColors()` is first-class.**
-THREE.js treats per-vertex color as `geometry.setAttribute('color', attribute)`. In Easel.js, `setColors()` sits alongside `setPositions()` and `setUVs()` — per-vertex color is a primary shading path.
+THREE.js treats per-vertex color as `geometry.setAttribute('color', attribute)`. In Easel.js, `setColors()` sits alongside `setPositions()` and `setUVs()` - per-vertex color is a primary shading path.
 
 **`Color.hsl16` is a readable property.**
 The HSL16 quantization is a visible feature, not an implementation detail. `.hsl16` returns the packed integer representation. `Color.fromHsl16(value)` constructs from a packed integer. Users working with palette data or data textures have first-class access to the native color format.
 
 **`Fog` takes `{ tiles }`, not `(color, near, far)`.**
-The THREE.js signature comes from OpenGL distance fog — a colored gradient fading to sky. Neither the gradient nor the sky exists here. The parameter is a tile-count cutoff named `tiles`. There is no fog color because the void is always black.
+The THREE.js signature comes from OpenGL distance fog - a colored gradient fading to sky. Neither the gradient nor the sky exists here. The parameter is a tile-count cutoff named `tiles`. There is no fog color because the void is always black.
 
 **`opacity: 0–8` replaces `opacity: float` + `transparent: bool`.**
 THREE.js requires both a float `opacity` and `transparent: true` for translucency. One concept, two properties, easy to misconfigure. Easel.js uses a single integer with a discrete 0–8 range. Setting it above zero enables translucency. No flag.
@@ -419,7 +419,7 @@ THREE.js requires both a float `opacity` and `transparent: true` for translucenc
 
 The following visual behaviors are correct outputs of this renderer. They are not bugs.
 
-**Vertex wobble.** Models shimmer and edges stutter during movement. Floating-point screen coordinates are truncated to integers — different vertices cross integer boundaries at different frames, briefly distorting shape. Animations amplify this.
+**Vertex wobble.** Models shimmer and edges stutter during movement. Floating-point screen coordinates are truncated to integers - different vertices cross integer boundaries at different frames, briefly distorting shape. Animations amplify this.
 
 **Polygon sort flicker.** Two faces at the same tile and `layer` will flicker as the camera rotates. Sub-tile ordering uses triangle centroid depth, and small rotations flip which centroid is deeper. Overlapping geometry at the same layer is resolved by adjusting geometry, not code.
 
@@ -435,4 +435,4 @@ The following visual behaviors are correct outputs of this renderer. They are no
 
 ## Inspiration
 
-Easel.js is inspired by the RuneTek 3 engine as observed in Old School RuneScape, developed by Jagex. The rendering constraints — painter's algorithm sorting, integer projection, HSL16 color, affine texture mapping, and discrete translucency — are modeled after behaviors documented through developer commentary and community technical analysis of that engine. Easel.js is an independent implementation; it shares no code with the original.
+Easel.js is inspired by the RuneTek 3 engine as observed in Old School RuneScape, developed by Jagex. The rendering constraints - painter's algorithm sorting, integer projection, HSL16 color, affine texture mapping, and discrete translucency - are modeled after behaviors documented through developer commentary and community technical analysis of that engine. Easel.js is an independent implementation; it shares no code with the original.

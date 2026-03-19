@@ -65,7 +65,7 @@ export const source = `import {
 
 // HSL16: 6-bit hue (64 steps), 3-bit saturation, 7-bit lightness (128 steps)
 // This grid shows all 64 hues x 128 lightness values at full saturation.
-// The banding is the HSL16 quantization — 16-bit color, not 24-bit.
+// The banding is the HSL16 quantization - 16-bit color, not 24-bit.
 
 for (let h = 0; h < 64; h++) {
   for (let l = 0; l < 128; l++) {

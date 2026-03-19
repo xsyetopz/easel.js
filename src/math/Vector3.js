@@ -372,6 +372,31 @@ export class Vector3 {
 		return this;
 	}
 
+	/**
+	 * Sets this vector from spherical coordinates.
+	 * @param {{ radius: number, phi: number, theta: number }} s
+	 * @returns {this}
+	 */
+	setFromSpherical(s) {
+		return this.setFromSphericalCoords(s.radius, s.phi, s.theta);
+	}
+
+	/**
+	 * Sets this vector from spherical coordinates (radius, phi, theta).
+	 * phi is polar angle from Y+ axis, theta is azimuthal angle from Z+ axis.
+	 * @param {number} radius
+	 * @param {number} phi
+	 * @param {number} theta
+	 * @returns {this}
+	 */
+	setFromSphericalCoords(radius, phi, theta) {
+		const sinPhiRadius = Math.sin(phi) * radius;
+		this.x = sinPhiRadius * Math.sin(theta);
+		this.y = Math.cos(phi) * radius;
+		this.z = sinPhiRadius * Math.cos(theta);
+		return this;
+	}
+
 	*[Symbol.iterator]() {
 		yield this.x;
 		yield this.y;

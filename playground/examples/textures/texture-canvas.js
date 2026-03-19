@@ -136,7 +136,7 @@ export const source = `import {
 } from "easel";
 
 // Draw a procedural pattern onto an offscreen canvas,
-// then wrap it in CanvasTexture — no file loading required.
+// then wrap it in CanvasTexture - no file loading required.
 
 const offscreen = document.createElement("canvas");
 offscreen.width = 64;

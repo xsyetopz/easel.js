@@ -77,8 +77,8 @@ export const source = `import {
   Shading,
 } from "easel";
 
-// Left: Flat shading — one color per face
-// Right: Gouraud shading — per-vertex, interpolated across face
+// Left: Flat shading - one color per face
+// Right: Gouraud shading - per-vertex, interpolated across face
 
 const geo = new SphereGeometry(1.4, 12, 8);
 

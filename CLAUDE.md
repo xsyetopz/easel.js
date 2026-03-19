@@ -25,20 +25,20 @@ bun run biome:check    # Biome lint + format (with --write)
 
 These are architectural, not bugs. Do not "fix" them.
 
-- **No z-buffer** — painter's algorithm, back-to-front sort by tile distance + layer integer
-- **Affine UV mapping** — no perspective-correct textures, visible with PerspectiveCamera
-- **HSL16 color** — 16-bit packed (6H/3S/7L), precomputed LUT to RGB
-- **Integer screen coords** — `Math.trunc()` on projected vertices (vertex wobble is correct)
-- **Flat/Gouraud shading only** — no per-pixel lighting
-- **9-step opacity** — discrete 0–8 integer, not continuous alpha
-- **128x128 max texture** — nearest-neighbor downsample, no mipmaps
-- **Tile-radius fog** — hard cutoff to black, no gradient
+- **No z-buffer** - painter's algorithm, back-to-front sort by tile distance + layer integer
+- **Affine UV mapping** - no perspective-correct textures, visible with PerspectiveCamera
+- **HSL16 color** - 16-bit packed (6H/3S/7L), precomputed LUT to RGB
+- **Integer screen coords** - `Math.trunc()` on projected vertices (vertex wobble is correct)
+- **Flat/Gouraud shading only** - no per-pixel lighting
+- **9-step opacity** - discrete 0–8 integer, not continuous alpha
+- **128x128 max texture** - nearest-neighbor downsample, no mipmaps
+- **Tile-radius fog** - hard cutoff to black, no gradient
 
 ## Code conventions
 
 - JSDoc for all public types (`@param`, `@returns`, `@type`, `@typedef`)
 - `@override` on members that override a parent class
-- No inline lint suppressions — fix the code or adjust the rule
+- No inline lint suppressions - fix the code or adjust the rule
 - Class hierarchy: `EventDispatcher` → `Node` → `Mesh`/`Light`/`Camera`/etc.
 - Materials: `Material` base → `BasicMaterial`, `LambertMaterial`, `ToonMaterial`, etc.
 - Pipeline stages: `SceneTraversal` → `PainterSort` → `Shading` → `Rasterizer` → `Framebuffer`

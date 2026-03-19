@@ -1,7 +1,7 @@
 import { Track } from "../Track.js";
 
 /**
- * Keyframe track for RGB color values — uses linear interpolation per channel.
+ * Keyframe track for RGB color values - uses linear interpolation per channel.
  */
 export class ColorTrack extends Track {
 	/**

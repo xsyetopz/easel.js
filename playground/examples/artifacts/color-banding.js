@@ -98,7 +98,7 @@ export const source = `import {
 } from "easel";
 
 // HSL16 packs: 6-bit hue (0-63), 3-bit saturation (0-7), 7-bit lightness (0-127).
-// Gouraud interpolates the quantized values across each face — the banding
+// Gouraud interpolates the quantized values across each face - the banding
 // visible in the gradient is the quantization artifact, not a rendering bug.
 
 const material = new LambertMaterial({

@@ -124,8 +124,8 @@ export const source = `import {
   AmbientLight, DirectionalLight, BoxGeometry, LambertMaterial, Mesh,
 } from "easel";
 
-// Orthographic: parallel projection — depth doesn't shrink objects.
-// Perspective: frustum projection — distant boxes appear smaller.
+// Orthographic: parallel projection - depth doesn't shrink objects.
+// Perspective: frustum projection - distant boxes appear smaller.
 // Both cameras are at z=8, looking at boxes at z=0, -3, -6.
 
 const orthoCamera = new OrthographicCamera({ left: -4, right: 4, top: 3, bottom: -3 });

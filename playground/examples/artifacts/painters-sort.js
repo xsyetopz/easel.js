@@ -107,7 +107,7 @@ export const source = `import {
 
 // Painter's algorithm: faces sorted back-to-front by centroid depth.
 // When two meshes geometrically intersect, one centroid is always
-// behind the other — so one plane renders fully in front, which is wrong.
+// behind the other - so one plane renders fully in front, which is wrong.
 // No z-buffer means no per-pixel depth test to resolve the intersection.
 
 const pivot = new Group(); // both planes rotate together

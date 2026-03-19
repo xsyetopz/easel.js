@@ -1,7 +1,7 @@
 import { Geometry } from "../Geometry.js";
 
 /**
- * Lathe geometry — revolves an array of Vector2 points around the Y axis.
+ * Lathe geometry - revolves an array of Vector2 points around the Y axis.
  */
 export class LatheGeometry extends Geometry {
 	/**

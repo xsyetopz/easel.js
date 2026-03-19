@@ -88,7 +88,7 @@ export const source = `import {
   SphereGeometry, ToonMaterial, Mesh,
 } from "easel";
 
-// ToonMaterial uses stepped shading — hard transitions
+// ToonMaterial uses stepped shading - hard transitions
 // between light and shadow bands.
 const colors = [0xe05050, 0x50b050, 0x5080e0, 0xe0b040];
 colors.forEach((color, i) => {

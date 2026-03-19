@@ -8,9 +8,9 @@ export class LightBaker {
 
 	/**
 	 * Bakes lighting onto a draw call's faces or vertices.
-	 * Stores shaded HSL16 colors on drawCall.shadedColors.
+	 * Stores shaded RGB colors on drawCall.shadedColors.
 	 * @param {{ triangles: Array<{ normal: { x: number, y: number, z: number }, vertices: Array<{ normal: { x: number, y: number, z: number } }> }>, material: { shading?: number }, shadedColors: Array<*> }} drawCall
-	 * @param {Array<{ direction: { x: number, y: number, z: number }, color: import('../../math/Color.js').Color | number, intensity: number }>} lights
+	 * @param {Array<Record<string, unknown>>} lights
 	 * @returns {void}
 	 */
 	bake(drawCall, lights) {

@@ -88,23 +88,61 @@ export class Binding {
 		if (prop === undefined && propertyIndex === undefined) return;
 
 		if (propertyIndex !== undefined) {
-			if (prop !== undefined && prop !== undefined) {
-				/** @type {Record<string, unknown>} */
-				const propRec = /** @type {Record<string, unknown>} */ (prop);
-				propRec[propertyIndex] = sourceArray[offset];
-			} else {
-				nodeRec[propertyName] = sourceArray[offset];
-			}
+			this.#setPropertyIndex(
+				nodeRec,
+				propertyName,
+				prop,
+				propertyIndex,
+				sourceArray,
+				offset,
+			);
 		} else if (typeof nodeRec[propertyName] === "number") {
 			nodeRec[propertyName] = sourceArray[offset];
-		} else if (prop !== undefined && prop !== undefined) {
+		} else if (prop !== undefined) {
+			this.#setVectorProperty(prop, sourceArray, offset);
+		}
+	}
+
+	/**
+	 * Sets a property by index.
+	 * @param {Record<string, unknown>} nodeRec
+	 * @param {string} propertyName
+	 * @param {unknown} prop
+	 * @param {string} propertyIndex
+	 * @param {number[]} sourceArray
+	 * @param {number} offset
+	 */
+	#setPropertyIndex(
+		nodeRec,
+		propertyName,
+		prop,
+		propertyIndex,
+		sourceArray,
+		offset,
+	) {
+		if (prop === undefined) {
+			nodeRec[propertyName] = sourceArray[offset];
+		} else {
 			/** @type {Record<string, unknown>} */
 			const propRec = /** @type {Record<string, unknown>} */ (prop);
-			const keys = Object.keys(propRec).filter((k) =>
-				["x", "y", "z", "w", "r", "g", "b"].includes(k),
-			);
-			for (let i = 0; i < keys.length; i++) {
-				propRec[keys[i]] = sourceArray[offset + i];
+			propRec[propertyIndex] = sourceArray[offset];
+		}
+	}
+
+	/**
+	 * Sets vector/color property components.
+	 * @param {unknown} prop
+	 * @param {number[]} sourceArray
+	 * @param {number} offset
+	 */
+	#setVectorProperty(prop, sourceArray, offset) {
+		/** @type {Record<string, unknown>} */
+		const propRec = /** @type {Record<string, unknown>} */ (prop);
+		const vecKeys = ["x", "y", "z", "w", "r", "g", "b"];
+		let i = 0;
+		for (const key of vecKeys) {
+			if (key in propRec) {
+				propRec[key] = sourceArray[offset + i++];
 			}
 		}
 	}

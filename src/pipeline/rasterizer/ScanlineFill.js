@@ -21,7 +21,7 @@ export class ScanlineFill {
 		// denom is shared across all pixels in this triangle.
 		const denom = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 
-		// Degenerate triangle — no area to fill.
+		// Degenerate triangle - no area to fill.
 		if (denom === 0) return;
 
 		const [ax, ay, bx, by, cx, cy] = this.#sortByY(x1, y1, x2, y2, x3, y3);

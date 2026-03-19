@@ -3,7 +3,7 @@
 [![CI](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Canvas2D software renderer with a THREE.js-like scene graph API. Every polygon is drawn by the CPU using a painter's-algorithm scanline rasterizer — no WebGL, no GPU. Rendering constraints are modeled after the RuneTek 3 engine as observed in Old School RuneScape.
+Canvas2D software renderer with a THREE.js-like scene graph API. Every polygon is drawn by the CPU using a painter's-algorithm scanline rasterizer - no WebGL, no GPU. Rendering constraints are modeled after the RuneTek 3 engine as observed in Old School RuneScape.
 
 ## Quick start
 

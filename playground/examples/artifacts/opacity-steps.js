@@ -59,7 +59,7 @@ export const source = `import {
 } from "easel";
 
 // 9 discrete opacity levels: 0 (opaque) through 8 (nearly transparent)
-// No continuous alpha — precomputed blend lookup table.
+// No continuous alpha - precomputed blend lookup table.
 
 for (let i = 0; i < 9; i++) {
   const mat = new BasicMaterial({

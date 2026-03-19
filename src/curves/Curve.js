@@ -8,7 +8,7 @@ export class Curve {
 
 	/**
 	 * Returns the point on the curve at parameter t.
-	 * Abstract — subclasses must override.
+	 * Abstract - subclasses must override.
 	 * @param {number} _t Parameter in [0, 1]
 	 * @param {*} [_target] Optional target object to receive the result
 	 * @returns {*|undefined}

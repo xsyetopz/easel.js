@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ConeGeometry } from "@/geometry/primitives/ConeGeometry.js";
 
 describe("ConeGeometry", () => {
-	it("default — has position, normal, uv, index", () => {
+	it("default - has position, normal, uv, index", () => {
 		const geo = new ConeGeometry();
 		expect(geo.getAttribute("position")).toBeDefined();
 		expect(geo.getAttribute("normal")).toBeDefined();
@@ -10,13 +10,13 @@ describe("ConeGeometry", () => {
 		expect(geo.index).not.toBeUndefined();
 	});
 
-	it("default — vertex count > 0", () => {
+	it("default - vertex count > 0", () => {
 		expect(new ConeGeometry().getAttribute("position").count).toBeGreaterThan(
 			0,
 		);
 	});
 
-	it("default — normals are unit length", () => {
+	it("default - normals are unit length", () => {
 		const normals = new ConeGeometry().getAttribute("normal").array;
 		for (let i = 0; i < Math.min(normals.length, 30); i += 3) {
 			const len = Math.sqrt(
@@ -26,7 +26,7 @@ describe("ConeGeometry", () => {
 		}
 	});
 
-	it("custom (1.5,3,12) — bounding box height matches", () => {
+	it("custom (1.5,3,12) - bounding box height matches", () => {
 		const pos = new ConeGeometry(1.5, 3, 12).getAttribute("position").array;
 		let minY = Number.POSITIVE_INFINITY;
 		let maxY = Number.NEGATIVE_INFINITY;

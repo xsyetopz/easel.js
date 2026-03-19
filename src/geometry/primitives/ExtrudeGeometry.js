@@ -24,7 +24,7 @@ export class ExtrudeGeometry extends Geometry {
 
 		// STUB: triangulate shape points, extrude along Z by options.depth,
 		// generate side faces between front and back contour, handle bevel.
-		// Requires Shape.getPoints() — implement when curves/Shape.js lands.
+		// Requires Shape.getPoints() - implement when curves/Shape.js lands.
 
 		this.setPositions(new Float32Array(0));
 		this.setNormals(new Float32Array(0));

@@ -33,13 +33,13 @@ Biome handles formatting and linting. The config enforces:
 
 Types are written as JSDoc annotations (`@param`, `@returns`, `@typedef`), not `.ts` files. TypeScript runs in `checkJs` mode for type checking only.
 
-Mark overriding members with `@override`. Do not add inline lint suppressions — fix the code or adjust the rule in `biome.jsonc`.
+Mark overriding members with `@override`. Do not add inline lint suppressions - fix the code or adjust the rule in `biome.jsonc`.
 
 ## Core principles
 
-- **KISS** — prefer the simplest solution that works today.
-- **YAGNI** — do not build future features until they are needed.
-- **No over-engineering** — three similar lines of code is better than a premature abstraction.
+- **KISS** - prefer the simplest solution that works today.
+- **YAGNI** - do not build future features until they are needed.
+- **No over-engineering** - three similar lines of code is better than a premature abstraction.
 
 ## Making changes
 
@@ -67,7 +67,7 @@ Keep changes focused. One concern per PR. If a refactor is needed to support a f
 
 ## Architecture
 
-Easel.js is a Canvas2D software renderer. The rendering pipeline runs entirely on the CPU — no WebGL, no GPU. Before adding a feature, ask: "Would this exist in a CPU scanline rasterizer with no z-buffer?" If no, it does not belong here.
+Easel.js is a Canvas2D software renderer. The rendering pipeline runs entirely on the CPU - no WebGL, no GPU. Before adding a feature, ask: "Would this exist in a CPU scanline rasterizer with no z-buffer?" If no, it does not belong here.
 
 See [`docs/EASEL_vs_THREE.md`](docs/EASEL_vs_THREE.md) for the full design reference.
 

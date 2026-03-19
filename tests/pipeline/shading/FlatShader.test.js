@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { Hsl16 } from "@/pipeline/color/Hsl16.js";
 import { FlatShader } from "@/pipeline/shading/FlatShader.js";
 
 const shader = new FlatShader();
 
 function makeLight(dx, dy, dz, intensity = 1) {
-	return { direction: { x: dx, y: dy, z: dz }, color: 0, intensity };
+	return {
+		type: "directional",
+		direction: { x: dx, y: dy, z: dz },
+		color: { r: 1, g: 1, b: 1 },
+		intensity,
+	};
 }
 
 describe("FlatShader", () => {
@@ -15,8 +19,9 @@ describe("FlatShader", () => {
 			[makeLight(0, 0, 1)],
 			0.1,
 		);
-		const { l } = Hsl16.decode(result);
-		expect(l).toBeGreaterThan(0.9);
+		expect(result.r).toBeGreaterThan(0.9);
+		expect(result.g).toBeGreaterThan(0.9);
+		expect(result.b).toBeGreaterThan(0.9);
 	});
 
 	it("face normal perpendicular to light returns ambient only", () => {
@@ -25,8 +30,9 @@ describe("FlatShader", () => {
 			[makeLight(0, 0, 1)],
 			0.1,
 		);
-		const { l } = Hsl16.decode(result);
-		expect(l).toBeCloseTo(0.1, 2);
+		expect(result.r).toBeCloseTo(0.1, 2);
+		expect(result.g).toBeCloseTo(0.1, 2);
+		expect(result.b).toBeCloseTo(0.1, 2);
 	});
 
 	it("face normal away from light returns ambient only", () => {
@@ -35,22 +41,27 @@ describe("FlatShader", () => {
 			[makeLight(0, 0, 1)],
 			0.1,
 		);
-		const { l } = Hsl16.decode(result);
-		expect(l).toBeCloseTo(0.1, 2);
+		expect(result.r).toBeCloseTo(0.1, 2);
+		expect(result.g).toBeCloseTo(0.1, 2);
+		expect(result.b).toBeCloseTo(0.1, 2);
 	});
 
-	it("returns a number (Hsl16 encoded)", () => {
+	it("returns an object with r, g, b channels", () => {
 		const result = shader.shade(
 			{ x: 0, y: 0, z: -1 },
 			[makeLight(0, 0, 1)],
 			0.1,
 		);
-		expect(typeof result).toBe("number");
+		expect(typeof result).toBe("object");
+		expect(typeof result.r).toBe("number");
+		expect(typeof result.g).toBe("number");
+		expect(typeof result.b).toBe("number");
 	});
 
 	it("no lights returns ambient intensity", () => {
 		const result = shader.shade({ x: 0, y: 0, z: -1 }, [], 0.2);
-		const { l } = Hsl16.decode(result);
-		expect(l).toBeCloseTo(0.2, 2);
+		expect(result.r).toBeCloseTo(0.2, 2);
+		expect(result.g).toBeCloseTo(0.2, 2);
+		expect(result.b).toBeCloseTo(0.2, 2);
 	});
 });

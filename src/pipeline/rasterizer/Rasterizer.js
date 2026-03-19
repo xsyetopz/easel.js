@@ -1,5 +1,4 @@
 import { MathUtils } from "../../math/MathUtils.js";
-import { ColorTable } from "../color/ColorTable.js";
 import { TextureSampler } from "../texture/TextureSampler.js";
 import { PointRasterizer } from "./PointRasterizer.js";
 import { ScanlineFill } from "./ScanlineFill.js";
@@ -9,7 +8,6 @@ export class Rasterizer {
 	#scanlineFill = new ScanlineFill();
 	#wireframe = new WireframeRasterizer();
 	#point = new PointRasterizer();
-	#colorTable = new ColorTable();
 	#textureSampler = new TextureSampler();
 
 	/**
@@ -27,10 +25,10 @@ export class Rasterizer {
 	 *     color?: { r: number, g: number, b: number },
 	 *     map?: { data: { data: Uint8ClampedArray, width: number, height: number } }
 	 *   },
-	 *   shadedColors?: Array<number | number[]>
+	 *   shadedColors?: Array<{ r: number, g: number, b: number } | { r: number, g: number, b: number }[]>
 	 * }} drawCall
 	 * @param {{ width: number, height: number }} framebuffer
-	 * @param {unknown} _colorTable Ignored — internal ColorTable is used
+	 * @param {unknown} _colorTable Ignored - internal ColorTable is used
 	 * @param {(x: number, y: number, r: number, g: number, b: number, a: number) => void} pixelWriter
 	 * @returns {void}
 	 */
@@ -56,18 +54,18 @@ export class Rasterizer {
 			const y3 = c.y | 0;
 
 			const sc = drawCall.shadedColors?.[i];
-			const isFlat = sc !== undefined && typeof sc === "number";
+			const isFlat =
+				sc !== undefined && typeof sc === "object" && !Array.isArray(sc);
 			const isGouraud = sc !== undefined && Array.isArray(sc);
 
-			// Flat shading: single HSL16 → one RGB for the whole triangle.
+			// Flat shading: {r,g,b} multipliers → one RGB for the whole triangle.
 			let flatR = baseR;
 			let flatG = baseG;
 			let flatB = baseB;
 			if (isFlat) {
-				const lit = this.#colorTable.lookup(/** @type {number} */ (sc));
-				flatR = Math.round((baseR * lit.r) / 255);
-				flatG = Math.round((baseG * lit.g) / 255);
-				flatB = Math.round((baseB * lit.b) / 255);
+				flatR = Math.round(baseR * sc.r);
+				flatG = Math.round(baseG * sc.g);
+				flatB = Math.round(baseB * sc.b);
 			}
 
 			/** @type {(px: number, py: number, bu: number, bv: number, bw: number) => void} */
@@ -78,7 +76,7 @@ export class Rasterizer {
 
 				if (isGouraud) {
 					[r, g, bl] = this.#resolveGouraud(
-						/** @type {number[]} */ (sc),
+						/** @type {{ r: number, g: number, b: number }[]} */ (sc),
 						bu,
 						bv,
 						bw,
@@ -125,9 +123,9 @@ export class Rasterizer {
 	}
 
 	/**
-	 * Interpolates three Gouraud float-lightness vertex values using barycentric
+	 * Interpolates three Gouraud {r,g,b} vertex values using barycentric
 	 * weights and modulates by the material base color.
-	 * @param {number[]} colors Three raw float lightness values in [0, 1]
+	 * @param {{ r: number, g: number, b: number }[]} colors Three RGB multipliers in [0, 1]
 	 * @param {number} bu Barycentric weight for vertex 0
 	 * @param {number} bv Barycentric weight for vertex 1
 	 * @param {number} bw Barycentric weight for vertex 2
@@ -137,12 +135,13 @@ export class Rasterizer {
 	 * @returns {[number, number, number]} Final [r, g, b] in [0, 255]
 	 */
 	#resolveGouraud(colors, bu, bv, bw, baseR, baseG, baseB) {
-		const l = colors[0] * bu + colors[1] * bv + colors[2] * bw;
-		const brightness = Math.round(MathUtils.clamp(l, 0, 1) * 255);
+		const lr = colors[0].r * bu + colors[1].r * bv + colors[2].r * bw;
+		const lg = colors[0].g * bu + colors[1].g * bv + colors[2].g * bw;
+		const lb = colors[0].b * bu + colors[1].b * bv + colors[2].b * bw;
 		return [
-			Math.round((baseR * brightness) / 255),
-			Math.round((baseG * brightness) / 255),
-			Math.round((baseB * brightness) / 255),
+			Math.round(baseR * MathUtils.clamp(lr, 0, 1)),
+			Math.round(baseG * MathUtils.clamp(lg, 0, 1)),
+			Math.round(baseB * MathUtils.clamp(lb, 0, 1)),
 		];
 	}
 

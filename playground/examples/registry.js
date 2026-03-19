@@ -61,7 +61,7 @@ export const examples = [
 		id: "materials-toon",
 		name: "Toon Shading",
 		category: "materials",
-		description: "Cel-shading with ToonMaterial — discrete light steps.",
+		description: "Cel-shading with ToonMaterial - discrete light steps.",
 		setup: materialsToon.setup,
 		source: materialsToon.source,
 		controls: materialsToon.controls,

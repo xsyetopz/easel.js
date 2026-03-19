@@ -260,7 +260,7 @@ export class AnimationAction {
 	}
 
 	/**
-	 * Called by Animator.update — exposed for internal use.
+	 * Called by Animator.update - exposed for internal use.
 	 * @param {number} delta
 	 */
 	_update(delta) {

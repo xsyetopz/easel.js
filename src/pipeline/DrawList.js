@@ -4,7 +4,7 @@ export class DrawList {
 
 	/**
 	 * Lights collected during scene traversal.
-	 * @type {Array<{ direction: { x: number, y: number, z: number }, color: import('../math/Color.js').Color | number, intensity: number }>}
+	 * @type {Array<Record<string, unknown>>}
 	 */
 	lights = [];
 

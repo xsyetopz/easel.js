@@ -61,7 +61,7 @@ export class SphereGeometry extends Geometry {
 				const sinPhi = Math.sin(phi);
 				const cosPhi = Math.cos(phi);
 
-				const nx = cosPhi * sinTheta;
+				const nx = -cosPhi * sinTheta;
 				const ny = cosTheta;
 				const nz = sinPhi * sinTheta;
 

@@ -18,7 +18,7 @@ export class ShapeGeometry extends Geometry {
 
 		// STUB: call shapes.getPoints(curveSegments), triangulate the 2D contour,
 		// assign z=0, normals=(0,0,1), uvs from bounding box.
-		// Requires Shape.getPoints() — implement when curves/Shape.js lands.
+		// Requires Shape.getPoints() - implement when curves/Shape.js lands.
 
 		this.setPositions(new Float32Array(0));
 		this.setNormals(new Float32Array(0));

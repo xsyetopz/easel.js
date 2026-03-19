@@ -1,7 +1,7 @@
 import { Track } from "../Track.js";
 
 /**
- * Keyframe track for quaternion rotation values — uses spherical linear interpolation (slerp).
+ * Keyframe track for quaternion rotation values - uses spherical linear interpolation (slerp).
  */
 export class QuaternionTrack extends Track {
 	/**

@@ -103,10 +103,7 @@ export class Animator {
 			for (let i = 0; i < tracks.length; i++) {
 				const values = tracks[i].getValueAtTime(action.time);
 				const mixer = mixers[i];
-				const itemSize = tracks[i].itemSize;
-				const tmp = new Array(itemSize);
-				for (let j = 0; j < itemSize; j++) tmp[j] = values[j];
-				mixer.accumulate(0, weight);
+				mixer.accumulate(0, weight, values);
 			}
 		}
 

@@ -18,7 +18,7 @@ describe("Curve base (via LineCurve3)", () => {
 		expect(lengths.length).toBe(curve.arcLengthDivisions + 1);
 	});
 
-	it("getLengths caches — second call returns same array reference", () => {
+	it("getLengths caches - second call returns same array reference", () => {
 		const first = curve.getLengths();
 		const second = curve.getLengths();
 		expect(first).toBe(second);

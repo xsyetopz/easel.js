@@ -1,4 +1,4 @@
-# Agents Guide — Easel.js
+# Agents Guide - Easel.js
 
 For AI coding agents (Copilot Workspace, Cursor, Claude Code, etc.).
 
@@ -28,13 +28,13 @@ For AI coding agents (Copilot Workspace, Cursor, Claude Code, etc.).
 
 The render pipeline is CPU-only, in this order:
 
-1. **SceneTraversal** — walks scene graph, collects visible nodes
-2. **PainterSort** — sorts draw list back-to-front (tile distance → layer → polygon centroid)
-3. **Projection** — `WorldToView` → `ViewToScreen` (with `Math.trunc()` integer snap)
-4. **Shading** — `LightBaker` applies lights, then `FlatShader` or `GouraudShader`
-5. **Rasterizer** — `ScanlineFill` with `EdgeWalker`, `AffineUVSampler`, `GouraudInterpolator`
-6. **Color** — `Hsl16` ↔ RGB via `ColorTable`, `TranslucencyTable` for opacity blending
-7. **Framebuffer** — `PixelWriter` → `Framebuffer` → `FramebufferUpload` to canvas
+1. **SceneTraversal** - walks scene graph, collects visible nodes
+2. **PainterSort** - sorts draw list back-to-front (tile distance → layer → polygon centroid)
+3. **Projection** - `WorldToView` → `ViewToScreen` (with `Math.trunc()` integer snap)
+4. **Shading** - `LightBaker` applies lights, then `FlatShader` or `GouraudShader`
+5. **Rasterizer** - `ScanlineFill` with `EdgeWalker`, `AffineUVSampler`, `GouraudInterpolator`
+6. **Color** - `Hsl16` ↔ RGB via `ColorTable`, `TranslucencyTable` for opacity blending
+7. **Framebuffer** - `PixelWriter` → `Framebuffer` → `FramebufferUpload` to canvas
 
 ## Class hierarchy
 
@@ -69,13 +69,13 @@ graph TD
 
 ## What NOT to do
 
-- **No GPU/WebGL concepts** — no shader programs, no WebGL state, no GPU buffers
-- **No z-buffer** — depth is resolved by sort order, not per-pixel testing
-- **No per-pixel lighting** — all lighting is baked per-vertex or per-face before rasterization
-- **No perspective camera** — affine UV interpolation is only correct under orthographic projection
-- **No continuous alpha** — opacity is an integer 0–8, not a float
-- **No shadow maps** — no shadow system exists
-- **No PBR materials** — no MeshStandardMaterial, no MeshPhongMaterial, no roughness/metalness
-- **No environment maps** — no skybox, no reflections, the void is black
+- **No GPU/WebGL concepts** - no shader programs, no WebGL state, no GPU buffers
+- **No z-buffer** - depth is resolved by sort order, not per-pixel testing
+- **No per-pixel lighting** - all lighting is baked per-vertex or per-face before rasterization
+- **No perspective camera** - affine UV interpolation is only correct under orthographic projection
+- **No continuous alpha** - opacity is an integer 0–8, not a float
+- **No shadow maps** - no shadow system exists
+- **No PBR materials** - no MeshStandardMaterial, no MeshPhongMaterial, no roughness/metalness
+- **No environment maps** - no skybox, no reflections, the void is black
 
 When adding features, ask: "Would this exist in a CPU scanline rasterizer with no z-buffer?" If no, it does not belong here.

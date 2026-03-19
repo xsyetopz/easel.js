@@ -111,7 +111,7 @@ describe("Attribute", () => {
 			expect(copy.itemSize).toBe(3);
 		});
 
-		it("clone is independent — mutation does not affect original", () => {
+		it("clone is independent - mutation does not affect original", () => {
 			const attr = new Attribute(new Float32Array([1, 2, 3]), 3);
 			const copy = attr.clone();
 			copy.setX(0, 99);

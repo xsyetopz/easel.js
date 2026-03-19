@@ -136,7 +136,7 @@ export class Node extends EventDispatcher {
 
 		_position.setFromMatrixPosition(this.matrixWorld);
 
-		if (this.type === "Camera") {
+		if (typeof this.type === "string" && this.type.endsWith("Camera")) {
 			_m1.lookAt(_position, targetVector, new Vector3(0, 1, 0));
 		} else {
 			_m1.lookAt(targetVector, _position, new Vector3(0, 1, 0));

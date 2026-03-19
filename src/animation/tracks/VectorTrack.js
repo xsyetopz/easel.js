@@ -1,7 +1,7 @@
 import { Track } from "../Track.js";
 
 /**
- * Keyframe track for vector values — uses linear interpolation per component.
+ * Keyframe track for vector values - uses linear interpolation per component.
  */
 export class VectorTrack extends Track {
 	/**

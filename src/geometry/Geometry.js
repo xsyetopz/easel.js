@@ -1,3 +1,4 @@
+import { Sphere } from "../math/Sphere.js";
 import { Vector3 } from "../math/Vector3.js";
 import { Attribute } from "./Attribute.js";
 
@@ -195,6 +196,43 @@ export class Geometry {
 		}
 
 		this.#attributes.set("normal", new Attribute(normals, 3));
+		return this;
+	}
+
+	/**
+	 * Computes a minimal bounding sphere from the position attribute.
+	 * @returns {this}
+	 */
+	computeBoundingSphere() {
+		const posAttr = this.#attributes.get("position");
+		if (!posAttr) return this;
+		const arr = posAttr.array;
+		const itemSize = posAttr.itemSize ?? 3;
+		const count = arr.length / itemSize;
+		if (count === 0) return this;
+
+		let [cx, cy, cz] = [0, 0, 0];
+		for (let i = 0; i < count; i++) {
+			cx += arr[i * itemSize];
+			cy += arr[i * itemSize + 1];
+			cz += arr[i * itemSize + 2];
+		}
+		cx /= count;
+		cy /= count;
+		cz /= count;
+
+		let maxRadiusSq = 0;
+		for (let i = 0; i < count; i++) {
+			const dx = arr[i * itemSize] - cx;
+			const dy = arr[i * itemSize + 1] - cy;
+			const dz = arr[i * itemSize + 2] - cz;
+			maxRadiusSq = Math.max(maxRadiusSq, dx * dx + dy * dy + dz * dz);
+		}
+
+		this.boundingSphere = new Sphere(
+			new Vector3(cx, cy, cz),
+			Math.sqrt(maxRadiusSq),
+		);
 		return this;
 	}
 

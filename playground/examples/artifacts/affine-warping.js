@@ -150,7 +150,7 @@ export const source = `import {
 } from "easel";
 
 // Split-view: orthographic (left) vs perspective (right).
-// Orthographic produces exact UV mapping — no distortion.
+// Orthographic produces exact UV mapping - no distortion.
 // Perspective shows affine warping: the diagonal seam and texture
 // swim from linear interpolation without W correction.
 // Increase subdivisions to reduce the artifact.

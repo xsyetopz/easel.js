@@ -1,0 +1,348 @@
+import { EventDispatcher } from "../core/EventDispatcher.js";
+import { Spherical } from "../math/Spherical.js";
+import { Vector3 } from "../math/Vector3.js";
+
+/** @typedef {{ position: Vector3, matrixWorld: { elements: number[] }, lookAt: (target: Vector3) => void, updateMatrixWorld: (force?: boolean) => void }} OrbitCamera */
+
+const STATE = /** @type {const} */ ({
+	NONE: 0,
+	ROTATE: 1,
+	PAN: 2,
+});
+
+const _changeEvent = { type: "change" };
+const _startEvent = { type: "start" };
+const _endEvent = { type: "end" };
+
+/**
+ * Orbit camera controls. Rotates around a target point via pointer drag,
+ * zooms with the scroll wheel, and pans with right-click drag.
+ *
+ * Dispatches "change", "start", and "end" events.
+ */
+export class OrbitControls extends EventDispatcher {
+	/** @type {OrbitCamera} */
+	camera;
+
+	/** @type {EventTarget & { style: object, setPointerCapture: (id: number) => void, releasePointerCapture: (id: number) => void }} */
+	domElement;
+
+	/** World-space point the camera orbits around. @type {Vector3} */
+	target = new Vector3();
+
+	/** When false, all interaction is ignored. @type {boolean} */
+	enabled = true;
+
+	/** @type {boolean} */
+	enableRotate = true;
+
+	/** @type {boolean} */
+	enableZoom = true;
+
+	/** @type {boolean} */
+	enablePan = true;
+
+	/** @type {number} */
+	rotateSpeed = 1.0;
+
+	/** @type {number} */
+	zoomSpeed = 1.0;
+
+	/** @type {number} */
+	panSpeed = 1.0;
+
+	/** Minimum orbital radius. @type {number} */
+	minDistance = 0;
+
+	/** Maximum orbital radius. @type {number} */
+	maxDistance = Number.POSITIVE_INFINITY;
+
+	/** Minimum polar angle (radians, 0 = top). @type {number} */
+	minPolarAngle = 0;
+
+	/** Maximum polar angle (radians, Math.PI = bottom). @type {number} */
+	maxPolarAngle = Math.PI;
+
+	/** When true, movements decelerate smoothly instead of stopping instantly. @type {boolean} */
+	enableDamping = false;
+
+	/** Fraction of velocity lost per frame when damping is enabled. @type {number} */
+	dampingFactor = 0.05;
+
+	// ── private state ────────────────────────────────────────────────────────
+
+	/** @type {Spherical} */
+	#spherical = new Spherical();
+
+	/** Pending delta applied each update(). @type {Spherical} */
+	#sphericalDelta = new Spherical(0, 0, 0);
+
+	/** Pending pan offset accumulated across pointer moves. @type {Vector3} */
+	#panOffset = new Vector3();
+
+	/** Saved initial camera state for reset(). @type {{ position: Vector3, target: Vector3 }} */
+	#initialState;
+
+	/** @type {number} */
+	#state = STATE.NONE;
+
+	/** Screen-space pointer position at last pointerdown/pointermove. @type {{ x: number, y: number }} */
+	#pointerStart = { x: 0, y: 0 };
+
+	/** @type {number} */
+	#activePointerId = -1;
+
+	// ── bound event handlers (stored so dispose() can remove them) ───────────
+
+	#onPointerDown;
+	#onPointerMove;
+	#onPointerUp;
+	#onWheel;
+	#onContextMenu;
+
+	/**
+	 * @param {OrbitCamera} camera
+	 * @param {EventTarget & { style: object, setPointerCapture: (id: number) => void, releasePointerCapture: (id: number) => void }} domElement
+	 */
+	constructor(camera, domElement) {
+		super();
+		this.camera = camera;
+		this.domElement = domElement;
+
+		this.#initialState = {
+			position: camera.position.clone(),
+			target: this.target.clone(),
+		};
+
+		this.#onPointerDown = this.#handlePointerDown.bind(this);
+		this.#onPointerMove = this.#handlePointerMove.bind(this);
+		this.#onPointerUp = this.#handlePointerUp.bind(this);
+		this.#onWheel = this.#handleWheel.bind(this);
+		this.#onContextMenu = this.#handleContextMenu.bind(this);
+
+		domElement.addEventListener("pointerdown", this.#onPointerDown);
+		domElement.addEventListener("pointermove", this.#onPointerMove);
+		domElement.addEventListener("pointerup", this.#onPointerUp);
+		domElement.addEventListener("wheel", this.#onWheel);
+		domElement.addEventListener("contextmenu", this.#onContextMenu);
+	}
+
+	// ── public API ───────────────────────────────────────────────────────────
+
+	/**
+	 * Apply pending rotation, zoom, and pan then update the camera.
+	 * Must be called each frame.
+	 * @returns {boolean} True when the camera moved.
+	 */
+	update() {
+		if (!this.enabled) return false;
+
+		const offset = new Vector3().copy(this.camera.position).sub(this.target);
+		this.#spherical.setFromVector3(offset);
+
+		this.#spherical.theta += this.#sphericalDelta.theta;
+		this.#spherical.phi += this.#sphericalDelta.phi;
+
+		this.#spherical.phi = Math.max(
+			this.minPolarAngle,
+			Math.min(this.maxPolarAngle, this.#spherical.phi),
+		);
+
+		this.#spherical.makeSafe();
+
+		this.#spherical.radius = Math.max(
+			this.minDistance,
+			Math.min(this.maxDistance, this.#spherical.radius),
+		);
+
+		this.target.add(this.#panOffset);
+
+		offset.setFromSpherical(this.#spherical);
+		this.camera.position.copy(this.target).add(offset);
+		this.camera.lookAt(this.target);
+
+		const moved =
+			this.#sphericalDelta.theta !== 0 ||
+			this.#sphericalDelta.phi !== 0 ||
+			this.#sphericalDelta.radius !== 1 ||
+			this.#panOffset.x !== 0 ||
+			this.#panOffset.y !== 0 ||
+			this.#panOffset.z !== 0;
+
+		if (this.enableDamping) {
+			this.#sphericalDelta.theta *= 1 - this.dampingFactor;
+			this.#sphericalDelta.phi *= 1 - this.dampingFactor;
+			this.#panOffset.mulScalar(1 - this.dampingFactor);
+		} else {
+			this.#sphericalDelta.set(0, 0, 0);
+			this.#panOffset.set(0, 0, 0);
+		}
+
+		if (moved) {
+			this.dispatchEvent(_changeEvent);
+		}
+
+		return moved;
+	}
+
+	/**
+	 * Remove all DOM event listeners. Call when the controls are no longer needed.
+	 * @returns {void}
+	 */
+	dispose() {
+		this.domElement.removeEventListener("pointerdown", this.#onPointerDown);
+		this.domElement.removeEventListener("pointermove", this.#onPointerMove);
+		this.domElement.removeEventListener("pointerup", this.#onPointerUp);
+		this.domElement.removeEventListener("wheel", this.#onWheel);
+		this.domElement.removeEventListener("contextmenu", this.#onContextMenu);
+	}
+
+	/**
+	 * Restore the camera position and target to the values at construction time.
+	 * @returns {void}
+	 */
+	reset() {
+		this.camera.position.copy(this.#initialState.position);
+		this.target.copy(this.#initialState.target);
+		this.#sphericalDelta.set(0, 0, 0);
+		this.#panOffset.set(0, 0, 0);
+		this.update();
+	}
+
+	// ── pointer event handlers ───────────────────────────────────────────────
+
+	/**
+	 * @param {Event} rawEvent
+	 * @returns {void}
+	 */
+	#handlePointerDown(rawEvent) {
+		if (!this.enabled) return;
+		const event = /** @type {PointerEvent} */ (rawEvent);
+
+		this.#activePointerId = event.pointerId;
+		this.domElement.setPointerCapture(event.pointerId);
+
+		this.#pointerStart.x = event.clientX;
+		this.#pointerStart.y = event.clientY;
+
+		if (event.button === 0 && this.enableRotate) {
+			this.#state = STATE.ROTATE;
+		} else if ((event.button === 1 || event.button === 2) && this.enablePan) {
+			this.#state = STATE.PAN;
+		}
+
+		if (this.#state !== STATE.NONE) {
+			this.dispatchEvent(_startEvent);
+		}
+	}
+
+	/**
+	 * @param {Event} rawEvent
+	 * @returns {void}
+	 */
+	#handlePointerMove(rawEvent) {
+		const event = /** @type {PointerEvent} */ (rawEvent);
+		if (!this.enabled || event.pointerId !== this.#activePointerId) return;
+		if (this.#state === STATE.NONE) return;
+
+		const dx = event.clientX - this.#pointerStart.x;
+		const dy = event.clientY - this.#pointerStart.y;
+
+		if (this.#state === STATE.ROTATE) {
+			// PI covers a half orbit per full drag; scale by element size for sensitivity.
+			const el = /** @type {any} */ (this.domElement);
+			const width = el.clientWidth ?? 800;
+			const height = el.clientHeight ?? 600;
+
+			this.#sphericalDelta.theta -= ((Math.PI * dx) / width) * this.rotateSpeed;
+			this.#sphericalDelta.phi -= ((Math.PI * dy) / height) * this.rotateSpeed;
+		} else if (this.#state === STATE.PAN) {
+			this.#pan(dx, dy);
+		}
+
+		this.#pointerStart.x = event.clientX;
+		this.#pointerStart.y = event.clientY;
+	}
+
+	/**
+	 * @param {Event} rawEvent
+	 * @returns {void}
+	 */
+	#handlePointerUp(rawEvent) {
+		const event = /** @type {PointerEvent} */ (rawEvent);
+		if (event.pointerId !== this.#activePointerId) return;
+
+		this.domElement.releasePointerCapture(event.pointerId);
+		this.#activePointerId = -1;
+
+		if (this.#state !== STATE.NONE) {
+			this.dispatchEvent(_endEvent);
+		}
+
+		this.#state = STATE.NONE;
+	}
+
+	/**
+	 * @param {Event} rawEvent
+	 * @returns {void}
+	 */
+	#handleWheel(rawEvent) {
+		if (!(this.enabled && this.enableZoom)) return;
+		const event = /** @type {WheelEvent} */ (rawEvent);
+
+		event.preventDefault?.();
+
+		const delta =
+			event.deltaY > 0
+				? 1 / (1 - 0.1 * this.zoomSpeed)
+				: 1 - 0.1 * this.zoomSpeed;
+		const offset = new Vector3().copy(this.camera.position).sub(this.target);
+		this.#spherical.setFromVector3(offset);
+		this.#spherical.radius = Math.max(
+			this.minDistance,
+			Math.min(this.maxDistance, this.#spherical.radius * delta),
+		);
+		offset.setFromSpherical(this.#spherical);
+		this.camera.position.copy(this.target).add(offset);
+		this.camera.lookAt(this.target);
+		this.dispatchEvent(_changeEvent);
+	}
+
+	/**
+	 * @param {Event} event
+	 * @returns {void}
+	 */
+	#handleContextMenu(event) {
+		event.preventDefault?.();
+	}
+
+	// ── pan helpers ──────────────────────────────────────────────────────────
+
+	/**
+	 * Accumulate a screen-space pan delta into #panOffset.
+	 * Extracts camera right/up from its matrixWorld columns 0 and 1.
+	 * @param {number} dx pixels right
+	 * @param {number} dy pixels down
+	 * @returns {void}
+	 */
+	#pan(dx, dy) {
+		const distance = this.camera.position.distanceTo(this.target);
+		const me = this.camera.matrixWorld.elements;
+
+		// Column 0: camera right vector (world space)
+		const rx = me[0];
+		const ry = me[1];
+		const rz = me[2];
+
+		// Column 1: camera up vector (world space)
+		const ux = me[4];
+		const uy = me[5];
+		const uz = me[6];
+
+		const scale = distance * this.panSpeed * 0.001;
+
+		this.#panOffset.x -= (rx * dx - ux * dy) * scale;
+		this.#panOffset.y -= (ry * dx - uy * dy) * scale;
+		this.#panOffset.z -= (rz * dx - uz * dy) * scale;
+	}
+}

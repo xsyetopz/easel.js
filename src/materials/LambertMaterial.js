@@ -3,7 +3,7 @@ import { Color } from "../math/Color.js";
 import { Material } from "./Material.js";
 
 /**
- * Diffuse lighting from all lights in scene. Defaults to Gouraud shading —
+ * Diffuse lighting from all lights in scene. Defaults to Gouraud shading -
  * per-vertex lighting interpolated across faces.
  */
 export class LambertMaterial extends Material {
