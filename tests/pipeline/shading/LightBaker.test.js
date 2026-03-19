@@ -1,0 +1,172 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { Shading } from "@/core/Constants.js";
+import { LightBaker } from "@/pipeline/shading/LightBaker.js";
+import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
+
+// sx0,sy0,sx1,sy1,sx2,sy2, z0,z1,z2, fnx,fny,fnz, vn0x,vn0y,vn0z, vn1x,vn1y,vn1z, vn2x,vn2y,vn2z, u0,v0,u1,v1,u2,v2
+const TRI_FACING_LIGHT = [
+	0, 0, 5, 0, 2, 5, 0, 0, 0, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 0, 0,
+	0, 0,
+];
+const TRI_PERPENDICULAR = [
+	0, 0, 5, 0, 2, 5, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+	0,
+];
+
+function makeDirectional(dx, dy, dz, intensity = 1) {
+	return {
+		type: "directional",
+		direction: { x: dx, y: dy, z: dz },
+		color: { r: 1, g: 1, b: 1 },
+		intensity,
+	};
+}
+
+function makeAmbient(intensity = 0.5) {
+	return {
+		type: "ambient",
+		color: { r: 1, g: 1, b: 1 },
+		intensity,
+	};
+}
+
+function makeDrawCall(shading, triangles) {
+	const tb = new TriangleBuffer(triangles.length || 1);
+	for (const t of triangles) {
+		tb.append(...t);
+	}
+	tb.buildSortOrder();
+	return { triangles: tb, material: { shading }, shadedColors: [] };
+}
+
+describe("LightBaker", () => {
+	let baker;
+
+	beforeEach(() => {
+		baker = new LightBaker();
+	});
+
+	it("flat shading: facing light produces r > 0.9", () => {
+		const dc = makeDrawCall(Shading.Flat, [TRI_FACING_LIGHT]);
+		baker.bake(dc, [makeDirectional(0, 0, 1)]);
+		expect(dc.shadedColors[0]).toMatchObject({
+			r: expect.any(Number),
+			g: expect.any(Number),
+			b: expect.any(Number),
+		});
+		expect(dc.shadedColors[0].r).toBeGreaterThan(0.9);
+	});
+
+	it("gouraud shading: produces array of 3 {r,g,b} objects", () => {
+		const dc = makeDrawCall(Shading.Gouraud, [TRI_FACING_LIGHT]);
+		baker.bake(dc, [makeDirectional(0, 0, 1)]);
+		const entry = dc.shadedColors[0];
+		expect(Array.isArray(entry)).toBe(true);
+		expect(entry).toHaveLength(3);
+		for (const c of entry) {
+			expect(typeof c.r).toBe("number");
+			expect(typeof c.g).toBe("number");
+			expect(typeof c.b).toBe("number");
+		}
+	});
+
+	it("zero lights: shadedColors is empty and bake returns early", () => {
+		const dc = makeDrawCall(Shading.Flat, [TRI_FACING_LIGHT]);
+		baker.bake(dc, []);
+		expect(dc.shadedColors).toHaveLength(0);
+	});
+
+	it("shadedColors reset on second bake: length matches triangle count, not doubled", () => {
+		const dc = makeDrawCall(Shading.Flat, [
+			TRI_FACING_LIGHT,
+			TRI_PERPENDICULAR,
+		]);
+		const lights = [makeDirectional(0, 0, 1)];
+		baker.bake(dc, lights);
+		baker.bake(dc, lights);
+		expect(dc.shadedColors).toHaveLength(2);
+	});
+
+	it("sortOrder contract: shadedColors[i] reads normals at physIdx=sortOrder[i]", () => {
+		// 3 triangles at centroidZ 0.9, 0.5, 0.1 so sort reorders them: [0,1,2] → [0,1,2] (desc order already)
+		// Use centroidZ via z0=z1=z2 so centroid = z value
+		// TRI at z=0.9 has face normal (0,0,-1), z=0.5 has (1,0,0), z=0.1 has (0,1,0)
+		const triDeep = [
+			0, 0, 5, 0, 2, 5, 0.9, 0.9, 0.9, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
+			0, 0, 0, 0, 0, 0,
+		];
+		const triMid = [
+			0, 0, 5, 0, 2, 5, 0.5, 0.5, 0.5, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,
+			0, 0, 0, 0,
+		];
+		const triNear = [
+			0, 0, 5, 0, 2, 5, 0.1, 0.1, 0.1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0,
+			0, 0, 0, 0,
+		];
+
+		const tb = new TriangleBuffer(3);
+		tb.append(...triDeep); // physIdx 0, centroidZ 0.9
+		tb.append(...triMid); // physIdx 1, centroidZ 0.5
+		tb.append(...triNear); // physIdx 2, centroidZ 0.1
+		tb.sort(); // sortOrder should be [0, 1, 2] (descending centroidZ)
+
+		const dc = {
+			triangles: tb,
+			material: { shading: Shading.Flat },
+			shadedColors: [],
+		};
+		baker.bake(dc, [makeDirectional(0, 0, 1)]);
+
+		// sortOrder[0] = physIdx 0 → face normal (0,0,-1) → facing light → high r
+		// sortOrder[1] = physIdx 1 → face normal (1,0,0) → perpendicular → ambient only
+		expect(dc.shadedColors[0].r).toBeGreaterThan(0.9);
+		expect(dc.shadedColors[1].r).toBeCloseTo(0.1, 2);
+	});
+
+	it("directional + ambient lights accumulate: result higher than either alone", () => {
+		const dc = makeDrawCall(Shading.Flat, [TRI_FACING_LIGHT]);
+		const dcDirOnly = makeDrawCall(Shading.Flat, [TRI_FACING_LIGHT]);
+		const dcAmbOnly = makeDrawCall(Shading.Flat, [TRI_FACING_LIGHT]);
+
+		baker.bake(dc, [makeDirectional(0, 0, 1), makeAmbient(0.3)]);
+		baker.bake(dcDirOnly, [makeDirectional(0, 0, 1)]);
+		baker.bake(dcAmbOnly, [makeAmbient(0.3)]);
+
+		// combined is clamped to 1.0; directional alone is ~1.0 at ambient 0.1, so check against ambient-only
+		expect(dc.shadedColors[0].r).toBeGreaterThanOrEqual(
+			dcAmbOnly.shadedColors[0].r,
+		);
+	});
+
+	it("flat shading produces {r,g,b} plain objects, not arrays", () => {
+		const dc = makeDrawCall(Shading.Flat, [TRI_FACING_LIGHT]);
+		baker.bake(dc, [makeDirectional(0, 0, 1)]);
+		expect(Array.isArray(dc.shadedColors[0])).toBe(false);
+		expect(typeof dc.shadedColors[0]).toBe("object");
+		expect("r" in dc.shadedColors[0]).toBe(true);
+	});
+
+	it("gouraud shading produces arrays of exactly 3 elements", () => {
+		const dc = makeDrawCall(Shading.Gouraud, [TRI_FACING_LIGHT]);
+		baker.bake(dc, [makeDirectional(0, 0, 1)]);
+		expect(Array.isArray(dc.shadedColors[0])).toBe(true);
+		expect(dc.shadedColors[0]).toHaveLength(3);
+	});
+
+	it("flat shading: perpendicular normal returns ~ambient (0.1) only", () => {
+		const dc = makeDrawCall(Shading.Flat, [TRI_PERPENDICULAR]);
+		baker.bake(dc, [makeDirectional(0, 0, 1)]);
+		expect(dc.shadedColors[0].r).toBeCloseTo(0.1, 2);
+		expect(dc.shadedColors[0].g).toBeCloseTo(0.1, 2);
+		expect(dc.shadedColors[0].b).toBeCloseTo(0.1, 2);
+	});
+
+	it("two triangles flat shading: shadedColors has length 2", () => {
+		const dc = makeDrawCall(Shading.Flat, [
+			TRI_FACING_LIGHT,
+			TRI_PERPENDICULAR,
+		]);
+		baker.bake(dc, [makeDirectional(0, 0, 1)]);
+		expect(dc.shadedColors).toHaveLength(2);
+	});
+});

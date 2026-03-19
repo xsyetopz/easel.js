@@ -81,4 +81,30 @@ describe("DepthBuffer", () => {
 
 		expect(db.data[idx]).toBe(1500);
 	});
+
+	it("testAndSet at depth=0 (near plane boundary) returns true", () => {
+		const db = new DepthBuffer(4, 4);
+		// Initial stored value is 0xFFFF; 0 <= 0xFFFF so it must pass
+		expect(db.testAndSet(0, 0, 0)).toBe(true);
+	});
+
+	it("testAndSet at depth=0xFFFF (far plane boundary) returns true", () => {
+		const db = new DepthBuffer(4, 4);
+		// Equal to initial stored value — coplanar is allowed
+		expect(db.testAndSet(1, 1, 0xffff)).toBe(true);
+	});
+
+	it("strictly decreasing depth sequence all pass, then a deeper write fails", () => {
+		const db = new DepthBuffer(4, 4);
+		const x = 2;
+		const y = 2;
+
+		expect(db.testAndSet(x, y, 60000)).toBe(true);
+		expect(db.testAndSet(x, y, 40000)).toBe(true);
+		expect(db.testAndSet(x, y, 20000)).toBe(true);
+		expect(db.testAndSet(x, y, 5000)).toBe(true);
+		expect(db.testAndSet(x, y, 1)).toBe(true);
+		// Now stored is 1; 10000 > 1 so this must fail
+		expect(db.testAndSet(x, y, 10000)).toBe(false);
+	});
 });
