@@ -38,6 +38,18 @@ export class TriangleBuffer {
 	/** @type {Float32Array} UV V coordinate for 3 vertices per triangle (stride 3). */
 	uvV = new Float32Array(0);
 
+	/** @type {Float32Array} World-space X for 3 vertices per triangle (stride 3). */
+	worldX = new Float32Array(0);
+
+	/** @type {Float32Array} World-space Y for 3 vertices per triangle (stride 3). */
+	worldY = new Float32Array(0);
+
+	/** @type {Float32Array} World-space Z for 3 vertices per triangle (stride 3). */
+	worldZ = new Float32Array(0);
+
+	/** @type {Float32Array} Per-vertex fog factor for 3 vertices per triangle (stride 3). 0 = no fog, 1 = fully fogged. */
+	fogFactor = new Float32Array(0);
+
 	/** @type {Float32Array} Centroid Z = (z0+z1+z2)/3, used for painter sort (stride 1). */
 	centroidZ = new Float32Array(0);
 
@@ -67,6 +79,10 @@ export class TriangleBuffer {
 		this.uvU = new Float32Array(capacity * 3);
 		this.uvV = new Float32Array(capacity * 3);
 		this.centroidZ = new Float32Array(capacity);
+		this.worldX = new Float32Array(capacity * 3);
+		this.worldY = new Float32Array(capacity * 3);
+		this.worldZ = new Float32Array(capacity * 3);
+		this.fogFactor = new Float32Array(capacity * 3);
 	}
 
 	/** Reset length to 0, preserving allocated arrays for reuse. */
@@ -98,6 +114,10 @@ export class TriangleBuffer {
 			uvU: this.uvU,
 			uvV: this.uvV,
 			centroidZ: this.centroidZ,
+			worldX: this.worldX,
+			worldY: this.worldY,
+			worldZ: this.worldZ,
+			fogFactor: this.fogFactor,
 		};
 
 		this.#capacity = next;
@@ -115,6 +135,10 @@ export class TriangleBuffer {
 		this.uvU.set(prev.uvU);
 		this.uvV.set(prev.uvV);
 		this.centroidZ.set(prev.centroidZ);
+		this.worldX.set(prev.worldX);
+		this.worldY.set(prev.worldY);
+		this.worldZ.set(prev.worldZ);
+		this.fogFactor.set(prev.fogFactor);
 	}
 
 	/**
@@ -146,6 +170,18 @@ export class TriangleBuffer {
 	 * @param {number} v1 UV V vertex 1
 	 * @param {number} u2 UV U vertex 2
 	 * @param {number} v2 UV V vertex 2
+	 * @param {number} [wx0=0] World X vertex 0
+	 * @param {number} [wy0=0] World Y vertex 0
+	 * @param {number} [wz0=0] World Z vertex 0
+	 * @param {number} [wx1=0] World X vertex 1
+	 * @param {number} [wy1=0] World Y vertex 1
+	 * @param {number} [wz1=0] World Z vertex 1
+	 * @param {number} [wx2=0] World X vertex 2
+	 * @param {number} [wy2=0] World Y vertex 2
+	 * @param {number} [wz2=0] World Z vertex 2
+	 * @param {number} [ff0=0] Fog factor vertex 0 (0=clear, 1=fully fogged)
+	 * @param {number} [ff1=0] Fog factor vertex 1
+	 * @param {number} [ff2=0] Fog factor vertex 2
 	 * @returns {number} Triangle index of the appended entry
 	 */
 	append(
@@ -176,6 +212,18 @@ export class TriangleBuffer {
 		v1,
 		u2,
 		v2,
+		wx0 = 0,
+		wy0 = 0,
+		wz0 = 0,
+		wx1 = 0,
+		wy1 = 0,
+		wz1 = 0,
+		wx2 = 0,
+		wy2 = 0,
+		wz2 = 0,
+		ff0 = 0,
+		ff1 = 0,
+		ff2 = 0,
 	) {
 		this.ensureCapacity(this.length + 1);
 
@@ -217,6 +265,22 @@ export class TriangleBuffer {
 		this.uvV[i3] = v0;
 		this.uvV[i3 + 1] = v1;
 		this.uvV[i3 + 2] = v2;
+
+		this.worldX[i3] = wx0;
+		this.worldX[i3 + 1] = wx1;
+		this.worldX[i3 + 2] = wx2;
+
+		this.worldY[i3] = wy0;
+		this.worldY[i3 + 1] = wy1;
+		this.worldY[i3 + 2] = wy2;
+
+		this.worldZ[i3] = wz0;
+		this.worldZ[i3 + 1] = wz1;
+		this.worldZ[i3 + 2] = wz2;
+
+		this.fogFactor[i3] = ff0;
+		this.fogFactor[i3 + 1] = ff1;
+		this.fogFactor[i3 + 2] = ff2;
 
 		this.centroidZ[i] = (z0 + z1 + z2) / 3;
 

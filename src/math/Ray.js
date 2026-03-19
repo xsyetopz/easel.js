@@ -410,10 +410,13 @@ export class Ray {
 		}
 
 		_diff.copy(this.#origin).sub(a);
-		const DdQxE2 = sign * this.#direction.dot(_edge2.copy(_diff).cross(_edge2));
+
+		_v1.copy(_diff).cross(_edge2);
+		const DdQxE2 = sign * this.#direction.dot(_v1);
 		if (DdQxE2 < 0) return undefined;
 
-		const DdE1xQ = sign * this.#direction.dot(_edge1.cross(_diff));
+		_v2.copy(_edge1).cross(_diff);
+		const DdE1xQ = sign * this.#direction.dot(_v2);
 		if (DdE1xQ < 0) return undefined;
 		if (DdQxE2 + DdE1xQ > DdN) return undefined;
 
@@ -428,6 +431,7 @@ export class Ray {
 	 * @returns {this}
 	 */
 	applyMatrix4(matrix4) {
+		this.#direction.add(this.#origin);
 		this.#origin.applyMatrix4(matrix4);
 		this.#direction.applyMatrix4(matrix4);
 		this.#direction.sub(this.#origin).normalize();

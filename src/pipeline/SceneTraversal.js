@@ -21,6 +21,13 @@ const _frustum = new Frustum();
 const VERT_STRIDE = 4;
 
 export class SceneTraversal {
+	/** @type {number} */
+	#fogNear = 0;
+	/** @type {number} */
+	#fogFar = 0;
+	/** @type {boolean} */
+	#hasFog = false;
+
 	/**
 	 * @param {{ children: *, visible: boolean, fog?: * }} scene
 	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4, position: Vec3, updateMatrixWorld: () => void }} camera
@@ -30,6 +37,11 @@ export class SceneTraversal {
 	 */
 	traverse(scene, camera, width = 300, height = 150) {
 		camera.updateMatrixWorld();
+
+		const fog = scene.fog;
+		this.#hasFog = !!fog;
+		this.#fogNear = fog?.near ?? 0;
+		this.#fogFar = fog?.far ?? 0;
 
 		_vp.copy(camera.projectionMatrix).mul(camera.matrixWorldInverse);
 		_frustum.setFromProjectionMatrix(_vp);
@@ -135,40 +147,7 @@ export class SceneTraversal {
 			.mul(camera.matrixWorldInverse)
 			.mul(node.matrixWorld);
 
-		const posAttr = node.geometry.getAttribute("position");
-		if (posAttr) {
-			const arr = posAttr.array;
-			const itemSize = posAttr.itemSize ?? 3;
-			const count = arr.length / itemSize;
-			const me = _mvp.elements;
-			const needed = count * VERT_STRIDE;
-			let pv = node.geometry._projectedVerts;
-			if (!pv || pv.length !== needed) {
-				pv = new Float32Array(needed);
-				node.geometry._projectedVerts = pv;
-			}
-			drawCall.projectedVerts = pv;
-			drawCall.vertCount = count;
-
-			// M2: Inline 4×4 matrix multiply — avoids Vector3 method dispatch per vertex.
-			for (let i = 0; i < count; i++) {
-				const lx = arr[i * itemSize];
-				const ly = arr[i * itemSize + 1];
-				const lz = arr[i * itemSize + 2];
-
-				const px = me[0] * lx + me[4] * ly + me[8] * lz + me[12];
-				const py = me[1] * lx + me[5] * ly + me[9] * lz + me[13];
-				const pz = me[2] * lx + me[6] * ly + me[10] * lz + me[14];
-				const pw = me[3] * lx + me[7] * ly + me[11] * lz + me[15];
-				const invW = 1 / pw;
-
-				const base = i * VERT_STRIDE;
-				drawCall.projectedVerts[base] = px * invW;
-				drawCall.projectedVerts[base + 1] = py * invW;
-				drawCall.projectedVerts[base + 2] = pz * invW;
-				drawCall.projectedVerts[base + 3] = pw;
-			}
-		}
+		this.#projectVertices(node, drawCall);
 
 		// M3: Use TypedArray directly instead of copying into a JS Array.
 		const index = node.geometry.index;
@@ -195,6 +174,7 @@ export class SceneTraversal {
 			drawCall.projectedVerts,
 			worldNormals,
 			uvs,
+			drawCall.worldPositions,
 			width,
 			height,
 			node.material,
@@ -202,6 +182,64 @@ export class SceneTraversal {
 		);
 
 		return drawCall;
+	}
+
+	/**
+	 * Projects local-space vertex positions to NDC and world space, storing
+	 * results in drawCall.projectedVerts and drawCall.worldPositions.
+	 * @param {{ matrixWorld: Matrix4, geometry: * }} node
+	 * @param {DrawCall} drawCall
+	 * @returns {void}
+	 */
+	#projectVertices(node, drawCall) {
+		const posAttr = node.geometry.getAttribute("position");
+		if (!posAttr) return;
+
+		const arr = posAttr.array;
+		const itemSize = posAttr.itemSize ?? 3;
+		const count = arr.length / itemSize;
+		const me = _mvp.elements;
+		const needed = count * VERT_STRIDE;
+		let pv = node.geometry._projectedVerts;
+		if (!pv || pv.length !== needed) {
+			pv = new Float32Array(needed);
+			node.geometry._projectedVerts = pv;
+		}
+		drawCall.projectedVerts = pv;
+		drawCall.vertCount = count;
+
+		const worldNeeded = count * 3;
+		let wp = node.geometry._worldPositions;
+		if (!wp || wp.length !== worldNeeded) {
+			wp = new Float32Array(worldNeeded);
+			node.geometry._worldPositions = wp;
+		}
+		drawCall.worldPositions = wp;
+
+		// M2: Inline 4×4 matrix multiply — avoids Vector3 method dispatch per vertex.
+		const mw = node.matrixWorld.elements;
+		for (let i = 0; i < count; i++) {
+			const lx = arr[i * itemSize];
+			const ly = arr[i * itemSize + 1];
+			const lz = arr[i * itemSize + 2];
+
+			const px = me[0] * lx + me[4] * ly + me[8] * lz + me[12];
+			const py = me[1] * lx + me[5] * ly + me[9] * lz + me[13];
+			const pz = me[2] * lx + me[6] * ly + me[10] * lz + me[14];
+			const pw = me[3] * lx + me[7] * ly + me[11] * lz + me[15];
+			const invW = 1 / pw;
+
+			const base = i * VERT_STRIDE;
+			pv[base] = px * invW;
+			pv[base + 1] = py * invW;
+			pv[base + 2] = pz * invW;
+			pv[base + 3] = pw;
+
+			const wb = i * 3;
+			wp[wb] = mw[0] * lx + mw[4] * ly + mw[8] * lz + mw[12];
+			wp[wb + 1] = mw[1] * lx + mw[5] * ly + mw[9] * lz + mw[13];
+			wp[wb + 2] = mw[2] * lx + mw[6] * ly + mw[10] * lz + mw[14];
+		}
 	}
 
 	/**
@@ -262,6 +300,7 @@ export class SceneTraversal {
 	 * @param {Float32Array} verts Stride-4 flat buffer (see VERT_STRIDE)
 	 * @param {Float32Array} worldNormals Stride-3 flat buffer
 	 * @param {Float32Array} uvs Stride-2 flat buffer
+	 * @param {Float32Array} worldPositions Stride-3 flat buffer
 	 * @param {number} width
 	 * @param {number} height
 	 * @param {import('../materials/Material.js').Material} material
@@ -273,6 +312,7 @@ export class SceneTraversal {
 		verts,
 		worldNormals,
 		uvs,
+		worldPositions,
 		width,
 		height,
 		material,
@@ -323,10 +363,13 @@ export class SceneTraversal {
 			const cross = (sx1 - sx0) * (sy2 - sy0) - (sy1 - sy0) * (sx2 - sx0);
 			if (this.#isCulled(cross, side)) continue;
 
+			const [ff0, ff1, ff2] = this.#computeFogFactors(w0, w1, w2);
+
 			this.#appendTriangle(
 				buf,
 				worldNormals,
 				uvs,
+				worldPositions,
 				i0,
 				i1,
 				i2,
@@ -339,6 +382,9 @@ export class SceneTraversal {
 				verts[b0 + 2],
 				verts[b1 + 2],
 				verts[b2 + 2],
+				ff0,
+				ff1,
+				ff2,
 			);
 		}
 
@@ -350,6 +396,7 @@ export class SceneTraversal {
 	 * @param {TriangleBuffer} buf
 	 * @param {Float32Array} worldNormals Stride-3 flat buffer
 	 * @param {Float32Array} uvs Stride-2 flat buffer
+	 * @param {Float32Array} worldPositions Stride-3 flat buffer
 	 * @param {number} i0
 	 * @param {number} i1
 	 * @param {number} i2
@@ -357,11 +404,13 @@ export class SceneTraversal {
 	 * @param {number} sx1 @param {number} sy1
 	 * @param {number} sx2 @param {number} sy2
 	 * @param {number} z0 @param {number} z1 @param {number} z2
+	 * @param {number} [ff0=0] @param {number} [ff1=0] @param {number} [ff2=0]
 	 */
 	#appendTriangle(
 		buf,
 		worldNormals,
 		uvs,
+		worldPositions,
 		i0,
 		i1,
 		i2,
@@ -374,26 +423,20 @@ export class SceneTraversal {
 		z0,
 		z1,
 		z2,
+		ff0 = 0,
+		ff1 = 0,
+		ff2 = 0,
 	) {
 		const [fnx, fny, fnz] = this.#computeFaceNormal(worldNormals, i0, i1, i2);
-
-		const has0 = worldNormals.length >= (i0 + 1) * 3;
-		const has1 = worldNormals.length >= (i1 + 1) * 3;
-		const has2 = worldNormals.length >= (i2 + 1) * 3;
-
-		const vn0x = has0 ? worldNormals[i0 * 3] : fnx;
-		const vn0y = has0 ? worldNormals[i0 * 3 + 1] : fny;
-		const vn0z = has0 ? worldNormals[i0 * 3 + 2] : fnz;
-		const vn1x = has1 ? worldNormals[i1 * 3] : fnx;
-		const vn1y = has1 ? worldNormals[i1 * 3 + 1] : fny;
-		const vn1z = has1 ? worldNormals[i1 * 3 + 2] : fnz;
-		const vn2x = has2 ? worldNormals[i2 * 3] : fnx;
-		const vn2y = has2 ? worldNormals[i2 * 3 + 1] : fny;
-		const vn2z = has2 ? worldNormals[i2 * 3 + 2] : fnz;
-
-		const hasUv0 = uvs.length >= (i0 + 1) * 2;
-		const hasUv1 = uvs.length >= (i1 + 1) * 2;
-		const hasUv2 = uvs.length >= (i2 + 1) * 2;
+		const vn0 = this.#vertNormal(worldNormals, i0, fnx, fny, fnz);
+		const vn1 = this.#vertNormal(worldNormals, i1, fnx, fny, fnz);
+		const vn2 = this.#vertNormal(worldNormals, i2, fnx, fny, fnz);
+		const uv0 = this.#vertUv(uvs, i0);
+		const uv1 = this.#vertUv(uvs, i1);
+		const uv2 = this.#vertUv(uvs, i2);
+		const wp0 = this.#vertWorld(worldPositions, i0);
+		const wp1 = this.#vertWorld(worldPositions, i1);
+		const wp2 = this.#vertWorld(worldPositions, i2);
 
 		buf.append(
 			sx0,
@@ -408,22 +451,92 @@ export class SceneTraversal {
 			fnx,
 			fny,
 			fnz,
-			vn0x,
-			vn0y,
-			vn0z,
-			vn1x,
-			vn1y,
-			vn1z,
-			vn2x,
-			vn2y,
-			vn2z,
-			hasUv0 ? uvs[i0 * 2] : 0,
-			hasUv0 ? uvs[i0 * 2 + 1] : 0,
-			hasUv1 ? uvs[i1 * 2] : 0,
-			hasUv1 ? uvs[i1 * 2 + 1] : 0,
-			hasUv2 ? uvs[i2 * 2] : 0,
-			hasUv2 ? uvs[i2 * 2 + 1] : 0,
+			vn0[0],
+			vn0[1],
+			vn0[2],
+			vn1[0],
+			vn1[1],
+			vn1[2],
+			vn2[0],
+			vn2[1],
+			vn2[2],
+			uv0[0],
+			uv0[1],
+			uv1[0],
+			uv1[1],
+			uv2[0],
+			uv2[1],
+			wp0[0],
+			wp0[1],
+			wp0[2],
+			wp1[0],
+			wp1[1],
+			wp1[2],
+			wp2[0],
+			wp2[1],
+			wp2[2],
+			ff0,
+			ff1,
+			ff2,
 		);
+	}
+
+	/**
+	 * @param {Float32Array} worldNormals
+	 * @param {number} idx
+	 * @param {number} fnx @param {number} fny @param {number} fnz
+	 * @returns {[number, number, number]}
+	 */
+	#vertNormal(worldNormals, idx, fnx, fny, fnz) {
+		if (worldNormals.length < (idx + 1) * 3) return [fnx, fny, fnz];
+		return [
+			worldNormals[idx * 3],
+			worldNormals[idx * 3 + 1],
+			worldNormals[idx * 3 + 2],
+		];
+	}
+
+	/**
+	 * Compute per-vertex fog factors from clip-space W values.
+	 * @param {number} w0 @param {number} w1 @param {number} w2
+	 * @returns {[number, number, number]}
+	 */
+	#computeFogFactors(w0, w1, w2) {
+		if (!this.#hasFog) return [0, 0, 0];
+		const range = this.#fogFar - this.#fogNear;
+		const invRange = range > 0 ? 1 / range : 0;
+		const f0 = (w0 - this.#fogNear) * invRange;
+		const f1 = (w1 - this.#fogNear) * invRange;
+		const f2 = (w2 - this.#fogNear) * invRange;
+		return [
+			f0 < 0 ? 0 : f0 > 1 ? 1 : f0,
+			f1 < 0 ? 0 : f1 > 1 ? 1 : f1,
+			f2 < 0 ? 0 : f2 > 1 ? 1 : f2,
+		];
+	}
+
+	/**
+	 * @param {Float32Array} uvs
+	 * @param {number} idx
+	 * @returns {[number, number]}
+	 */
+	#vertUv(uvs, idx) {
+		if (uvs.length < (idx + 1) * 2) return [0, 0];
+		return [uvs[idx * 2], uvs[idx * 2 + 1]];
+	}
+
+	/**
+	 * @param {Float32Array} worldPositions
+	 * @param {number} idx
+	 * @returns {[number, number, number]}
+	 */
+	#vertWorld(worldPositions, idx) {
+		if (worldPositions.length < (idx + 1) * 3) return [0, 0, 0];
+		return [
+			worldPositions[idx * 3],
+			worldPositions[idx * 3 + 1],
+			worldPositions[idx * 3 + 2],
+		];
 	}
 
 	/**
@@ -467,7 +580,7 @@ export class SceneTraversal {
 	}
 
 	/**
-	 * @param {{ type?: string, position?: *, color?: *, groundColor?: *, intensity: number }} light
+	 * @param {any} light
 	 * @param {DrawList} drawList
 	 * @returns {void}
 	 */
@@ -494,6 +607,24 @@ export class SceneTraversal {
 			return;
 		}
 
+		if (light.type === "SpotLight") {
+			drawList.lights.push(this.#buildSpotLightEntry(light));
+			return;
+		}
+
+		if (light.type === "PointLight") {
+			const pos = light.position;
+			drawList.lights.push({
+				type: "point",
+				position: { x: pos.x, y: pos.y, z: pos.z },
+				color: light.color,
+				intensity: light.intensity,
+				distance: light.distance ?? 0,
+				decay: light.decay ?? 2,
+			});
+			return;
+		}
+
 		if (
 			!light.position ||
 			light.color === undefined ||
@@ -509,5 +640,43 @@ export class SceneTraversal {
 			color: light.color,
 			intensity: light.intensity,
 		});
+	}
+
+	/**
+	 * Builds the draw list light entry for a SpotLight, transforming its
+	 * local-space direction into world space via matrixWorld.
+	 * @param {any} light
+	 * @returns {Record<string, unknown>}
+	 */
+	#buildSpotLightEntry(light) {
+		const pos = light.position;
+		const me = light.matrixWorld?.elements;
+		const dx = light.direction?.x ?? 0;
+		const dy = light.direction?.y ?? -1;
+		const dz = light.direction?.z ?? 0;
+		let wdx;
+		let wdy;
+		let wdz;
+		if (me) {
+			wdx = me[0] * dx + me[4] * dy + me[8] * dz;
+			wdy = me[1] * dx + me[5] * dy + me[9] * dz;
+			wdz = me[2] * dx + me[6] * dy + me[10] * dz;
+		} else {
+			wdx = dx;
+			wdy = dy;
+			wdz = dz;
+		}
+		const dirLen = Math.sqrt(wdx * wdx + wdy * wdy + wdz * wdz) || 1;
+		return {
+			type: "spot",
+			position: { x: pos.x, y: pos.y, z: pos.z },
+			direction: { x: wdx / dirLen, y: wdy / dirLen, z: wdz / dirLen },
+			color: light.color,
+			intensity: light.intensity,
+			angle: light.angle,
+			penumbra: light.penumbra ?? 0,
+			distance: light.distance ?? 0,
+			decay: light.decay ?? 2,
+		};
 	}
 }

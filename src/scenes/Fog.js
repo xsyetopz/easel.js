@@ -1,35 +1,60 @@
+import { Color } from "../math/Color.js";
+
 /**
- * Hard tile-count fog cutoff. Beyond this radius the framebuffer is black.
- * No color, no gradient.
+ * Linear fog that blends fragment colors toward a configurable color based on
+ * camera-space depth. Objects at `near` are unaffected; objects at `far` are
+ * fully fogged.
  */
 export class Fog {
+	/** @type {Color} */
+	#color;
+
 	/** @type {number} */
-	#tiles;
+	#near;
+
+	/** @type {number} */
+	#far;
 
 	/**
-	 * @param {{ tiles: number }} options
+	 * @param {{ color?: Color|number|string, near?: number, far?: number }} [options]
 	 */
-	constructor({ tiles }) {
-		this.#tiles = tiles;
+	constructor({ color = 0x000000, near = 1, far = 100 } = {}) {
+		this.#color = color instanceof Color ? color : new Color(color);
+		this.#near = near;
+		this.#far = far;
 	}
 
-	/**
-	 * Tile-count cutoff radius.
-	 * @returns {number}
-	 */
-	get tiles() {
-		return this.#tiles;
+	/** @returns {Color} */
+	get color() {
+		return this.#color;
+	}
+
+	/** @returns {number} */
+	get near() {
+		return this.#near;
 	}
 
 	/** @param {number} value */
-	set tiles(value) {
-		this.#tiles = value;
+	set near(value) {
+		this.#near = value;
 	}
 
-	/**
-	 * @returns {Fog}
-	 */
+	/** @returns {number} */
+	get far() {
+		return this.#far;
+	}
+
+	/** @param {number} value */
+	set far(value) {
+		this.#far = value;
+	}
+
+	/** @returns {Fog} */
 	clone() {
-		return new Fog({ tiles: this.#tiles });
+		return new Fog({
+			color: this.#color.clone(),
+			near: this.#near,
+			far: this.#far,
+		});
 	}
 }

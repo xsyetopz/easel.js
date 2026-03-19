@@ -98,13 +98,15 @@ export class Renderer {
 	 * @returns {void}
 	 */
 	render(scene, camera) {
-		// 1. Clear framebuffer + depth buffer
-		this.#clear.clear(
-			this.#framebuffer,
-			this.#clearColor.r,
-			this.#clearColor.g,
-			this.#clearColor.b,
-		);
+		// 0. Mark auto-updating CanvasTextures dirty before the pipeline runs
+		this.#refreshAutoUpdateTextures(scene);
+
+		// 1. Clear framebuffer + depth buffer (use fog color when present)
+		const fog = scene.fog;
+		const clearR = fog ? Math.round(fog.color.r * 255) : this.#clearColor.r;
+		const clearG = fog ? Math.round(fog.color.g * 255) : this.#clearColor.g;
+		const clearB = fog ? Math.round(fog.color.b * 255) : this.#clearColor.b;
+		this.#clear.clear(this.#framebuffer, clearR, clearG, clearB);
 		this.#framebuffer.depthBuffer.clear();
 
 		// 2. Scene traversal → DrawList
@@ -126,6 +128,7 @@ export class Renderer {
 		// 5. Light baking + 6. Rasterize per draw call
 		const lights = drawList.lights;
 		const fb = this.#framebuffer;
+		const fogColor = fog ? fog.color : undefined;
 		/** @type {(x: number, y: number, r: number, g: number, b: number, a: number) => void} */
 		const writePixel = (x, y, r, g, b, _a) => fb.setPixel(x, y, r, g, b, 255);
 		for (const drawCall of drawList) {
@@ -135,6 +138,7 @@ export class Renderer {
 				fb,
 				undefined,
 				writePixel,
+				fogColor,
 			);
 		}
 
@@ -177,6 +181,21 @@ export class Renderer {
 		this.#clearColor.r = r;
 		this.#clearColor.g = g;
 		this.#clearColor.b = b;
+	}
+
+	/**
+	 * Walks the scene graph and sets `needsUpdate = true` on any texture whose
+	 * `autoUpdate` flag is enabled, so the rasterizer re-uploads it this frame.
+	 * @param {{ children: Array<*>, material?: { map?: { autoUpdate?: boolean, needsUpdate: boolean } } }} node
+	 * @returns {void}
+	 */
+	#refreshAutoUpdateTextures(node) {
+		if (node.material?.map?.autoUpdate) {
+			node.material.map.needsUpdate = true;
+		}
+		for (const child of node.children) {
+			this.#refreshAutoUpdateTextures(child);
+		}
 	}
 
 	/** @returns {void} */

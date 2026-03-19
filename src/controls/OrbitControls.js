@@ -1,4 +1,5 @@
 import { EventDispatcher } from "../core/EventDispatcher.js";
+import { MathUtils } from "../math/MathUtils.js";
 import { Spherical } from "../math/Spherical.js";
 import { Vector3 } from "../math/Vector3.js";
 
@@ -69,6 +70,15 @@ export class OrbitControls extends EventDispatcher {
 	/** Fraction of velocity lost per frame when damping is enabled. @type {number} */
 	dampingFactor = 0.05;
 
+	/** @type {boolean} */
+	autoRotate = false;
+
+	/** Degrees per second. @type {number} */
+	autoRotateSpeed = 2.0;
+
+	/** When true, panning moves in screen space. When false, panning moves along the horizontal plane. @type {boolean} */
+	screenSpacePanning = true;
+
 	// ── private state ────────────────────────────────────────────────────────
 
 	/** @type {Spherical} */
@@ -94,6 +104,9 @@ export class OrbitControls extends EventDispatcher {
 
 	/** @type {boolean} */
 	#needsInit = true;
+
+	/** @type {number} */
+	#prevTime = 0;
 
 	// ── bound event handlers (stored so dispose() can remove them) ───────────
 
@@ -143,6 +156,15 @@ export class OrbitControls extends EventDispatcher {
 	 */
 	update() {
 		if (!this.enabled) return false;
+
+		const now = performance.now();
+		const dt = this.#prevTime ? (now - this.#prevTime) / 1000 : 0;
+		this.#prevTime = now;
+
+		if (this.autoRotate) {
+			this.#sphericalDelta.theta -=
+				MathUtils.toRadians(this.autoRotateSpeed) * dt;
+		}
 
 		if (this.#needsInit) {
 			const offset = new Vector3().copy(this.camera.position).sub(this.target);
@@ -217,6 +239,7 @@ export class OrbitControls extends EventDispatcher {
 		this.#sphericalDelta.set(0, 0, 0);
 		this.#panOffset.set(0, 0, 0);
 		this.#needsInit = true;
+		this.#prevTime = 0;
 		this.update();
 	}
 
@@ -329,8 +352,9 @@ export class OrbitControls extends EventDispatcher {
 	// ── pan helpers ──────────────────────────────────────────────────────────
 
 	/**
-	 * Accumulate a screen-space pan delta into #panOffset.
-	 * Extracts camera right/up from its matrixWorld columns 0 and 1.
+	 * Accumulate a pan delta into #panOffset.
+	 * In screen-space mode uses camera right/up from matrixWorld columns 0 and 1.
+	 * In horizontal-plane mode uses camera right and world-Y for the up component.
 	 * @param {number} dx pixels right
 	 * @param {number} dy pixels down
 	 * @returns {void}
@@ -344,10 +368,20 @@ export class OrbitControls extends EventDispatcher {
 		const ry = me[1];
 		const rz = me[2];
 
-		// Column 1: camera up vector (world space)
-		const ux = me[4];
-		const uy = me[5];
-		const uz = me[6];
+		let ux;
+		let uy;
+		let uz;
+		if (this.screenSpacePanning) {
+			// Column 1: camera up vector (world space)
+			ux = me[4];
+			uy = me[5];
+			uz = me[6];
+		} else {
+			// World-Y as the up component so panning stays on the horizontal plane
+			ux = 0;
+			uy = 1;
+			uz = 0;
+		}
 
 		const scale = distance * this.panSpeed * 0.001;
 

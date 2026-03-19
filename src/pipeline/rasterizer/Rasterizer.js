@@ -53,6 +53,22 @@ export class Rasterizer {
 	/** @type {(x: number, y: number, r: number, g: number, b: number, a: number) => void} */
 	#pixelWriter = /** @type {*} */ (undefined);
 
+	// Fog state
+	/** @type {boolean} */
+	#hasFog = false;
+	/** @type {number} */
+	#fogR = 0;
+	/** @type {number} */
+	#fogG = 0;
+	/** @type {number} */
+	#fogB = 0;
+	/** @type {number} */
+	#fogF0 = 0;
+	/** @type {number} */
+	#fogF1 = 0;
+	/** @type {number} */
+	#fogF2 = 0;
+
 	// Bound callbacks — created once, reused for every triangle.
 	#cbFlat = this.#fillFlat.bind(this);
 	#cbGouraud = this.#fillGouraud.bind(this);
@@ -90,10 +106,27 @@ export class Rasterizer {
 		return (ty * this.#texW + tx) << 2;
 	}
 
+	/**
+	 * @param {number} bu @param {number} bv @param {number} bw
+	 * @returns {number} Interpolated fog factor 0-1
+	 */
+	#fogLerp(bu, bv, bw) {
+		return bu * this.#fogF0 + bv * this.#fogF1 + bw * this.#fogF2;
+	}
+
 	/** @param {number} px @param {number} py @param {number} bu @param {number} bv @param {number} bw */
 	#fillFlat(px, py, bu, bv, bw) {
 		if (!this.#depthTest(px, py, bu, bv, bw)) return;
-		this.#pixelWriter(px, py, this.#flatR, this.#flatG, this.#flatB, 255);
+		let r = this.#flatR;
+		let g = this.#flatG;
+		let b = this.#flatB;
+		if (this.#hasFog) {
+			const f = this.#fogLerp(bu, bv, bw);
+			r = (r + (this.#fogR - r) * f + 0.5) | 0;
+			g = (g + (this.#fogG - g) * f + 0.5) | 0;
+			b = (b + (this.#fogB - b) * f + 0.5) | 0;
+		}
+		this.#pixelWriter(px, py, r, g, b, 255);
 	}
 
 	/** @param {number} px @param {number} py @param {number} bu @param {number} bv @param {number} bw */
@@ -105,9 +138,15 @@ export class Rasterizer {
 		const lr = sc[0].r * bu + sc[1].r * bv + sc[2].r * bw;
 		const lg = sc[0].g * bu + sc[1].g * bv + sc[2].g * bw;
 		const lb = sc[0].b * bu + sc[1].b * bv + sc[2].b * bw;
-		const r = (this.#baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + 0.5) | 0;
-		const g = (this.#baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + 0.5) | 0;
-		const bl = (this.#baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + 0.5) | 0;
+		let r = (this.#baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + 0.5) | 0;
+		let g = (this.#baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + 0.5) | 0;
+		let bl = (this.#baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + 0.5) | 0;
+		if (this.#hasFog) {
+			const f = this.#fogLerp(bu, bv, bw);
+			r = (r + (this.#fogR - r) * f + 0.5) | 0;
+			g = (g + (this.#fogG - g) * f + 0.5) | 0;
+			bl = (bl + (this.#fogB - bl) * f + 0.5) | 0;
+		}
 		this.#pixelWriter(px, py, r, g, bl, 255);
 	}
 
@@ -117,14 +156,16 @@ export class Rasterizer {
 		const tidx = this.#sampleTexIdx(bu, bv, bw);
 		const d = /** @type {Uint8ClampedArray} */ (this.#texData);
 		const litFactor = (this.#flatR + this.#flatG + this.#flatB) / (3 * 255);
-		this.#pixelWriter(
-			px,
-			py,
-			(d[tidx] * litFactor + 0.5) | 0,
-			(d[tidx + 1] * litFactor + 0.5) | 0,
-			(d[tidx + 2] * litFactor + 0.5) | 0,
-			255,
-		);
+		let r = (d[tidx] * litFactor + 0.5) | 0;
+		let g = (d[tidx + 1] * litFactor + 0.5) | 0;
+		let b = (d[tidx + 2] * litFactor + 0.5) | 0;
+		if (this.#hasFog) {
+			const f = this.#fogLerp(bu, bv, bw);
+			r = (r + (this.#fogR - r) * f + 0.5) | 0;
+			g = (g + (this.#fogG - g) * f + 0.5) | 0;
+			b = (b + (this.#fogB - b) * f + 0.5) | 0;
+		}
+		this.#pixelWriter(px, py, r, g, b, 255);
 	}
 
 	/** @param {number} px @param {number} py @param {number} bu @param {number} bv @param {number} bw */
@@ -136,20 +177,22 @@ export class Rasterizer {
 		const lr = sc[0].r * bu + sc[1].r * bv + sc[2].r * bw;
 		const lg = sc[0].g * bu + sc[1].g * bv + sc[2].g * bw;
 		const lb = sc[0].b * bu + sc[1].b * bv + sc[2].b * bw;
-		const r = (this.#baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + 0.5) | 0;
-		const g = (this.#baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + 0.5) | 0;
-		const bl = (this.#baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + 0.5) | 0;
+		const cr = (this.#baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + 0.5) | 0;
+		const cg = (this.#baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + 0.5) | 0;
+		const cb = (this.#baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + 0.5) | 0;
 		const tidx = this.#sampleTexIdx(bu, bv, bw);
 		const d = /** @type {Uint8ClampedArray} */ (this.#texData);
-		const litFactor = (r + g + bl) / (3 * 255);
-		this.#pixelWriter(
-			px,
-			py,
-			(d[tidx] * litFactor + 0.5) | 0,
-			(d[tidx + 1] * litFactor + 0.5) | 0,
-			(d[tidx + 2] * litFactor + 0.5) | 0,
-			255,
-		);
+		const litFactor = (cr + cg + cb) / (3 * 255);
+		let r = (d[tidx] * litFactor + 0.5) | 0;
+		let g = (d[tidx + 1] * litFactor + 0.5) | 0;
+		let b = (d[tidx + 2] * litFactor + 0.5) | 0;
+		if (this.#hasFog) {
+			const f = this.#fogLerp(bu, bv, bw);
+			r = (r + (this.#fogR - r) * f + 0.5) | 0;
+			g = (g + (this.#fogG - g) * f + 0.5) | 0;
+			b = (b + (this.#fogB - b) * f + 0.5) | 0;
+		}
+		this.#pixelWriter(px, py, r, g, b, 255);
 	}
 
 	/** @param {number} px @param {number} py @param {number} bu @param {number} bv @param {number} bw */
@@ -157,14 +200,16 @@ export class Rasterizer {
 		if (!this.#depthTest(px, py, bu, bv, bw)) return;
 		const tidx = this.#sampleTexIdx(bu, bv, bw);
 		const d = /** @type {Uint8ClampedArray} */ (this.#texData);
-		this.#pixelWriter(
-			px,
-			py,
-			((d[tidx] * this.#baseR) / 255 + 0.5) | 0,
-			((d[tidx + 1] * this.#baseG) / 255 + 0.5) | 0,
-			((d[tidx + 2] * this.#baseB) / 255 + 0.5) | 0,
-			255,
-		);
+		let r = ((d[tidx] * this.#baseR) / 255 + 0.5) | 0;
+		let g = ((d[tidx + 1] * this.#baseG) / 255 + 0.5) | 0;
+		let b = ((d[tidx + 2] * this.#baseB) / 255 + 0.5) | 0;
+		if (this.#hasFog) {
+			const f = this.#fogLerp(bu, bv, bw);
+			r = (r + (this.#fogR - r) * f + 0.5) | 0;
+			g = (g + (this.#fogG - g) * f + 0.5) | 0;
+			b = (b + (this.#fogB - b) * f + 0.5) | 0;
+		}
+		this.#pixelWriter(px, py, r, g, b, 255);
 	}
 
 	/**
@@ -184,9 +229,16 @@ export class Rasterizer {
 	 * @param {import('../framebuffer/Framebuffer.js').Framebuffer} framebuffer
 	 * @param {unknown} _colorTable Ignored - internal ColorTable is used
 	 * @param {(x: number, y: number, r: number, g: number, b: number, a: number) => void} pixelWriter
+	 * @param {{ r: number, g: number, b: number }|undefined} [fogColor]
 	 * @returns {void}
 	 */
-	rasterize(drawCall, framebuffer, _colorTable, pixelWriter) {
+	rasterize(drawCall, framebuffer, _colorTable, pixelWriter, fogColor) {
+		this.#hasFog = !!fogColor;
+		if (fogColor) {
+			this.#fogR = Math.round(fogColor.r * 255);
+			this.#fogG = Math.round(fogColor.g * 255);
+			this.#fogB = Math.round(fogColor.b * 255);
+		}
 		const { width, height } = framebuffer;
 		const { wireframe, points, pointRadius = 2 } = drawCall.material;
 
@@ -286,6 +338,12 @@ export class Rasterizer {
 		this.#ndcZ0 = tb.ndcZ[v];
 		this.#ndcZ1 = tb.ndcZ[v + 1];
 		this.#ndcZ2 = tb.ndcZ[v + 2];
+
+		if (this.#hasFog) {
+			this.#fogF0 = tb.fogFactor[v];
+			this.#fogF1 = tb.fogFactor[v + 1];
+			this.#fogF2 = tb.fogFactor[v + 2];
+		}
 		this.#flatR = flatR;
 		this.#flatG = flatG;
 		this.#flatB = flatB;

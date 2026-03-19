@@ -28,6 +28,9 @@ export class DrawCall {
 	/** @type {import('./TriangleBuffer.js').TriangleBuffer} */
 	triangles = /** @type {*} */ (undefined);
 
+	/** @type {Float32Array} */
+	worldPositions = new Float32Array(0);
+
 	/** @type {number[]} */
 	shadedColors = [];
 

@@ -1,3 +1,4 @@
+import { Vector3 } from "../math/Vector3.js";
 import { Light } from "./Light.js";
 
 /**
@@ -9,6 +10,9 @@ export class SpotLight extends Light {
 	 * @type {string}
 	 */
 	type = "SpotLight";
+
+	/** Local-space cone direction. @type {Vector3} */
+	direction = new Vector3(0, -1, 0);
 
 	/** @type {number} */
 	distance;
@@ -53,6 +57,7 @@ export class SpotLight extends Light {
 	 */
 	copy(source, recursive = true) {
 		super.copy(source, recursive);
+		this.direction.copy(source.direction);
 		this.distance = source.distance;
 		this.angle = source.angle;
 		this.penumbra = source.penumbra;

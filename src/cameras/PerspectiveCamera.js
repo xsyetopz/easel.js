@@ -1,3 +1,4 @@
+import { MathUtils } from "../math/MathUtils.js";
 import { Camera } from "./Camera.js";
 
 /**
@@ -13,14 +14,14 @@ export class PerspectiveCamera extends Camera {
 
 	/**
 	 * @param {object} [options]
-	 * @param {number} [options.fov=Math.PI / 4] Vertical field of view in radians.
+	 * @param {number} [options.fov=45] Vertical field of view in degrees.
 	 * @param {number} [options.aspect=1] Viewport width / height.
 	 * @param {number} [options.near=0.1]
 	 * @param {number} [options.far=2000]
 	 * @param {number} [options.tileSize=1]
 	 */
 	constructor({
-		fov = Math.PI / 4,
+		fov = 45,
 		aspect = 1,
 		near = 0.1,
 		far = 2000,
@@ -55,7 +56,7 @@ export class PerspectiveCamera extends Camera {
 	/** @override @returns {void} */
 	updateProjectionMatrix() {
 		this.projectionMatrix.makePerspective(
-			this.#fov,
+			MathUtils.toRadians(this.#fov),
 			this.#aspect,
 			this.near,
 			this.far,

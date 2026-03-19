@@ -1,6 +1,7 @@
 import { Node } from "../core/Node.js";
 import { Attribute } from "../geometry/Attribute.js";
 import { Geometry } from "../geometry/Geometry.js";
+import { Vector3 } from "../math/Vector3.js";
 import { LineSegments } from "../objects/LineSegments.js";
 
 /**
@@ -76,7 +77,16 @@ export class SpotLightHelper extends Node {
 		const light = this.#light;
 		if (!light) return;
 		this.position.copy(light.position);
-		if (light.target) this.lookAt(light.target.position);
+		if (light.direction) {
+			const d = light.direction;
+			this.lookAt(
+				new Vector3(
+					light.position.x + d.x,
+					light.position.y + d.y,
+					light.position.z + d.z,
+				),
+			);
+		}
 		this.#buildCone();
 	}
 

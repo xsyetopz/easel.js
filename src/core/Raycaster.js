@@ -9,7 +9,9 @@ const _intersectPoint = new Vector3();
 
 /**
  * @typedef {{ elements: ArrayLike<number> }} MatrixLike
- * @typedef {{ visible: boolean, layers: Layers, type?: string, geometry?: { attributes?: { position?: { getX: (i: number) => number, getY: (i: number) => number, getZ: (i: number) => number, count: number } }, index?: { array: ArrayLike<number> } | undefined }, matrixWorld: MatrixLike, children?: SceneObject[] }} SceneObject
+ * @typedef {{ getX: (i: number) => number, getY: (i: number) => number, getZ: (i: number) => number, count: number }} PositionAttribute
+ * @typedef {{ getAttribute?: (name: string) => PositionAttribute|undefined, index?: ArrayLike<number>|{ array: ArrayLike<number> }|undefined }} RaycastGeometry
+ * @typedef {{ visible: boolean, layers: Layers, type?: string, geometry?: RaycastGeometry, matrixWorld: MatrixLike, children?: SceneObject[] }} SceneObject
  * @typedef {{ distance: number, point: Vector3, face: { a: number, b: number, c: number, normal: Vector3|undefined }, object: SceneObject }} Intersection
  */
 
@@ -136,43 +138,63 @@ function _intersectObject(object, raycaster, intersects, recursive) {
 	if (!raycaster.layers.test(object.layers)) return;
 
 	if (object.type === "Mesh" && object.geometry) {
-		const geometry = object.geometry;
-		const position = geometry.attributes?.position;
-		const index = geometry.index;
-
-		if (!position) return;
-
-		const matrixWorld = object.matrixWorld;
-		const rayLocal = raycaster.ray
-			.clone()
-			.applyMatrix4(_invertMatrix4(matrixWorld));
-
-		if (index) {
-			_intersectIndexed(
-				rayLocal,
-				raycaster,
-				position,
-				index,
-				matrixWorld,
-				object,
-				intersects,
-			);
-		} else {
-			_intersectNonIndexed(
-				rayLocal,
-				raycaster,
-				position,
-				matrixWorld,
-				object,
-				intersects,
-			);
-		}
+		_intersectMesh(object, object.geometry, raycaster, intersects);
 	}
 
 	if (recursive && object.children) {
 		for (const child of object.children) {
 			_intersectObject(child, raycaster, intersects, recursive);
 		}
+	}
+}
+
+/**
+ * Normalize index to `{ array }` form. Geometry.index may return a raw typed
+ * array or an object with an `.array` property.
+ * @param {ArrayLike<number>|{ array: ArrayLike<number> }|undefined} raw
+ * @returns {{ array: ArrayLike<number> }|undefined}
+ */
+function _normalizeIndex(raw) {
+	if (!raw) return undefined;
+	if ("array" in raw) return /** @type {{ array: ArrayLike<number> }} */ (raw);
+	return { array: raw };
+}
+
+/**
+ * @param {SceneObject} object
+ * @param {RaycastGeometry} geometry
+ * @param {Raycaster} raycaster
+ * @param {Intersection[]} intersects
+ */
+function _intersectMesh(object, geometry, raycaster, intersects) {
+	const position = geometry.getAttribute?.("position");
+	if (!position) return;
+
+	const index = _normalizeIndex(geometry.index);
+	const matrixWorld = object.matrixWorld;
+	const rayLocal = raycaster.ray
+		.clone()
+		.applyMatrix4(_invertMatrix4(matrixWorld));
+
+	if (index) {
+		_intersectIndexed(
+			rayLocal,
+			raycaster,
+			position,
+			index,
+			matrixWorld,
+			object,
+			intersects,
+		);
+	} else {
+		_intersectNonIndexed(
+			rayLocal,
+			raycaster,
+			position,
+			matrixWorld,
+			object,
+			intersects,
+		);
 	}
 }
 
@@ -217,11 +239,17 @@ function _intersectIndexed(
 		const distance = raycaster.ray.origin.distanceTo(point);
 		if (distance < raycaster.near || distance > raycaster.far) continue;
 
-		const normal = _v0
-			.copy(_v1)
-			.sub(_v0)
-			.cross(_v2.copy(_v2).sub(_v0))
-			.normalize();
+		const e1x = _v1.x - _v0.x;
+		const e1y = _v1.y - _v0.y;
+		const e1z = _v1.z - _v0.z;
+		const e2x = _v2.x - _v0.x;
+		const e2y = _v2.y - _v0.y;
+		const e2z = _v2.z - _v0.z;
+		const normal = new Vector3(
+			e1y * e2z - e1z * e2y,
+			e1z * e2x - e1x * e2z,
+			e1x * e2y - e1y * e2x,
+		).normalize();
 		intersects.push({
 			distance,
 			point: point.clone(),

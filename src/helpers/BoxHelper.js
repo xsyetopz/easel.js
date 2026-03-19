@@ -1,5 +1,6 @@
 import { Attribute } from "../geometry/Attribute.js";
 import { Geometry } from "../geometry/Geometry.js";
+import { LineMaterial } from "../materials/LineMaterial.js";
 import { LineSegments } from "../objects/LineSegments.js";
 
 /**
@@ -14,10 +15,11 @@ export class BoxHelper extends LineSegments {
 
 	/**
 	 * @param {*} object - Scene object with geometry
-	 * @param {*} [_color]
+	 * @param {number} [color=0xffff00]
 	 */
-	constructor(object, _color) {
+	constructor(object, color = 0xffff00) {
 		const geometry = new Geometry();
+		const material = new LineMaterial({ color });
 
 		// 12 edges × 2 vertices = 24 positions (placeholder, filled by update())
 		geometry.setAttribute(
@@ -25,7 +27,7 @@ export class BoxHelper extends LineSegments {
 			new Attribute(new Float32Array(24 * 3), 3),
 		);
 
-		super(geometry);
+		super(geometry, material);
 
 		this.#object = object;
 		this.update();
