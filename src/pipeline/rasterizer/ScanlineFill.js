@@ -24,7 +24,42 @@ export class ScanlineFill {
 		// Degenerate triangle - no area to fill.
 		if (denom === 0) return;
 
-		const [ax, ay, bx, by, cx, cy] = this.#sortByY(x1, y1, x2, y2, x3, y3);
+		const invDenom = 1 / denom;
+
+		// Sort three vertices by ascending Y using a sorting network.
+		let ax = x1;
+		let ay = y1;
+		let bx = x2;
+		let by = y2;
+		let cx = x3;
+		let cy = y3;
+		if (ay > by) {
+			let t;
+			t = ax;
+			ax = bx;
+			bx = t;
+			t = ay;
+			ay = by;
+			by = t;
+		}
+		if (ay > cy) {
+			let t;
+			t = ax;
+			ax = cx;
+			cx = t;
+			t = ay;
+			ay = cy;
+			cy = t;
+		}
+		if (by > cy) {
+			let t;
+			t = bx;
+			bx = cx;
+			cx = t;
+			t = by;
+			by = cy;
+			cy = t;
+		}
 
 		if (by === cy) {
 			this.#fillFlatBottom(
@@ -42,7 +77,7 @@ export class ScanlineFill {
 				y2,
 				x3,
 				y3,
-				denom,
+				invDenom,
 				callback,
 			);
 		} else if (ay === by) {
@@ -61,7 +96,7 @@ export class ScanlineFill {
 				y2,
 				x3,
 				y3,
-				denom,
+				invDenom,
 				callback,
 			);
 		} else {
@@ -84,7 +119,7 @@ export class ScanlineFill {
 				y2,
 				x3,
 				y3,
-				denom,
+				invDenom,
 				callback,
 			);
 			this.#fillFlatTop(
@@ -102,33 +137,10 @@ export class ScanlineFill {
 				y2,
 				x3,
 				y3,
-				denom,
+				invDenom,
 				callback,
 			);
 		}
-	}
-
-	/**
-	 * Sorts three vertices by ascending Y.
-	 * @param {number} x1
-	 * @param {number} y1
-	 * @param {number} x2
-	 * @param {number} y2
-	 * @param {number} x3
-	 * @param {number} y3
-	 * @returns {number[]} [ax,ay, bx,by, cx,cy] sorted top-to-bottom
-	 */
-	#sortByY(x1, y1, x2, y2, x3, y3) {
-		let ax = x1;
-		let ay = y1;
-		let bx = x2;
-		let by = y2;
-		let cx = x3;
-		let cy = y3;
-		if (ay > by) [ax, ay, bx, by] = [bx, by, ax, ay];
-		if (ay > cy) [ax, ay, cx, cy] = [cx, cy, ax, ay];
-		if (by > cy) [bx, by, cx, cy] = [cx, cy, bx, by];
-		return [ax, ay, bx, by, cx, cy];
 	}
 
 	/**
@@ -147,7 +159,7 @@ export class ScanlineFill {
 	 * @param {number} oy2 Original y2
 	 * @param {number} ox3 Original x3
 	 * @param {number} oy3 Original y3
-	 * @param {number} denom Pre-computed barycentric denominator
+	 * @param {number} invDenom Pre-computed 1/barycentric denominator
 	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
 	 * @returns {void}
 	 */
@@ -166,7 +178,7 @@ export class ScanlineFill {
 		oy2,
 		ox3,
 		oy3,
-		denom,
+		invDenom,
 		callback,
 	) {
 		const dy = botLeftY - topY;
@@ -191,7 +203,7 @@ export class ScanlineFill {
 				oy2,
 				ox3,
 				oy3,
-				denom,
+				invDenom,
 				callback,
 			);
 		}
@@ -213,7 +225,7 @@ export class ScanlineFill {
 	 * @param {number} oy2 Original y2
 	 * @param {number} ox3 Original x3
 	 * @param {number} oy3 Original y3
-	 * @param {number} denom Pre-computed barycentric denominator
+	 * @param {number} invDenom Pre-computed 1/barycentric denominator
 	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
 	 * @returns {void}
 	 */
@@ -232,7 +244,7 @@ export class ScanlineFill {
 		oy2,
 		ox3,
 		oy3,
-		denom,
+		invDenom,
 		callback,
 	) {
 		const dy = botY - topLeftY;
@@ -257,7 +269,7 @@ export class ScanlineFill {
 				oy2,
 				ox3,
 				oy3,
-				denom,
+				invDenom,
 				callback,
 			);
 		}
@@ -276,7 +288,7 @@ export class ScanlineFill {
 	 * @param {number} oy2 Original y2
 	 * @param {number} ox3 Original x3
 	 * @param {number} oy3 Original y3
-	 * @param {number} denom Pre-computed barycentric denominator
+	 * @param {number} invDenom Pre-computed 1/barycentric denominator
 	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
 	 * @returns {void}
 	 */
@@ -291,7 +303,7 @@ export class ScanlineFill {
 		oy2,
 		ox3,
 		oy3,
-		denom,
+		invDenom,
 		callback,
 	) {
 		const startX = MathUtils.clamp(
@@ -314,8 +326,8 @@ export class ScanlineFill {
 
 		for (let x = startX; x <= endX; x++) {
 			const dx3 = x - ox3;
-			const u = (uDy * dx3 + uNumerBase) / denom;
-			const v = (vDy * dx3 + vNumerBase) / denom;
+			const u = (uDy * dx3 + uNumerBase) * invDenom;
+			const v = (vDy * dx3 + vNumerBase) * invDenom;
 			const w = 1 - u - v;
 			callback(x, y, u, v, w);
 		}

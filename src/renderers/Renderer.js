@@ -3,7 +3,6 @@ import { Framebuffer } from "../pipeline/framebuffer/Framebuffer.js";
 import { FramebufferClear } from "../pipeline/framebuffer/FramebufferClear.js";
 import { FramebufferUpload } from "../pipeline/framebuffer/FramebufferUpload.js";
 import { PainterSort } from "../pipeline/PainterSort.js";
-import { PixelWriter } from "../pipeline/PixelWriter.js";
 import { Rasterizer } from "../pipeline/rasterizer/Rasterizer.js";
 import { SceneTraversal } from "../pipeline/SceneTraversal.js";
 import { LightBaker } from "../pipeline/shading/LightBaker.js";
@@ -21,7 +20,6 @@ export class Renderer {
 	#painterSort;
 	#lightBaker;
 	#rasterizer;
-	#pixelWriter;
 
 	/** @type {number} */
 	#pixelRatio = 1;
@@ -69,7 +67,6 @@ export class Renderer {
 		this.#painterSort = new PainterSort();
 		this.#lightBaker = new LightBaker();
 		this.#rasterizer = new Rasterizer();
-		this.#pixelWriter = new PixelWriter();
 		this.#clear = new FramebufferClear();
 		this.#upload = new FramebufferUpload();
 	}
@@ -129,25 +126,8 @@ export class Renderer {
 		// 5. Light baking + 6. Rasterize per draw call
 		const lights = drawList.lights;
 		const fb = this.#framebuffer;
-		const pw = this.#pixelWriter;
-		/**
-		 * @param {number} x
-		 * @param {number} y
-		 * @param {unknown} r
-		 * @param {unknown} g
-		 * @param {unknown} b
-		 * @param {unknown} a
-		 */
-		const writePixel = (x, y, r, g, b, a) =>
-			pw.write(
-				fb,
-				x,
-				y,
-				/** @type {number} */ (r),
-				/** @type {number} */ (g),
-				/** @type {number} */ (b),
-				/** @type {number} */ (a),
-			);
+		/** @type {(x: number, y: number, r: number, g: number, b: number, a: number) => void} */
+		const writePixel = (x, y, r, g, b, _a) => fb.setPixel(x, y, r, g, b, 255);
 		for (const drawCall of drawList) {
 			this.#lightBaker.bake(/** @type {*} */ (drawCall), lights);
 			this.#rasterizer.rasterize(

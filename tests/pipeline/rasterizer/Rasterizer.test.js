@@ -1,25 +1,50 @@
 import { describe, expect, it, vi } from "vitest";
 import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";
 import { Rasterizer } from "@/pipeline/rasterizer/Rasterizer.js";
+import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 
 function makeDrawCall(opts = {}) {
+	const tb = new TriangleBuffer(1);
+	tb.append(
+		0,
+		0,
+		5,
+		0,
+		2,
+		5,
+		0,
+		0,
+		0,
+		0,
+		0,
+		-1,
+		0,
+		0,
+		-1,
+		0,
+		0,
+		-1,
+		0,
+		0,
+		-1,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+	);
+	tb.buildSortOrder();
 	return {
-		triangles: [
-			{
-				screenVerts: [
-					{ x: 0, y: 0 },
-					{ x: 5, y: 0 },
-					{ x: 2, y: 5 },
-				],
-				ndcVerts: [
-					{ x: -1, y: 1, z: 0 },
-					{ x: 0, y: 1, z: 0 },
-					{ x: -0.5, y: 0, z: 0 },
-				],
-			},
-		],
+		triangles: tb,
 		material: { wireframe: false, points: false, ...opts },
 	};
+}
+
+function makeEmptyDrawCall() {
+	const tb = new TriangleBuffer(1);
+	tb.buildSortOrder();
+	return { triangles: tb, material: {} };
 }
 
 describe("Rasterizer", () => {
@@ -59,8 +84,12 @@ describe("Rasterizer", () => {
 	it("does not call pixelWriter for empty triangles array", () => {
 		const rasterizer = new Rasterizer();
 		const pixelWriter = vi.fn();
-		const drawCall = { triangles: [], material: {} };
-		rasterizer.rasterize(drawCall, framebuffer, undefined, pixelWriter);
+		rasterizer.rasterize(
+			makeEmptyDrawCall(),
+			framebuffer,
+			undefined,
+			pixelWriter,
+		);
 		expect(pixelWriter).not.toHaveBeenCalled();
 	});
 });

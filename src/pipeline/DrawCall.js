@@ -19,25 +19,14 @@ export class DrawCall {
 	/** @type {import('../materials/Material.js').Material} */
 	material;
 
-	/** @type {number[]} */
+	/** @type {number[] | Uint16Array | Uint32Array} */
 	faceIndices = [];
 
 	/** @type {{ x: number, y: number, z: number }} */
 	centroid = { x: 0, y: 0, z: 0 };
 
-	/**
-	 * @type {Array<{
-	 *   screenVerts: Array<{ x: number, y: number }>,
-	 *   normal: { x: number, y: number, z: number },
-	 *   vertices: Array<{ normal: { x: number, y: number, z: number } }>,
-	 *   uvs?: Array<{ u: number, v: number }>,
-	 *   centroidZ: number,
-	 *   minZ: number,
-	 *   maxZ: number,
-	 *   ndcVerts: Array<{ x: number, y: number, z: number }>
-	 * }>}
-	 */
-	triangles = [];
+	/** @type {import('./TriangleBuffer.js').TriangleBuffer} */
+	triangles = /** @type {*} */ (undefined);
 
 	/** @type {number[]} */
 	shadedColors = [];

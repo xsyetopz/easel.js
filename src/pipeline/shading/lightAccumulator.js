@@ -1,21 +1,3 @@
-import { MathUtils } from "../../math/MathUtils.js";
-
-/**
- * Extracts r, g, b from a color value, defaulting to 1 for non-object colors.
- * @param {*} c
- * @returns {{ r: number, g: number, b: number }}
- */
-function colorChannels(c) {
-	if (typeof c === "object" && c !== null) {
-		return {
-			r: /** @type {*} */ (c).r,
-			g: /** @type {*} */ (c).g,
-			b: /** @type {*} */ (c).b,
-		};
-	}
-	return { r: 1, g: 1, b: 1 };
-}
-
 /**
  * Accumulates one ambient light's RGB contribution.
  * @param {*} light
@@ -23,68 +5,89 @@ function colorChannels(c) {
  * @returns {void}
  */
 function accumulateAmbient(light, acc) {
-	const c = colorChannels(light.color);
-	acc.r += c.r * light.intensity;
-	acc.g += c.g * light.intensity;
-	acc.b += c.b * light.intensity;
+	const c = light.color;
+	const cr = typeof c === "object" && c !== null ? c.r : 1;
+	const cg = typeof c === "object" && c !== null ? c.g : 1;
+	const cb = typeof c === "object" && c !== null ? c.b : 1;
+	acc.r += cr * light.intensity;
+	acc.g += cg * light.intensity;
+	acc.b += cb * light.intensity;
 }
 
 /**
  * Accumulates one hemisphere light's RGB contribution.
- * @param {{ x: number, y: number, z: number }} normal
+ * @param {number} nx Normalized surface normal X component
+ * @param {number} ny Normalized surface normal Y component
+ * @param {number} nz Normalized surface normal Z component
  * @param {*} light
  * @param {{ r: number, g: number, b: number }} acc
  * @returns {void}
  */
-function accumulateHemisphere(normal, light, acc) {
+function accumulateHemisphere(nx, ny, nz, light, acc) {
 	const d = light.direction;
-	const dot = normal.x * d.x + normal.y * d.y + normal.z * d.z;
+	const dot = nx * d.x + ny * d.y + nz * d.z;
 	const blend = 0.5 + 0.5 * dot;
-	const sky = colorChannels(light.skyColor);
-	const gnd = colorChannels(light.groundColor);
-	acc.r += (gnd.r + (sky.r - gnd.r) * blend) * light.intensity;
-	acc.g += (gnd.g + (sky.g - gnd.g) * blend) * light.intensity;
-	acc.b += (gnd.b + (sky.b - gnd.b) * blend) * light.intensity;
+	const sc = light.skyColor;
+	const sr = typeof sc === "object" && sc !== null ? sc.r : 1;
+	const sg = typeof sc === "object" && sc !== null ? sc.g : 1;
+	const sb = typeof sc === "object" && sc !== null ? sc.b : 1;
+	const gc = light.groundColor;
+	const gr = typeof gc === "object" && gc !== null ? gc.r : 1;
+	const gg = typeof gc === "object" && gc !== null ? gc.g : 1;
+	const gb = typeof gc === "object" && gc !== null ? gc.b : 1;
+	acc.r += (gr + (sr - gr) * blend) * light.intensity;
+	acc.g += (gg + (sg - gg) * blend) * light.intensity;
+	acc.b += (gb + (sb - gb) * blend) * light.intensity;
 }
 
 /**
  * Accumulates one directional/point/spot light's RGB contribution.
- * @param {{ x: number, y: number, z: number }} normal
+ * @param {number} nx Normalized surface normal X component
+ * @param {number} ny Normalized surface normal Y component
+ * @param {number} nz Normalized surface normal Z component
  * @param {*} light
  * @param {{ r: number, g: number, b: number }} acc
  * @returns {void}
  */
-function accumulateDirectional(normal, light, acc) {
+function accumulateDirectional(nx, ny, nz, light, acc) {
 	const d = light.direction;
-	const dot = normal.x * -d.x + normal.y * -d.y + normal.z * -d.z;
+	const dot = nx * -d.x + ny * -d.y + nz * -d.z;
 	if (dot <= 0) return;
-	const c = colorChannels(light.color);
-	acc.r += dot * c.r * light.intensity;
-	acc.g += dot * c.g * light.intensity;
-	acc.b += dot * c.b * light.intensity;
+	const c = light.color;
+	const cr = typeof c === "object" && c !== null ? c.r : 1;
+	const cg = typeof c === "object" && c !== null ? c.g : 1;
+	const cb = typeof c === "object" && c !== null ? c.b : 1;
+	acc.r += dot * cr * light.intensity;
+	acc.g += dot * cg * light.intensity;
+	acc.b += dot * cb * light.intensity;
 }
 
 /**
  * Accumulates all scene lights into an RGB multiplier object.
- * @param {{ x: number, y: number, z: number }} normal Normalized surface normal
+ * Mutates and returns the provided `out` parameter to avoid allocation.
+ * @param {number} nx Normalized surface normal X component
+ * @param {number} ny Normalized surface normal Y component
+ * @param {number} nz Normalized surface normal Z component
  * @param {Array<*>} lights
  * @param {number} ambientIntensity Starting ambient term
+ * @param {{ r: number, g: number, b: number }} out Pre-allocated output object
  * @returns {{ r: number, g: number, b: number }} Clamped RGB multipliers in [0, 1]
  */
-export function accumulateLights(normal, lights, ambientIntensity) {
-	const acc = { r: ambientIntensity, g: ambientIntensity, b: ambientIntensity };
+export function accumulateLights(nx, ny, nz, lights, ambientIntensity, out) {
+	out.r = ambientIntensity;
+	out.g = ambientIntensity;
+	out.b = ambientIntensity;
 	for (const light of lights) {
 		if (light.type === "ambient") {
-			accumulateAmbient(light, acc);
+			accumulateAmbient(light, out);
 		} else if (light.type === "hemisphere") {
-			accumulateHemisphere(normal, light, acc);
+			accumulateHemisphere(nx, ny, nz, light, out);
 		} else {
-			accumulateDirectional(normal, light, acc);
+			accumulateDirectional(nx, ny, nz, light, out);
 		}
 	}
-	return {
-		r: MathUtils.clamp(acc.r, 0, 1),
-		g: MathUtils.clamp(acc.g, 0, 1),
-		b: MathUtils.clamp(acc.b, 0, 1),
-	};
+	out.r = out.r < 0 ? 0 : out.r > 1 ? 1 : out.r;
+	out.g = out.g < 0 ? 0 : out.g > 1 ? 1 : out.g;
+	out.b = out.b < 0 ? 0 : out.b > 1 ? 1 : out.b;
+	return out;
 }

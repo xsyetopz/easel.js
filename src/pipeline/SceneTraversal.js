@@ -4,10 +4,11 @@ import { Matrix4 } from "../math/Matrix4.js";
 import { Vector3 } from "../math/Vector3.js";
 import { DrawCall } from "./DrawCall.js";
 import { DrawList } from "./DrawList.js";
+import { TriangleBuffer } from "./TriangleBuffer.js";
 
 const _mvp = new Matrix4();
 const _vp = new Matrix4();
-const _worldPos = new Vector3();
+const _bsCenter = new Vector3();
 const _frustum = new Frustum();
 
 /**
@@ -98,7 +99,9 @@ export class SceneTraversal {
 		const bs = node.geometry.boundingSphere;
 		if (!bs) return false;
 
-		const worldCenter = bs.centre.clone().applyMatrix4(node.matrixWorld);
+		const worldCenter = _bsCenter
+			.copy(bs.centre)
+			.applyMatrix4(node.matrixWorld);
 		const me = node.matrixWorld.elements;
 		const sx = Math.sqrt(me[0] * me[0] + me[1] * me[1] + me[2] * me[2]);
 		const sy = Math.sqrt(me[4] * me[4] + me[5] * me[5] + me[6] * me[6]);
@@ -138,38 +141,53 @@ export class SceneTraversal {
 			const itemSize = posAttr.itemSize ?? 3;
 			const count = arr.length / itemSize;
 			const me = _mvp.elements;
-			drawCall.projectedVerts = new Float32Array(count * VERT_STRIDE);
+			const needed = count * VERT_STRIDE;
+			let pv = node.geometry._projectedVerts;
+			if (!pv || pv.length !== needed) {
+				pv = new Float32Array(needed);
+				node.geometry._projectedVerts = pv;
+			}
+			drawCall.projectedVerts = pv;
 			drawCall.vertCount = count;
 
+			// M2: Inline 4×4 matrix multiply — avoids Vector3 method dispatch per vertex.
 			for (let i = 0; i < count; i++) {
 				const lx = arr[i * itemSize];
 				const ly = arr[i * itemSize + 1];
 				const lz = arr[i * itemSize + 2];
 
-				// Clip-space w for near-plane guard
-				const rawW = me[3] * lx + me[7] * ly + me[11] * lz + me[15];
-
-				_worldPos.set(lx, ly, lz).applyMatrix4(_mvp);
+				const px = me[0] * lx + me[4] * ly + me[8] * lz + me[12];
+				const py = me[1] * lx + me[5] * ly + me[9] * lz + me[13];
+				const pz = me[2] * lx + me[6] * ly + me[10] * lz + me[14];
+				const pw = me[3] * lx + me[7] * ly + me[11] * lz + me[15];
+				const invW = 1 / pw;
 
 				const base = i * VERT_STRIDE;
-				drawCall.projectedVerts[base] = _worldPos.x;
-				drawCall.projectedVerts[base + 1] = _worldPos.y;
-				drawCall.projectedVerts[base + 2] = _worldPos.z;
-				drawCall.projectedVerts[base + 3] = rawW;
+				drawCall.projectedVerts[base] = px * invW;
+				drawCall.projectedVerts[base + 1] = py * invW;
+				drawCall.projectedVerts[base + 2] = pz * invW;
+				drawCall.projectedVerts[base + 3] = pw;
 			}
 		}
 
-		// Fix 2: Non-indexed geometry fallback
+		// M3: Use TypedArray directly instead of copying into a JS Array.
 		const index = node.geometry.index;
 		if (index) {
-			drawCall.faceIndices = Array.from(index.array ?? index);
+			drawCall.faceIndices = index.array ?? index;
 		} else {
-			drawCall.faceIndices = Array.from(
-				{ length: drawCall.vertCount },
-				(_, i) => i,
-			);
+			if (
+				!node.geometry._sequentialIndices ||
+				node.geometry._sequentialIndices.length !== drawCall.vertCount
+			) {
+				node.geometry._sequentialIndices = Uint32Array.from(
+					{ length: drawCall.vertCount },
+					(_, i) => i,
+				);
+			}
+			drawCall.faceIndices = node.geometry._sequentialIndices;
 		}
 
+		// M4: Cache UVs (geometry-intrinsic, never change).
 		const worldNormals = this.#buildWorldNormals(node);
 		const uvs = this.#buildUvs(node);
 		drawCall.triangles = this.#assembleTriangles(
@@ -180,6 +198,7 @@ export class SceneTraversal {
 			width,
 			height,
 			node.material,
+			node.geometry,
 		);
 
 		return drawCall;
@@ -216,10 +235,13 @@ export class SceneTraversal {
 	}
 
 	/**
+	 * M4: Caches the UV buffer on the geometry since UVs are intrinsic and never change.
 	 * @param {{ geometry: * }} node
 	 * @returns {Float32Array} Stride-2 flat array: [u0,v0, u1,v1, ...]
 	 */
 	#buildUvs(node) {
+		if (node.geometry._uvCache) return node.geometry._uvCache;
+
 		const uvAttr = node.geometry.getAttribute("uv");
 		if (!uvAttr) return new Float32Array(0);
 
@@ -231,18 +253,20 @@ export class SceneTraversal {
 			result[i * 2] = arr[i * itemSize];
 			result[i * 2 + 1] = arr[i * itemSize + 1];
 		}
+		node.geometry._uvCache = result;
 		return result;
 	}
 
 	/**
-	 * @param {number[]} indices
+	 * @param {number[] | Uint16Array | Uint32Array} indices
 	 * @param {Float32Array} verts Stride-4 flat buffer (see VERT_STRIDE)
 	 * @param {Float32Array} worldNormals Stride-3 flat buffer
 	 * @param {Float32Array} uvs Stride-2 flat buffer
 	 * @param {number} width
 	 * @param {number} height
 	 * @param {import('../materials/Material.js').Material} material
-	 * @returns {import('./DrawCall.js').DrawCall['triangles']}
+	 * @param {{ _triangleBuffer?: TriangleBuffer }} geometry
+	 * @returns {TriangleBuffer}
 	 */
 	#assembleTriangles(
 		indices,
@@ -252,11 +276,20 @@ export class SceneTraversal {
 		width,
 		height,
 		material,
+		geometry,
 	) {
 		const triCount = Math.floor(indices.length / 3);
-		/** @type {import('./DrawCall.js').DrawCall['triangles']} */
-		const triangles = [];
 		const side = material.side;
+
+		let buf = geometry._triangleBuffer;
+		if (!buf) {
+			buf = new TriangleBuffer(triCount || 64);
+			geometry._triangleBuffer = buf;
+		}
+		buf.reset();
+
+		const halfW = width * 0.5;
+		const halfH = height * 0.5;
 
 		for (let t = 0; t < triCount; t++) {
 			const i0 = indices[t * 3];
@@ -267,176 +300,156 @@ export class SceneTraversal {
 			const b1 = i1 * VERT_STRIDE;
 			const b2 = i2 * VERT_STRIDE;
 
-			const tri = this.#buildTriangle(
-				verts[b0],
-				verts[b0 + 1],
-				verts[b0 + 2],
-				verts[b0 + 3],
-				verts[b1],
-				verts[b1 + 1],
-				verts[b1 + 2],
-				verts[b1 + 3],
-				verts[b2],
-				verts[b2 + 1],
-				verts[b2 + 2],
-				verts[b2 + 3],
+			const w0 = verts[b0 + 3];
+			const w1 = verts[b1 + 3];
+			const w2 = verts[b2 + 3];
+
+			if (w0 <= 0 || w1 <= 0 || w2 <= 0) continue;
+
+			const x0 = verts[b0];
+			const y0 = verts[b0 + 1];
+			const x1 = verts[b1];
+			const y1 = verts[b1 + 1];
+			const x2 = verts[b2];
+			const y2 = verts[b2 + 1];
+
+			const sx0 = ((x0 + 1) * halfW + 0.5) | 0;
+			const sy0 = ((1 - y0) * halfH + 0.5) | 0;
+			const sx1 = ((x1 + 1) * halfW + 0.5) | 0;
+			const sy1 = ((1 - y1) * halfH + 0.5) | 0;
+			const sx2 = ((x2 + 1) * halfW + 0.5) | 0;
+			const sy2 = ((1 - y2) * halfH + 0.5) | 0;
+
+			const cross = (sx1 - sx0) * (sy2 - sy0) - (sy1 - sy0) * (sx2 - sx0);
+			if (this.#isCulled(cross, side)) continue;
+
+			this.#appendTriangle(
+				buf,
+				worldNormals,
+				uvs,
 				i0,
 				i1,
 				i2,
-				worldNormals,
-				uvs,
-				width,
-				height,
-				side,
+				sx0,
+				sy0,
+				sx1,
+				sy1,
+				sx2,
+				sy2,
+				verts[b0 + 2],
+				verts[b1 + 2],
+				verts[b2 + 2],
 			);
-			if (tri) {
-				triangles.push(tri);
-			}
 		}
 
-		return triangles;
+		buf.buildSortOrder();
+		return buf;
 	}
 
 	/**
-	 * @param {number} x0 @param {number} y0 @param {number} z0 @param {number} w0
-	 * @param {number} x1 @param {number} y1 @param {number} z1 @param {number} w1
-	 * @param {number} x2 @param {number} y2 @param {number} z2 @param {number} w2
+	 * @param {TriangleBuffer} buf
+	 * @param {Float32Array} worldNormals Stride-3 flat buffer
+	 * @param {Float32Array} uvs Stride-2 flat buffer
 	 * @param {number} i0
 	 * @param {number} i1
 	 * @param {number} i2
-	 * @param {Float32Array} worldNormals Stride-3 flat buffer
-	 * @param {Float32Array} uvs Stride-2 flat buffer
-	 * @param {number} width
-	 * @param {number} height
-	 * @param {number} side
-	 * @returns {import('./DrawCall.js').DrawCall['triangles'][0] | null}
+	 * @param {number} sx0 @param {number} sy0
+	 * @param {number} sx1 @param {number} sy1
+	 * @param {number} sx2 @param {number} sy2
+	 * @param {number} z0 @param {number} z1 @param {number} z2
 	 */
-	#buildTriangle(
-		x0,
-		y0,
-		z0,
-		w0,
-		x1,
-		y1,
-		z1,
-		w1,
-		x2,
-		y2,
-		z2,
-		w2,
+	#appendTriangle(
+		buf,
+		worldNormals,
+		uvs,
 		i0,
 		i1,
 		i2,
-		worldNormals,
-		uvs,
-		width,
-		height,
-		side,
+		sx0,
+		sy0,
+		sx1,
+		sy1,
+		sx2,
+		sy2,
+		z0,
+		z1,
+		z2,
 	) {
-		// Near-plane guard - skip triangles with any vertex behind camera
-		if (w0 <= 0 || w1 <= 0 || w2 <= 0) return null;
+		const [fnx, fny, fnz] = this.#computeFaceNormal(worldNormals, i0, i1, i2);
 
-		const normal = this.#avgNormal(worldNormals, i0, i1, i2);
+		const has0 = worldNormals.length >= (i0 + 1) * 3;
+		const has1 = worldNormals.length >= (i1 + 1) * 3;
+		const has2 = worldNormals.length >= (i2 + 1) * 3;
 
-		const screenVerts = this.#projectToScreen(
-			x0,
-			y0,
-			x1,
-			y1,
-			x2,
-			y2,
-			width,
-			height,
+		const vn0x = has0 ? worldNormals[i0 * 3] : fnx;
+		const vn0y = has0 ? worldNormals[i0 * 3 + 1] : fny;
+		const vn0z = has0 ? worldNormals[i0 * 3 + 2] : fnz;
+		const vn1x = has1 ? worldNormals[i1 * 3] : fnx;
+		const vn1y = has1 ? worldNormals[i1 * 3 + 1] : fny;
+		const vn1z = has1 ? worldNormals[i1 * 3 + 2] : fnz;
+		const vn2x = has2 ? worldNormals[i2 * 3] : fnx;
+		const vn2y = has2 ? worldNormals[i2 * 3 + 1] : fny;
+		const vn2z = has2 ? worldNormals[i2 * 3 + 2] : fnz;
+
+		const hasUv0 = uvs.length >= (i0 + 1) * 2;
+		const hasUv1 = uvs.length >= (i1 + 1) * 2;
+		const hasUv2 = uvs.length >= (i2 + 1) * 2;
+
+		buf.append(
+			sx0,
+			sy0,
+			sx1,
+			sy1,
+			sx2,
+			sy2,
+			z0,
+			z1,
+			z2,
+			fnx,
+			fny,
+			fnz,
+			vn0x,
+			vn0y,
+			vn0z,
+			vn1x,
+			vn1y,
+			vn1z,
+			vn2x,
+			vn2y,
+			vn2z,
+			hasUv0 ? uvs[i0 * 2] : 0,
+			hasUv0 ? uvs[i0 * 2 + 1] : 0,
+			hasUv1 ? uvs[i1 * 2] : 0,
+			hasUv1 ? uvs[i1 * 2 + 1] : 0,
+			hasUv2 ? uvs[i2 * 2] : 0,
+			hasUv2 ? uvs[i2 * 2 + 1] : 0,
 		);
-		const cross =
-			(screenVerts[1].x - screenVerts[0].x) *
-				(screenVerts[2].y - screenVerts[0].y) -
-			(screenVerts[1].y - screenVerts[0].y) *
-				(screenVerts[2].x - screenVerts[0].x);
-
-		if (this.#isCulled(cross, side)) return null;
-
-		// Build per-vertex normal objects for LightBaker consumption
-		const vn0 =
-			worldNormals.length >= (i0 + 1) * 3
-				? {
-						x: worldNormals[i0 * 3],
-						y: worldNormals[i0 * 3 + 1],
-						z: worldNormals[i0 * 3 + 2],
-					}
-				: normal;
-		const vn1 =
-			worldNormals.length >= (i1 + 1) * 3
-				? {
-						x: worldNormals[i1 * 3],
-						y: worldNormals[i1 * 3 + 1],
-						z: worldNormals[i1 * 3 + 2],
-					}
-				: normal;
-		const vn2 =
-			worldNormals.length >= (i2 + 1) * 3
-				? {
-						x: worldNormals[i2 * 3],
-						y: worldNormals[i2 * 3 + 1],
-						z: worldNormals[i2 * 3 + 2],
-					}
-				: normal;
-
-		/** @type {import('./DrawCall.js').DrawCall['triangles'][0]} */
-		const tri = {
-			screenVerts,
-			normal,
-			vertices: [{ normal: vn0 }, { normal: vn1 }, { normal: vn2 }],
-			centroidZ: (z0 + z1 + z2) / 3,
-			minZ: Math.min(z0, z1, z2),
-			maxZ: Math.max(z0, z1, z2),
-			ndcVerts: [
-				{ x: x0, y: y0, z: z0 },
-				{ x: x1, y: y1, z: z1 },
-				{ x: x2, y: y2, z: z2 },
-			],
-		};
-
-		if (uvs.length > 0) {
-			tri.uvs = [
-				uvs.length >= (i0 + 1) * 2
-					? { u: uvs[i0 * 2], v: uvs[i0 * 2 + 1] }
-					: { u: 0, v: 0 },
-				uvs.length >= (i1 + 1) * 2
-					? { u: uvs[i1 * 2], v: uvs[i1 * 2 + 1] }
-					: { u: 0, v: 0 },
-				uvs.length >= (i2 + 1) * 2
-					? { u: uvs[i2 * 2], v: uvs[i2 * 2 + 1] }
-					: { u: 0, v: 0 },
-			];
-		}
-
-		return tri;
 	}
 
 	/**
-	 * @param {number} x0 @param {number} y0
-	 * @param {number} x1 @param {number} y1
-	 * @param {number} x2 @param {number} y2
-	 * @param {number} width
-	 * @param {number} height
-	 * @returns {Array<{ x: number, y: number }>}
+	 * Computes and normalises the averaged face normal for three vertices.
+	 * @param {Float32Array} worldNormals Stride-3 flat buffer
+	 * @param {number} i0
+	 * @param {number} i1
+	 * @param {number} i2
+	 * @returns {[number, number, number]}
 	 */
-	#projectToScreen(x0, y0, x1, y1, x2, y2, width, height) {
-		return [
-			{
-				x: ((x0 + 1) * width * 0.5 + 0.5) | 0,
-				y: ((1 - y0) * height * 0.5 + 0.5) | 0,
-			},
-			{
-				x: ((x1 + 1) * width * 0.5 + 0.5) | 0,
-				y: ((1 - y1) * height * 0.5 + 0.5) | 0,
-			},
-			{
-				x: ((x2 + 1) * width * 0.5 + 0.5) | 0,
-				y: ((1 - y2) * height * 0.5 + 0.5) | 0,
-			},
-		];
+	#computeFaceNormal(worldNormals, i0, i1, i2) {
+		if (worldNormals.length === 0) return [0, 1, 0];
+		const n0x = worldNormals[i0 * 3] ?? 0;
+		const n0y = worldNormals[i0 * 3 + 1] ?? 0;
+		const n0z = worldNormals[i0 * 3 + 2] ?? 0;
+		const n1x = worldNormals[i1 * 3] ?? 0;
+		const n1y = worldNormals[i1 * 3 + 1] ?? 0;
+		const n1z = worldNormals[i1 * 3 + 2] ?? 0;
+		const n2x = worldNormals[i2 * 3] ?? 0;
+		const n2y = worldNormals[i2 * 3 + 1] ?? 0;
+		const n2z = worldNormals[i2 * 3 + 2] ?? 0;
+		const ax = (n0x + n1x + n2x) / 3;
+		const ay = (n0y + n1y + n2y) / 3;
+		const az = (n0z + n1z + n2z) / 3;
+		const al = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
+		return [ax / al, ay / al, az / al];
 	}
 
 	/**
@@ -451,31 +464,6 @@ export class SceneTraversal {
 		if (side === Side.Front) return cross > 0;
 		if (side === Side.Back) return cross < 0;
 		return false;
-	}
-
-	/**
-	 * @param {Float32Array} worldNormals Stride-3 flat buffer
-	 * @param {number} i0
-	 * @param {number} i1
-	 * @param {number} i2
-	 * @returns {Vec3}
-	 */
-	#avgNormal(worldNormals, i0, i1, i2) {
-		if (worldNormals.length === 0) return { x: 0, y: 1, z: 0 };
-		const n0x = worldNormals[i0 * 3] ?? 0;
-		const n0y = worldNormals[i0 * 3 + 1] ?? 0;
-		const n0z = worldNormals[i0 * 3 + 2] ?? 0;
-		const n1x = worldNormals[i1 * 3] ?? 0;
-		const n1y = worldNormals[i1 * 3 + 1] ?? 0;
-		const n1z = worldNormals[i1 * 3 + 2] ?? 0;
-		const n2x = worldNormals[i2 * 3] ?? 0;
-		const n2y = worldNormals[i2 * 3 + 1] ?? 0;
-		const n2z = worldNormals[i2 * 3 + 2] ?? 0;
-		const ax = (n0x + n1x + n2x) / 3;
-		const ay = (n0y + n1y + n2y) / 3;
-		const az = (n0z + n1z + n2z) / 3;
-		const al = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
-		return { x: ax / al, y: ay / al, z: az / al };
 	}
 
 	/**
@@ -506,7 +494,6 @@ export class SceneTraversal {
 			return;
 		}
 
-		// Directional / Point / Spot
 		if (
 			!light.position ||
 			light.color === undefined ||
