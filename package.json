@@ -1,6 +1,6 @@
 {
     "name": "@xsyetopz/easel",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Legacy JavaScript 3D library with a THREE.js-compatible scene graph API",
     "type": "module",
     "main": "./dist/index.umd.js",
@@ -34,7 +34,10 @@
         "typecheck": "bunx tsc --noEmit",
         "biome:check": "bunx biome check . --write --max-diagnostics 16384",
         "biome:format": "bunx biome format . --write --max-diagnostics 16384",
-        "biome:lint": "bunx biome lint . --write --max-diagnostics 16384"
+        "biome:lint": "bunx biome lint . --write --max-diagnostics 16384",
+        "jsr:clean": "find src \\( -name '*.d.ts' ! -name 'globals.d.ts' -o -name '*.d.ts.map' \\) | xargs rm -f",
+        "jsr:build": "bun run jsr:clean && tsc -p tsconfig.jsr.json",
+        "jsr:publish": "bun run jsr:build && bunx jsr publish"
     },
     "keywords": [
         "3d",
