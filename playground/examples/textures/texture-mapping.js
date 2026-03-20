@@ -89,7 +89,6 @@ scene.add(box);
 const loader = new EASEL.TextureLoader();
 loader.load("textures/Brick_01.png", (texture) => {
   material.map = texture;
-  material.needsUpdate = true;
 });
 
 const clock = new EASEL.Clock();

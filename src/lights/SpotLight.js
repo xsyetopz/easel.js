@@ -2,8 +2,11 @@ import { LightType } from "../core/Constants.js";
 import { Vector3 } from "../math/Vector3.js";
 import { Light } from "./Light.js";
 
+/** @typedef {import("../core/Node.js").Node} Node */
+
 /**
  * Per-vertex cone attenuation, CPU-computed.
+ * When target is set, direction is computed as normalize(target world pos - light world pos).
  */
 export class SpotLight extends Light {
 	/**
@@ -17,6 +20,13 @@ export class SpotLight extends Light {
 
 	/** Local-space cone direction. @type {Vector3} */
 	direction = new Vector3(0, -1, 0);
+
+	/**
+	 * Optional target node. When set, overrides direction.
+	 * Direction becomes normalize(target.matrixWorld position - this.matrixWorld position).
+	 * @type {Node|undefined}
+	 */
+	target = undefined;
 
 	/** @type {number} */
 	distance;
@@ -104,6 +114,7 @@ export class SpotLight extends Light {
 	copy(source, recursive = true) {
 		super.copy(source, recursive);
 		this.direction.copy(source.direction);
+		this.target = source.target;
 		this.distance = source.distance;
 		this.angle = source.angle;
 		this.penumbra = source.penumbra;

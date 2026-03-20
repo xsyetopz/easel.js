@@ -22,6 +22,13 @@ export class Scene extends Node {
 	fog = undefined;
 
 	/**
+	 * Background color painted before any geometry. Accepts a Color instance,
+	 * a hex number (e.g. 0xff0000), or undefined (falls back to setClearColor).
+	 * @type {import("../math/Color.js").Color|number|undefined}
+	 */
+	background = undefined;
+
+	/**
 	 * @override
 	 * @returns {Scene}
 	 */

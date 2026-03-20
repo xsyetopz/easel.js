@@ -79,8 +79,6 @@ export class OrbitControls extends EventDispatcher {
 	/** When true, panning moves in screen space. When false, panning moves along the horizontal plane. @type {boolean} */
 	screenSpacePanning = true;
 
-	// ── private state ────────────────────────────────────────────────────────
-
 	/** @type {Spherical} */
 	#spherical = new Spherical();
 
@@ -107,8 +105,6 @@ export class OrbitControls extends EventDispatcher {
 
 	/** @type {number} */
 	#prevTime = 0;
-
-	// ── bound event handlers (stored so dispose() can remove them) ───────────
 
 	#onPointerDown;
 	#onPointerMove;
@@ -146,8 +142,6 @@ export class OrbitControls extends EventDispatcher {
 		domElement.addEventListener("wheel", this.#onWheel);
 		domElement.addEventListener("contextmenu", this.#onContextMenu);
 	}
-
-	// ── public API ───────────────────────────────────────────────────────────
 
 	/**
 	 * Apply pending rotation, zoom, and pan then update the camera.
@@ -242,8 +236,6 @@ export class OrbitControls extends EventDispatcher {
 		this.#prevTime = 0;
 		this.update();
 	}
-
-	// ── pointer event handlers ───────────────────────────────────────────────
 
 	/**
 	 * @param {Event} rawEvent
@@ -348,8 +340,6 @@ export class OrbitControls extends EventDispatcher {
 	#handleContextMenu(event) {
 		event.preventDefault?.();
 	}
-
-	// ── pan helpers ──────────────────────────────────────────────────────────
 
 	/**
 	 * Accumulate a pan delta into #panOffset.

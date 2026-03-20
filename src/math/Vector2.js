@@ -1,28 +1,5 @@
 /** 2D vector with x, y components. */
 export class Vector2 {
-	/**
-	 * Cross product magnitude of two 2D vectors.
-	 * @param {number} x1
-	 * @param {number} y1
-	 * @param {number} x2
-	 * @param {number} y2
-	 * @returns {number}
-	 */
-	static cross(x1, y1, x2, y2) {
-		return x1 * y2 - y1 * x2;
-	}
-
-	/**
-	 * Dot product of (x, y) with a target vector.
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {Vector2} [target]
-	 * @returns {number}
-	 */
-	static dot(x, y, target = new Vector2()) {
-		return x * target.x + y * target.y;
-	}
-
 	#x = 0;
 	#y = 0;
 
@@ -83,6 +60,56 @@ export class Vector2 {
 	}
 
 	/**
+	 * 2D cross product (scalar).
+	 * @param {Vector2} v
+	 * @returns {number}
+	 */
+	cross(v) {
+		return this.x * v.y - this.y * v.x;
+	}
+
+	/**
+	 * Cross product magnitude of two 2D vectors.
+	 * @param {number} x1
+	 * @param {number} y1
+	 * @param {number} x2
+	 * @param {number} y2
+	 * @returns {number}
+	 */
+	static cross(x1, y1, x2, y2) {
+		return x1 * y2 - y1 * x2;
+	}
+
+	/**
+	 * @param {Vector2} v
+	 * @returns {number}
+	 */
+	distanceTo(v) {
+		const dx = this.x - v.x;
+		const dy = this.y - v.y;
+		return Math.sqrt(dx * dx + dy * dy);
+	}
+
+	/**
+	 * @param {Vector2} v
+	 * @returns {number}
+	 */
+	dot(v) {
+		return this.x * v.x + this.y * v.y;
+	}
+
+	/**
+	 * Dot product of (x, y) with a target vector.
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {Vector2} [target]
+	 * @returns {number}
+	 */
+	static dot(x, y, target = new Vector2()) {
+		return x * target.x + y * target.y;
+	}
+
+	/**
 	 * @param {Vector2} v
 	 * @returns {boolean}
 	 */
@@ -100,6 +127,49 @@ export class Vector2 {
 		return this;
 	}
 
+	/** @returns {number} */
+	get length() {
+		return Math.sqrt(this.x * this.x + this.y * this.y);
+	}
+
+	/** @returns {number} */
+	get lengthSq() {
+		return this.x * this.x + this.y * this.y;
+	}
+
+	/**
+	 * @param {Vector2} v
+	 * @param {number} alpha
+	 * @returns {this}
+	 */
+	lerp(v, alpha) {
+		this.x += (v.x - this.x) * alpha;
+		this.y += (v.y - this.y) * alpha;
+		return this;
+	}
+
+	/**
+	 * Component-wise max.
+	 * @param {Vector2} v
+	 * @returns {this}
+	 */
+	max(v) {
+		this.x = Math.max(this.x, v.x);
+		this.y = Math.max(this.y, v.y);
+		return this;
+	}
+
+	/**
+	 * Component-wise min.
+	 * @param {Vector2} v
+	 * @returns {this}
+	 */
+	min(v) {
+		this.x = Math.min(this.x, v.x);
+		this.y = Math.min(this.y, v.y);
+		return this;
+	}
+
 	/**
 	 * @param {number} scalar
 	 * @returns {this}
@@ -107,6 +177,16 @@ export class Vector2 {
 	mulScalar(scalar) {
 		this.x *= scalar;
 		this.y *= scalar;
+		return this;
+	}
+
+	/** @returns {this} */
+	normalize() {
+		const len = this.length;
+		if (len > 0) {
+			this.x /= len;
+			this.y /= len;
+		}
 		return this;
 	}
 

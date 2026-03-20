@@ -4,6 +4,8 @@ import { Texture } from "./Texture.js";
  * Texture sourced from a video element. Needs to be updated each frame.
  */
 export class VideoTexture extends Texture {
+	autoUpdate = true;
+
 	/** Call each frame to re-sample from the video. */
 	update() {
 		if (

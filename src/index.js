@@ -1,5 +1,5 @@
 /** Current library revision string. */
-export const REVISION = "0.2.3";
+export const REVISION = "0.3.0";
 
 if (typeof globalThis !== "undefined") {
 	if (globalThis.__EASEL__) {
@@ -118,11 +118,12 @@ export { LineMaterial } from "./materials/LineMaterial.js";
 export { Material } from "./materials/Material.js";
 export { PointsMaterial } from "./materials/PointsMaterial.js";
 export { ToonMaterial } from "./materials/ToonMaterial.js";
-// math
 export { Box2 } from "./math/Box2.js";
 export { Box3 } from "./math/Box3.js";
 export { Color } from "./math/Color.js";
 export { Cylindrical } from "./math/Cylindrical.js";
+// math
+export { earcut } from "./math/Earcut.js";
 export { Euler } from "./math/Euler.js";
 export { Frustum } from "./math/Frustum.js";
 export { Line3 } from "./math/Line3.js";

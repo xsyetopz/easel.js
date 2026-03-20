@@ -1,9 +1,8 @@
-// STUB: depends on Shape and curve utilities (../../curves/Shape.js)
+import { earcut } from "../../math/Earcut.js";
 import { Geometry } from "../Geometry.js";
 
 /**
- * Triangulates a flat Shape into a filled 2D geometry on the XY plane.
- * Curve-dependent triangulation is stubbed pending Shape.getPoints().
+ * Triangulates one or more flat Shape objects into a filled 2D geometry on the XY plane.
  */
 export class ShapeGeometry extends Geometry {
 	/**
@@ -14,15 +13,69 @@ export class ShapeGeometry extends Geometry {
 		super();
 
 		this.type = "ShapeGeometry";
+		/** @type {Record<string, unknown>} */
 		this.parameters = { shapes, curveSegments };
 
-		// STUB: call shapes.getPoints(curveSegments), triangulate the 2D contour,
-		// assign z=0, normals=(0,0,1), uvs from bounding box.
-		// Requires Shape.getPoints() - implement when curves/Shape.js lands.
+		const shapeArray = Array.isArray(shapes) ? shapes : [shapes];
 
-		this.setPositions(new Float32Array(0));
-		this.setNormals(new Float32Array(0));
-		this.setUVs(new Float32Array(0));
-		this.setIndex(new Uint16Array(0));
+		/** @type {number[]} */
+		const positions = [];
+		/** @type {number[]} */
+		const normals = [];
+		/** @type {number[]} */
+		const uvs = [];
+		/** @type {number[]} */
+		const indices = [];
+
+		let vertexOffset = 0;
+
+		for (const shape of shapeArray) {
+			const { shape: shapePoints, holes } = shape.extractPoints(curveSegments);
+
+			// Flat vertex list: outer contour + all hole contours
+			/** @type {number[]} */
+			const flatCoords = [];
+			/** @type {number[]} */
+			const holeIndices = [];
+
+			for (const pt of shapePoints) {
+				flatCoords.push(pt.x, pt.y);
+			}
+
+			for (const hole of holes) {
+				holeIndices.push(flatCoords.length / 2);
+				for (const pt of hole) {
+					flatCoords.push(pt.x, pt.y);
+				}
+			}
+
+			const faceIndices = earcut(
+				flatCoords,
+				holeIndices.length > 0 ? holeIndices : undefined,
+				2,
+			);
+
+			// Emit vertices
+			const vertexCount = flatCoords.length / 2;
+			for (let i = 0; i < vertexCount; i++) {
+				positions.push(flatCoords[i * 2], flatCoords[i * 2 + 1], 0);
+				normals.push(0, 0, 1);
+				uvs.push(flatCoords[i * 2], flatCoords[i * 2 + 1]);
+			}
+
+			for (const idx of faceIndices) {
+				indices.push(vertexOffset + idx);
+			}
+
+			vertexOffset += vertexCount;
+		}
+
+		const IndexArray = vertexOffset > 65535 ? Uint32Array : Uint16Array;
+
+		this.setPositions(new Float32Array(positions));
+		this.setNormals(new Float32Array(normals));
+		this.setUVs(new Float32Array(uvs));
+		this.setIndex(new IndexArray(indices));
+		this.computeBoundingSphere();
 	}
 }

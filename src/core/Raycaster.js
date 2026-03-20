@@ -6,6 +6,9 @@ const _v0 = new Vector3();
 const _v1 = new Vector3();
 const _v2 = new Vector3();
 const _intersectPoint = new Vector3();
+const _segStart = new Vector3();
+const _segEnd = new Vector3();
+const _closestPoint = new Vector3();
 
 /**
  * @typedef {{ elements: ArrayLike<number> }} MatrixLike
@@ -13,6 +16,8 @@ const _intersectPoint = new Vector3();
  * @typedef {{ getAttribute?: (name: string) => PositionAttribute|undefined, index?: ArrayLike<number>|{ array: ArrayLike<number> }|undefined }} RaycastGeometry
  * @typedef {{ visible: boolean, layers: Layers, type?: string, geometry?: RaycastGeometry, matrixWorld: MatrixLike, children?: SceneObject[] }} SceneObject
  * @typedef {{ distance: number, point: Vector3, face: { a: number, b: number, c: number, normal: Vector3|undefined }, object: SceneObject }} Intersection
+ * @typedef {{ distance: number, point: Vector3, index: number, object: SceneObject }} LineIntersection
+ * @typedef {Intersection | LineIntersection} IntersectResult
  */
 
 /** Casts a ray into the scene to test intersections with objects. */
@@ -33,6 +38,12 @@ export class Raycaster {
 	layers;
 
 	/**
+	 * Distance tolerance for Line and Points intersection tests.
+	 * @type {number}
+	 */
+	threshold;
+
+	/**
 	 * @param {Vector3} [origin]
 	 * @param {Vector3} [direction]
 	 * @param {number} [near]
@@ -49,6 +60,7 @@ export class Raycaster {
 		this.far = far;
 		this.camera = undefined;
 		this.layers = new Layers();
+		this.threshold = 1;
 	}
 
 	/**
@@ -140,6 +152,25 @@ function _intersectObject(object, raycaster, intersects, recursive) {
 
 	if (object.type === "Mesh" && object.geometry) {
 		_intersectMesh(object, object.geometry, raycaster, intersects);
+	} else if (
+		(object.type === "Line" ||
+			object.type === "LineSegments" ||
+			object.type === "LineLoop") &&
+		object.geometry
+	) {
+		_intersectLine(
+			object,
+			object.geometry,
+			raycaster,
+			/** @type {IntersectResult[]} */ (/** @type {unknown} */ (intersects)),
+		);
+	} else if (object.type === "Points" && object.geometry) {
+		_intersectPoints(
+			object,
+			object.geometry,
+			raycaster,
+			/** @type {IntersectResult[]} */ (/** @type {unknown} */ (intersects)),
+		);
 	}
 
 	if (recursive && object.children) {
@@ -299,6 +330,126 @@ function _intersectNonIndexed(
 			distance,
 			point: point.clone(),
 			face: { a: i, b: i + 1, c: i + 2, normal: undefined },
+			object,
+		});
+	}
+}
+
+/**
+ * @param {PositionAttribute} position
+ * @param {number} index
+ * @param {Vector3} target
+ * @param {MatrixLike} matrixWorld
+ * @returns {Vector3}
+ */
+function _getWorldVertex(position, index, target, matrixWorld) {
+	return target
+		.set(position.getX(index), position.getY(index), position.getZ(index))
+		.applyMatrix4(matrixWorld);
+}
+
+/**
+ * @param {SceneObject} object
+ * @param {RaycastGeometry} geometry
+ * @param {Raycaster} raycaster
+ * @param {IntersectResult[]} intersects
+ */
+function _intersectLine(object, geometry, raycaster, intersects) {
+	const position = geometry.getAttribute?.("position");
+	if (!position) return;
+
+	const count = position.count;
+	if (count < 2) return;
+
+	const matrixWorld = object.matrixWorld;
+	const threshold = raycaster.threshold;
+	const thresholdSq = threshold * threshold;
+	const ray = raycaster.ray;
+
+	const isLoop = object.type === "LineLoop";
+	const isSegments = object.type === "LineSegments";
+	const step = isSegments ? 2 : 1;
+	const end = isSegments ? count - 1 : count - 1;
+
+	for (let i = 0; i < end; i += step) {
+		_getWorldVertex(position, i, _segStart, matrixWorld);
+		_getWorldVertex(position, i + 1, _segEnd, matrixWorld);
+
+		const distSq = ray.distanceSqToSegment(
+			_segStart,
+			_segEnd,
+			_intersectPoint,
+			_closestPoint,
+		);
+		if (distSq > thresholdSq) continue;
+
+		// Confirm the closest-point-on-ray is within [near, far].
+		const distance = ray.origin.distanceTo(_intersectPoint);
+		if (distance < raycaster.near || distance > raycaster.far) continue;
+
+		intersects.push({
+			distance,
+			point: _closestPoint.clone(),
+			index: i,
+			object,
+		});
+	}
+
+	// LineLoop: closing segment from last vertex back to first.
+	if (isLoop && count >= 2) {
+		_getWorldVertex(position, count - 1, _segStart, matrixWorld);
+		_getWorldVertex(position, 0, _segEnd, matrixWorld);
+
+		const distSq = ray.distanceSqToSegment(
+			_segStart,
+			_segEnd,
+			_intersectPoint,
+			_closestPoint,
+		);
+		if (distSq <= thresholdSq) {
+			const distance = ray.origin.distanceTo(_intersectPoint);
+			if (distance >= raycaster.near && distance <= raycaster.far) {
+				intersects.push({
+					distance,
+					point: _closestPoint.clone(),
+					index: count - 1,
+					object,
+				});
+			}
+		}
+	}
+}
+
+/**
+ * @param {SceneObject} object
+ * @param {RaycastGeometry} geometry
+ * @param {Raycaster} raycaster
+ * @param {IntersectResult[]} intersects
+ */
+function _intersectPoints(object, geometry, raycaster, intersects) {
+	const position = geometry.getAttribute?.("position");
+	if (!position) return;
+
+	const count = position.count;
+	const matrixWorld = object.matrixWorld;
+	const threshold = raycaster.threshold;
+	const ray = raycaster.ray;
+
+	for (let i = 0; i < count; i++) {
+		_getWorldVertex(position, i, _segStart, matrixWorld);
+
+		const distance = ray.distanceToPoint(_segStart);
+		if (distance > threshold) continue;
+
+		const rayDistance = ray.origin.distanceTo(
+			ray.closestPointToPoint(_segStart, _closestPoint),
+		);
+		if (rayDistance < raycaster.near || rayDistance > raycaster.far) continue;
+
+		intersects.push({
+			distance: rayDistance,
+			point: _closestPoint.clone(),
+			index: i,
 			object,
 		});
 	}

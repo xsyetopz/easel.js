@@ -664,12 +664,32 @@ export class SceneTraversal {
 		) {
 			return;
 		}
-		const pos = light.position;
-		const len = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z) || 1;
+		let ddx;
+		let ddy;
+		let ddz;
+		if (light.target) {
+			const tme = light.target.matrixWorld?.elements;
+			const lme = light.matrixWorld?.elements;
+			const twx = tme ? tme[12] : (light.target.position?.x ?? 0);
+			const twy = tme ? tme[13] : (light.target.position?.y ?? 0);
+			const twz = tme ? tme[14] : (light.target.position?.z ?? 0);
+			const lwx = lme ? lme[12] : light.position.x;
+			const lwy = lme ? lme[13] : light.position.y;
+			const lwz = lme ? lme[14] : light.position.z;
+			ddx = twx - lwx;
+			ddy = twy - lwy;
+			ddz = twz - lwz;
+		} else {
+			const pos = light.position;
+			ddx = -pos.x;
+			ddy = -pos.y;
+			ddz = -pos.z;
+		}
+		const len = Math.sqrt(ddx * ddx + ddy * ddy + ddz * ddz) || 1;
 		drawList.lights.push({
 			type: "directional",
 			lightType: LightType.Directional,
-			direction: { x: -pos.x / len, y: -pos.y / len, z: -pos.z / len },
+			direction: { x: ddx / len, y: ddy / len, z: ddz / len },
 			color: light.color,
 			intensity: light.intensity,
 		});
@@ -684,20 +704,33 @@ export class SceneTraversal {
 	#buildSpotLightEntry(light) {
 		const pos = light.position;
 		const me = light.matrixWorld?.elements;
-		const dx = light.direction?.x ?? 0;
-		const dy = light.direction?.y ?? -1;
-		const dz = light.direction?.z ?? 0;
 		let wdx;
 		let wdy;
 		let wdz;
-		if (me) {
-			wdx = me[0] * dx + me[4] * dy + me[8] * dz;
-			wdy = me[1] * dx + me[5] * dy + me[9] * dz;
-			wdz = me[2] * dx + me[6] * dy + me[10] * dz;
+		if (light.target) {
+			const tme = light.target.matrixWorld?.elements;
+			const twx = tme ? tme[12] : (light.target.position?.x ?? 0);
+			const twy = tme ? tme[13] : (light.target.position?.y ?? 0);
+			const twz = tme ? tme[14] : (light.target.position?.z ?? 0);
+			const lwx = me ? me[12] : pos.x;
+			const lwy = me ? me[13] : pos.y;
+			const lwz = me ? me[14] : pos.z;
+			wdx = twx - lwx;
+			wdy = twy - lwy;
+			wdz = twz - lwz;
 		} else {
-			wdx = dx;
-			wdy = dy;
-			wdz = dz;
+			const dx = light.direction?.x ?? 0;
+			const dy = light.direction?.y ?? -1;
+			const dz = light.direction?.z ?? 0;
+			if (me) {
+				wdx = me[0] * dx + me[4] * dy + me[8] * dz;
+				wdy = me[1] * dx + me[5] * dy + me[9] * dz;
+				wdz = me[2] * dx + me[6] * dy + me[10] * dz;
+			} else {
+				wdx = dx;
+				wdy = dy;
+				wdz = dz;
+			}
 		}
 		const dirLen = Math.sqrt(wdx * wdx + wdy * wdy + wdz * wdz) || 1;
 		return {
