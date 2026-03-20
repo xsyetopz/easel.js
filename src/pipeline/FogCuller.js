@@ -1,3 +1,4 @@
+/** Culls objects beyond the tile-radius fog distance. */
 export class FogCuller {
 	/**
 	 * Removes draw calls beyond the fog far distance from the draw list.

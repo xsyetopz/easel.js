@@ -1,3 +1,4 @@
+/** Current library revision string. */
 export const REVISION = "0.1.0";
 
 if (typeof globalThis !== "undefined") {

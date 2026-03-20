@@ -1,5 +1,6 @@
 import { Node } from "../core/Node.js";
 
+/** Polyline rendered as connected line segments. */
 export class Line extends Node {
 	/** @override @type {string} */
 	type = "Line";

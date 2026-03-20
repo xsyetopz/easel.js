@@ -1,6 +1,7 @@
 import { MathUtils } from "./MathUtils.js";
 import { Vector3 } from "./Vector3.js";
 
+/** Finite line segment between two 3D points. */
 export class Line3 {
 	#start = new Vector3();
 	#end = new Vector3();

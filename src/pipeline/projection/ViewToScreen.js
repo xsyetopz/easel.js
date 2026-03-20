@@ -1,5 +1,6 @@
 import { MathUtils } from "../../math/MathUtils.js";
 
+/** Projects view-space coordinates to screen-space pixel positions. */
 export class ViewToScreen {
 	#width;
 	#height;

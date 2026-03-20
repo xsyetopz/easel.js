@@ -2,6 +2,7 @@ import { Shading } from "../../core/Constants.js";
 import { FlatShader } from "./FlatShader.js";
 import { GouraudShader } from "./GouraudShader.js";
 
+/** Bakes scene lights into per-vertex or per-face colors. */
 export class LightBaker {
 	#flatShader = new FlatShader();
 	#gouraudShader = new GouraudShader();

@@ -18,6 +18,7 @@ function decode(packed) {
 	return MathUtils.unpackHsl16(packed);
 }
 
+/** 16-bit packed HSL color encoding (6H/3S/7L). */
 export const Hsl16 = {
 	encode,
 	decode,

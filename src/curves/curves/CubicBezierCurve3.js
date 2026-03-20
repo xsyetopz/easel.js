@@ -1,6 +1,7 @@
 import { Vector3 } from "../../math/Vector3.js";
 import { Curve } from "../Curve.js";
 
+/** 3D cubic Bézier curve with four control points. */
 export class CubicBezierCurve3 extends Curve {
 	/** @override */
 	type = "CubicBezierCurve3";

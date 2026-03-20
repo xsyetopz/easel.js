@@ -1,5 +1,6 @@
 import { Matrix4 } from "../math/Matrix4.js";
 
+/** Bone hierarchy with inverse bind matrices for skinning. */
 export class Skeleton {
 	/** @type {import('./Bone.js').Bone[]} */
 	#bones;

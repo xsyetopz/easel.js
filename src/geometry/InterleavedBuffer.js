@@ -1,3 +1,4 @@
+/** Packed buffer storing multiple vertex attributes in interleaved layout. */
 export class InterleavedBuffer {
 	#array;
 	#stride;

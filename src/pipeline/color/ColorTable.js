@@ -1,5 +1,6 @@
 import { MathUtils } from "../../math/MathUtils.js";
 
+/** Precomputed HSL16-to-RGB lookup table. */
 export class ColorTable {
 	#table;
 

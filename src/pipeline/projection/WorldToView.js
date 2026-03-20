@@ -1,5 +1,6 @@
 import { Vector3 } from "../../math/Vector3.js";
 
+/** Transforms world-space coordinates into camera view space. */
 export class WorldToView {
 	/**
 	 * Transforms an array of world-space Vector3 positions into view space.

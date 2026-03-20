@@ -20,6 +20,7 @@ const _frustum = new Frustum();
 
 const VERT_STRIDE = 4;
 
+/** Walks the scene graph collecting visible draw calls. */
 export class SceneTraversal {
 	/** @type {number} */
 	#fogNear = 0;

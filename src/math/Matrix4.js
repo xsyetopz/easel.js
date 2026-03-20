@@ -7,6 +7,7 @@ const _v2 = new Vector3();
 const _v3 = new Vector3();
 const _q = new Quaternion();
 
+/** 4×4 matrix for 3D affine and projection transforms. */
 export class Matrix4 {
 	#elements = new Float32Array(16);
 

@@ -13,6 +13,7 @@ import { Quaternion } from "./Quaternion.js";
 
 const _m = new Matrix4();
 
+/** Euler angles with configurable rotation order. */
 export class Euler {
 	static #GIMBAL_LOCK_THRESHOLD = 0.9999999;
 

@@ -1,5 +1,6 @@
 import { MathUtils } from "../../math/MathUtils.js";
 
+/** Per-vertex color interpolator for Gouraud shading. */
 export class GouraudInterpolator {
 	/**
 	 * Interpolates between two HSL16-encoded colors across a scanline.

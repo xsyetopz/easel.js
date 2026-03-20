@@ -1,5 +1,6 @@
 import { Path } from "./Path.js";
 
+/** Closed 2D path with optional holes, used for extrusion. */
 export class Shape extends Path {
 	/** @override */
 	type = "Shape";

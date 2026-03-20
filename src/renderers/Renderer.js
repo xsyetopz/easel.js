@@ -7,6 +7,7 @@ import { Rasterizer } from "../pipeline/rasterizer/Rasterizer.js";
 import { SceneTraversal } from "../pipeline/SceneTraversal.js";
 import { LightBaker } from "../pipeline/shading/LightBaker.js";
 
+/** Canvas2D software renderer orchestrating the full pipeline. */
 export class Renderer {
 	#width;
 	#height;

@@ -1,3 +1,4 @@
+/** Cylindrical coordinate (radius, theta, y). */
 export class Cylindrical {
 	#radius = 1;
 	#theta = 0;

@@ -1,6 +1,7 @@
 import { Color } from "../math/Color.js";
 import { LineMaterial } from "./LineMaterial.js";
 
+/** Line material that renders a repeating dash pattern. */
 export class DashedLineMaterial extends LineMaterial {
 	/** @override @type {string} */
 	type = "DashedLineMaterial";

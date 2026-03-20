@@ -1,5 +1,6 @@
 import { Mesh } from "./Mesh.js";
 
+/** Mesh rendered multiple times with per-instance transforms. */
 export class InstancedMesh extends Mesh {
 	/** @override @type {string} */
 	type = "InstancedMesh";

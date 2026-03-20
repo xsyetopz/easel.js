@@ -1,6 +1,7 @@
 import { Curve } from "./Curve.js";
 import { LineCurve } from "./curves/LineCurve.js";
 
+/** Ordered sequence of connected curves forming a path. */
 export class CurvePath extends Curve {
 	/** @override */
 	type = "CurvePath";

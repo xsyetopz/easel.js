@@ -15,6 +15,7 @@ const _intersectPoint = new Vector3();
  * @typedef {{ distance: number, point: Vector3, face: { a: number, b: number, c: number, normal: Vector3|undefined }, object: SceneObject }} Intersection
  */
 
+/** Casts a ray into the scene to test intersections with objects. */
 export class Raycaster {
 	/** @type {Ray} */
 	ray;

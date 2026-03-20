@@ -1,3 +1,4 @@
+/** Common math utilities: clamp, lerp, remap, UUID generation. */
 export const MathUtils = {
 	EPSILON: 1e-6,
 	TAU: 6.283185307179586,

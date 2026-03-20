@@ -1,6 +1,7 @@
 import { Node } from "../core/Node.js";
 import { Color } from "../math/Color.js";
 
+/** Abstract base class for scene lights. */
 export class Light extends Node {
 	/**
 	 * @override

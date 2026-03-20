@@ -1,5 +1,6 @@
 import { Plane } from "./Plane.js";
 
+/** Six-plane view frustum for visibility culling. */
 export class Frustum {
 	/** @type {Plane[]} 0: left, 1: right, 2: bottom, 3: top, 4: near, 5: far */
 	planes = [];

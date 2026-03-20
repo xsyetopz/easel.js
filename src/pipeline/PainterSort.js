@@ -2,6 +2,7 @@ import { DrawPrioritySorter } from "./sorting/DrawPrioritySorter.js";
 import { PolygonSorter } from "./sorting/PolygonSorter.js";
 import { TileDistanceSorter } from "./sorting/TileDistanceSorter.js";
 
+/** Back-to-front painter's algorithm sorter for draw calls. */
 export class PainterSort {
 	#tileSorter = new TileDistanceSorter();
 	#prioritySorter = new DrawPrioritySorter();

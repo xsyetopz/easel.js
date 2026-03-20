@@ -1,3 +1,4 @@
+/** 4D vector with x, y, z, w components. */
 export class Vector4 {
 	/**
 	 * Computes the dot product of the given components against a target vector.

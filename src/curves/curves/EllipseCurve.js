@@ -1,6 +1,7 @@
 import { Vector2 } from "../../math/Vector2.js";
 import { Curve } from "../Curve.js";
 
+/** 2D ellipse or partial ellipse curve. */
 export class EllipseCurve extends Curve {
 	/** @override */
 	type = "EllipseCurve";

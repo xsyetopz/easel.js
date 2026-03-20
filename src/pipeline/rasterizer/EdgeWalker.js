@@ -1,3 +1,4 @@
+/** Scanline edge walker for triangle rasterization. */
 export class EdgeWalker {
 	/**
 	 * Walks integer pixels along a line from (x1,y1) to (x2,y2) using

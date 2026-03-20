@@ -7,6 +7,7 @@ import { MathUtils } from "./MathUtils.js";
  * @typedef {number | string | Color} ColorValue
  */
 
+/** RGB color with channel values in [0, 1]. */
 export class Color {
 	static HUE_SCALE = 360;
 	static SATURATION_SCALE = 100;

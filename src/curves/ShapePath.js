@@ -1,6 +1,7 @@
 import { Path } from "./Path.js";
 import { Shape } from "./Shape.js";
 
+/** Builder for Shape objects from SVG-style subpaths. */
 export class ShapePath {
 	type = "ShapePath";
 	/** @type {Path[]} */

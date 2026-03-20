@@ -1,5 +1,6 @@
 import { EdgeWalker } from "./EdgeWalker.js";
 
+/** Rasterizes triangle edges as wireframe lines. */
 export class WireframeRasterizer {
 	#walker = new EdgeWalker();
 

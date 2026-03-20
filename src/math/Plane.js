@@ -1,6 +1,7 @@
 import { Matrix3 } from "./Matrix3.js";
 import { Vector3 } from "./Vector3.js";
 
+/** Infinite plane defined by a unit normal and signed distance. */
 export class Plane {
 	#normal = new Vector3(1, 0, 0);
 	#constant = 0;

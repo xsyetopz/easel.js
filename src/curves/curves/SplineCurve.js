@@ -22,6 +22,7 @@ function catmullRom(p0, p1, p2, p3, t) {
 	);
 }
 
+/** 2D Catmull-Rom spline through a set of points. */
 export class SplineCurve extends Curve {
 	/** @override */
 	type = "SplineCurve";

@@ -1,5 +1,6 @@
 import { Hsl16 } from "./Hsl16.js";
 
+/** Precomputed alpha blending table for 9-step opacity. */
 export class TranslucencyTable {
 	/**
 	 * Blends two HSL16 colors by a step value 0-8.

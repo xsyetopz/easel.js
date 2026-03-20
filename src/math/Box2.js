@@ -2,6 +2,7 @@ import { Vector2 } from "./Vector2.js";
 
 const _v = new Vector2();
 
+/** 2D axis-aligned bounding box. */
 export class Box2 {
 	#min = new Vector2(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
 	#max = new Vector2(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);

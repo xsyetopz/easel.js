@@ -1,3 +1,4 @@
+/** Uint16Array depth buffer for early-Z rejection. */
 export class DepthBuffer {
 	#width;
 	#height;

@@ -2,6 +2,7 @@ import { Quaternion } from "./Quaternion.js";
 
 const _q = new Quaternion();
 
+/** 3D vector with x, y, z components. */
 export class Vector3 {
 	#x = 0;
 	#y = 0;

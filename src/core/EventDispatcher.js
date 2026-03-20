@@ -3,6 +3,7 @@
  * @typedef {(event: Event) => void} EventListener
  */
 
+/** Mixin-compatible event system with addEventListener/removeEventListener/dispatchEvent. */
 export class EventDispatcher {
 	/** @type {Record<string, EventListener[]>} */
 	#listeners = {};

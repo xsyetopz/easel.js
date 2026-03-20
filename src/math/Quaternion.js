@@ -1,3 +1,4 @@
+/** Unit quaternion for rotation without gimbal lock. */
 export class Quaternion {
 	#x = 0;
 	#y = 0;

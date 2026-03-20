@@ -75,4 +75,5 @@ function makeClipAdditive(clip, referenceFrame = 0, referenceClip = clip) {
 	return clip;
 }
 
+/** Utility functions for clipping and modifying AnimationClips. */
 export const AnimationUtils = { subclip, makeClipAdditive };

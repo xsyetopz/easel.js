@@ -1,3 +1,4 @@
+/** Bit-mask layer system for selective rendering and raycasting. */
 export class Layers {
 	#mask = 1;
 

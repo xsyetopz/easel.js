@@ -1,5 +1,6 @@
 import { MathUtils } from "../../math/MathUtils.js";
 
+/** Clamps UV coordinates to texture bounds. */
 export class TextureClamp {
 	/**
 	 * Clamps UV coordinates to [0, 1] and converts to integer texel coordinates.

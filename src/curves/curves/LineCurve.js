@@ -1,6 +1,7 @@
 import { Vector2 } from "../../math/Vector2.js";
 import { Curve } from "../Curve.js";
 
+/** 2D straight line segment between two points. */
 export class LineCurve extends Curve {
 	/** @override */
 	type = "LineCurve";

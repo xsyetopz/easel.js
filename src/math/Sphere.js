@@ -1,5 +1,6 @@
 import { Vector3 } from "./Vector3.js";
 
+/** Bounding sphere defined by center and radius. */
 export class Sphere {
 	#centre = new Vector3();
 	#radius = 1;

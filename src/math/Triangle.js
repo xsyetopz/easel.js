@@ -113,6 +113,7 @@ function _projectOntoEdge(
 		.add(_v5.copy(c).sub(a).mulScalar(t));
 }
 
+/** Triangle defined by three 3D vertices. */
 export class Triangle {
 	#a = new Vector3();
 	#b = new Vector3();

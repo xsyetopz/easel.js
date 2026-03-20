@@ -1,5 +1,6 @@
 import { InterleavedBuffer } from "./InterleavedBuffer.js";
 
+/** View into an InterleavedBuffer at a specific offset and stride. */
 export class InterleavedAttribute {
 	#data;
 	#itemSize;

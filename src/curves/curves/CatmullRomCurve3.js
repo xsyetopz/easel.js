@@ -36,6 +36,7 @@ function knotInterval(p0, p1, alpha) {
 	return (dx * dx + dy * dy + dz * dz) ** (0.5 * alpha);
 }
 
+/** Centripetal Catmull-Rom spline through 3D control points. */
 export class CatmullRomCurve3 extends Curve {
 	/** @override */
 	type = "CatmullRomCurve3";

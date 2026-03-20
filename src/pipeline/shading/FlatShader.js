@@ -3,6 +3,7 @@ import { accumulateLights } from "./lightAccumulator.js";
 /** @type {{ r: number, g: number, b: number }} */
 const _out = { r: 0, g: 0, b: 0 };
 
+/** Per-face flat shader using face normal for lighting. */
 export class FlatShader {
 	/**
 	 * Computes flat-shaded RGB light contribution for a face.

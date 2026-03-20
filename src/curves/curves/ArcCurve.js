@@ -1,5 +1,6 @@
 import { EllipseCurve } from "./EllipseCurve.js";
 
+/** Circular arc curve (EllipseCurve with equal radii). */
 export class ArcCurve extends EllipseCurve {
 	/** @override */
 	type = "ArcCurve";

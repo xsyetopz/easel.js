@@ -5,6 +5,7 @@ import { EllipseCurve } from "./curves/EllipseCurve.js";
 import { LineCurve } from "./curves/LineCurve.js";
 import { QuadraticBezierCurve } from "./curves/QuadraticBezierCurve.js";
 
+/** 2D path built from lines, arcs, and bezier segments. */
 export class Path extends CurvePath {
 	/** @override */
 	type = "Path";

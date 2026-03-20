@@ -1,5 +1,6 @@
 import { Node } from "../core/Node.js";
 
+/** Point cloud rendered as individual vertices. */
 export class Points extends Node {
 	/** @override @type {string} */
 	type = "Points";

@@ -1,3 +1,4 @@
+/** Growable list of DrawCalls collected during scene traversal. */
 export class DrawList {
 	/** @type {import('./DrawCall.js').DrawCall[]} */
 	#calls = [];

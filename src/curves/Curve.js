@@ -1,3 +1,4 @@
+/** Abstract base class for parametric curves. */
 export class Curve {
 	type = "Curve";
 	arcLengthDivisions = 200;

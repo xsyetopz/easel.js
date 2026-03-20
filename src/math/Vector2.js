@@ -1,3 +1,4 @@
+/** 2D vector with x, y components. */
 export class Vector2 {
 	/**
 	 * Cross product magnitude of two 2D vectors.

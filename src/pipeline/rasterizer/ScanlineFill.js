@@ -1,5 +1,6 @@
 import { MathUtils } from "../../math/MathUtils.js";
 
+/** Fills a horizontal scanline span with shaded pixels. */
 export class ScanlineFill {
 	/**
 	 * Rasterizes a triangle defined by three screen-space integer points.

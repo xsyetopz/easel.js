@@ -5,6 +5,7 @@ import { Vector3 } from "./Vector3.js";
  * @typedef {{ type: string, matrixWorld: *, updateMatrixWorld: Function, geometry?: { attributes?: { position?: { array: ArrayLike<number>, itemSize: number } } }, children: SceneNode[], visible?: boolean }} SceneNode
  */
 
+/** 3D axis-aligned bounding box. */
 export class Box3 {
 	#min;
 	#max;

@@ -77,4 +77,5 @@ export class LoadingManager {
 	}
 }
 
+/** Shared default LoadingManager instance. */
 export const DefaultLoadingManager = new LoadingManager();

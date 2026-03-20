@@ -1,3 +1,4 @@
+/** Affine (non-perspective-correct) UV texture coordinate interpolator. */
 export class AffineUVSampler {
 	/**
 	 * Interpolates UV coordinates linearly along a scanline.

@@ -1,3 +1,4 @@
+/** Sorts draw calls by material layer priority. */
 export class DrawPrioritySorter {
 	/**
 	 * Stable-sorts draw calls by material.layer (lower layer first).

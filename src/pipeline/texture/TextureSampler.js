@@ -1,5 +1,6 @@
 import { TextureClamp } from "./TextureClamp.js";
 
+/** Nearest-neighbor texture sampler from pixel data. */
 export class TextureSampler {
 	#clamp = new TextureClamp();
 

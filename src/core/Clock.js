@@ -5,6 +5,7 @@ function now() {
 	return (typeof performance === "undefined" ? Date : performance).now();
 }
 
+/** High-resolution elapsed time tracker. */
 export class Clock {
 	#autoStart;
 	#startTime = 0;

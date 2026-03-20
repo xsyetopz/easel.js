@@ -11,6 +11,7 @@ const _q1 = new Quaternion();
 
 let _nodeId = 0;
 
+/** Base scene graph node with transform, hierarchy, and traversal. */
 export class Node extends EventDispatcher {
 	/** @type {number} */
 	id = _nodeId++;

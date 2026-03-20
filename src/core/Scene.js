@@ -1,5 +1,6 @@
 import { Node } from "./Node.js";
 
+/** Root node of a scene graph, holds background and fog. */
 export class Scene extends Node {
 	/**
 	 * @override

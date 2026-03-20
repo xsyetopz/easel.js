@@ -3,6 +3,7 @@ import { accumulateLights } from "./lightAccumulator.js";
 /** @type {{ r: number, g: number, b: number }} */
 const _out = { r: 0, g: 0, b: 0 };
 
+/** Per-vertex Gouraud shader with interpolated vertex normals. */
 export class GouraudShader {
 	/**
 	 * Computes Gouraud-shaded RGB light contribution for a vertex.

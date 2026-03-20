@@ -102,6 +102,7 @@ function _boxSlab(minVal, maxVal, originVal, invdir) {
 	};
 }
 
+/** Ray defined by an origin point and direction vector. */
 export class Ray {
 	#origin = new Vector3(0, 0, 0);
 	#direction = new Vector3(0, 0, -1);

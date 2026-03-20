@@ -24,6 +24,7 @@ function rgbToHsl(r, g, b) {
 	return { h, s, l };
 }
 
+/** Writes shaded pixels to the framebuffer with depth testing. */
 export class PixelWriter {
 	/**
 	 * Writes a pixel to the framebuffer, blending by alpha if needed.

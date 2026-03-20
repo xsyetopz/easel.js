@@ -1,5 +1,6 @@
 import { DepthBuffer } from "./DepthBuffer.js";
 
+/** RGBA pixel buffer backed by an Int32Array. */
 export class Framebuffer {
 	#width;
 	#height;

@@ -4,6 +4,7 @@ import { Mesh } from "./Mesh.js";
 const _boneMatrix = new Matrix4();
 const _result = new Matrix4();
 
+/** Mesh deformed by a Skeleton via vertex skinning. */
 export class SkinnedMesh extends Mesh {
 	/** @override @type {string} */
 	type = "SkinnedMesh";

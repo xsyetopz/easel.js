@@ -2,6 +2,7 @@ import { Vector3 } from "../math/Vector3.js";
 
 const _pos = new Vector3();
 
+/** Single polygon draw operation with material, depth, and vertex data. */
 export class DrawCall {
 	/** @type {import('../objects/Mesh.js').Mesh} */
 	mesh;

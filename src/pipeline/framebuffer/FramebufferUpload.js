@@ -1,3 +1,4 @@
+/** Copies the framebuffer contents to a canvas ImageData. */
 export class FramebufferUpload {
 	/**
 	 * @param {import('./Framebuffer.js').Framebuffer} framebuffer

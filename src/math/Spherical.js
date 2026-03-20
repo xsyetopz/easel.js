@@ -1,5 +1,6 @@
 import { MathUtils } from "./MathUtils.js";
 
+/** Spherical coordinate (radius, phi, theta). */
 export class Spherical {
 	#radius = 1;
 	#phi = 0;

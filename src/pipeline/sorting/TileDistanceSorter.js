@@ -1,5 +1,6 @@
 import { MathUtils } from "../../math/MathUtils.js";
 
+/** Sorts draw calls by tile distance from camera. */
 export class TileDistanceSorter {
 	/**
 	 * Sorts draw calls back-to-front by Manhattan tile distance from camera.

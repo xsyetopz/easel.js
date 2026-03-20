@@ -1,5 +1,6 @@
 import { Node } from "../core/Node.js";
 
+/** Camera-facing quad rendered from a texture. */
 export class Sprite extends Node {
 	/** @override @type {string} */
 	type = "Sprite";

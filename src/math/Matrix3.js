@@ -2,6 +2,7 @@ import { MathUtils } from "./MathUtils.js";
 import { Vector2 } from "./Vector2.js";
 /** @typedef {import("./Matrix4.js").Matrix4} Matrix4 */
 
+/** 3×3 matrix for 2D transforms and normal matrices. */
 export class Matrix3 {
 	#elements = new Float32Array(9);
 

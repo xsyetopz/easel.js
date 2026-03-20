@@ -1,5 +1,6 @@
 import { Node } from "../core/Node.js";
 
+/** Triangulated surface with geometry and material. */
 export class Mesh extends Node {
 	/** @override @type {string} */
 	type = "Mesh";

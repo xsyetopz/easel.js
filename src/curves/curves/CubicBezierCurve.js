@@ -1,6 +1,7 @@
 import { Vector2 } from "../../math/Vector2.js";
 import { Curve } from "../Curve.js";
 
+/** 2D cubic Bézier curve with four control points. */
 export class CubicBezierCurve extends Curve {
 	/** @override */
 	type = "CubicBezierCurve";

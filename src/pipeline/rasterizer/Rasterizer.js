@@ -2,6 +2,7 @@ import { PointRasterizer } from "./PointRasterizer.js";
 import { ScanlineFill } from "./ScanlineFill.js";
 import { WireframeRasterizer } from "./WireframeRasterizer.js";
 
+/** Scanline triangle rasterizer with texture sampling and shading. */
 export class Rasterizer {
 	#scanlineFill = new ScanlineFill();
 	#wireframe = new WireframeRasterizer();
