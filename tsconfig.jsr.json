@@ -3,8 +3,14 @@
 	"compilerOptions": {
 		"noEmit": false,
 		"composite": false,
-		"emitDeclarationOnly": true
+		"emitDeclarationOnly": true,
+		"removeComments": true
 	},
-	"include": ["src"],
-	"exclude": ["src/**/*.test.js", "playground"]
+	"include": [
+		"src"
+	],
+	"exclude": [
+		"src/**/*.test.js",
+		"playground"
+	]
 }
