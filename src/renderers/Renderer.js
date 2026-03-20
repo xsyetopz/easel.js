@@ -29,6 +29,9 @@ export class Renderer {
 	#clear;
 	#upload;
 
+	/** @type {(x: number, y: number, r: number, g: number, b: number, a: number) => void} */
+	#writePixel;
+
 	/**
 	 * @param {{ width?: number, height?: number, canvas?: HTMLCanvasElement, pixelRatio?: number }} [options]
 	 */
@@ -62,6 +65,8 @@ export class Renderer {
 		}
 
 		this.#framebuffer = new Framebuffer(width, height);
+		const fb = this.#framebuffer;
+		this.#writePixel = (x, y, r, g, b, _a) => fb.setPixel(x, y, r, g, b, 255);
 
 		this.#traversal = new SceneTraversal();
 		this.#fogCuller = new FogCuller();
@@ -130,15 +135,13 @@ export class Renderer {
 		const lights = drawList.lights;
 		const fb = this.#framebuffer;
 		const fogColor = fog ? fog.color : undefined;
-		/** @type {(x: number, y: number, r: number, g: number, b: number, a: number) => void} */
-		const writePixel = (x, y, r, g, b, _a) => fb.setPixel(x, y, r, g, b, 255);
 		for (const drawCall of drawList) {
 			this.#lightBaker.bake(/** @type {*} */ (drawCall), lights);
 			this.#rasterizer.rasterize(
 				/** @type {*} */ (drawCall),
 				fb,
 				undefined,
-				writePixel,
+				this.#writePixel,
 				fogColor,
 			);
 		}

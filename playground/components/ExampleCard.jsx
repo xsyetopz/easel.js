@@ -12,6 +12,7 @@ const CATEGORY_COLORS = {
 	textures: "#40e090",
 	interactive: "#9040e0",
 	helpers: "#a0a0a0",
+	performance: "#e04080",
 };
 
 /**
@@ -31,7 +32,7 @@ export function ExampleCard({ meta }) {
 			}}
 			onClick={() => navigate(`examples/${meta.id}`)}
 			onMouseEnter={(e) => {
-				e.currentTarget.style.background = "var(--mantine-color-dark-5)";
+				e.currentTarget.style.background = "var(--mantine-color-default-hover)";
 			}}
 			onMouseLeave={(e) => {
 				e.currentTarget.style.background = "";

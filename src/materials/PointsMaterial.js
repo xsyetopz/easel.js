@@ -14,6 +14,9 @@ export class PointsMaterial extends Material {
 	/** @type {number} Integer pixel radius. */
 	size = 1;
 
+	/** @type {boolean} Signals the rasterizer to use point rendering. */
+	points = true;
+
 	/** @type {import('../textures/Texture.js').Texture|undefined} */
 	map = undefined;
 
@@ -33,6 +36,11 @@ export class PointsMaterial extends Material {
 				: new Color(options.color ?? 0xffffff);
 		if (options.size !== undefined) this.size = options.size;
 		if (options.map !== undefined) this.map = options.map;
+	}
+
+	/** @returns {number} Alias for {@link size}, used by the rasterizer. */
+	get pointRadius() {
+		return this.size;
 	}
 
 	/**

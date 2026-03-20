@@ -9,21 +9,31 @@ export class LightBaker {
 
 	/**
 	 * Bakes lighting onto a draw call's faces or vertices.
-	 * Stores shaded RGB colors on drawCall.shadedColors, indexed by sorted iteration position.
-	 * @param {{ triangles: import('../TriangleBuffer.js').TriangleBuffer, material: { shading?: number }, shadedColors: Array<*> }} drawCall
+	 * Writes shaded RGB into drawCall.shadedColorData (flat Float32Array).
+	 * Stride is 3 for flat shading (r,g,b per face) or 9 for gouraud (r,g,b × 3 vertices).
+	 * @param {{ triangles: import('../TriangleBuffer.js').TriangleBuffer, material: { shading?: number }, shadedColorData: Float32Array, shadedColorStride: number }} drawCall
 	 * @param {Array<Record<string, unknown>>} lights
 	 * @returns {void}
 	 */
 	bake(drawCall, lights) {
-		if (drawCall.shadedColors) drawCall.shadedColors.length = 0;
-		else drawCall.shadedColors = [];
+		drawCall.shadedColorStride = 0;
 		if (lights.length === 0) return;
 
 		const tb = drawCall.triangles;
+		const isFlat = drawCall.material.shading === Shading.Flat;
+		const stride = isFlat ? 3 : 9;
+		const needed = tb.length * stride;
+
+		if (drawCall.shadedColorData.length < needed) {
+			drawCall.shadedColorData = new Float32Array(needed);
+		}
+		drawCall.shadedColorStride = stride;
+
 		for (let i = 0; i < tb.length; i++) {
 			const physIdx = tb.sortOrder[i];
+			const base = i * stride;
 
-			if (drawCall.material.shading === Shading.Flat) {
+			if (isFlat) {
 				const v = physIdx * 3;
 				// Face centroid world position: average of the 3 vertex world positions.
 				const fcwx = (tb.worldX[v] + tb.worldX[v + 1] + tb.worldX[v + 2]) / 3;
@@ -39,7 +49,9 @@ export class LightBaker {
 					fcwy,
 					fcwz,
 				);
-				drawCall.shadedColors[i] = { r: s.r, g: s.g, b: s.b };
+				drawCall.shadedColorData[base] = s.r;
+				drawCall.shadedColorData[base + 1] = s.g;
+				drawCall.shadedColorData[base + 2] = s.b;
 			} else {
 				const v = physIdx * 3;
 				const v0 = this.#gouraudShader.shade(
@@ -52,7 +64,10 @@ export class LightBaker {
 					tb.worldY[v],
 					tb.worldZ[v],
 				);
-				const c0 = { r: v0.r, g: v0.g, b: v0.b };
+				drawCall.shadedColorData[base] = v0.r;
+				drawCall.shadedColorData[base + 1] = v0.g;
+				drawCall.shadedColorData[base + 2] = v0.b;
+
 				const v1 = this.#gouraudShader.shade(
 					tb.vertNormalX[v + 1],
 					tb.vertNormalY[v + 1],
@@ -63,7 +78,10 @@ export class LightBaker {
 					tb.worldY[v + 1],
 					tb.worldZ[v + 1],
 				);
-				const c1 = { r: v1.r, g: v1.g, b: v1.b };
+				drawCall.shadedColorData[base + 3] = v1.r;
+				drawCall.shadedColorData[base + 4] = v1.g;
+				drawCall.shadedColorData[base + 5] = v1.b;
+
 				const v2 = this.#gouraudShader.shade(
 					tb.vertNormalX[v + 2],
 					tb.vertNormalY[v + 2],
@@ -74,8 +92,9 @@ export class LightBaker {
 					tb.worldY[v + 2],
 					tb.worldZ[v + 2],
 				);
-				const c2 = { r: v2.r, g: v2.g, b: v2.b };
-				drawCall.shadedColors[i] = [c0, c1, c2];
+				drawCall.shadedColorData[base + 6] = v2.r;
+				drawCall.shadedColorData[base + 7] = v2.g;
+				drawCall.shadedColorData[base + 8] = v2.b;
 			}
 		}
 	}

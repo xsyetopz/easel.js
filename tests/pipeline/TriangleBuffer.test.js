@@ -242,7 +242,7 @@ describe("TriangleBuffer", () => {
 			appendSentinel(buf);
 			appendSentinel(buf);
 			buf.buildSortOrder();
-			expect(buf.sortOrder).toEqual([0, 1, 2]);
+			expect(buf.sortOrder).toEqual(new Uint32Array([0, 1, 2]));
 		});
 
 		it("resizes sortOrder to match length", () => {
@@ -258,7 +258,7 @@ describe("TriangleBuffer", () => {
 		it("produces empty array when length is 0", () => {
 			const buf = new TriangleBuffer();
 			buf.buildSortOrder();
-			expect(buf.sortOrder).toEqual([]);
+			expect(buf.sortOrder).toEqual(new Uint32Array(0));
 		});
 	});
 
@@ -368,13 +368,13 @@ describe("TriangleBuffer", () => {
 			const buf = new TriangleBuffer();
 			appendSentinel(buf);
 			buf.sort();
-			expect(buf.sortOrder).toEqual([0]);
+			expect(buf.sortOrder).toEqual(new Uint32Array([0]));
 		});
 
 		it("handles empty buffer without error", () => {
 			const buf = new TriangleBuffer();
 			buf.sort();
-			expect(buf.sortOrder).toEqual([]);
+			expect(buf.sortOrder).toEqual(new Uint32Array(0));
 		});
 
 		it("does not mutate the centroidZ array", () => {

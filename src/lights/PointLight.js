@@ -1,3 +1,4 @@
+import { LightType } from "../core/Constants.js";
 import { Light } from "./Light.js";
 
 /**
@@ -9,6 +10,9 @@ export class PointLight extends Light {
 	 * @type {string}
 	 */
 	type = "PointLight";
+
+	/** @type {number} */
+	lightType = LightType.Point;
 
 	/** @type {number} */
 	distance;

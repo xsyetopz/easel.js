@@ -1,7 +1,7 @@
 import { createTheme } from "@mantine/core";
 
 export const theme = createTheme({
-	primaryColor: "blue",
+	primaryColor: "indigo",
 	colors: {
 		dark: [
 			"#C1C2C5",
@@ -11,10 +11,15 @@ export const theme = createTheme({
 			"#373A40",
 			"#2C2E33",
 			"#25262B",
-			"#1A1B1E",
-			"#141517",
-			"#101113",
+			"#1E1F23",
+			"#18191C",
+			"#131416",
 		],
+	},
+	other: {
+		lightBody: "#f8f7f5",
+		lightCard: "#ffffff",
+		lightBorder: "#e8e6e1",
 	},
 	fontFamily:
 		"-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",

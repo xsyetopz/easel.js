@@ -27,3 +27,24 @@ export const Layer = Object.freeze({
 	ENTITY: 2,
 	OVERLAY: 3,
 });
+
+/**
+ * Texture UV wrapping modes.
+ * @enum {number}
+ */
+export const Wrapping = Object.freeze({
+	ClampToEdge: 0,
+	Repeat: 1,
+});
+
+/**
+ * Numeric light type identifiers for fast dispatch in the shading pipeline.
+ * @enum {number}
+ */
+export const LightType = Object.freeze({
+	Ambient: 0,
+	Hemisphere: 1,
+	Directional: 2,
+	Point: 3,
+	Spot: 4,
+});

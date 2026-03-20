@@ -18,6 +18,8 @@ function Control({ control, value, onChange }) {
 							{ value: control.min, label: String(control.min) },
 							{ value: control.max, label: String(control.max) },
 						]}
+						mb="lg"
+						styles={{ root: { paddingInline: 4 } }}
 					/>
 				</div>
 			);

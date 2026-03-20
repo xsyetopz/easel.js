@@ -1,4 +1,4 @@
-import { Side } from "../core/Constants.js";
+import { LightType, Side } from "../core/Constants.js";
 import { Frustum } from "../math/Frustum.js";
 import { Matrix4 } from "../math/Matrix4.js";
 import { Vector3 } from "../math/Vector3.js";
@@ -28,6 +28,17 @@ export class SceneTraversal {
 	#fogFar = 0;
 	/** @type {boolean} */
 	#hasFog = false;
+
+	// Scratch storage set by #isFrustumCulled so #walk can reuse the
+	// bounding sphere world center without recomputing it for fog checks.
+	/** @type {number} */
+	#lastBsCenterX = 0;
+	/** @type {number} */
+	#lastBsCenterY = 0;
+	/** @type {number} */
+	#lastBsCenterZ = 0;
+	/** @type {number} */
+	#lastBsWorldRadius = 0;
 
 	/**
 	 * @param {{ children: *, visible: boolean, fog?: * }} scene
@@ -62,7 +73,7 @@ export class SceneTraversal {
 	/**
 	 * @param {{ type?: string, visible: boolean, children: *, geometry?: *, material?: *, matrixWorld: Matrix4, updateMatrixWorld: (p: boolean, c: boolean) => void }} node
 	 * @param {DrawList} drawList
-	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4 }} camera
+	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4, position?: { x: number, y: number, z: number } }} camera
 	 * @param {Frustum} frustum
 	 * @param {number} width
 	 * @param {number} height
@@ -71,13 +82,34 @@ export class SceneTraversal {
 	#walk(node, drawList, camera, frustum, width, height) {
 		if (!node.visible) return;
 
-		if (node.type === "Mesh" && node.geometry && node.material) {
+		if (
+			(node.type === "Mesh" || node.type === "Points") &&
+			node.geometry &&
+			node.material
+		) {
 			if (
 				!this.#isFrustumCulled(
 					/** @type {{ geometry: any, matrixWorld: Matrix4 }} */ (node),
 					frustum,
 				)
 			) {
+				// Cheap bounding-sphere fog check before any vertex work.
+				// Matches the RuneTek 3 pattern: cull by tile distance first.
+				if (this.#hasFog && camera.position) {
+					const dx = this.#lastBsCenterX - camera.position.x;
+					const dy = this.#lastBsCenterY - camera.position.y;
+					const dz = this.#lastBsCenterZ - camera.position.z;
+					const distSq = dx * dx + dy * dy + dz * dz;
+					const fogFarPlusRadius = this.#fogFar + this.#lastBsWorldRadius;
+					if (distSq > fogFarPlusRadius * fogFarPlusRadius) {
+						// Mesh is entirely beyond fog far — skip all vertex work.
+						for (const child of node.children) {
+							this.#walk(child, drawList, camera, frustum, width, height);
+						}
+						return;
+					}
+				}
+
 				const dc = this.#buildDrawCall(
 					/** @type {{ matrixWorld: Matrix4, geometry: *, material: *, updateMatrixWorld: (p: boolean, c: boolean) => void }} */ (
 						/** @type {unknown} */ (node)
@@ -98,6 +130,10 @@ export class SceneTraversal {
 	}
 
 	/**
+	 * Returns true if the node is outside the frustum and should be skipped.
+	 * As a side-effect, writes the bounding sphere world center and radius into
+	 * #lastBsCenterX/Y/Z and #lastBsWorldRadius so callers can reuse them for
+	 * the fog distance check without a second matrix multiply.
 	 * @param {{ geometry: *, matrixWorld: Matrix4 }} node
 	 * @param {Frustum} frustum
 	 * @returns {boolean}
@@ -120,6 +156,13 @@ export class SceneTraversal {
 		const sy = Math.sqrt(me[4] * me[4] + me[5] * me[5] + me[6] * me[6]);
 		const sz = Math.sqrt(me[8] * me[8] + me[9] * me[9] + me[10] * me[10]);
 		const worldRadius = bs.radius * Math.max(sx, sy, sz);
+
+		// Cache for fog check in #walk — avoid recomputing these values.
+		this.#lastBsCenterX = worldCenter.x;
+		this.#lastBsCenterY = worldCenter.y;
+		this.#lastBsCenterZ = worldCenter.z;
+		this.#lastBsWorldRadius = worldRadius;
+
 		return !frustum.intersectsSphere({
 			centre: worldCenter,
 			radius: worldRadius,
@@ -127,7 +170,7 @@ export class SceneTraversal {
 	}
 
 	/**
-	 * @param {{ matrixWorld: Matrix4, geometry: *, material: *, updateMatrixWorld: (p: boolean, c: boolean) => void }} node
+	 * @param {{ matrixWorld: Matrix4, geometry: *, material: *, updateMatrixWorld: (p: boolean, c: boolean) => void, _projectedVerts?: Float32Array, _worldPositions?: Float32Array, _worldNormalCache?: Float32Array, _worldNormalCacheKey?: Float32Array, _triangleBuffer?: TriangleBuffer }} node
 	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4 }} camera
 	 * @param {number} width
 	 * @param {number} height
@@ -179,7 +222,7 @@ export class SceneTraversal {
 			width,
 			height,
 			node.material,
-			node.geometry,
+			node,
 		);
 
 		return drawCall;
@@ -188,7 +231,7 @@ export class SceneTraversal {
 	/**
 	 * Projects local-space vertex positions to NDC and world space, storing
 	 * results in drawCall.projectedVerts and drawCall.worldPositions.
-	 * @param {{ matrixWorld: Matrix4, geometry: * }} node
+	 * @param {{ matrixWorld: Matrix4, geometry: *, _projectedVerts?: Float32Array, _worldPositions?: Float32Array }} node
 	 * @param {DrawCall} drawCall
 	 * @returns {void}
 	 */
@@ -201,19 +244,19 @@ export class SceneTraversal {
 		const count = arr.length / itemSize;
 		const me = _mvp.elements;
 		const needed = count * VERT_STRIDE;
-		let pv = node.geometry._projectedVerts;
+		let pv = node._projectedVerts;
 		if (!pv || pv.length !== needed) {
 			pv = new Float32Array(needed);
-			node.geometry._projectedVerts = pv;
+			node._projectedVerts = pv;
 		}
 		drawCall.projectedVerts = pv;
 		drawCall.vertCount = count;
 
 		const worldNeeded = count * 3;
-		let wp = node.geometry._worldPositions;
+		let wp = node._worldPositions;
 		if (!wp || wp.length !== worldNeeded) {
 			wp = new Float32Array(worldNeeded);
-			node.geometry._worldPositions = wp;
+			node._worldPositions = wp;
 		}
 		drawCall.worldPositions = wp;
 
@@ -244,7 +287,10 @@ export class SceneTraversal {
 	}
 
 	/**
-	 * @param {{ matrixWorld: Matrix4, geometry: * }} node
+	 * Caches world normals on the geometry keyed by the 3×3 rotation submatrix.
+	 * Translation doesn't affect normals, so only m[0..2], m[4..6], m[8..10] are
+	 * compared. The key buffer is reused across frames to avoid allocation.
+	 * @param {{ matrixWorld: Matrix4, geometry: *, _worldNormalCache?: Float32Array, _worldNormalCacheKey?: Float32Array }} node
 	 * @returns {Float32Array} Stride-3 flat array: [x0,y0,z0, x1,y1,z1, ...]
 	 */
 	#buildWorldNormals(node) {
@@ -255,7 +301,53 @@ export class SceneTraversal {
 		const nSize = normAttr.itemSize ?? 3;
 		const nCount = nArr.length / nSize;
 		const m = node.matrixWorld.elements;
-		const result = new Float32Array(nCount * 3);
+		// Cache hit: compare the 3×3 rotation submatrix.
+		// Cached on node (not geometry) so shared geometry with different
+		// rotations doesn't return stale normals.
+		if (node._worldNormalCache && node._worldNormalCacheKey) {
+			const k = node._worldNormalCacheKey;
+			if (
+				k[0] === m[0] &&
+				k[1] === m[1] &&
+				k[2] === m[2] &&
+				k[3] === m[4] &&
+				k[4] === m[5] &&
+				k[5] === m[6] &&
+				k[6] === m[8] &&
+				k[7] === m[9] &&
+				k[8] === m[10]
+			) {
+				return node._worldNormalCache;
+			}
+			// Reuse the key buffer — no allocation needed on subsequent frames.
+			k[0] = m[0];
+			k[1] = m[1];
+			k[2] = m[2];
+			k[3] = m[4];
+			k[4] = m[5];
+			k[5] = m[6];
+			k[6] = m[8];
+			k[7] = m[9];
+			k[8] = m[10];
+		} else {
+			node._worldNormalCacheKey = new Float32Array([
+				m[0],
+				m[1],
+				m[2],
+				m[4],
+				m[5],
+				m[6],
+				m[8],
+				m[9],
+				m[10],
+			]);
+		}
+
+		let result = node._worldNormalCache;
+		if (!result || result.length !== nCount * 3) {
+			result = new Float32Array(nCount * 3);
+			node._worldNormalCache = result;
+		}
 
 		for (let i = 0; i < nCount; i++) {
 			const nx = nArr[i * nSize];
@@ -305,7 +397,7 @@ export class SceneTraversal {
 	 * @param {number} width
 	 * @param {number} height
 	 * @param {import('../materials/Material.js').Material} material
-	 * @param {{ _triangleBuffer?: TriangleBuffer }} geometry
+	 * @param {{ _triangleBuffer?: TriangleBuffer, [k: string]: any }} node
 	 * @returns {TriangleBuffer}
 	 */
 	#assembleTriangles(
@@ -317,20 +409,28 @@ export class SceneTraversal {
 		width,
 		height,
 		material,
-		geometry,
+		node,
 	) {
 		const triCount = Math.floor(indices.length / 3);
 		const side = material.side;
 
-		let buf = geometry._triangleBuffer;
+		let buf = node._triangleBuffer;
 		if (!buf) {
 			buf = new TriangleBuffer(triCount || 64);
-			geometry._triangleBuffer = buf;
+			node._triangleBuffer = buf;
 		}
 		buf.reset();
 
 		const halfW = width * 0.5;
 		const halfH = height * 0.5;
+
+		const hasFog = this.#hasFog;
+		const fogNear = this.#fogNear;
+		const fogInvRange =
+			this.#fogFar - fogNear > 0 ? 1 / (this.#fogFar - fogNear) : 0;
+		const wnLen = worldNormals.length;
+		const uvLen = uvs.length;
+		const wpLen = worldPositions.length;
 
 		for (let t = 0; t < triCount; t++) {
 			const i0 = indices[t * 3];
@@ -364,16 +464,82 @@ export class SceneTraversal {
 			const cross = (sx1 - sx0) * (sy2 - sy0) - (sy1 - sy0) * (sx2 - sx0);
 			if (this.#isCulled(cross, side)) continue;
 
-			const [ff0, ff1, ff2] = this.#computeFogFactors(w0, w1, w2);
+			// Inline fog factors — avoids [f0,f1,f2] array allocation per triangle.
+			let ff0 = 0;
+			let ff1 = 0;
+			let ff2 = 0;
+			if (hasFog) {
+				const raw0 = (w0 - fogNear) * fogInvRange;
+				const raw1 = (w1 - fogNear) * fogInvRange;
+				const raw2 = (w2 - fogNear) * fogInvRange;
+				ff0 = raw0 < 0 ? 0 : raw0 > 1 ? 1 : raw0;
+				ff1 = raw1 < 0 ? 0 : raw1 > 1 ? 1 : raw1;
+				ff2 = raw2 < 0 ? 0 : raw2 > 1 ? 1 : raw2;
+			}
 
-			this.#appendTriangle(
-				buf,
-				worldNormals,
-				uvs,
-				worldPositions,
-				i0,
-				i1,
-				i2,
+			// Inline face normal — avoids [fnx,fny,fnz] array allocation per triangle.
+			let fnx = 0;
+			let fny = 1;
+			let fnz = 0;
+			if (wnLen > 0) {
+				const n0x = worldNormals[i0 * 3] ?? 0;
+				const n0y = worldNormals[i0 * 3 + 1] ?? 0;
+				const n0z = worldNormals[i0 * 3 + 2] ?? 0;
+				const n1x = worldNormals[i1 * 3] ?? 0;
+				const n1y = worldNormals[i1 * 3 + 1] ?? 0;
+				const n1z = worldNormals[i1 * 3 + 2] ?? 0;
+				const n2x = worldNormals[i2 * 3] ?? 0;
+				const n2y = worldNormals[i2 * 3 + 1] ?? 0;
+				const n2z = worldNormals[i2 * 3 + 2] ?? 0;
+				const ax = (n0x + n1x + n2x) / 3;
+				const ay = (n0y + n1y + n2y) / 3;
+				const az = (n0z + n1z + n2z) / 3;
+				const al = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
+				fnx = ax / al;
+				fny = ay / al;
+				fnz = az / al;
+			}
+
+			// Inline vertex normals — falls back to face normal when out-of-range.
+			const vn0b = i0 * 3;
+			const vn0x = wnLen < vn0b + 3 ? fnx : worldNormals[vn0b];
+			const vn0y = wnLen < vn0b + 3 ? fny : worldNormals[vn0b + 1];
+			const vn0z = wnLen < vn0b + 3 ? fnz : worldNormals[vn0b + 2];
+			const vn1b = i1 * 3;
+			const vn1x = wnLen < vn1b + 3 ? fnx : worldNormals[vn1b];
+			const vn1y = wnLen < vn1b + 3 ? fny : worldNormals[vn1b + 1];
+			const vn1z = wnLen < vn1b + 3 ? fnz : worldNormals[vn1b + 2];
+			const vn2b = i2 * 3;
+			const vn2x = wnLen < vn2b + 3 ? fnx : worldNormals[vn2b];
+			const vn2y = wnLen < vn2b + 3 ? fny : worldNormals[vn2b + 1];
+			const vn2z = wnLen < vn2b + 3 ? fnz : worldNormals[vn2b + 2];
+
+			// Inline UV reads — falls back to 0 when out-of-range.
+			const uv0b = i0 * 2;
+			const uv0u = uvLen < uv0b + 2 ? 0 : uvs[uv0b];
+			const uv0v = uvLen < uv0b + 2 ? 0 : uvs[uv0b + 1];
+			const uv1b = i1 * 2;
+			const uv1u = uvLen < uv1b + 2 ? 0 : uvs[uv1b];
+			const uv1v = uvLen < uv1b + 2 ? 0 : uvs[uv1b + 1];
+			const uv2b = i2 * 2;
+			const uv2u = uvLen < uv2b + 2 ? 0 : uvs[uv2b];
+			const uv2v = uvLen < uv2b + 2 ? 0 : uvs[uv2b + 1];
+
+			// Inline world position reads — falls back to 0 when out-of-range.
+			const wp0b = i0 * 3;
+			const wp0x = wpLen < wp0b + 3 ? 0 : worldPositions[wp0b];
+			const wp0y = wpLen < wp0b + 3 ? 0 : worldPositions[wp0b + 1];
+			const wp0z = wpLen < wp0b + 3 ? 0 : worldPositions[wp0b + 2];
+			const wp1b = i1 * 3;
+			const wp1x = wpLen < wp1b + 3 ? 0 : worldPositions[wp1b];
+			const wp1y = wpLen < wp1b + 3 ? 0 : worldPositions[wp1b + 1];
+			const wp1z = wpLen < wp1b + 3 ? 0 : worldPositions[wp1b + 2];
+			const wp2b = i2 * 3;
+			const wp2x = wpLen < wp2b + 3 ? 0 : worldPositions[wp2b];
+			const wp2y = wpLen < wp2b + 3 ? 0 : worldPositions[wp2b + 1];
+			const wp2z = wpLen < wp2b + 3 ? 0 : worldPositions[wp2b + 2];
+
+			buf.append(
 				sx0,
 				sy0,
 				sx1,
@@ -383,6 +549,33 @@ export class SceneTraversal {
 				verts[b0 + 2],
 				verts[b1 + 2],
 				verts[b2 + 2],
+				fnx,
+				fny,
+				fnz,
+				vn0x,
+				vn0y,
+				vn0z,
+				vn1x,
+				vn1y,
+				vn1z,
+				vn2x,
+				vn2y,
+				vn2z,
+				uv0u,
+				uv0v,
+				uv1u,
+				uv1v,
+				uv2u,
+				uv2v,
+				wp0x,
+				wp0y,
+				wp0z,
+				wp1x,
+				wp1y,
+				wp1z,
+				wp2x,
+				wp2y,
+				wp2z,
 				ff0,
 				ff1,
 				ff2,
@@ -391,179 +584,6 @@ export class SceneTraversal {
 
 		buf.buildSortOrder();
 		return buf;
-	}
-
-	/**
-	 * @param {TriangleBuffer} buf
-	 * @param {Float32Array} worldNormals Stride-3 flat buffer
-	 * @param {Float32Array} uvs Stride-2 flat buffer
-	 * @param {Float32Array} worldPositions Stride-3 flat buffer
-	 * @param {number} i0
-	 * @param {number} i1
-	 * @param {number} i2
-	 * @param {number} sx0 @param {number} sy0
-	 * @param {number} sx1 @param {number} sy1
-	 * @param {number} sx2 @param {number} sy2
-	 * @param {number} z0 @param {number} z1 @param {number} z2
-	 * @param {number} [ff0=0] @param {number} [ff1=0] @param {number} [ff2=0]
-	 */
-	#appendTriangle(
-		buf,
-		worldNormals,
-		uvs,
-		worldPositions,
-		i0,
-		i1,
-		i2,
-		sx0,
-		sy0,
-		sx1,
-		sy1,
-		sx2,
-		sy2,
-		z0,
-		z1,
-		z2,
-		ff0 = 0,
-		ff1 = 0,
-		ff2 = 0,
-	) {
-		const [fnx, fny, fnz] = this.#computeFaceNormal(worldNormals, i0, i1, i2);
-		const vn0 = this.#vertNormal(worldNormals, i0, fnx, fny, fnz);
-		const vn1 = this.#vertNormal(worldNormals, i1, fnx, fny, fnz);
-		const vn2 = this.#vertNormal(worldNormals, i2, fnx, fny, fnz);
-		const uv0 = this.#vertUv(uvs, i0);
-		const uv1 = this.#vertUv(uvs, i1);
-		const uv2 = this.#vertUv(uvs, i2);
-		const wp0 = this.#vertWorld(worldPositions, i0);
-		const wp1 = this.#vertWorld(worldPositions, i1);
-		const wp2 = this.#vertWorld(worldPositions, i2);
-
-		buf.append(
-			sx0,
-			sy0,
-			sx1,
-			sy1,
-			sx2,
-			sy2,
-			z0,
-			z1,
-			z2,
-			fnx,
-			fny,
-			fnz,
-			vn0[0],
-			vn0[1],
-			vn0[2],
-			vn1[0],
-			vn1[1],
-			vn1[2],
-			vn2[0],
-			vn2[1],
-			vn2[2],
-			uv0[0],
-			uv0[1],
-			uv1[0],
-			uv1[1],
-			uv2[0],
-			uv2[1],
-			wp0[0],
-			wp0[1],
-			wp0[2],
-			wp1[0],
-			wp1[1],
-			wp1[2],
-			wp2[0],
-			wp2[1],
-			wp2[2],
-			ff0,
-			ff1,
-			ff2,
-		);
-	}
-
-	/**
-	 * @param {Float32Array} worldNormals
-	 * @param {number} idx
-	 * @param {number} fnx @param {number} fny @param {number} fnz
-	 * @returns {[number, number, number]}
-	 */
-	#vertNormal(worldNormals, idx, fnx, fny, fnz) {
-		if (worldNormals.length < (idx + 1) * 3) return [fnx, fny, fnz];
-		return [
-			worldNormals[idx * 3],
-			worldNormals[idx * 3 + 1],
-			worldNormals[idx * 3 + 2],
-		];
-	}
-
-	/**
-	 * Compute per-vertex fog factors from clip-space W values.
-	 * @param {number} w0 @param {number} w1 @param {number} w2
-	 * @returns {[number, number, number]}
-	 */
-	#computeFogFactors(w0, w1, w2) {
-		if (!this.#hasFog) return [0, 0, 0];
-		const range = this.#fogFar - this.#fogNear;
-		const invRange = range > 0 ? 1 / range : 0;
-		const f0 = (w0 - this.#fogNear) * invRange;
-		const f1 = (w1 - this.#fogNear) * invRange;
-		const f2 = (w2 - this.#fogNear) * invRange;
-		return [
-			f0 < 0 ? 0 : f0 > 1 ? 1 : f0,
-			f1 < 0 ? 0 : f1 > 1 ? 1 : f1,
-			f2 < 0 ? 0 : f2 > 1 ? 1 : f2,
-		];
-	}
-
-	/**
-	 * @param {Float32Array} uvs
-	 * @param {number} idx
-	 * @returns {[number, number]}
-	 */
-	#vertUv(uvs, idx) {
-		if (uvs.length < (idx + 1) * 2) return [0, 0];
-		return [uvs[idx * 2], uvs[idx * 2 + 1]];
-	}
-
-	/**
-	 * @param {Float32Array} worldPositions
-	 * @param {number} idx
-	 * @returns {[number, number, number]}
-	 */
-	#vertWorld(worldPositions, idx) {
-		if (worldPositions.length < (idx + 1) * 3) return [0, 0, 0];
-		return [
-			worldPositions[idx * 3],
-			worldPositions[idx * 3 + 1],
-			worldPositions[idx * 3 + 2],
-		];
-	}
-
-	/**
-	 * Computes and normalises the averaged face normal for three vertices.
-	 * @param {Float32Array} worldNormals Stride-3 flat buffer
-	 * @param {number} i0
-	 * @param {number} i1
-	 * @param {number} i2
-	 * @returns {[number, number, number]}
-	 */
-	#computeFaceNormal(worldNormals, i0, i1, i2) {
-		if (worldNormals.length === 0) return [0, 1, 0];
-		const n0x = worldNormals[i0 * 3] ?? 0;
-		const n0y = worldNormals[i0 * 3 + 1] ?? 0;
-		const n0z = worldNormals[i0 * 3 + 2] ?? 0;
-		const n1x = worldNormals[i1 * 3] ?? 0;
-		const n1y = worldNormals[i1 * 3 + 1] ?? 0;
-		const n1z = worldNormals[i1 * 3 + 2] ?? 0;
-		const n2x = worldNormals[i2 * 3] ?? 0;
-		const n2y = worldNormals[i2 * 3 + 1] ?? 0;
-		const n2z = worldNormals[i2 * 3 + 2] ?? 0;
-		const ax = (n0x + n1x + n2x) / 3;
-		const ay = (n0y + n1y + n2y) / 3;
-		const az = (n0z + n1z + n2z) / 3;
-		const al = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
-		return [ax / al, ay / al, az / al];
 	}
 
 	/**
@@ -589,6 +609,7 @@ export class SceneTraversal {
 		if (light.type === "AmbientLight") {
 			drawList.lights.push({
 				type: "ambient",
+				lightType: LightType.Ambient,
 				color: light.color,
 				intensity: light.intensity,
 			});
@@ -600,6 +621,7 @@ export class SceneTraversal {
 			const len = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z) || 1;
 			drawList.lights.push({
 				type: "hemisphere",
+				lightType: LightType.Hemisphere,
 				skyColor: light.color,
 				groundColor: light.groundColor,
 				direction: { x: pos.x / len, y: pos.y / len, z: pos.z / len },
@@ -617,6 +639,7 @@ export class SceneTraversal {
 			const pos = light.position;
 			drawList.lights.push({
 				type: "point",
+				lightType: LightType.Point,
 				position: { x: pos.x, y: pos.y, z: pos.z },
 				color: light.color,
 				intensity: light.intensity,
@@ -637,6 +660,7 @@ export class SceneTraversal {
 		const len = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z) || 1;
 		drawList.lights.push({
 			type: "directional",
+			lightType: LightType.Directional,
 			direction: { x: -pos.x / len, y: -pos.y / len, z: -pos.z / len },
 			color: light.color,
 			intensity: light.intensity,
@@ -670,6 +694,7 @@ export class SceneTraversal {
 		const dirLen = Math.sqrt(wdx * wdx + wdy * wdy + wdz * wdz) || 1;
 		return {
 			type: "spot",
+			lightType: LightType.Spot,
 			position: { x: pos.x, y: pos.y, z: pos.z },
 			direction: { x: wdx / dirLen, y: wdy / dirLen, z: wdz / dirLen },
 			color: light.color,

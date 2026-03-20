@@ -38,7 +38,7 @@ export function ExampleCanvas({ setup, params }) {
 			style={{
 				width: "100%",
 				height: "100%",
-				minHeight: 400,
+				minHeight: "min(400px, 60vw)",
 				background: "#000",
 				borderRadius: "var(--mantine-radius-sm)",
 				overflow: "hidden",

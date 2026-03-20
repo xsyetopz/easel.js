@@ -53,8 +53,8 @@ export class TriangleBuffer {
 	/** @type {Float32Array} Centroid Z = (z0+z1+z2)/3, used for painter sort (stride 1). */
 	centroidZ = new Float32Array(0);
 
-	/** @type {number[]} Iteration index → physical triangle index, populated by buildSortOrder/sort. */
-	sortOrder = [];
+	/** @type {Uint32Array} Iteration index → physical triangle index, populated by buildSortOrder/sort. */
+	sortOrder = new Uint32Array(0);
 
 	/** @param {number} [capacity=64] Initial capacity in triangles. */
 	constructor(capacity = 64) {
@@ -290,7 +290,9 @@ export class TriangleBuffer {
 
 	/** Fill sortOrder with identity [0, 1, 2, ...length-1]. */
 	buildSortOrder() {
-		this.sortOrder.length = this.length;
+		if (this.sortOrder.length !== this.length) {
+			this.sortOrder = new Uint32Array(this.length);
+		}
 		for (let i = 0; i < this.length; i++) {
 			this.sortOrder[i] = i;
 		}

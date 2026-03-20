@@ -1,3 +1,4 @@
+import { LightType } from "../core/Constants.js";
 import { Vector3 } from "../math/Vector3.js";
 import { Light } from "./Light.js";
 
@@ -11,6 +12,9 @@ export class SpotLight extends Light {
 	 */
 	type = "SpotLight";
 
+	/** @type {number} */
+	lightType = LightType.Spot;
+
 	/** Local-space cone direction. @type {Vector3} */
 	direction = new Vector3(0, -1, 0);
 
@@ -18,13 +22,53 @@ export class SpotLight extends Light {
 	distance;
 
 	/** @type {number} */
-	angle;
+	#angle = Math.PI / 3;
 
 	/** @type {number} */
-	penumbra;
+	#penumbra = 0;
+
+	/**
+	 * Precomputed `Math.cos(angle)`. Updated whenever `angle` or `penumbra` change.
+	 * @type {number}
+	 */
+	_cosAngle = Math.cos(Math.PI / 3);
+
+	/**
+	 * Precomputed `Math.cos(angle * (1 - penumbra))`. Updated whenever `angle` or `penumbra` change.
+	 * @type {number}
+	 */
+	_cosInnerAngle = Math.cos(Math.PI / 3);
 
 	/** @type {number} */
 	decay;
+
+	/** @returns {number} */
+	get angle() {
+		return this.#angle;
+	}
+
+	/** @param {number} value */
+	set angle(value) {
+		this.#angle = value;
+		this.#updateTrig();
+	}
+
+	/** @returns {number} */
+	get penumbra() {
+		return this.#penumbra;
+	}
+
+	/** @param {number} value */
+	set penumbra(value) {
+		this.#penumbra = value;
+		this.#updateTrig();
+	}
+
+	/** @returns {void} */
+	#updateTrig() {
+		this._cosAngle = Math.cos(this.#angle);
+		this._cosInnerAngle = Math.cos(this.#angle * (1 - this.#penumbra));
+	}
 
 	/**
 	 * @param {import('../math/Color.js').Color|number|string} [color=0xffffff]
@@ -44,8 +88,10 @@ export class SpotLight extends Light {
 	) {
 		super(color, intensity);
 		this.distance = distance;
-		this.angle = angle;
-		this.penumbra = penumbra;
+		// Use setters to initialize cached trig values.
+		this.#angle = angle;
+		this.#penumbra = penumbra;
+		this.#updateTrig();
 		this.decay = decay;
 	}
 

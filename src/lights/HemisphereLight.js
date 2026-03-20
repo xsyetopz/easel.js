@@ -1,3 +1,4 @@
+import { LightType } from "../core/Constants.js";
 import { Color } from "../math/Color.js";
 import { Light } from "./Light.js";
 
@@ -10,6 +11,9 @@ export class HemisphereLight extends Light {
 	 * @type {string}
 	 */
 	type = "HemisphereLight";
+
+	/** @type {number} */
+	lightType = LightType.Hemisphere;
 
 	/** @type {Color} */
 	groundColor;

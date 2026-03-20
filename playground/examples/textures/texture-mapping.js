@@ -21,6 +21,7 @@ export function setup(canvas) {
 		far: 100,
 	});
 	camera.position.set(0, 1, 5);
+	camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
 	const renderer = new EASEL.Renderer({ canvas, width, height });
 
@@ -72,6 +73,7 @@ const camera = new EASEL.PerspectiveCamera({
   far: 100,
 });
 camera.position.set(0, 1, 5);
+camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
 const renderer = new EASEL.Renderer({ canvas, width, height });
 
@@ -109,6 +111,7 @@ const camera = new THREE.PerspectiveCamera(
   100,
 );
 camera.position.set(0, 1, 5);
+camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(width, height);

@@ -4,8 +4,8 @@ import { MathUtils } from "../../math/MathUtils.js";
 export class ScanlineFill {
 	/**
 	 * Rasterizes a triangle defined by three screen-space integer points.
-	 * Calls callback for each covered pixel with barycentric coordinates
-	 * relative to the original vertex order (u→v1, v→v2, w→v3).
+	 * Calls callback once per scanline with barycentric start values and
+	 * per-pixel deltas, relative to the original vertex order (u→v1, v→v2).
 	 * @param {number} x1
 	 * @param {number} y1
 	 * @param {number} x2
@@ -14,18 +14,21 @@ export class ScanlineFill {
 	 * @param {number} y3
 	 * @param {number} width Framebuffer width
 	 * @param {number} height Framebuffer height
-	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
+	 * @param {(y: number, xStart: number, xEnd: number, uStart: number, vStart: number, duDx: number, dvDx: number) => void} callback
 	 * @returns {void}
 	 */
 	fill(x1, y1, x2, y2, x3, y3, width, height, callback) {
 		// Barycentric partial derivatives computed from the original (pre-sort) vertices.
-		// denom is shared across all pixels in this triangle.
 		const denom = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 
 		// Degenerate triangle - no area to fill.
 		if (denom === 0) return;
 
 		const invDenom = 1 / denom;
+
+		// Per-triangle barycentric X-deltas (constant across all scanlines).
+		const duDx = (y2 - y3) * invDenom;
+		const dvDx = (y3 - y1) * invDenom;
 
 		// Sort three vertices by ascending Y using a sorting network.
 		let ax = x1;
@@ -79,6 +82,8 @@ export class ScanlineFill {
 				x3,
 				y3,
 				invDenom,
+				duDx,
+				dvDx,
 				callback,
 			);
 		} else if (ay === by) {
@@ -98,6 +103,8 @@ export class ScanlineFill {
 				x3,
 				y3,
 				invDenom,
+				duDx,
+				dvDx,
 				callback,
 			);
 		} else {
@@ -121,6 +128,8 @@ export class ScanlineFill {
 				x3,
 				y3,
 				invDenom,
+				duDx,
+				dvDx,
 				callback,
 			);
 			this.#fillFlatTop(
@@ -139,13 +148,14 @@ export class ScanlineFill {
 				x3,
 				y3,
 				invDenom,
+				duDx,
+				dvDx,
 				callback,
 			);
 		}
 	}
 
 	/**
-	 * Fills a flat-bottom triangle (top vertex, two bottom vertices).
 	 * @param {number} topX
 	 * @param {number} topY
 	 * @param {number} botLeftX
@@ -154,14 +164,16 @@ export class ScanlineFill {
 	 * @param {number} _botRightY
 	 * @param {number} width
 	 * @param {number} height
-	 * @param {number} ox1 Original x1
-	 * @param {number} oy1 Original y1
-	 * @param {number} ox2 Original x2
-	 * @param {number} oy2 Original y2
-	 * @param {number} ox3 Original x3
-	 * @param {number} oy3 Original y3
-	 * @param {number} invDenom Pre-computed 1/barycentric denominator
-	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
+	 * @param {number} ox1
+	 * @param {number} oy1
+	 * @param {number} ox2
+	 * @param {number} oy2
+	 * @param {number} ox3
+	 * @param {number} oy3
+	 * @param {number} invDenom
+	 * @param {number} duDx
+	 * @param {number} dvDx
+	 * @param {(y: number, xStart: number, xEnd: number, uStart: number, vStart: number, duDx: number, dvDx: number) => void} callback
 	 * @returns {void}
 	 */
 	#fillFlatBottom(
@@ -180,6 +192,8 @@ export class ScanlineFill {
 		ox3,
 		oy3,
 		invDenom,
+		duDx,
+		dvDx,
 		callback,
 	) {
 		const dy = botLeftY - topY;
@@ -205,13 +219,14 @@ export class ScanlineFill {
 				ox3,
 				oy3,
 				invDenom,
+				duDx,
+				dvDx,
 				callback,
 			);
 		}
 	}
 
 	/**
-	 * Fills a flat-top triangle (two top vertices, one bottom vertex).
 	 * @param {number} topLeftX
 	 * @param {number} topLeftY
 	 * @param {number} topRightX
@@ -220,14 +235,16 @@ export class ScanlineFill {
 	 * @param {number} botY
 	 * @param {number} width
 	 * @param {number} height
-	 * @param {number} ox1 Original x1
-	 * @param {number} oy1 Original y1
-	 * @param {number} ox2 Original x2
-	 * @param {number} oy2 Original y2
-	 * @param {number} ox3 Original x3
-	 * @param {number} oy3 Original y3
-	 * @param {number} invDenom Pre-computed 1/barycentric denominator
-	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
+	 * @param {number} ox1
+	 * @param {number} oy1
+	 * @param {number} ox2
+	 * @param {number} oy2
+	 * @param {number} ox3
+	 * @param {number} oy3
+	 * @param {number} invDenom
+	 * @param {number} duDx
+	 * @param {number} dvDx
+	 * @param {(y: number, xStart: number, xEnd: number, uStart: number, vStart: number, duDx: number, dvDx: number) => void} callback
 	 * @returns {void}
 	 */
 	#fillFlatTop(
@@ -246,6 +263,8 @@ export class ScanlineFill {
 		ox3,
 		oy3,
 		invDenom,
+		duDx,
+		dvDx,
 		callback,
 	) {
 		const dy = botY - topLeftY;
@@ -271,26 +290,29 @@ export class ScanlineFill {
 				ox3,
 				oy3,
 				invDenom,
+				duDx,
+				dvDx,
 				callback,
 			);
 		}
 	}
 
 	/**
-	 * Fills a horizontal scanline from xLeft to xRight at row y.
-	 * Computes proper barycentric (u,v,w) relative to the original triangle vertices.
+	 * Computes barycentric start values for the scanline and calls callback once.
 	 * @param {number} y
 	 * @param {number} xLeft
 	 * @param {number} xRight
 	 * @param {number} width
-	 * @param {number} ox1 Original x1
-	 * @param {number} oy1 Original y1
-	 * @param {number} ox2 Original x2
-	 * @param {number} oy2 Original y2
-	 * @param {number} ox3 Original x3
-	 * @param {number} oy3 Original y3
-	 * @param {number} invDenom Pre-computed 1/barycentric denominator
-	 * @param {(x: number, y: number, u: number, v: number, w: number) => void} callback
+	 * @param {number} ox1
+	 * @param {number} oy1
+	 * @param {number} ox2
+	 * @param {number} oy2
+	 * @param {number} ox3
+	 * @param {number} oy3
+	 * @param {number} invDenom
+	 * @param {number} duDx
+	 * @param {number} dvDx
+	 * @param {(y: number, xStart: number, xEnd: number, uStart: number, vStart: number, duDx: number, dvDx: number) => void} callback
 	 * @returns {void}
 	 */
 	#fillScanline(
@@ -305,6 +327,8 @@ export class ScanlineFill {
 		ox3,
 		oy3,
 		invDenom,
+		duDx,
+		dvDx,
 		callback,
 	) {
 		const startX = MathUtils.clamp(
@@ -317,20 +341,16 @@ export class ScanlineFill {
 			0,
 			width - 1,
 		);
+		if (startX > endX) return;
 
-		// Pre-compute y-dependent terms once per scanline.
+		// Barycentric start values at (startX, y).
+		// u = ((oy2-oy3)*(startX-ox3) + (ox3-ox2)*(y-oy3)) * invDenom
+		// v = ((oy3-oy1)*(startX-ox3) + (ox1-ox3)*(y-oy3)) * invDenom
 		const dy3 = y - oy3;
-		const uNumerBase = (ox3 - ox2) * dy3;
-		const vNumerBase = (ox1 - ox3) * dy3;
-		const uDy = oy2 - oy3;
-		const vDy = oy3 - oy1;
+		const dx3Start = startX - ox3;
+		const uStart = ((oy2 - oy3) * dx3Start + (ox3 - ox2) * dy3) * invDenom;
+		const vStart = ((oy3 - oy1) * dx3Start + (ox1 - ox3) * dy3) * invDenom;
 
-		for (let x = startX; x <= endX; x++) {
-			const dx3 = x - ox3;
-			const u = (uDy * dx3 + uNumerBase) * invDenom;
-			const v = (vDy * dx3 + vNumerBase) * invDenom;
-			const w = 1 - u - v;
-			callback(x, y, u, v, w);
-		}
+		callback(y, startX, endX, uStart, vStart, duDx, dvDx);
 	}
 }

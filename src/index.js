@@ -1,5 +1,5 @@
 /** Current library revision string. */
-export const REVISION = "0.1.11";
+export const REVISION = "0.2.0";
 
 if (typeof globalThis !== "undefined") {
 	if (globalThis.__EASEL__) {
@@ -33,7 +33,7 @@ export { PerspectiveCamera } from "./cameras/PerspectiveCamera.js";
 // controls
 export { OrbitControls } from "./controls/OrbitControls.js";
 export { Clock } from "./core/Clock.js";
-export { Layer, Shading, Side } from "./core/Constants.js";
+export { Layer, LightType, Shading, Side, Wrapping } from "./core/Constants.js";
 export { EventDispatcher } from "./core/EventDispatcher.js";
 export { Layers } from "./core/Layers.js";
 export { Node } from "./core/Node.js";

@@ -1,3 +1,4 @@
+import { LightType } from "../core/Constants.js";
 import { Light } from "./Light.js";
 
 /**
@@ -9,6 +10,9 @@ export class AmbientLight extends Light {
 	 * @type {string}
 	 */
 	type = "AmbientLight";
+
+	/** @type {number} */
+	lightType = LightType.Ambient;
 
 	/**
 	 * @param {import('../math/Color.js').Color|number|string} [color=0xffffff]

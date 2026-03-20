@@ -16,14 +16,18 @@ export class FogCuller {
 		const cy = cameraPosition.y;
 		const cz = cameraPosition.z;
 
-		const kept = drawList.calls.filter((call) => {
+		const calls = drawList.calls;
+		let write = 0;
+		for (const call of calls) {
 			const dx = call.centroid.x - cx;
 			const dy = call.centroid.y - cy;
 			const dz = call.centroid.z - cz;
-			return dx * dx + dy * dy + dz * dz <= farSq;
-		});
-		drawList.calls.length = 0;
-		for (const call of kept) drawList.calls.push(call);
+			if (dx * dx + dy * dy + dz * dz <= farSq) {
+				calls[write] = call;
+				write++;
+			}
+		}
+		calls.length = write;
 		return drawList;
 	}
 }

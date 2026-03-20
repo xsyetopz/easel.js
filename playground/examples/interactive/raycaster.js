@@ -22,6 +22,7 @@ export function setup(canvas, _params = {}) {
 		far: 100,
 	});
 	camera.position.set(0, 1, 12);
+	camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
 	const renderer = new EASEL.Renderer({ canvas, width, height });
 

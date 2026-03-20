@@ -1,5 +1,8 @@
 import { MathUtils } from "../../math/MathUtils.js";
 
+/** Module-level reusable output for lookup() to avoid per-call allocation. */
+const _lookupOut = { r: 0, g: 0, b: 0 };
+
 /** Precomputed HSL16-to-RGB lookup table. */
 export class ColorTable {
 	#table;
@@ -50,15 +53,19 @@ export class ColorTable {
 	}
 
 	/**
+	 * Looks up an HSL16 value and writes the result into `out`.
+	 * Pass a custom object to retain the result across calls; omit to use the
+	 * shared module-level object (zero allocation, safe only when the caller
+	 * does not need to store the result past the next lookup call).
 	 * @param {number} hsl16
+	 * @param {{ r: number, g: number, b: number }} [out]
 	 * @returns {{ r: number, g: number, b: number }}
 	 */
-	lookup(hsl16) {
-		const val = this.#table[hsl16];
-		return {
-			r: (val >> 16) & 0xff,
-			g: (val >> 8) & 0xff,
-			b: val & 0xff,
-		};
+	lookup(hsl16, out = _lookupOut) {
+		const packed = this.#table[hsl16 & 0xffff];
+		out.r = (packed >> 16) & 0xff;
+		out.g = (packed >> 8) & 0xff;
+		out.b = packed & 0xff;
+		return out;
 	}
 }

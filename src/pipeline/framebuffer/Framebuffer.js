@@ -6,6 +6,8 @@ export class Framebuffer {
 	#height;
 	#imageData;
 	#data;
+	/** @type {Uint32Array} */
+	#u32;
 	#depthBuffer;
 
 	/**
@@ -17,6 +19,11 @@ export class Framebuffer {
 		this.#height = height;
 		this.#imageData = this.#createImageData(width, height);
 		this.#data = this.#imageData.data;
+		this.#u32 = new Uint32Array(
+			this.#data.buffer,
+			this.#data.byteOffset,
+			this.#data.byteLength >> 2,
+		);
 		this.#depthBuffer = new DepthBuffer(width, height);
 	}
 
@@ -50,6 +57,11 @@ export class Framebuffer {
 	/** @returns {Uint8ClampedArray} */
 	get data() {
 		return this.#data;
+	}
+
+	/** @returns {Uint32Array} */
+	get u32() {
+		return this.#u32;
 	}
 
 	/** @returns {DepthBuffer} */
@@ -97,6 +109,11 @@ export class Framebuffer {
 		this.#height = height;
 		this.#imageData = this.#createImageData(width, height);
 		this.#data = this.#imageData.data;
+		this.#u32 = new Uint32Array(
+			this.#data.buffer,
+			this.#data.byteOffset,
+			this.#data.byteLength >> 2,
+		);
 		this.#depthBuffer.resize(width, height);
 	}
 }

@@ -49,7 +49,7 @@ export function ExampleViewer({ exampleId }) {
 			</div>
 
 			<Grid>
-				<Grid.Col span={hasControls ? { base: 12, md: 9 } : 12}>
+				<Grid.Col span={hasControls ? { base: 12, lg: 9 } : 12}>
 					<ExampleCanvas
 						key={exampleId}
 						setup={example.setup}
@@ -57,7 +57,7 @@ export function ExampleViewer({ exampleId }) {
 					/>
 				</Grid.Col>
 				{hasControls && (
-					<Grid.Col span={{ base: 12, md: 3 }}>
+					<Grid.Col span={{ base: 12, lg: 3 }}>
 						<Paper p="md" withBorder={true}>
 							<Title order={5} mb="md">
 								Controls

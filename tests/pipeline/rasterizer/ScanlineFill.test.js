@@ -1,16 +1,42 @@
 import { describe, expect, it } from "vitest";
 import { ScanlineFill } from "@/pipeline/rasterizer/ScanlineFill.js";
 
+/**
+ * Collects per-pixel {x, y} from the per-scanline callback by iterating
+ * xStart..xEnd for each scanline invocation.
+ */
 function collectFill(fill, x1, y1, x2, y2, x3, y3, w = 20, h = 20) {
 	const pixels = [];
-	fill.fill(x1, y1, x2, y2, x3, y3, w, h, (x, y) => pixels.push({ x, y }));
+	fill.fill(x1, y1, x2, y2, x3, y3, w, h, (y, xStart, xEnd) => {
+		for (let x = xStart; x <= xEnd; x++) {
+			pixels.push({ x, y });
+		}
+	});
 	return pixels;
 }
 
+/**
+ * Collects per-pixel {x, y, u, v, w} by reconstructing barycentrics from
+ * the scanline start values and deltas.
+ */
 function collectFillBary(fill, x1, y1, x2, y2, x3, y3, w = 20, h = 20) {
 	const pixels = [];
-	fill.fill(x1, y1, x2, y2, x3, y3, w, h, (x, y, u, v, w_) =>
-		pixels.push({ x, y, u, v, w: w_ }),
+	fill.fill(
+		x1,
+		y1,
+		x2,
+		y2,
+		x3,
+		y3,
+		w,
+		h,
+		(y, xStart, xEnd, uStart, vStart, duDx, dvDx) => {
+			let u = uStart;
+			let v = vStart;
+			for (let x = xStart; x <= xEnd; x++, u += duDx, v += dvDx) {
+				pixels.push({ x, y, u, v, w: 1 - u - v });
+			}
+		},
 	);
 	return pixels;
 }
@@ -111,6 +137,31 @@ describe("ScanlineFill", () => {
 			expect(p.x).toBeLessThan(w);
 			expect(p.y).toBeGreaterThanOrEqual(0);
 			expect(p.y).toBeLessThan(h);
+		}
+	});
+
+	it("callback receives duDx and dvDx that reconstruct correct barycentrics", () => {
+		const results = [];
+		fill.fill(
+			3,
+			0,
+			0,
+			5,
+			6,
+			5,
+			20,
+			20,
+			(y, xStart, xEnd, uStart, vStart, duDx, dvDx) => {
+				results.push({ y, xStart, xEnd, uStart, vStart, duDx, dvDx });
+			},
+		);
+		expect(results.length).toBeGreaterThan(0);
+		for (const r of results) {
+			// duDx and dvDx should be constant across scanlines (per-triangle)
+			expect(typeof r.duDx).toBe("number");
+			expect(typeof r.dvDx).toBe("number");
+			expect(Number.isFinite(r.duDx)).toBe(true);
+			expect(Number.isFinite(r.dvDx)).toBe(true);
 		}
 	});
 });

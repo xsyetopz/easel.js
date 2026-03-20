@@ -45,6 +45,7 @@
 
 [data-mantine-color-scheme="light"] .hljs {
 	color: #24292f;
+	background: #f5f4f2;
 }
 
 [data-mantine-color-scheme="light"] .hljs-keyword {

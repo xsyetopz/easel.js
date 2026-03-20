@@ -45,6 +45,7 @@ export function setup(canvas, params = {}) {
 		far: 100,
 	});
 	camera.position.set(0, 3, 10);
+	camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
 	const renderer = new EASEL.Renderer({ canvas, width, height });
 
@@ -134,6 +135,7 @@ const camera = new EASEL.PerspectiveCamera({
   far: 100,
 });
 camera.position.set(0, 3, 10);
+camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
 scene.add(new EASEL.AmbientLight(0xffffff, 0.1));
 
@@ -162,6 +164,7 @@ export const threeSource = `import * as THREE from "three";
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
 camera.position.set(0, 3, 10);
+camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.1));
 

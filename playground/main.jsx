@@ -1,6 +1,7 @@
 import "@mantine/core/styles.css";
 import "@mantine/code-highlight/styles.css";
 import "./hljs-theme.css";
+import "./light-overrides.css";
 
 import {
 	CodeHighlightAdapterProvider,

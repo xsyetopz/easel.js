@@ -62,16 +62,26 @@ function accumulateDirectional(nx, ny, nz, light, acc) {
 	acc.b += dot * cb * light.intensity;
 }
 
+/** @type {{ cr: number, cg: number, cb: number }} */
+const _color = { cr: 1, cg: 1, cb: 1 };
+
 /**
  * Extracts normalized RGB from a light color that may be a Color object or integer.
+ * Returns a module-level reusable object — do not hold a reference across calls.
  * @param {*} c
  * @returns {{ cr: number, cg: number, cb: number }}
  */
 function extractColor(c) {
 	if (typeof c === "object" && c !== null) {
-		return { cr: c.r, cg: c.g, cb: c.b };
+		_color.cr = c.r;
+		_color.cg = c.g;
+		_color.cb = c.b;
+	} else {
+		_color.cr = 1;
+		_color.cg = 1;
+		_color.cb = 1;
 	}
-	return { cr: 1, cg: 1, cb: 1 };
+	return _color;
 }
 
 /**
@@ -105,10 +115,11 @@ function accumulateSpot(wx, wy, wz, nx, ny, nz, light, acc) {
 		ly * light.direction.y +
 		lz * light.direction.z
 	);
-	const outerCos = Math.cos(light.angle);
+	const outerCos = light._cosAngle ?? Math.cos(light.angle);
 	if (cosAngle < outerCos) return;
 
-	const innerCos = Math.cos(light.angle * (1 - light.penumbra));
+	const innerCos =
+		light._cosInnerAngle ?? Math.cos(light.angle * (1 - light.penumbra));
 	const spotFactor =
 		light.penumbra > 0
 			? Math.min(Math.max((cosAngle - outerCos) / (innerCos - outerCos), 0), 1)
@@ -170,22 +181,12 @@ function accumulatePoint(wx, wy, wz, nx, ny, nz, light, acc) {
 	acc.b += cb * factor;
 }
 
-/**
- * Accumulates all scene lights into an RGB multiplier object.
- * Mutates and returns the provided `out` parameter to avoid allocation.
- * @param {number} nx Normalized surface normal X component
- * @param {number} ny Normalized surface normal Y component
- * @param {number} nz Normalized surface normal Z component
- * @param {Array<*>} lights
- * @param {number} ambientIntensity Starting ambient term
- * @param {{ r: number, g: number, b: number }} out Pre-allocated output object
- * @param {number} [wx=0] World-space surface position X
- * @param {number} [wy=0] World-space surface position Y
- * @param {number} [wz=0] World-space surface position Z
- * @returns {{ r: number, g: number, b: number }} Clamped RGB multipliers in [0, 1]
- */
+import { LightType } from "../../core/Constants.js";
+
 /**
  * Dispatches one light to the appropriate accumulation function.
+ * Uses numeric `lightType` for fast dispatch when available; falls back to
+ * string `type` for plain-object lights that predate the numeric constants.
  * @param {number} nx @param {number} ny @param {number} nz
  * @param {number} wx @param {number} wy @param {number} wz
  * @param {*} light
@@ -193,7 +194,20 @@ function accumulatePoint(wx, wy, wz, nx, ny, nz, light, acc) {
  * @returns {void}
  */
 function accumulateOne(nx, ny, nz, wx, wy, wz, light, out) {
-	if (light.type === "ambient") {
+	const lt = light.lightType;
+	if (typeof lt === "number") {
+		if (lt === LightType.Ambient) {
+			accumulateAmbient(light, out);
+		} else if (lt === LightType.Hemisphere) {
+			accumulateHemisphere(nx, ny, nz, light, out);
+		} else if (lt === LightType.Spot) {
+			accumulateSpot(wx, wy, wz, nx, ny, nz, light, out);
+		} else if (lt === LightType.Point) {
+			accumulatePoint(wx, wy, wz, nx, ny, nz, light, out);
+		} else {
+			accumulateDirectional(nx, ny, nz, light, out);
+		}
+	} else if (light.type === "ambient") {
 		accumulateAmbient(light, out);
 	} else if (light.type === "hemisphere") {
 		accumulateHemisphere(nx, ny, nz, light, out);

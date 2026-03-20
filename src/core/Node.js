@@ -37,6 +37,9 @@ export class Node extends EventDispatcher {
 	matrixWorld = new Matrix4();
 	autoUpdateMatrix = true;
 
+	/** @type {boolean} */
+	matrixWorldNeedsUpdate = true;
+
 	visible = true;
 	frustumCulled = true;
 	layers = new Layers();
@@ -83,6 +86,8 @@ export class Node extends EventDispatcher {
 		object.parent?.remove(object);
 		object.parent = this;
 		this.children.push(object);
+		// Parent transform now applies — world matrix must be recomputed.
+		object.matrixWorldNeedsUpdate = true;
 
 		return this;
 	}
@@ -159,6 +164,8 @@ export class Node extends EventDispatcher {
 	/** @returns {void} */
 	updateMatrix() {
 		this.matrix.compose(this.position, this.quaternion, this.scale);
+		// Local matrix changed — world matrix is now stale.
+		this.matrixWorldNeedsUpdate = true;
 	}
 
 	/**
@@ -172,10 +179,17 @@ export class Node extends EventDispatcher {
 		}
 		if (this.autoUpdateMatrix) this.updateMatrix();
 
-		if (this.parent) {
-			this.matrixWorld.mulMatrices(this.parent.matrixWorld, this.matrix);
-		} else {
-			this.matrixWorld.copy(this.matrix);
+		if (this.matrixWorldNeedsUpdate || !this.parent) {
+			if (this.parent) {
+				this.matrixWorld.mulMatrices(this.parent.matrixWorld, this.matrix);
+			} else {
+				this.matrixWorld.copy(this.matrix);
+			}
+			// Dirty flag is consumed — propagate to children so they recompute next frame.
+			for (const child of this.children) {
+				child.matrixWorldNeedsUpdate = true;
+			}
+			this.matrixWorldNeedsUpdate = false;
 		}
 
 		if (updateChildren) {

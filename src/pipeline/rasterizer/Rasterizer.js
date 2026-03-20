@@ -2,15 +2,43 @@ import { PointRasterizer } from "./PointRasterizer.js";
 import { ScanlineFill } from "./ScanlineFill.js";
 import { WireframeRasterizer } from "./WireframeRasterizer.js";
 
+/**
+ * 4×4 Bayer ordered dither thresholds, normalized to [0, 1).
+ * Indexed as BAYER4[(y & 3) << 2 | (x & 3)].
+ * @type {Float64Array}
+ */
+const BAYER4 = Float64Array.of(
+	0 / 16,
+	8 / 16,
+	2 / 16,
+	10 / 16,
+	12 / 16,
+	4 / 16,
+	14 / 16,
+	6 / 16,
+	3 / 16,
+	11 / 16,
+	1 / 16,
+	9 / 16,
+	15 / 16,
+	7 / 16,
+	13 / 16,
+	5 / 16,
+);
+
 /** Scanline triangle rasterizer with texture sampling and shading. */
 export class Rasterizer {
 	#scanlineFill = new ScanlineFill();
 	#wireframe = new WireframeRasterizer();
 	#point = new PointRasterizer();
 
-	// Per-triangle state fields (set once per triangle, read in pixel callbacks).
+	// Per-triangle state fields (set once per triangle, read in scanline handlers).
 	/** @type {import('../framebuffer/Framebuffer.js').Framebuffer['depthBuffer']} */
 	#depthBuf = /** @type {*} */ (undefined);
+	/** @type {Uint16Array} */
+	#dbData = /** @type {*} */ (undefined);
+	/** @type {number} */
+	#dbWidth = 0;
 	/** @type {number} */
 	#ndcZ0 = 0;
 	/** @type {number} */
@@ -23,8 +51,10 @@ export class Rasterizer {
 	#flatG = 0;
 	/** @type {number} */
 	#flatB = 0;
-	/** @type {{ r: number, g: number, b: number }[] | undefined} */
-	#gouraudColors;
+	/** @type {Float32Array | undefined} */
+	#gouraudData;
+	/** @type {number} */
+	#gouraudBase = 0;
 	/** @type {number} */
 	#baseR = 255;
 	/** @type {number} */
@@ -70,6 +100,22 @@ export class Rasterizer {
 	/** @type {number} */
 	#fogF2 = 0;
 
+	// Brightness-copy texture levels
+	/** @type {Uint8ClampedArray[] | undefined} */
+	#brightnessLevels;
+
+	// FlatTex optimization: pre-selected brightness level for constant litFactor
+	/** @type {Uint8ClampedArray | undefined} */
+	#selectedBrightTex;
+	/** @type {number} */
+	#flatLitFactor = 1;
+
+	// UV wrapping mode (0 = ClampToEdge, 1 = Repeat)
+	/** @type {number} */
+	#wrapS = 0;
+	/** @type {number} */
+	#wrapT = 0;
+
 	// Bound callbacks - created once, reused for every triangle.
 	#cbFlat = this.#fillFlat.bind(this);
 	#cbGouraud = this.#fillGouraud.bind(this);
@@ -78,139 +124,478 @@ export class Rasterizer {
 	#cbUnlitTex = this.#fillUnlitTex.bind(this);
 
 	/**
-	 * @param {number} px
-	 * @param {number} py
-	 * @param {number} bu
-	 * @param {number} bv
-	 * @param {number} bw
-	 * @returns {boolean}
+	 * @param {number} y
+	 * @param {number} xStart
+	 * @param {number} xEnd
+	 * @param {number} u
+	 * @param {number} v
+	 * @param {number} duDx
+	 * @param {number} dvDx
 	 */
-	#depthTest(px, py, bu, bv, bw) {
-		const ndcZ = bu * this.#ndcZ0 + bv * this.#ndcZ1 + bw * this.#ndcZ2;
-		const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
-		return this.#depthBuf.testAndSet(px, py, depth16);
+	#fillFlat(y, xStart, xEnd, u, v, duDx, dvDx) {
+		const w = 1 - u - v;
+
+		const dNdcZ =
+			duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
+
+		let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
+
+		const dbData = this.#dbData;
+		const dbW = this.#dbWidth;
+		const hasFog = this.#hasFog;
+		const flatR = this.#flatR;
+		const flatG = this.#flatG;
+		const flatB = this.#flatB;
+		const pw = this.#pixelWriter;
+		let dIdx = y * dbW + xStart;
+
+		let dFogF = 0;
+		let fogF = 0;
+		let fogR = 0;
+		let fogG = 0;
+		let fogB = 0;
+		if (hasFog) {
+			dFogF =
+				duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
+			fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
+			fogR = this.#fogR;
+			fogG = this.#fogG;
+			fogB = this.#fogB;
+		}
+
+		for (let x = xStart; x <= xEnd; x++, dIdx++, ndcZ += dNdcZ) {
+			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
+			if (depth16 > dbData[dIdx]) continue;
+			dbData[dIdx] = depth16;
+
+			let r = flatR;
+			let g = flatG;
+			let b = flatB;
+			if (hasFog) {
+				const d = BAYER4[((y & 3) << 2) | (x & 3)];
+				const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
+				r = (r + (fogR - r) * f + d) | 0;
+				g = (g + (fogG - g) * f + d) | 0;
+				b = (b + (fogB - b) * f + d) | 0;
+			}
+			pw(x, y, r, g, b, 255);
+
+			if (hasFog) fogF += dFogF;
+		}
 	}
 
 	/**
-	 * @param {number} bu
-	 * @param {number} bv
-	 * @param {number} bw
-	 * @returns {number}
+	 * @param {number} y
+	 * @param {number} xStart
+	 * @param {number} xEnd
+	 * @param {number} u
+	 * @param {number} v
+	 * @param {number} duDx
+	 * @param {number} dvDx
 	 */
-	#sampleTexIdx(bu, bv, bw) {
-		const texU = bu * this.#uv0u + bv * this.#uv1u + bw * this.#uv2u;
-		const texV = bu * this.#uv0v + bv * this.#uv1v + bw * this.#uv2v;
-		const cu = texU < 0 ? 0 : texU > 1 ? 1 : texU;
-		const cv = texV < 0 ? 0 : texV > 1 ? 1 : texV;
-		const tx = (cu * this.#texWm1 + 0.5) | 0;
-		const ty = (cv * this.#texHm1 + 0.5) | 0;
-		return (ty * this.#texW + tx) << 2;
+	#fillGouraud(y, xStart, xEnd, u, v, duDx, dvDx) {
+		const w = 1 - u - v;
+
+		const dNdcZ =
+			duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
+
+		const gd = /** @type {Float32Array} */ (this.#gouraudData);
+		const b0 = this.#gouraudBase;
+		const dLR = duDx * (gd[b0] - gd[b0 + 6]) + dvDx * (gd[b0 + 3] - gd[b0 + 6]);
+		const dLG =
+			duDx * (gd[b0 + 1] - gd[b0 + 7]) + dvDx * (gd[b0 + 4] - gd[b0 + 7]);
+		const dLB =
+			duDx * (gd[b0 + 2] - gd[b0 + 8]) + dvDx * (gd[b0 + 5] - gd[b0 + 8]);
+
+		let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
+		let lr = u * gd[b0] + v * gd[b0 + 3] + w * gd[b0 + 6];
+		let lg = u * gd[b0 + 1] + v * gd[b0 + 4] + w * gd[b0 + 7];
+		let lb = u * gd[b0 + 2] + v * gd[b0 + 5] + w * gd[b0 + 8];
+
+		const dbData = this.#dbData;
+		const dbW = this.#dbWidth;
+		const baseR = this.#baseR;
+		const baseG = this.#baseG;
+		const baseB = this.#baseB;
+		const hasFog = this.#hasFog;
+		const pw = this.#pixelWriter;
+		let dIdx = y * dbW + xStart;
+
+		let dFogF = 0;
+		let fogF = 0;
+		let fogR = 0;
+		let fogG = 0;
+		let fogB = 0;
+		if (hasFog) {
+			dFogF =
+				duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
+			fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
+			fogR = this.#fogR;
+			fogG = this.#fogG;
+			fogB = this.#fogB;
+		}
+
+		for (
+			let x = xStart;
+			x <= xEnd;
+			x++, dIdx++, ndcZ += dNdcZ, lr += dLR, lg += dLG, lb += dLB
+		) {
+			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
+			if (depth16 > dbData[dIdx]) continue;
+			dbData[dIdx] = depth16;
+
+			const d = BAYER4[((y & 3) << 2) | (x & 3)];
+			let r = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
+			let g = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
+			let bl = (baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + d) | 0;
+			if (hasFog) {
+				const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
+				r = (r + (fogR - r) * f + d) | 0;
+				g = (g + (fogG - g) * f + d) | 0;
+				bl = (bl + (fogB - bl) * f + d) | 0;
+			}
+			pw(x, y, r, g, bl, 255);
+
+			if (hasFog) fogF += dFogF;
+		}
 	}
 
 	/**
-	 * @param {number} bu @param {number} bv @param {number} bw
-	 * @returns {number} Interpolated fog factor 0-1
+	 * @param {number} y
+	 * @param {number} xStart
+	 * @param {number} xEnd
+	 * @param {number} u
+	 * @param {number} v
+	 * @param {number} duDx
+	 * @param {number} dvDx
 	 */
-	#fogLerp(bu, bv, bw) {
-		return bu * this.#fogF0 + bv * this.#fogF1 + bw * this.#fogF2;
+	#fillFlatTex(y, xStart, xEnd, u, v, duDx, dvDx) {
+		const w = 1 - u - v;
+
+		const dNdcZ =
+			duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
+		const dTexU =
+			duDx * (this.#uv0u - this.#uv2u) + dvDx * (this.#uv1u - this.#uv2u);
+		const dTexV =
+			duDx * (this.#uv0v - this.#uv2v) + dvDx * (this.#uv1v - this.#uv2v);
+
+		let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
+		let texU = u * this.#uv0u + v * this.#uv1u + w * this.#uv2u;
+		let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
+
+		const dbData = this.#dbData;
+		const dbW = this.#dbWidth;
+		const texWm1 = this.#texWm1;
+		const texHm1 = this.#texHm1;
+		const texW = this.#texW;
+		const hasFog = this.#hasFog;
+		const pw = this.#pixelWriter;
+		let dIdx = y * dbW + xStart;
+
+		// FlatTex: litFactor is constant per triangle — use pre-selected brightness level
+		const brightTex = this.#selectedBrightTex;
+		const litFactor = this.#flatLitFactor;
+		const texD = /** @type {Uint8ClampedArray} */ (this.#texData);
+		const wS = this.#wrapS;
+		const wT = this.#wrapT;
+
+		let dFogF = 0;
+		let fogF = 0;
+		let fogR = 0;
+		let fogG = 0;
+		let fogB = 0;
+		if (hasFog) {
+			dFogF =
+				duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
+			fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
+			fogR = this.#fogR;
+			fogG = this.#fogG;
+			fogB = this.#fogB;
+		}
+
+		for (
+			let x = xStart;
+			x <= xEnd;
+			x++, dIdx++, ndcZ += dNdcZ, texU += dTexU, texV += dTexV
+		) {
+			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
+			if (depth16 > dbData[dIdx]) continue;
+			dbData[dIdx] = depth16;
+
+			const cu = wS
+				? texU - Math.floor(texU)
+				: texU < 0
+					? 0
+					: texU > 1
+						? 1
+						: texU;
+			const cv = wT
+				? texV - Math.floor(texV)
+				: texV < 0
+					? 0
+					: texV > 1
+						? 1
+						: texV;
+			const tx = (cu * texWm1 + 0.5) | 0;
+			const ty = (cv * texHm1 + 0.5) | 0;
+			const tidx = (ty * texW + tx) << 2;
+
+			const d = BAYER4[((y & 3) << 2) | (x & 3)];
+			let r;
+			let g;
+			let b;
+			if (brightTex) {
+				r = brightTex[tidx];
+				g = brightTex[tidx + 1];
+				b = brightTex[tidx + 2];
+			} else {
+				r = (texD[tidx] * litFactor + d) | 0;
+				g = (texD[tidx + 1] * litFactor + d) | 0;
+				b = (texD[tidx + 2] * litFactor + d) | 0;
+			}
+
+			if (hasFog) {
+				const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
+				r = (r + (fogR - r) * f + d) | 0;
+				g = (g + (fogG - g) * f + d) | 0;
+				b = (b + (fogB - b) * f + d) | 0;
+			}
+			pw(x, y, r, g, b, 255);
+
+			if (hasFog) fogF += dFogF;
+		}
 	}
 
-	/** @param {number} px @param {number} py @param {number} bu @param {number} bv @param {number} bw */
-	#fillFlat(px, py, bu, bv, bw) {
-		if (!this.#depthTest(px, py, bu, bv, bw)) return;
-		let r = this.#flatR;
-		let g = this.#flatG;
-		let b = this.#flatB;
-		if (this.#hasFog) {
-			const f = this.#fogLerp(bu, bv, bw);
-			r = (r + (this.#fogR - r) * f + 0.5) | 0;
-			g = (g + (this.#fogG - g) * f + 0.5) | 0;
-			b = (b + (this.#fogB - b) * f + 0.5) | 0;
+	/**
+	 * @param {number} y
+	 * @param {number} xStart
+	 * @param {number} xEnd
+	 * @param {number} u
+	 * @param {number} v
+	 * @param {number} duDx
+	 * @param {number} dvDx
+	 */
+	#fillGouraudTex(y, xStart, xEnd, u, v, duDx, dvDx) {
+		const w = 1 - u - v;
+
+		const dNdcZ =
+			duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
+		const dTexU =
+			duDx * (this.#uv0u - this.#uv2u) + dvDx * (this.#uv1u - this.#uv2u);
+		const dTexV =
+			duDx * (this.#uv0v - this.#uv2v) + dvDx * (this.#uv1v - this.#uv2v);
+
+		const gd = /** @type {Float32Array} */ (this.#gouraudData);
+		const b0 = this.#gouraudBase;
+		const dLR = duDx * (gd[b0] - gd[b0 + 6]) + dvDx * (gd[b0 + 3] - gd[b0 + 6]);
+		const dLG =
+			duDx * (gd[b0 + 1] - gd[b0 + 7]) + dvDx * (gd[b0 + 4] - gd[b0 + 7]);
+		const dLB =
+			duDx * (gd[b0 + 2] - gd[b0 + 8]) + dvDx * (gd[b0 + 5] - gd[b0 + 8]);
+
+		let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
+		let texU = u * this.#uv0u + v * this.#uv1u + w * this.#uv2u;
+		let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
+		let lr = u * gd[b0] + v * gd[b0 + 3] + w * gd[b0 + 6];
+		let lg = u * gd[b0 + 1] + v * gd[b0 + 4] + w * gd[b0 + 7];
+		let lb = u * gd[b0 + 2] + v * gd[b0 + 5] + w * gd[b0 + 8];
+
+		const dbData = this.#dbData;
+		const dbW = this.#dbWidth;
+		const texD = /** @type {Uint8ClampedArray} */ (this.#texData);
+		const texWm1 = this.#texWm1;
+		const texHm1 = this.#texHm1;
+		const texW = this.#texW;
+		const baseR = this.#baseR;
+		const baseG = this.#baseG;
+		const baseB = this.#baseB;
+		const hasFog = this.#hasFog;
+		const pw = this.#pixelWriter;
+		let dIdx = y * dbW + xStart;
+
+		const bl = this.#brightnessLevels;
+		const hasBL = bl !== undefined;
+		const blCount = hasBL ? /** @type {Uint8ClampedArray[]} */ (bl).length : 0;
+		const wS = this.#wrapS;
+		const wT = this.#wrapT;
+
+		let dFogF = 0;
+		let fogF = 0;
+		let fogR = 0;
+		let fogG = 0;
+		let fogB = 0;
+		if (hasFog) {
+			dFogF =
+				duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
+			fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
+			fogR = this.#fogR;
+			fogG = this.#fogG;
+			fogB = this.#fogB;
 		}
-		this.#pixelWriter(px, py, r, g, b, 255);
+
+		for (
+			let x = xStart;
+			x <= xEnd;
+			x++,
+				dIdx++,
+				ndcZ += dNdcZ,
+				texU += dTexU,
+				texV += dTexV,
+				lr += dLR,
+				lg += dLG,
+				lb += dLB
+		) {
+			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
+			if (depth16 > dbData[dIdx]) continue;
+			dbData[dIdx] = depth16;
+
+			const d = BAYER4[((y & 3) << 2) | (x & 3)];
+			const cr = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
+			const cg = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
+			const cb = (baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + d) | 0;
+
+			const cu = wS
+				? texU - Math.floor(texU)
+				: texU < 0
+					? 0
+					: texU > 1
+						? 1
+						: texU;
+			const cv = wT
+				? texV - Math.floor(texV)
+				: texV < 0
+					? 0
+					: texV > 1
+						? 1
+						: texV;
+			const tx = (cu * texWm1 + 0.5) | 0;
+			const ty = (cv * texHm1 + 0.5) | 0;
+			const tidx = (ty * texW + tx) << 2;
+
+			let r;
+			let g;
+			let b;
+			if (hasBL) {
+				const litFactor = (cr + cg + cb) / (3 * 255);
+				const level = (litFactor * blCount + d) | 0;
+				const li = level < 0 ? 0 : level >= blCount ? blCount - 1 : level;
+				const bd = /** @type {Uint8ClampedArray[]} */ (bl)[li];
+				r = bd[tidx];
+				g = bd[tidx + 1];
+				b = bd[tidx + 2];
+			} else {
+				const litFactor = (cr + cg + cb) / (3 * 255);
+				r = (texD[tidx] * litFactor + d) | 0;
+				g = (texD[tidx + 1] * litFactor + d) | 0;
+				b = (texD[tidx + 2] * litFactor + d) | 0;
+			}
+
+			if (hasFog) {
+				const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
+				r = (r + (fogR - r) * f + d) | 0;
+				g = (g + (fogG - g) * f + d) | 0;
+				b = (b + (fogB - b) * f + d) | 0;
+			}
+			pw(x, y, r, g, b, 255);
+
+			if (hasFog) fogF += dFogF;
+		}
 	}
 
-	/** @param {number} px @param {number} py @param {number} bu @param {number} bv @param {number} bw */
-	#fillGouraud(px, py, bu, bv, bw) {
-		if (!this.#depthTest(px, py, bu, bv, bw)) return;
-		const sc = /** @type {{ r: number, g: number, b: number }[]} */ (
-			this.#gouraudColors
-		);
-		const lr = sc[0].r * bu + sc[1].r * bv + sc[2].r * bw;
-		const lg = sc[0].g * bu + sc[1].g * bv + sc[2].g * bw;
-		const lb = sc[0].b * bu + sc[1].b * bv + sc[2].b * bw;
-		let r = (this.#baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + 0.5) | 0;
-		let g = (this.#baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + 0.5) | 0;
-		let bl = (this.#baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + 0.5) | 0;
-		if (this.#hasFog) {
-			const f = this.#fogLerp(bu, bv, bw);
-			r = (r + (this.#fogR - r) * f + 0.5) | 0;
-			g = (g + (this.#fogG - g) * f + 0.5) | 0;
-			bl = (bl + (this.#fogB - bl) * f + 0.5) | 0;
-		}
-		this.#pixelWriter(px, py, r, g, bl, 255);
-	}
+	/**
+	 * @param {number} y
+	 * @param {number} xStart
+	 * @param {number} xEnd
+	 * @param {number} u
+	 * @param {number} v
+	 * @param {number} duDx
+	 * @param {number} dvDx
+	 */
+	#fillUnlitTex(y, xStart, xEnd, u, v, duDx, dvDx) {
+		const w = 1 - u - v;
 
-	/** @param {number} px @param {number} py @param {number} bu @param {number} bv @param {number} bw */
-	#fillFlatTex(px, py, bu, bv, bw) {
-		if (!this.#depthTest(px, py, bu, bv, bw)) return;
-		const tidx = this.#sampleTexIdx(bu, bv, bw);
-		const d = /** @type {Uint8ClampedArray} */ (this.#texData);
-		const litFactor = (this.#flatR + this.#flatG + this.#flatB) / (3 * 255);
-		let r = (d[tidx] * litFactor + 0.5) | 0;
-		let g = (d[tidx + 1] * litFactor + 0.5) | 0;
-		let b = (d[tidx + 2] * litFactor + 0.5) | 0;
-		if (this.#hasFog) {
-			const f = this.#fogLerp(bu, bv, bw);
-			r = (r + (this.#fogR - r) * f + 0.5) | 0;
-			g = (g + (this.#fogG - g) * f + 0.5) | 0;
-			b = (b + (this.#fogB - b) * f + 0.5) | 0;
-		}
-		this.#pixelWriter(px, py, r, g, b, 255);
-	}
+		const dNdcZ =
+			duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
+		const dTexU =
+			duDx * (this.#uv0u - this.#uv2u) + dvDx * (this.#uv1u - this.#uv2u);
+		const dTexV =
+			duDx * (this.#uv0v - this.#uv2v) + dvDx * (this.#uv1v - this.#uv2v);
 
-	/** @param {number} px @param {number} py @param {number} bu @param {number} bv @param {number} bw */
-	#fillGouraudTex(px, py, bu, bv, bw) {
-		if (!this.#depthTest(px, py, bu, bv, bw)) return;
-		const sc = /** @type {{ r: number, g: number, b: number }[]} */ (
-			this.#gouraudColors
-		);
-		const lr = sc[0].r * bu + sc[1].r * bv + sc[2].r * bw;
-		const lg = sc[0].g * bu + sc[1].g * bv + sc[2].g * bw;
-		const lb = sc[0].b * bu + sc[1].b * bv + sc[2].b * bw;
-		const cr = (this.#baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + 0.5) | 0;
-		const cg = (this.#baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + 0.5) | 0;
-		const cb = (this.#baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + 0.5) | 0;
-		const tidx = this.#sampleTexIdx(bu, bv, bw);
-		const d = /** @type {Uint8ClampedArray} */ (this.#texData);
-		const litFactor = (cr + cg + cb) / (3 * 255);
-		let r = (d[tidx] * litFactor + 0.5) | 0;
-		let g = (d[tidx + 1] * litFactor + 0.5) | 0;
-		let b = (d[tidx + 2] * litFactor + 0.5) | 0;
-		if (this.#hasFog) {
-			const f = this.#fogLerp(bu, bv, bw);
-			r = (r + (this.#fogR - r) * f + 0.5) | 0;
-			g = (g + (this.#fogG - g) * f + 0.5) | 0;
-			b = (b + (this.#fogB - b) * f + 0.5) | 0;
-		}
-		this.#pixelWriter(px, py, r, g, b, 255);
-	}
+		let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
+		let texU = u * this.#uv0u + v * this.#uv1u + w * this.#uv2u;
+		let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
 
-	/** @param {number} px @param {number} py @param {number} bu @param {number} bv @param {number} bw */
-	#fillUnlitTex(px, py, bu, bv, bw) {
-		if (!this.#depthTest(px, py, bu, bv, bw)) return;
-		const tidx = this.#sampleTexIdx(bu, bv, bw);
-		const d = /** @type {Uint8ClampedArray} */ (this.#texData);
-		let r = ((d[tidx] * this.#baseR) / 255 + 0.5) | 0;
-		let g = ((d[tidx + 1] * this.#baseG) / 255 + 0.5) | 0;
-		let b = ((d[tidx + 2] * this.#baseB) / 255 + 0.5) | 0;
-		if (this.#hasFog) {
-			const f = this.#fogLerp(bu, bv, bw);
-			r = (r + (this.#fogR - r) * f + 0.5) | 0;
-			g = (g + (this.#fogG - g) * f + 0.5) | 0;
-			b = (b + (this.#fogB - b) * f + 0.5) | 0;
+		const dbData = this.#dbData;
+		const dbW = this.#dbWidth;
+		const texD = /** @type {Uint8ClampedArray} */ (this.#texData);
+		const texWm1 = this.#texWm1;
+		const texHm1 = this.#texHm1;
+		const texW = this.#texW;
+		const baseR = this.#baseR;
+		const baseG = this.#baseG;
+		const baseB = this.#baseB;
+		const hasFog = this.#hasFog;
+		const pw = this.#pixelWriter;
+		let dIdx = y * dbW + xStart;
+		const wS = this.#wrapS;
+		const wT = this.#wrapT;
+
+		let dFogF = 0;
+		let fogF = 0;
+		let fogR = 0;
+		let fogG = 0;
+		let fogB = 0;
+		if (hasFog) {
+			dFogF =
+				duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
+			fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
+			fogR = this.#fogR;
+			fogG = this.#fogG;
+			fogB = this.#fogB;
 		}
-		this.#pixelWriter(px, py, r, g, b, 255);
+
+		for (
+			let x = xStart;
+			x <= xEnd;
+			x++, dIdx++, ndcZ += dNdcZ, texU += dTexU, texV += dTexV
+		) {
+			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
+			if (depth16 > dbData[dIdx]) continue;
+			dbData[dIdx] = depth16;
+
+			const cu = wS
+				? texU - Math.floor(texU)
+				: texU < 0
+					? 0
+					: texU > 1
+						? 1
+						: texU;
+			const cv = wT
+				? texV - Math.floor(texV)
+				: texV < 0
+					? 0
+					: texV > 1
+						? 1
+						: texV;
+			const tx = (cu * texWm1 + 0.5) | 0;
+			const ty = (cv * texHm1 + 0.5) | 0;
+			const tidx = (ty * texW + tx) << 2;
+
+			const d = BAYER4[((y & 3) << 2) | (x & 3)];
+			let r = ((texD[tidx] * baseR) / 255 + d) | 0;
+			let g = ((texD[tidx + 1] * baseG) / 255 + d) | 0;
+			let b = ((texD[tidx + 2] * baseB) / 255 + d) | 0;
+
+			if (hasFog) {
+				const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
+				r = (r + (fogR - r) * f + d) | 0;
+				g = (g + (fogG - g) * f + d) | 0;
+				b = (b + (fogB - b) * f + d) | 0;
+			}
+			pw(x, y, r, g, b, 255);
+
+			if (hasFog) fogF += dFogF;
+		}
 	}
 
 	/**
@@ -223,9 +608,10 @@ export class Rasterizer {
 	 *     points?: boolean,
 	 *     pointRadius?: number,
 	 *     color?: { r: number, g: number, b: number },
-	 *     map?: { data: { data: Uint8ClampedArray, width: number, height: number } }
+	 *     map?: { data: { data: Uint8ClampedArray, width: number, height: number }, brightnessLevels?: Uint8ClampedArray[], wrapS?: number, wrapT?: number }
 	 *   },
-	 *   shadedColors?: Array<{ r: number, g: number, b: number } | { r: number, g: number, b: number }[]>
+	 *   shadedColorData?: Float32Array,
+	 *   shadedColorStride?: number
 	 * }} drawCall
 	 * @param {import('../framebuffer/Framebuffer.js').Framebuffer} framebuffer
 	 * @param {unknown} _colorTable Ignored - internal ColorTable is used
@@ -254,6 +640,8 @@ export class Rasterizer {
 		this.#baseG = baseG;
 		this.#baseB = baseB;
 		this.#depthBuf = framebuffer.depthBuffer;
+		this.#dbData = this.#depthBuf.data;
+		this.#dbWidth = this.#depthBuf.width;
 		this.#pixelWriter = pixelWriter;
 
 		if (texture) {
@@ -263,6 +651,13 @@ export class Rasterizer {
 			this.#texHm1 = texture.height - 1;
 		}
 
+		this.#brightnessLevels = drawCall.material.map?.brightnessLevels;
+		this.#wrapS = drawCall.material.map?.wrapS ?? 0;
+		this.#wrapT = drawCall.material.map?.wrapT ?? 0;
+
+		const shadedColorData = drawCall.shadedColorData;
+		const shadedColorStride = drawCall.shadedColorStride ?? 0;
+
 		const tb = drawCall.triangles;
 		if (!tb) return;
 		for (let i = 0; i < tb.length; i++) {
@@ -270,7 +665,9 @@ export class Rasterizer {
 			this.#rasterizeTriangleFromBuffer(
 				tb,
 				physIdx,
-				drawCall.shadedColors?.[i],
+				shadedColorData,
+				shadedColorStride,
+				i,
 				baseR,
 				baseG,
 				baseB,
@@ -288,7 +685,9 @@ export class Rasterizer {
 	/**
 	 * @param {import('../TriangleBuffer.js').TriangleBuffer} tb
 	 * @param {number} physIdx Physical triangle index in typed arrays
-	 * @param {*} sc Shaded color entry for this iteration position
+	 * @param {Float32Array | undefined} shadedColorData Packed shading data for the whole draw call
+	 * @param {number} shadedColorStride 3 for flat, 9 for gouraud, 0 when absent
+	 * @param {number} iterIdx Sort-iteration index (i) for indexing into shadedColorData
 	 * @param {number} baseR
 	 * @param {number} baseG
 	 * @param {number} baseB
@@ -303,7 +702,9 @@ export class Rasterizer {
 	#rasterizeTriangleFromBuffer(
 		tb,
 		physIdx,
-		sc,
+		shadedColorData,
+		shadedColorStride,
+		iterIdx,
 		baseR,
 		baseG,
 		baseB,
@@ -323,17 +724,17 @@ export class Rasterizer {
 		const x3 = tb.screenX[v + 2];
 		const y3 = tb.screenY[v + 2];
 
-		const isFlat =
-			sc !== undefined && typeof sc === "object" && !Array.isArray(sc);
-		const isGouraud = sc !== undefined && Array.isArray(sc);
+		const isFlat = shadedColorStride === 3;
+		const isGouraud = shadedColorStride === 9;
+		const base = iterIdx * shadedColorStride;
 
 		let flatR = baseR;
 		let flatG = baseG;
 		let flatB = baseB;
-		if (isFlat) {
-			flatR = Math.round(baseR * sc.r);
-			flatG = Math.round(baseG * sc.g);
-			flatB = Math.round(baseB * sc.b);
+		if (isFlat && shadedColorData) {
+			flatR = Math.round(baseR * shadedColorData[base]);
+			flatG = Math.round(baseG * shadedColorData[base + 1]);
+			flatB = Math.round(baseB * shadedColorData[base + 2]);
 		}
 
 		this.#ndcZ0 = tb.ndcZ[v];
@@ -349,9 +750,9 @@ export class Rasterizer {
 		this.#flatG = flatG;
 		this.#flatB = flatB;
 
-		if (isGouraud) {
-			this.#gouraudColors =
-				/** @type {{ r: number, g: number, b: number }[]} */ (sc);
+		if (isGouraud && shadedColorData) {
+			this.#gouraudData = shadedColorData;
+			this.#gouraudBase = base;
 		}
 
 		if (texture) {
@@ -361,6 +762,22 @@ export class Rasterizer {
 			this.#uv1v = tb.uvV[v + 1];
 			this.#uv2u = tb.uvU[v + 2];
 			this.#uv2v = tb.uvV[v + 2];
+		}
+
+		// FlatTex optimization: select brightness level once per triangle
+		if (isFlat && texture) {
+			const litFactor = (flatR + flatG + flatB) / (3 * 255);
+			this.#flatLitFactor = litFactor;
+			const bl = this.#brightnessLevels;
+			if (bl) {
+				const level = (litFactor * bl.length + 0.5) | 0;
+				const li = level < 0 ? 0 : level >= bl.length ? bl.length - 1 : level;
+				this.#selectedBrightTex = bl[li];
+			} else {
+				this.#selectedBrightTex = undefined;
+			}
+		} else {
+			this.#selectedBrightTex = undefined;
 		}
 
 		if (wireframe) {
@@ -380,11 +797,11 @@ export class Rasterizer {
 	}
 
 	/**
-	 * Selects the pre-bound pixel callback for the current triangle's shading mode.
+	 * Selects the pre-bound scanline callback for the current triangle's shading mode.
 	 * @param {boolean} isGouraud
 	 * @param {boolean} isFlat
 	 * @param {boolean} hasTexture
-	 * @returns {(px: number, py: number, bu: number, bv: number, bw: number) => void}
+	 * @returns {(y: number, xStart: number, xEnd: number, uStart: number, vStart: number, duDx: number, dvDx: number) => void}
 	 */
 	#selectCallback(isGouraud, isFlat, hasTexture) {
 		if (hasTexture) {

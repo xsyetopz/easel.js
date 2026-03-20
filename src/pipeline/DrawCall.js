@@ -32,8 +32,18 @@ export class DrawCall {
 	/** @type {Float32Array} */
 	worldPositions = new Float32Array(0);
 
-	/** @type {number[]} */
-	shadedColors = [];
+	/**
+	 * Flat typed array for baked shading colors.
+	 * Flat shading: stride 3 (r,g,b per face). Gouraud: stride 9 (r,g,b × 3 vertices).
+	 * @type {Float32Array}
+	 */
+	shadedColorData = new Float32Array(0);
+
+	/**
+	 * Stride into shadedColorData: 3 for flat, 9 for gouraud, 0 when unset.
+	 * @type {number}
+	 */
+	shadedColorStride = 0;
 
 	/** @type {number} */
 	_sortIndex = 0;
@@ -49,11 +59,18 @@ export class DrawCall {
 	}
 
 	/**
-	 * Computes the draw call's centroid from the mesh world-space position.
+	 * Computes the draw call's centroid from the mesh's bounding sphere
+	 * center (world-space). Falls back to mesh origin when no bounding
+	 * sphere is available.
 	 * @returns {void}
 	 */
 	#computeCentroid() {
-		_pos.setFromMatrixPosition(this.mesh.matrixWorld);
+		const bs = this.mesh.geometry?.boundingSphere;
+		if (bs) {
+			_pos.copy(bs.centre).applyMatrix4(this.mesh.matrixWorld);
+		} else {
+			_pos.setFromMatrixPosition(this.mesh.matrixWorld);
+		}
 		this.centroid.x = _pos.x;
 		this.centroid.y = _pos.y;
 		this.centroid.z = _pos.z;

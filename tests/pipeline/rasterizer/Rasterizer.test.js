@@ -143,7 +143,7 @@ describe("Rasterizer", () => {
 		expect(pixelWriter).not.toHaveBeenCalled();
 	});
 
-	it("flat shading: shadedColors plain object multiplies base material color", () => {
+	it("flat shading: shadedColorData multiplies base material color", () => {
 		const rasterizer = new Rasterizer();
 		const pixels = [];
 		const fb = new Framebuffer(20, 20);
@@ -153,7 +153,8 @@ describe("Rasterizer", () => {
 		const drawCall = {
 			triangles: tb,
 			material: { color: { r: 1, g: 1, b: 1 } },
-			shadedColors: [{ r: 0.5, g: 0.5, b: 0.5 }],
+			shadedColorData: new Float32Array([0.5, 0.5, 0.5]),
+			shadedColorStride: 3,
 		};
 		rasterizer.rasterize(drawCall, fb, undefined, (_x, _y, r, g, b) => {
 			pixels.push({ r, g, b });
@@ -169,23 +170,19 @@ describe("Rasterizer", () => {
 		}
 	});
 
-	it("gouraud shading: shadedColors array produces varying pixel colors across triangle", () => {
+	it("gouraud shading: shadedColorData stride 9 produces varying pixel colors across triangle", () => {
 		const rasterizer = new Rasterizer();
 		const pixels = [];
 		const fb = new Framebuffer(20, 20);
 		const tb = new TriangleBuffer(1);
 		appendCenterTriangle(tb, -1);
 		tb.buildSortOrder();
+		// Stride 9: v0=(1,0,0), v1=(0,1,0), v2=(0,0,1)
 		const drawCall = {
 			triangles: tb,
 			material: { color: { r: 1, g: 1, b: 1 } },
-			shadedColors: [
-				[
-					{ r: 1, g: 0, b: 0 },
-					{ r: 0, g: 1, b: 0 },
-					{ r: 0, g: 0, b: 1 },
-				],
-			],
+			shadedColorData: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+			shadedColorStride: 9,
 		};
 		rasterizer.rasterize(drawCall, fb, undefined, (_x, _y, r, g, b) => {
 			pixels.push({ r, g, b });
@@ -195,7 +192,7 @@ describe("Rasterizer", () => {
 		expect(unique.size).toBeGreaterThan(1);
 	});
 
-	it("no shadedColors: uses base material color directly for all pixels", () => {
+	it("no shadedColorData: uses base material color directly for all pixels", () => {
 		const rasterizer = new Rasterizer();
 		const pixels = [];
 		const fb = new Framebuffer(20, 20);
@@ -217,7 +214,7 @@ describe("Rasterizer", () => {
 		}
 	});
 
-	it("no shadedColors and no material.color: all pixels are white (255,255,255)", () => {
+	it("no shadedColorData and no material.color: all pixels are white (255,255,255)", () => {
 		const rasterizer = new Rasterizer();
 		const pixels = [];
 		const fb = new Framebuffer(20, 20);
@@ -382,10 +379,9 @@ describe("Rasterizer", () => {
 		const drawCall = {
 			triangles: tb,
 			material: { color: { r: 1, g: 1, b: 1 } },
-			shadedColors: [
-				{ r: 0, g: 1, b: 0 }, // iteration 0 → physIdx 1 (ndcZ=-1): green
-				{ r: 1, g: 0, b: 0 }, // iteration 1 → physIdx 0 (ndcZ=-0.9): red, blocked by depth
-			],
+			// Flat stride 3: iter0=(0,1,0) green, iter1=(1,0,0) red
+			shadedColorData: new Float32Array([0, 1, 0, 1, 0, 0]),
+			shadedColorStride: 3,
 		};
 		rasterizer.rasterize(drawCall, fb, undefined, (x, y, r, g, b) => {
 			fb.setPixel(x, y, r, g, b);
@@ -396,7 +392,7 @@ describe("Rasterizer", () => {
 		expect(pixel.r).toBe(0);
 	});
 
-	it("shadedColors[i] matches sort iteration position, not physical triangle index", () => {
+	it("shadedColorData[i] matches sort iteration position, not physical triangle index", () => {
 		const rasterizer = new Rasterizer();
 		const fb = new Framebuffer(20, 20);
 		const tb = new TriangleBuffer(2);
@@ -407,15 +403,14 @@ describe("Rasterizer", () => {
 		const drawCall = {
 			triangles: tb,
 			material: { color: { r: 1, g: 1, b: 1 } },
-			shadedColors: [
-				{ r: 1, g: 0, b: 0 },
-				{ r: 0, g: 0, b: 1 },
-			],
+			// Flat stride 3: iter0=(1,0,0) red, iter1=(0,0,1) blue
+			shadedColorData: new Float32Array([1, 0, 0, 0, 0, 1]),
+			shadedColorStride: 3,
 		};
 		rasterizer.rasterize(drawCall, fb, undefined, (x, y, r, g, b) => {
 			fb.setPixel(x, y, r, g, b);
 		});
-		// physIdx 0 (ndcZ=-1) is closest and wins depth → shadedColors[1]=blue applies
+		// physIdx 0 (ndcZ=-1) is closest and wins depth → shadedColorData[3..5]=blue applies
 		const pixel = fb.getPixel(10, 7);
 		expect(pixel.b).toBe(255);
 		expect(pixel.r).toBe(0);
@@ -444,5 +439,57 @@ describe("Rasterizer", () => {
 			pixels.push({ x, y }),
 		);
 		expect(pixels.length).toBe(0);
+	});
+
+	it("UV repeat wrapping: UVs > 1 tile the texture instead of clamping", () => {
+		const rasterizer = new Rasterizer();
+		const fb = new Framebuffer(20, 20);
+		const tb = new TriangleBuffer(1);
+		// 2x2 texture: red, green, blue, white
+		const texData = new Uint8ClampedArray([
+			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255,
+		]);
+		// UVs span [0,2] × [0,2] — should tile 2×2
+		appendCenterTriangle(tb, -1, 0, 0, 2, 0, 1, 2);
+		tb.buildSortOrder();
+
+		// With clamp (default) — UVs > 1 clamp to 1, so bottom-right texel dominates
+		const clampPixels = [];
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: { map: { data: { data: texData, width: 2, height: 2 } } },
+			},
+			fb,
+			undefined,
+			(_x, _y, r, g, b) => clampPixels.push({ r, g, b }),
+		);
+
+		// With repeat wrapping — UVs > 1 wrap, producing varied colors
+		const repeatPixels = [];
+		const fb2 = new Framebuffer(20, 20);
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: {
+					map: {
+						data: { data: texData, width: 2, height: 2 },
+						wrapS: 1,
+						wrapT: 1,
+					},
+				},
+			},
+			fb2,
+			undefined,
+			(_x, _y, r, g, b) => repeatPixels.push({ r, g, b }),
+		);
+
+		expect(repeatPixels.length).toBeGreaterThan(0);
+		// Repeat wrapping should produce more color variety than clamping
+		const clampUnique = new Set(clampPixels.map((p) => `${p.r},${p.g},${p.b}`));
+		const repeatUnique = new Set(
+			repeatPixels.map((p) => `${p.r},${p.g},${p.b}`),
+		);
+		expect(repeatUnique.size).toBeGreaterThanOrEqual(clampUnique.size);
 	});
 });
