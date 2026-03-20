@@ -1,12 +1,17 @@
 {
 	"name": "@xsyetopz/easel",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"exports": "./src/index.js",
 	"publish": {
 		"include": [
 			"src/**/*.js",
+			"src/**/*.d.ts",
+			"src/**/*.d.ts.map",
 			"LICENSE",
 			"README.md"
+		],
+		"exclude": [
+			"src/**/*.test.js"
 		]
 	}
 }

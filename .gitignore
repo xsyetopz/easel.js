@@ -5,3 +5,5 @@ dist/
 .DS_Store
 .env
 .env.local
+src/**/*.d.ts
+src/**/*.d.ts.map
