@@ -10,7 +10,7 @@ Canvas2D software renderer with a THREE.js-compatible scene graph API. Every pix
 ## Install
 
 ```bash
-npm install @xsyetopz/easel    # npm
+bun install @xsyetopz/easel    # npm
 bunx jsr add @xsyetopz/easel   # jsr
 ```
 
