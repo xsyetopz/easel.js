@@ -137,8 +137,7 @@ export class Geometry {
 		const pA = new Vector3();
 		const pB = new Vector3();
 		const pC = new Vector3();
-		const cb = new Vector3();
-		const ab = new Vector3();
+		const [cb, ab] = [new Vector3(), new Vector3()];
 
 		if (index) {
 			for (let i = 0; i < index.length; i += 3) {
@@ -209,7 +208,10 @@ export class Geometry {
 		const arr = posAttr.array;
 		const itemSize = posAttr.itemSize ?? 3;
 		const count = arr.length / itemSize;
-		if (count === 0) return this;
+		if (count === 0) {
+			this.boundingSphere = { centre: { x: 0, y: 0, z: 0 }, radius: 0 };
+			return this;
+		}
 
 		let [cx, cy, cz] = [0, 0, 0];
 		for (let i = 0; i < count; i++) {
