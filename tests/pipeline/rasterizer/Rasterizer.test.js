@@ -449,11 +449,11 @@ describe("Rasterizer", () => {
 		const texData = new Uint8ClampedArray([
 			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255,
 		]);
-		// UVs span [0,2] × [0,2] — should tile 2×2
+		// UVs span [0,2] × [0,2] - should tile 2×2
 		appendCenterTriangle(tb, -1, 0, 0, 2, 0, 1, 2);
 		tb.buildSortOrder();
 
-		// With clamp (default) — UVs > 1 clamp to 1, so bottom-right texel dominates
+		// With clamp (default) - UVs > 1 clamp to 1, so bottom-right texel dominates
 		const clampPixels = [];
 		rasterizer.rasterize(
 			{
@@ -465,7 +465,7 @@ describe("Rasterizer", () => {
 			(_x, _y, r, g, b) => clampPixels.push({ r, g, b }),
 		);
 
-		// With repeat wrapping — UVs > 1 wrap, producing varied colors
+		// With repeat wrapping - UVs > 1 wrap, producing varied colors
 		const repeatPixels = [];
 		const fb2 = new Framebuffer(20, 20);
 		rasterizer.rasterize(

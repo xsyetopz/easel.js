@@ -35,7 +35,9 @@
 			}
 		},
 		{
-			"includes": ["src/index.js"],
+			"includes": [
+				"src/index.js"
+			],
 			"linter": {
 				"rules": {
 					"performance": {
@@ -65,7 +67,7 @@
 				"noExcessiveCognitiveComplexity": {
 					"level": "error",
 					// Raised to 100 to accommodate the deliberately inlined hot-loop in
-					// SceneTraversal#assembleTriangles — allocation elimination requires
+					// SceneTraversal#assembleTriangles - allocation elimination requires
 					// scalar reads that score high on Biome's complexity metric.
 					"options": {
 						"maxAllowedComplexity": 100
@@ -154,7 +156,10 @@
 		}
 	},
 	"javascript": {
-		"globals": ["Bun", "$"],
+		"globals": [
+			"Bun",
+			"$"
+		],
 		"formatter": {
 			"quoteStyle": "double"
 		}

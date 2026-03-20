@@ -67,7 +67,7 @@ const _color = { cr: 1, cg: 1, cb: 1 };
 
 /**
  * Extracts normalized RGB from a light color that may be a Color object or integer.
- * Returns a module-level reusable object — do not hold a reference across calls.
+ * Returns a module-level reusable object - do not hold a reference across calls.
  * @param {*} c
  * @returns {{ cr: number, cg: number, cb: number }}
  */

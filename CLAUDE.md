@@ -37,11 +37,11 @@ These are architectural, not bugs. Do not "fix" them.
 ## Playground
 
 - **Framework**: React 19 + Mantine 8 (AppShell, code-highlight, hooks)
-- **Syntax highlighting**: highlight.js via `@mantine/code-highlight` adapter — token colors in `playground/hljs-theme.css` (Mantine's CSS has none)
+- **Syntax highlighting**: highlight.js via `@mantine/code-highlight` adapter - token colors in `playground/hljs-theme.css` (Mantine's CSS has none)
 - **Theme**: light/dark/system via `defaultColorScheme="auto"`, toggle in NavHeader
 - **Routing**: hash-based (`useHashRoute`), pages: Home, ExamplesGallery, ExampleViewer, DocsLanding, DocViewer
-- **Textures**: files in `public/textures/`, loaded via `TextureLoader` which uses `ImageBitmapLoader` (fetch + createImageBitmap) — NOT `ImageLoader` (HTMLImageElement), because Canvas2D `getImageData()` is subject to CORS taint that WebGL `texImage2D()` avoids
-- **Dev server**: `bun run dev` — restart required after `vite.config.js` changes (Vite reads config at startup only)
+- **Textures**: files in `public/textures/`, loaded via `TextureLoader` which uses `ImageBitmapLoader` (fetch + createImageBitmap) - NOT `ImageLoader` (HTMLImageElement), because Canvas2D `getImageData()` is subject to CORS taint that WebGL `texImage2D()` avoids
+- **Dev server**: `bun run dev` - restart required after `vite.config.js` changes (Vite reads config at startup only)
 
 ## Code conventions
 
@@ -69,9 +69,9 @@ These are architectural, not bugs. Do not "fix" them.
 
 `TextureLoader` uses `ImageBitmapLoader` (fetch + `createImageBitmap`), not `ImageLoader` (`new Image()`). This is a deliberate divergence from THREE.js because:
 
-1. We read pixels via `getImageData()` (CPU renderer) — HTMLImageElement + `crossOrigin` taints the canvas
+1. We read pixels via `getImageData()` (CPU renderer) - HTMLImageElement + `crossOrigin` taints the canvas
 2. `fetch()` needs `Accept: image/*` header to bypass Vite/SPA history API fallback (default `*/*` matches `text/html`)
-3. `ImageBitmap` drawn to OffscreenCanvas never taints — `getImageData()` always succeeds
+3. `ImageBitmap` drawn to OffscreenCanvas never taints - `getImageData()` always succeeds
 
 `Loader.crossOrigin` defaults to `""` (not `"anonymous"` like THREE.js). `ImageLoader` only sets `image.crossOrigin` when the value is truthy.
 
