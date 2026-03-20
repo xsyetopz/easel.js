@@ -8,6 +8,10 @@ describe("Scene", () => {
 		expect(scene.type).toBe("Scene");
 	});
 
+	it("autoUpdate defaults to true", () => {
+		expect(new Scene().autoUpdate).toBe(true);
+	});
+
 	it("fog defaults to undefined", () => {
 		const scene = new Scene();
 		expect(scene.fog).toBeUndefined();

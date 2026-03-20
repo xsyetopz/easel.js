@@ -122,6 +122,22 @@ describe("Node", () => {
 		expect(c.children[0]).not.toBe(child);
 	});
 
+	it("matrixWorldAutoUpdate defaults to true", () => {
+		expect(new Node().matrixWorldAutoUpdate).toBe(true);
+	});
+
+	it("matrixWorldAutoUpdate=false skips child in updateMatrixWorld", () => {
+		const parent = new Node();
+		const child = new Node();
+		parent.add(child);
+		parent.position.set(10, 0, 0);
+		child.position.set(1, 0, 0);
+		child.matrixWorldAutoUpdate = false;
+		parent.updateMatrixWorld(false, true);
+		// Child world matrix should still be at construction default (identity + compose(0,0,0))
+		expect(child.matrixWorld.elements[12]).toBeCloseTo(0);
+	});
+
 	it("lookAt rotates node to face target", () => {
 		const node = new Node();
 		node.lookAt(1, 0, 0);

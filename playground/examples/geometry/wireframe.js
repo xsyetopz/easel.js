@@ -79,7 +79,8 @@ export function setup(canvas, params = {}) {
 		meshes = [];
 
 		const entries = buildEntries(segments);
-		entries.forEach((entry, i) => {
+		for (let i = 0; i < entries.length; i++) {
+			const entry = entries[i];
 			const col = i % COLS;
 			const row = Math.floor(i / COLS);
 			const mat = new EASEL.BasicMaterial({ color: entry.color });
@@ -89,7 +90,7 @@ export function setup(canvas, params = {}) {
 			mesh.position.y = -(row - (ROWS - 1) / 2) * SPACING;
 			scene.add(mesh);
 			meshes.push(mesh);
-		});
+		}
 	}
 
 	buildGrid(currentSegments);

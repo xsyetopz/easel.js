@@ -81,8 +81,8 @@ export class Rasterizer {
 	#uv2u = 0;
 	/** @type {number} */
 	#uv2v = 0;
-	/** @type {(x: number, y: number, r: number, g: number, b: number, a: number) => void} */
-	#pixelWriter = /** @type {*} */ (undefined);
+	/** @type {Uint32Array} */
+	#fbU32 = /** @type {*} */ (undefined);
 
 	// Fog state
 	/** @type {boolean} */
@@ -146,7 +146,7 @@ export class Rasterizer {
 		const flatR = this.#flatR;
 		const flatG = this.#flatG;
 		const flatB = this.#flatB;
-		const pw = this.#pixelWriter;
+		const fbU32 = this.#fbU32;
 		let dIdx = y * dbW + xStart;
 
 		let dFogF = 0;
@@ -178,7 +178,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			pw(x, y, r, g, b, 255);
+			fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
 
 			if (hasFog) fogF += dFogF;
 		}
@@ -218,7 +218,7 @@ export class Rasterizer {
 		const baseG = this.#baseG;
 		const baseB = this.#baseB;
 		const hasFog = this.#hasFog;
-		const pw = this.#pixelWriter;
+		const fbU32 = this.#fbU32;
 		let dIdx = y * dbW + xStart;
 
 		let dFogF = 0;
@@ -254,7 +254,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				bl = (bl + (fogB - bl) * f + d) | 0;
 			}
-			pw(x, y, r, g, bl, 255);
+			fbU32[dIdx] = 0xff000000 | (bl << 16) | (g << 8) | r;
 
 			if (hasFog) fogF += dFogF;
 		}
@@ -289,7 +289,7 @@ export class Rasterizer {
 		const texHm1 = this.#texHm1;
 		const texW = this.#texW;
 		const hasFog = this.#hasFog;
-		const pw = this.#pixelWriter;
+		const fbU32 = this.#fbU32;
 		let dIdx = y * dbW + xStart;
 
 		// FlatTex: litFactor is constant per triangle — use pre-selected brightness level
@@ -360,7 +360,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			pw(x, y, r, g, b, 255);
+			fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
 
 			if (hasFog) fogF += dFogF;
 		}
@@ -410,7 +410,7 @@ export class Rasterizer {
 		const baseG = this.#baseG;
 		const baseB = this.#baseB;
 		const hasFog = this.#hasFog;
-		const pw = this.#pixelWriter;
+		const fbU32 = this.#fbU32;
 		let dIdx = y * dbW + xStart;
 
 		const bl = this.#brightnessLevels;
@@ -496,7 +496,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			pw(x, y, r, g, b, 255);
+			fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
 
 			if (hasFog) fogF += dFogF;
 		}
@@ -535,7 +535,7 @@ export class Rasterizer {
 		const baseG = this.#baseG;
 		const baseB = this.#baseB;
 		const hasFog = this.#hasFog;
-		const pw = this.#pixelWriter;
+		const fbU32 = this.#fbU32;
 		let dIdx = y * dbW + xStart;
 		const wS = this.#wrapS;
 		const wT = this.#wrapT;
@@ -592,7 +592,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			pw(x, y, r, g, b, 255);
+			fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
 
 			if (hasFog) fogF += dFogF;
 		}
@@ -615,11 +615,10 @@ export class Rasterizer {
 	 * }} drawCall
 	 * @param {*} framebuffer
 	 * @param {unknown} _colorTable Ignored - internal ColorTable is used
-	 * @param {(x: number, y: number, r: number, g: number, b: number, a: number) => void} pixelWriter
 	 * @param {{ r: number, g: number, b: number }|undefined} [fogColor]
 	 * @returns {void}
 	 */
-	rasterize(drawCall, framebuffer, _colorTable, pixelWriter, fogColor) {
+	rasterize(drawCall, framebuffer, _colorTable, fogColor) {
 		this.#hasFog = !!fogColor;
 		if (fogColor) {
 			this.#fogR = Math.round(fogColor.r * 255);
@@ -642,7 +641,7 @@ export class Rasterizer {
 		this.#depthBuf = framebuffer.depthBuffer;
 		this.#dbData = this.#depthBuf.data;
 		this.#dbWidth = this.#depthBuf.width;
-		this.#pixelWriter = pixelWriter;
+		this.#fbU32 = framebuffer.u32;
 
 		if (texture) {
 			this.#texData = texture.data;
@@ -677,7 +676,6 @@ export class Rasterizer {
 				pointRadius,
 				width,
 				height,
-				pixelWriter,
 			);
 		}
 	}
@@ -697,7 +695,6 @@ export class Rasterizer {
 	 * @param {number} pointRadius
 	 * @param {number} width
 	 * @param {number} height
-	 * @param {(x: number, y: number, r: number, g: number, b: number, a: number) => void} pixelWriter
 	 */
 	#rasterizeTriangleFromBuffer(
 		tb,
@@ -714,7 +711,6 @@ export class Rasterizer {
 		pointRadius,
 		width,
 		height,
-		pixelWriter,
 	) {
 		const v = physIdx * 3;
 		const x1 = tb.screenX[v];
@@ -781,12 +777,19 @@ export class Rasterizer {
 		}
 
 		if (wireframe) {
-			this.#wireframe.rasterize(x1, y1, x2, y2, x3, y3, (px, py) =>
-				pixelWriter(px, py, flatR, flatG, flatB, 255),
-			);
+			const fbU32 = this.#fbU32;
+			const fbW = this.#dbWidth;
+			const packed = 0xff000000 | (flatB << 16) | (flatG << 8) | flatR;
+			this.#wireframe.rasterize(x1, y1, x2, y2, x3, y3, (px, py) => {
+				fbU32[py * fbW + px] = packed;
+			});
 		} else if (points) {
-			const ptCb = (/** @type {number} */ px, /** @type {number} */ py) =>
-				pixelWriter(px, py, flatR, flatG, flatB, 255);
+			const fbU32 = this.#fbU32;
+			const fbW = this.#dbWidth;
+			const packed = 0xff000000 | (flatB << 16) | (flatG << 8) | flatR;
+			const ptCb = (/** @type {number} */ px, /** @type {number} */ py) => {
+				fbU32[py * fbW + px] = packed;
+			};
 			this.#point.rasterize(x1, y1, pointRadius, width, height, ptCb);
 			this.#point.rasterize(x2, y2, pointRadius, width, height, ptCb);
 			this.#point.rasterize(x3, y3, pointRadius, width, height, ptCb);

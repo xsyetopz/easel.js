@@ -9,6 +9,13 @@ export class Scene extends Node {
 	type = "Scene";
 
 	/**
+	 * When true, the renderer calls updateMatrixWorld() on the scene
+	 * before traversal — matching THREE.js behaviour.
+	 * @type {boolean}
+	 */
+	autoUpdate = true;
+
+	/**
 	 * Scene-level fog. Set to a Fog instance or undefined.
 	 * @type {*|undefined}
 	 */

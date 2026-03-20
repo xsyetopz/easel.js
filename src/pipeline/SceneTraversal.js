@@ -28,6 +28,8 @@ export class SceneTraversal {
 	#fogFar = 0;
 	/** @type {boolean} */
 	#hasFog = false;
+	/** @type {boolean} */
+	#autoUpdate = false;
 
 	// Scratch storage set by #isFrustumCulled so #walk can reuse the
 	// bounding sphere world center without recomputing it for fog checks.
@@ -40,14 +42,17 @@ export class SceneTraversal {
 	/** @type {number} */
 	#lastBsWorldRadius = 0;
 
+	#drawList = new DrawList();
+
 	/**
-	 * @param {{ children: *, visible: boolean, fog?: * }} scene
+	 * @param {{ children: *, visible: boolean, fog?: *, autoUpdate?: boolean }} scene
 	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4, position: Vec3, updateMatrixWorld: () => void }} camera
 	 * @param {number} [width]
 	 * @param {number} [height]
 	 * @returns {DrawList}
 	 */
 	traverse(scene, camera, width = 300, height = 150) {
+		this.#autoUpdate = scene.autoUpdate !== false;
 		camera.updateMatrixWorld();
 
 		const fog = scene.fog;
@@ -58,7 +63,8 @@ export class SceneTraversal {
 		_vp.copy(camera.projectionMatrix).mul(camera.matrixWorldInverse);
 		_frustum.setFromProjectionMatrix(_vp);
 
-		const drawList = new DrawList();
+		const drawList = this.#drawList;
+		drawList.clear();
 		this.#walk(
 			/** @type {*} */ (scene),
 			drawList,
@@ -71,7 +77,7 @@ export class SceneTraversal {
 	}
 
 	/**
-	 * @param {{ type?: string, visible: boolean, children: *, geometry?: *, material?: *, matrixWorld: Matrix4, updateMatrixWorld: (p: boolean, c: boolean) => void }} node
+	 * @param {{ type?: string, visible: boolean, children: *, geometry?: *, material?: *, matrixWorld: Matrix4, updateMatrixWorld?: (updateParents?: boolean, force?: boolean) => void }} node
 	 * @param {DrawList} drawList
 	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4, position?: { x: number, y: number, z: number } }} camera
 	 * @param {Frustum} frustum
@@ -87,6 +93,9 @@ export class SceneTraversal {
 			node.geometry &&
 			node.material
 		) {
+			if (this.#autoUpdate && node.updateMatrixWorld) {
+				node.updateMatrixWorld(true, false);
+			}
 			if (
 				!this.#isFrustumCulled(
 					/** @type {{ geometry: any, matrixWorld: Matrix4 }} */ (node),
@@ -111,7 +120,7 @@ export class SceneTraversal {
 				}
 
 				const dc = this.#buildDrawCall(
-					/** @type {{ matrixWorld: Matrix4, geometry: *, material: *, updateMatrixWorld: (p: boolean, c: boolean) => void }} */ (
+					/** @type {{ matrixWorld: Matrix4, geometry: *, material: * }} */ (
 						/** @type {unknown} */ (node)
 					),
 					camera,
@@ -170,15 +179,13 @@ export class SceneTraversal {
 	}
 
 	/**
-	 * @param {{ matrixWorld: Matrix4, geometry: *, material: *, updateMatrixWorld: (p: boolean, c: boolean) => void, _projectedVerts?: Float32Array, _worldPositions?: Float32Array, _worldNormalCache?: Float32Array, _worldNormalCacheKey?: Float32Array, _triangleBuffer?: TriangleBuffer }} node
+	 * @param {{ matrixWorld: Matrix4, geometry: *, material: *, _projectedVerts?: Float32Array, _worldPositions?: Float32Array, _worldNormalCache?: Float32Array, _worldNormalCacheKey?: Float32Array, _triangleBuffer?: TriangleBuffer }} node
 	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4 }} camera
 	 * @param {number} width
 	 * @param {number} height
 	 * @returns {*}
 	 */
 	#buildDrawCall(node, camera, width, height) {
-		node.updateMatrixWorld(false, false);
-
 		const drawCall = new DrawCall(
 			/** @type {*} */ (/** @type {unknown} */ (node)),
 			node.material,

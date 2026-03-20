@@ -68,7 +68,8 @@ export function setup(canvas) {
 	/** @type {EASEL.Mesh[]} */
 	const meshes = [];
 
-	entries.forEach((entry, i) => {
+	for (let i = 0; i < entries.length; i++) {
+		const entry = entries[i];
 		const col = i % cols;
 		const row = Math.floor(i / cols);
 		const mesh = new EASEL.Mesh(
@@ -80,7 +81,7 @@ export function setup(canvas) {
 			-(row - (Math.ceil(entries.length / cols) - 1) / 2) * spacing;
 		scene.add(mesh);
 		meshes.push(mesh);
-	});
+	}
 
 	const clock = new EASEL.Clock();
 	let animId;
@@ -141,7 +142,8 @@ const entries = [
   { geo: new EASEL.LatheGeometry(pts, 16), color: 0xa040e0 },
 ];
 
-entries.forEach((entry, i) => {
+for (let i = 0; i < entries.length; i++) {
+  const entry = entries[i];
   const mesh = new EASEL.Mesh(
     entry.geo,
     new EASEL.LambertMaterial({ color: entry.color, side: entry.side }),
@@ -149,7 +151,7 @@ entries.forEach((entry, i) => {
   mesh.position.x = (i % 4 - 1.5) * 3;
   mesh.position.y = -(Math.floor(i / 4) - 1.5) * 3;
   scene.add(mesh);
-});`;
+}`;
 
 export const threeSource = `import * as THREE from "three";
 
@@ -183,7 +185,8 @@ const entries = [
   { geo: new THREE.CapsuleGeometry(0.35, 0.7, 8, 12), color: 0xe0a040 },
 ];
 
-entries.forEach((entry, i) => {
+for (let i = 0; i < entries.length; i++) {
+  const entry = entries[i];
   const mesh = new THREE.Mesh(
     entry.geo,
     new THREE.MeshLambertMaterial({ color: entry.color }),
@@ -191,4 +194,4 @@ entries.forEach((entry, i) => {
   mesh.position.x = (i % 4 - 1.5) * 3;
   mesh.position.y = -(Math.floor(i / 4) - 1.5) * 3;
   scene.add(mesh);
-});`;
+}`;

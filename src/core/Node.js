@@ -36,6 +36,7 @@ export class Node extends EventDispatcher {
 	matrix = new Matrix4();
 	matrixWorld = new Matrix4();
 	autoUpdateMatrix = true;
+	matrixWorldAutoUpdate = true;
 
 	/** @type {boolean} */
 	matrixWorldNeedsUpdate = true;
@@ -194,7 +195,9 @@ export class Node extends EventDispatcher {
 
 		if (updateChildren) {
 			for (const child of this.children) {
-				child.updateMatrixWorld(false, true);
+				if (child.matrixWorldAutoUpdate) {
+					child.updateMatrixWorld(false, true);
+				}
 			}
 		}
 	}

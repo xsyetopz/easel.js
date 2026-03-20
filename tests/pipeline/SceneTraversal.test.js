@@ -252,6 +252,30 @@ describe("SceneTraversal", () => {
 		expect(Array.from(geometry._sequentialIndices)).toEqual([0, 1, 2]);
 	});
 
+	it("scene.autoUpdate calls updateMatrixWorld on visible meshes", () => {
+		let called = false;
+		const mesh = makeMeshNode();
+		mesh.updateMatrixWorld = () => {
+			called = true;
+		};
+		const scene = makeScene(mesh);
+		scene.autoUpdate = true;
+		traversal.traverse(scene, makeCamera());
+		expect(called).toBe(true);
+	});
+
+	it("scene.autoUpdate=false skips mesh updateMatrixWorld", () => {
+		let called = false;
+		const mesh = makeMeshNode();
+		mesh.updateMatrixWorld = () => {
+			called = true;
+		};
+		const scene = makeScene(mesh);
+		scene.autoUpdate = false;
+		traversal.traverse(scene, makeCamera());
+		expect(called).toBe(false);
+	});
+
 	// UV caching: _uvCache is built on first traversal and reused on second
 	it("second traversal reuses _uvCache - same Float32Array reference", () => {
 		const geometry = {

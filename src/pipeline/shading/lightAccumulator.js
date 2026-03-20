@@ -248,8 +248,8 @@ export function accumulateLights(
 	out.r = ambientIntensity;
 	out.g = ambientIntensity;
 	out.b = ambientIntensity;
-	for (const light of lights) {
-		accumulateOne(nx, ny, nz, wx, wy, wz, light, out);
+	for (let i = 0, len = lights.length; i < len; i++) {
+		accumulateOne(nx, ny, nz, wx, wy, wz, lights[i], out);
 	}
 	out.r = out.r < 0 ? 0 : out.r > 1 ? 1 : out.r;
 	out.g = out.g < 0 ? 0 : out.g > 1 ? 1 : out.g;

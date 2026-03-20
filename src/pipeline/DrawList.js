@@ -30,6 +30,7 @@ export class DrawList {
 	/** @returns {void} */
 	clear() {
 		this.#calls.length = 0;
+		this.lights.length = 0;
 	}
 
 	/** @returns {Iterator<*>} */

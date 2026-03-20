@@ -29,9 +29,6 @@ export class Renderer {
 	#clear;
 	#upload;
 
-	/** @type {(x: number, y: number, r: number, g: number, b: number, a: number) => void} */
-	#writePixel;
-
 	/**
 	 * @param {{ width?: number, height?: number, canvas?: HTMLCanvasElement, pixelRatio?: number }} [options]
 	 */
@@ -65,8 +62,6 @@ export class Renderer {
 		}
 
 		this.#framebuffer = new Framebuffer(width, height);
-		const fb = this.#framebuffer;
-		this.#writePixel = (x, y, r, g, b, _a) => fb.setPixel(x, y, r, g, b, 255);
 
 		this.#traversal = new SceneTraversal();
 		this.#fogCuller = new FogCuller();
@@ -141,7 +136,6 @@ export class Renderer {
 				/** @type {*} */ (drawCall),
 				fb,
 				undefined,
-				this.#writePixel,
 				fogColor,
 			);
 		}

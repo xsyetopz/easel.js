@@ -78,7 +78,8 @@ export function setup(canvas, params = {}) {
 		for (const m of meshes) scene.remove(m);
 		meshes = [];
 
-		SHAPES.forEach((shape, i) => {
+		for (let i = 0; i < SHAPES.length; i++) {
+			const shape = SHAPES[i];
 			const col = i % COLS;
 			const row = Math.floor(i / COLS);
 			const mesh = new EASEL.Mesh(
@@ -89,7 +90,7 @@ export function setup(canvas, params = {}) {
 			mesh.position.y = -(row - 0.5) * SPACING;
 			scene.add(mesh);
 			meshes.push(mesh);
-		});
+		}
 	}
 
 	buildGrid(currentSegments);

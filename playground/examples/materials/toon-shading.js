@@ -49,7 +49,8 @@ export function setup(canvas, params = {}) {
 	/** @type {EASEL.Mesh[]} */
 	const meshes = [];
 
-	colors.forEach((color, i) => {
+	for (let i = 0; i < colors.length; i++) {
+		const color = colors[i];
 		const mesh = new EASEL.Mesh(
 			new EASEL.SphereGeometry(0.9, 24, 16),
 			new EASEL.ToonMaterial({ color }),
@@ -57,7 +58,7 @@ export function setup(canvas, params = {}) {
 		mesh.position.x = (i - (colors.length - 1) / 2) * spacing;
 		scene.add(mesh);
 		meshes.push(mesh);
-	});
+	}
 
 	const clock = new EASEL.Clock();
 	let animId;
@@ -102,14 +103,15 @@ scene.add(dirLight);
 // EASEL.ToonMaterial: stepped shading - hard transitions between bands.
 // Adjust light intensity to see how bands shift.
 const colors = [0xe05050, 0x50b050, 0x5080e0, 0xe0b040];
-colors.forEach((color, i) => {
+for (let i = 0; i < colors.length; i++) {
+  const color = colors[i];
   const mesh = new EASEL.Mesh(
     new EASEL.SphereGeometry(0.9, 24, 16),
     new EASEL.ToonMaterial({ color }),
   );
   mesh.position.x = (i - 1.5) * 2.2;
   scene.add(mesh);
-});`;
+}`;
 
 export const threeSource = `import * as THREE from "three";
 
@@ -124,11 +126,12 @@ scene.add(dirLight);
 // THREE.MeshToonMaterial uses a gradientMap texture to define bands.
 // Easel uses a fixed integer-step shading model.
 const colors = [0xe05050, 0x50b050, 0x5080e0, 0xe0b040];
-colors.forEach((color, i) => {
+for (let i = 0; i < colors.length; i++) {
+  const color = colors[i];
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(0.9, 24, 16),
     new THREE.MeshToonMaterial({ color }),
   );
   mesh.position.x = (i - 1.5) * 2.2;
   scene.add(mesh);
-});`;
+}`;

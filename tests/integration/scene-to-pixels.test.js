@@ -132,9 +132,7 @@ describe("scene-to-pixels integration", () => {
 		const drawList = traversal.traverse(scene, camera, width, height);
 		for (const dc of drawList) {
 			lightBaker.bake(dc, drawList.lights);
-			rasterizer.rasterize(dc, fb, undefined, (x, y, r, g, b, a) =>
-				fb.setPixel(x, y, r, g, b, a),
-			);
+			rasterizer.rasterize(dc, fb, undefined);
 		}
 		return drawList;
 	}
@@ -227,9 +225,7 @@ describe("scene-to-pixels integration", () => {
 		expect(() => {
 			for (const dc of drawList) {
 				lightBaker.bake(dc, drawList.lights);
-				rasterizer.rasterize(dc, fb, undefined, (x, y, r, g, b, a) =>
-					fb.setPixel(x, y, r, g, b, a),
-				);
+				rasterizer.rasterize(dc, fb, undefined);
 			}
 		}).not.toThrow();
 	});
