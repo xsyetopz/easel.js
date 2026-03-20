@@ -219,9 +219,9 @@ export class Euler {
 		if (Math.abs(lockVal(m)) >= Euler.#GIMBAL_LOCK_THRESHOLD) {
 			this.#setAxis(
 				locked.a.axis,
-				MathUtils.fastAtan2(locked.a.n(m), locked.a.d(m)),
+				Math.atan2(locked.a.n(m), locked.a.d(m)),
 			);
-			const fallback = MathUtils.fastAtan2(locked.b.n(m), locked.b.d(m));
+			const fallback = Math.atan2(locked.b.n(m), locked.b.d(m));
 			this.#setAxis(
 				locked.b.axis,
 				this.#getAxis(locked.b.axis) === 0
@@ -231,11 +231,11 @@ export class Euler {
 		} else {
 			this.#setAxis(
 				unlocked.a.axis,
-				MathUtils.fastAtan2(unlocked.a.n(m), unlocked.a.d(m)),
+				Math.atan2(unlocked.a.n(m), unlocked.a.d(m)),
 			);
 			this.#setAxis(
 				unlocked.b.axis,
-				MathUtils.fastAtan2(unlocked.b.n(m), unlocked.b.d(m)),
+				Math.atan2(unlocked.b.n(m), unlocked.b.d(m)),
 			);
 		}
 	}

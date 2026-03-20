@@ -196,7 +196,7 @@ export class OrbitControls extends EventDispatcher {
 		const moved =
 			this.#sphericalDelta.theta !== 0 ||
 			this.#sphericalDelta.phi !== 0 ||
-			this.#sphericalDelta.radius !== 1 ||
+			this.#sphericalDelta.radius !== 0 ||
 			this.#panOffset.x !== 0 ||
 			this.#panOffset.y !== 0 ||
 			this.#panOffset.z !== 0;
