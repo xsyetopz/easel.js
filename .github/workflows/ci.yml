@@ -7,6 +7,23 @@ on:
     branches: [main]
 
 jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify version consistency
+        run: |
+          PKG=$(jq -r .version package.json)
+          JSR=$(jq -r .version jsr.json)
+          REV=$(grep -oP '(?<=REVISION = ")[^"]+' src/index.js)
+          echo "package.json: $PKG"
+          echo "jsr.json:     $JSR"
+          echo "REVISION:     $REV"
+          if [ "$PKG" != "$JSR" ] || [ "$PKG" != "$REV" ]; then
+            echo "::error::Version mismatch: package.json=$PKG jsr.json=$JSR REVISION=$REV"
+            exit 1
+          fi
+
   lint:
     runs-on: ubuntu-latest
     steps:
