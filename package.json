@@ -38,7 +38,7 @@
         "jsr:clean": "find src \\( -name '*.d.ts' ! -name 'globals.d.ts' -o -name '*.d.ts.map' \\) | xargs rm -f",
         "jsr:build": "bun run jsr:clean && tsc -p tsconfig.jsr.json",
         "jsr:strip-imports": "bash scripts/jsr-strip-imports.sh",
-        "jsr:publish": "bun run jsr:build && bun run jsr:strip-imports && bunx jsr publish; git checkout -- src/"
+        "jsr:publish": "bun run jsr:build && bun run jsr:strip-imports && bunx jsr publish"
     },
     "keywords": [
         "3d",
