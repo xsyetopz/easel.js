@@ -1,5 +1,5 @@
 /** Current library revision string. */
-export const REVISION = "0.1.0";
+export const REVISION = "0.1.1";
 
 if (typeof globalThis !== "undefined") {
 	if (globalThis.__EASEL__) {
