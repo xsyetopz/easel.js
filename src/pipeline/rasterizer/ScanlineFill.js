@@ -200,25 +200,36 @@ export class ScanlineFill {
 		if (dy === 0) return;
 		const slopeL = (botLeftX - topX) / dy;
 		const slopeR = (botRightX - topX) / dy;
-		const startY = Math.ceil(topY);
-		const endY = Math.floor(botLeftY);
+		const clampedStart = Math.ceil(topY) < 0 ? 0 : Math.ceil(topY);
+		const clampedEnd =
+			Math.floor(botLeftY) >= height ? height - 1 : Math.floor(botLeftY);
+		if (clampedStart > clampedEnd) return;
 
-		for (let y = startY; y <= endY; y++) {
-			if (y < 0 || y >= height) continue;
-			const xL = topX + (y - topY) * slopeL;
-			const xR = topX + (y - topY) * slopeR;
+		// Hoisted barycentric coefficients (constant per triangle).
+		const uDy = (ox3 - ox2) * invDenom;
+		const uDx = (oy2 - oy3) * invDenom;
+		const vDy = (ox1 - ox3) * invDenom;
+		const vDx = (oy3 - oy1) * invDenom;
+
+		let xL = topX + (clampedStart - topY) * slopeL;
+		let xR = topX + (clampedStart - topY) * slopeR;
+
+		for (
+			let y = clampedStart;
+			y <= clampedEnd;
+			y++, xL += slopeL, xR += slopeR
+		) {
 			this.#fillScanline(
 				y,
 				xL,
 				xR,
 				width,
-				ox1,
-				oy1,
-				ox2,
-				oy2,
 				ox3,
 				oy3,
-				invDenom,
+				uDy,
+				uDx,
+				vDy,
+				vDx,
 				duDx,
 				dvDx,
 				callback,
@@ -271,25 +282,36 @@ export class ScanlineFill {
 		if (dy === 0) return;
 		const slopeL = (botX - topLeftX) / dy;
 		const slopeR = (botX - topRightX) / dy;
-		const startY = Math.ceil(topLeftY);
-		const endY = Math.floor(botY);
+		const clampedStart = Math.ceil(topLeftY) < 0 ? 0 : Math.ceil(topLeftY);
+		const clampedEnd =
+			Math.floor(botY) >= height ? height - 1 : Math.floor(botY);
+		if (clampedStart > clampedEnd) return;
 
-		for (let y = startY; y <= endY; y++) {
-			if (y < 0 || y >= height) continue;
-			const xL = topLeftX + (y - topLeftY) * slopeL;
-			const xR = topRightX + (y - topLeftY) * slopeR;
+		// Hoisted barycentric coefficients (constant per triangle).
+		const uDy = (ox3 - ox2) * invDenom;
+		const uDx = (oy2 - oy3) * invDenom;
+		const vDy = (ox1 - ox3) * invDenom;
+		const vDx = (oy3 - oy1) * invDenom;
+
+		let xL = topLeftX + (clampedStart - topLeftY) * slopeL;
+		let xR = topRightX + (clampedStart - topLeftY) * slopeR;
+
+		for (
+			let y = clampedStart;
+			y <= clampedEnd;
+			y++, xL += slopeL, xR += slopeR
+		) {
 			this.#fillScanline(
 				y,
 				xL,
 				xR,
 				width,
-				ox1,
-				oy1,
-				ox2,
-				oy2,
 				ox3,
 				oy3,
-				invDenom,
+				uDy,
+				uDx,
+				vDy,
+				vDx,
 				duDx,
 				dvDx,
 				callback,
@@ -303,13 +325,12 @@ export class ScanlineFill {
 	 * @param {number} xLeft
 	 * @param {number} xRight
 	 * @param {number} width
-	 * @param {number} ox1
-	 * @param {number} oy1
-	 * @param {number} ox2
-	 * @param {number} oy2
 	 * @param {number} ox3
 	 * @param {number} oy3
-	 * @param {number} invDenom
+	 * @param {number} uDy Pre-hoisted (ox3-ox2)*invDenom
+	 * @param {number} uDx Pre-hoisted (oy2-oy3)*invDenom
+	 * @param {number} vDy Pre-hoisted (ox1-ox3)*invDenom
+	 * @param {number} vDx Pre-hoisted (oy3-oy1)*invDenom
 	 * @param {number} duDx
 	 * @param {number} dvDx
 	 * @param {(y: number, xStart: number, xEnd: number, uStart: number, vStart: number, duDx: number, dvDx: number) => void} callback
@@ -320,13 +341,12 @@ export class ScanlineFill {
 		xLeft,
 		xRight,
 		width,
-		ox1,
-		oy1,
-		ox2,
-		oy2,
 		ox3,
 		oy3,
-		invDenom,
+		uDy,
+		uDx,
+		vDy,
+		vDx,
 		duDx,
 		dvDx,
 		callback,
@@ -343,13 +363,11 @@ export class ScanlineFill {
 		);
 		if (startX > endX) return;
 
-		// Barycentric start values at (startX, y).
-		// u = ((oy2-oy3)*(startX-ox3) + (ox3-ox2)*(y-oy3)) * invDenom
-		// v = ((oy3-oy1)*(startX-ox3) + (ox1-ox3)*(y-oy3)) * invDenom
+		// Barycentric start values at (startX, y) using pre-hoisted coefficients.
 		const dy3 = y - oy3;
 		const dx3Start = startX - ox3;
-		const uStart = ((oy2 - oy3) * dx3Start + (ox3 - ox2) * dy3) * invDenom;
-		const vStart = ((oy3 - oy1) * dx3Start + (ox1 - ox3) * dy3) * invDenom;
+		const uStart = uDx * dx3Start + uDy * dy3;
+		const vStart = vDx * dx3Start + vDy * dy3;
 
 		callback(y, startX, endX, uStart, vStart, duDx, dvDx);
 	}

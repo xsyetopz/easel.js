@@ -50,6 +50,12 @@ export class TriangleBuffer {
 	/** @type {Float32Array} Per-vertex fog factor for 3 vertices per triangle (stride 3). 0 = no fog, 1 = fully fogged. */
 	fogFactor = new Float32Array(0);
 
+	/** @type {Int32Array} Original geometry vertex index for 3 vertices per triangle (stride 3). */
+	vertexIndex = new Int32Array(0);
+
+	/** @type {number} Highest vertex index seen across all appended triangles. */
+	maxVertexIndex = 0;
+
 	/** @type {Float32Array} Centroid Z = (z0+z1+z2)/3, used for painter sort (stride 1). */
 	centroidZ = new Float32Array(0);
 
@@ -83,11 +89,13 @@ export class TriangleBuffer {
 		this.worldY = new Float32Array(capacity * 3);
 		this.worldZ = new Float32Array(capacity * 3);
 		this.fogFactor = new Float32Array(capacity * 3);
+		this.vertexIndex = new Int32Array(capacity * 3);
 	}
 
 	/** Reset length to 0, preserving allocated arrays for reuse. */
 	reset() {
 		this.length = 0;
+		this.maxVertexIndex = 0;
 	}
 
 	/**
@@ -118,6 +126,7 @@ export class TriangleBuffer {
 			worldY: this.worldY,
 			worldZ: this.worldZ,
 			fogFactor: this.fogFactor,
+			vertexIndex: this.vertexIndex,
 		};
 
 		this.#capacity = next;
@@ -139,6 +148,7 @@ export class TriangleBuffer {
 		this.worldY.set(prev.worldY);
 		this.worldZ.set(prev.worldZ);
 		this.fogFactor.set(prev.fogFactor);
+		this.vertexIndex.set(prev.vertexIndex);
 	}
 
 	/**
@@ -182,6 +192,9 @@ export class TriangleBuffer {
 	 * @param {number} [ff0=0] Fog factor vertex 0 (0=clear, 1=fully fogged)
 	 * @param {number} [ff1=0] Fog factor vertex 1
 	 * @param {number} [ff2=0] Fog factor vertex 2
+	 * @param {number} [vi0=0] Geometry vertex index 0 (for shade cache)
+	 * @param {number} [vi1=0] Geometry vertex index 1
+	 * @param {number} [vi2=0] Geometry vertex index 2
 	 * @returns {number} Triangle index of the appended entry
 	 */
 	append(
@@ -224,6 +237,9 @@ export class TriangleBuffer {
 		ff0 = 0,
 		ff1 = 0,
 		ff2 = 0,
+		vi0 = 0,
+		vi1 = 0,
+		vi2 = 0,
 	) {
 		this.ensureCapacity(this.length + 1);
 
@@ -282,6 +298,13 @@ export class TriangleBuffer {
 		this.fogFactor[i3 + 1] = ff1;
 		this.fogFactor[i3 + 2] = ff2;
 
+		this.vertexIndex[i3] = vi0;
+		this.vertexIndex[i3 + 1] = vi1;
+		this.vertexIndex[i3 + 2] = vi2;
+		if (vi0 > this.maxVertexIndex) this.maxVertexIndex = vi0;
+		if (vi1 > this.maxVertexIndex) this.maxVertexIndex = vi1;
+		if (vi2 > this.maxVertexIndex) this.maxVertexIndex = vi2;
+
 		this.centroidZ[i] = (z0 + z1 + z2) / 3;
 
 		this.length++;
@@ -301,7 +324,13 @@ export class TriangleBuffer {
 	/** Sort sortOrder by centroidZ descending (back-to-front painter's order). */
 	sort() {
 		this.buildSortOrder();
-		const cz = this.centroidZ;
-		this.sortOrder.sort((a, b) => cz[b] - cz[a]);
+		this.#sortCz = this.centroidZ;
+		this.sortOrder.sort(this.#comparator);
 	}
+
+	/** @type {Float32Array} Reference held during sort to avoid closure allocation. */
+	#sortCz = new Float32Array(0);
+
+	/** @type {(a: number, b: number) => number} Bound comparator, allocated once. */
+	#comparator = (a, b) => this.#sortCz[b] - this.#sortCz[a];
 }

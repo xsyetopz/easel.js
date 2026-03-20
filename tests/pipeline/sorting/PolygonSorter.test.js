@@ -47,14 +47,14 @@ function makeDrawCall(zValues) {
 describe("PolygonSorter", () => {
 	const sorter = new PolygonSorter();
 
-	it("3 triangles: sortOrder is back-to-front by centroidZ descending", () => {
+	it("3 triangles: sortOrder is identity (depth buffer handles correctness)", () => {
 		// centroidZ: tri0=0.1(near), tri1=0.5(mid), tri2=0.9(far)
 		const dc = makeDrawCall([0.1, 0.5, 0.9]);
 		sorter.sort(dc);
-		// After sort descending: sortOrder[0] should be index of farthest (tri2=0.9)
-		expect(dc.triangles.sortOrder[0]).toBe(2);
+		// Identity order — no Z-sort, depth buffer handles per-pixel correctness
+		expect(dc.triangles.sortOrder[0]).toBe(0);
 		expect(dc.triangles.sortOrder[1]).toBe(1);
-		expect(dc.triangles.sortOrder[2]).toBe(0);
+		expect(dc.triangles.sortOrder[2]).toBe(2);
 	});
 
 	it("single triangle: no-op, sortOrder remains identity [0]", () => {
@@ -178,7 +178,7 @@ describe("PolygonSorter", () => {
 		const dc = { triangles: tb };
 		sorter.sort(dc);
 
-		// sortOrder reordered to [0, 1, 2] (farthest first)
+		// sortOrder is identity [0, 1, 2] (no Z-sort, depth buffer handles correctness)
 		expect(tb.sortOrder[0]).toBe(0);
 		// physical screenX at index 0 (first vertex of tri0) must still be 10
 		expect(tb.screenX[0]).toBe(10);

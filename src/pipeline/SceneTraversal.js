@@ -584,6 +584,9 @@ export class SceneTraversal {
 				ff0,
 				ff1,
 				ff2,
+				i0,
+				i1,
+				i2,
 			);
 		}
 

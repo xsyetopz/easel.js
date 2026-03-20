@@ -1,16 +1,16 @@
 /**
- * Centroid-Z depth sorting for painter's algorithm rendering.
- * The depth buffer handles residual overlap errors.
+ * Builds the iteration order for triangles within a draw call.
+ * The depth buffer handles per-pixel correctness, so no Z-sort is needed.
  */
 export class PolygonSorter {
 	/**
-	 * Sorts triangles within a draw call back-to-front by centroid Z.
+	 * Prepares triangle iteration order (identity mapping).
 	 * @param {{ triangles: * }} drawCall
 	 * @returns {void}
 	 */
 	sort(drawCall) {
 		const buf = drawCall.triangles;
 		if (!buf || buf.length < 2) return;
-		buf.sort();
+		buf.buildSortOrder();
 	}
 }
