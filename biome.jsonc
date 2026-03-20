@@ -35,9 +35,7 @@
 			}
 		},
 		{
-			"includes": [
-				"src/index.js"
-			],
+			"includes": ["src/index.js"],
 			"linter": {
 				"rules": {
 					"performance": {
@@ -156,10 +154,7 @@
 		}
 	},
 	"javascript": {
-		"globals": [
-			"Bun",
-			"$"
-		],
+		"globals": ["Bun", "$"],
 		"formatter": {
 			"quoteStyle": "double"
 		}
