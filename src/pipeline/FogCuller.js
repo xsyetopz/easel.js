@@ -3,10 +3,10 @@ export class FogCuller {
 	/**
 	 * Removes draw calls beyond the fog far distance from the draw list.
 	 * If no fog is provided the draw list is returned unchanged.
-	 * @param {import('./DrawList.js').DrawList} drawList
-	 * @param {import('../scenes/Fog.js').Fog|undefined} fog
+	 * @param {*} drawList
+	 * @param {*|undefined} fog
 	 * @param {{ x: number, y: number, z: number }} cameraPosition
-	 * @returns {import('./DrawList.js').DrawList}
+	 * @returns {*}
 	 */
 	cull(drawList, fog, cameraPosition) {
 		if (!fog) return drawList;

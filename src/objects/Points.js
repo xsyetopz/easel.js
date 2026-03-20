@@ -5,15 +5,15 @@ export class Points extends Node {
 	/** @override @type {string} */
 	type = "Points";
 
-	/** @type {import('../geometry/Geometry.js').Geometry|undefined} */
+	/** @type {*|undefined} */
 	geometry;
 
-	/** @type {import('../materials/PointsMaterial.js').PointsMaterial|undefined} */
+	/** @type {*|undefined} */
 	material;
 
 	/**
-	 * @param {import('../geometry/Geometry.js').Geometry} [geometry]
-	 * @param {import('../materials/PointsMaterial.js').PointsMaterial} [material]
+	 * @param {*} [geometry]
+	 * @param {*} [material]
 	 */
 	constructor(geometry = undefined, material = undefined) {
 		super();

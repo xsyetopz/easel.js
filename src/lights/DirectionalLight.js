@@ -16,7 +16,7 @@ export class DirectionalLight extends Light {
 	lightType = LightType.Directional;
 
 	/**
-	 * @param {import('../math/Color.js').Color|number|string} [color=0xffffff]
+	 * @param {*|number|string} [color=0xffffff]
 	 * @param {number} [intensity=1]
 	 */
 	constructor(color = 0xffffff, intensity = 1) {

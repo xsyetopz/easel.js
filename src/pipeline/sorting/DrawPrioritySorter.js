@@ -3,7 +3,7 @@ export class DrawPrioritySorter {
 	/**
 	 * Stable-sorts draw calls by material.layer (lower layer first).
 	 * Preserves relative order from TileDistanceSorter within the same layer.
-	 * @param {import('../DrawList.js').DrawList} drawList
+	 * @param {*} drawList
 	 * @returns {void}
 	 */
 	sort(drawList) {
@@ -12,7 +12,7 @@ export class DrawPrioritySorter {
 		for (let i = 0; i < calls.length; i++) {
 			calls[i]._sortIndex = i;
 		}
-		calls.sort((a, b) => {
+		calls.sort((/** @type {*} */ a, /** @type {*} */ b) => {
 			const la = a.material?.layer ?? 0;
 			const lb = b.material?.layer ?? 0;
 			if (la !== lb) return la - lb;

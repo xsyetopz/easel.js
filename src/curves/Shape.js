@@ -4,7 +4,7 @@ import { Path } from "./Path.js";
 export class Shape extends Path {
 	/** @override */
 	type = "Shape";
-	/** @type {import('./Path.js').Path[]} */
+	/** @type {*[]} */
 	#holes = [];
 
 	/** @returns {Path[]} */

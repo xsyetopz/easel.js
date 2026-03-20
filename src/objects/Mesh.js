@@ -5,15 +5,15 @@ export class Mesh extends Node {
 	/** @override @type {string} */
 	type = "Mesh";
 
-	/** @type {import('../geometry/Geometry.js').Geometry|undefined} */
+	/** @type {*|undefined} */
 	geometry;
 
-	/** @type {import('../materials/Material.js').Material|undefined} */
+	/** @type {*|undefined} */
 	material;
 
 	/**
-	 * @param {import('../geometry/Geometry.js').Geometry} [geometry]
-	 * @param {import('../materials/Material.js').Material} [material]
+	 * @param {*} [geometry]
+	 * @param {*} [material]
 	 */
 	constructor(geometry = undefined, material = undefined) {
 		super();

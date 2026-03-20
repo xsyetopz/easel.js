@@ -11,7 +11,7 @@ export const LoopPingPong = 2202;
  * Playback state for a single AnimationClip on a root Node.
  */
 export class AnimationAction {
-	/** @type {import('./AnimationClip.js').AnimationClip} */
+	/** @type {*} */
 	#clip;
 
 	/** @type {boolean} */
@@ -54,7 +54,7 @@ export class AnimationAction {
 	_fadeElapsed = undefined;
 
 	/**
-	 * @param {import('./AnimationClip.js').AnimationClip} clip
+	 * @param {*} clip
 	 * @param {object|undefined} [localRoot=undefined]
 	 */
 	constructor(clip, localRoot = undefined) {
@@ -62,7 +62,7 @@ export class AnimationAction {
 		this.#localRoot = localRoot;
 	}
 
-	/** @returns {import('./AnimationClip.js').AnimationClip} */
+	/** @returns {*} */
 	get clip() {
 		return this.#clip;
 	}

@@ -21,13 +21,13 @@ export class Animator {
 	/** @type {number} */
 	#time = 0;
 
-	/** @type {Map<import('./AnimationClip.js').AnimationClip, AnimationAction>} */
+	/** @type {Map<*, AnimationAction>} */
 	#actionMap = new Map();
 
 	/** @type {Map<AnimationAction, PropertyMixer[]>} */
 	#actionMixers = new Map();
 
-	/** @type {Map<AnimationAction, import('./Track.js').Track[]>} */
+	/** @type {Map<AnimationAction, *[]>} */
 	#actionTracks = new Map();
 
 	/**
@@ -49,7 +49,7 @@ export class Animator {
 
 	/**
 	 * Finds or creates an AnimationAction for the given clip.
-	 * @param {import('./AnimationClip.js').AnimationClip} clip
+	 * @param {*} clip
 	 * @returns {AnimationAction}
 	 */
 	clipAction(clip) {
@@ -76,7 +76,7 @@ export class Animator {
 
 	/**
 	 * Returns an existing action for the clip, or undefined.
-	 * @param {import('./AnimationClip.js').AnimationClip} clip
+	 * @param {*} clip
 	 * @returns {AnimationAction|undefined}
 	 */
 	existingAction(clip) {
@@ -123,7 +123,7 @@ export class Animator {
 
 	/**
 	 * Removes all actions and bindings for the given clip.
-	 * @param {import('./AnimationClip.js').AnimationClip} clip
+	 * @param {*} clip
 	 */
 	uncacheClip(clip) {
 		const action = this.#actionMap.get(clip);
@@ -132,7 +132,7 @@ export class Animator {
 
 	/**
 	 * Removes the action and associated mixers/bindings for the given clip.
-	 * @param {import('./AnimationClip.js').AnimationClip} clip
+	 * @param {*} clip
 	 */
 	uncacheAction(clip) {
 		const action = this.#actionMap.get(clip);

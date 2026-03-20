@@ -1,6 +1,6 @@
 /** Growable list of DrawCalls collected during scene traversal. */
 export class DrawList {
-	/** @type {import('./DrawCall.js').DrawCall[]} */
+	/** @type {*[]} */
 	#calls = [];
 
 	/**
@@ -9,7 +9,7 @@ export class DrawList {
 	 */
 	lights = [];
 
-	/** @returns {import('./DrawCall.js').DrawCall[]} */
+	/** @returns {*[]} */
 	get calls() {
 		return this.#calls;
 	}
@@ -20,7 +20,7 @@ export class DrawList {
 	}
 
 	/**
-	 * @param {import('./DrawCall.js').DrawCall} drawCall
+	 * @param {*} drawCall
 	 * @returns {void}
 	 */
 	add(drawCall) {
@@ -32,7 +32,7 @@ export class DrawList {
 		this.#calls.length = 0;
 	}
 
-	/** @returns {Iterator<import('./DrawCall.js').DrawCall>} */
+	/** @returns {Iterator<*>} */
 	[Symbol.iterator]() {
 		return this.#calls[Symbol.iterator]();
 	}

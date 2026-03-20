@@ -2,7 +2,7 @@ import { Matrix4 } from "../math/Matrix4.js";
 
 /** Bone hierarchy with inverse bind matrices for skinning. */
 export class Skeleton {
-	/** @type {import('./Bone.js').Bone[]} */
+	/** @type {*[]} */
 	#bones;
 
 	/** @type {Matrix4[]} */
@@ -12,7 +12,7 @@ export class Skeleton {
 	#boneMatrices;
 
 	/**
-	 * @param {import('./Bone.js').Bone[]} [bones=[]]
+	 * @param {*[]} [bones=[]]
 	 * @param {Matrix4[]} [boneInverses=[]]
 	 */
 	constructor(bones = [], boneInverses = []) {
@@ -25,7 +25,7 @@ export class Skeleton {
 		}
 	}
 
-	/** @returns {import('./Bone.js').Bone[]} */
+	/** @returns {*[]} */
 	get bones() {
 		return this.#bones;
 	}
@@ -81,7 +81,7 @@ export class Skeleton {
 
 	/**
 	 * @param {string} name
-	 * @returns {import('./Bone.js').Bone|undefined}
+	 * @returns {*|undefined}
 	 */
 	getBoneByName(name) {
 		return this.#bones.find((bone) => bone.name === name);

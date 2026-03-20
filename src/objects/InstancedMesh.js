@@ -18,8 +18,8 @@ export class InstancedMesh extends Mesh {
 	frustumCulled = false;
 
 	/**
-	 * @param {import('../geometry/Geometry.js').Geometry} [geometry]
-	 * @param {import('../materials/Material.js').Material} [material]
+	 * @param {*} [geometry]
+	 * @param {*} [material]
 	 * @param {number} [count=0]
 	 */
 	constructor(geometry = undefined, material = undefined, count = 0) {
@@ -63,7 +63,7 @@ export class InstancedMesh extends Mesh {
 
 	/**
 	 * @param {number} index
-	 * @param {import('../math/Matrix4.js').Matrix4} matrix
+	 * @param {*} matrix
 	 * @returns {void}
 	 */
 	getMatrixAt(index, matrix) {
@@ -76,7 +76,7 @@ export class InstancedMesh extends Mesh {
 
 	/**
 	 * @param {number} index
-	 * @param {import('../math/Matrix4.js').Matrix4} matrix
+	 * @param {*} matrix
 	 * @returns {void}
 	 */
 	setMatrixAt(index, matrix) {
@@ -89,7 +89,7 @@ export class InstancedMesh extends Mesh {
 
 	/**
 	 * @param {number} index
-	 * @param {import('../math/Color.js').Color} color
+	 * @param {*} color
 	 * @returns {void}
 	 */
 	getColorAt(index, color) {
@@ -102,7 +102,7 @@ export class InstancedMesh extends Mesh {
 
 	/**
 	 * @param {number} index
-	 * @param {import('../math/Color.js').Color} color
+	 * @param {*} color
 	 * @returns {void}
 	 */
 	setColorAt(index, color) {

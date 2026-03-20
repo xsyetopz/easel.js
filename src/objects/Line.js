@@ -5,15 +5,15 @@ export class Line extends Node {
 	/** @override @type {string} */
 	type = "Line";
 
-	/** @type {import('../geometry/Geometry.js').Geometry|undefined} */
+	/** @type {*|undefined} */
 	geometry;
 
-	/** @type {import('../materials/LineMaterial.js').LineMaterial|undefined} */
+	/** @type {*|undefined} */
 	material;
 
 	/**
-	 * @param {import('../geometry/Geometry.js').Geometry} [geometry]
-	 * @param {import('../materials/LineMaterial.js').LineMaterial} [material]
+	 * @param {*} [geometry]
+	 * @param {*} [material]
 	 */
 	constructor(geometry = undefined, material = undefined) {
 		super();

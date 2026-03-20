@@ -21,7 +21,7 @@ export class PointLight extends Light {
 	decay;
 
 	/**
-	 * @param {import('../math/Color.js').Color|number|string} [color=0xffffff]
+	 * @param {*|number|string} [color=0xffffff]
 	 * @param {number} [intensity=1]
 	 * @param {number} [distance=0] 0 means no limit.
 	 * @param {number} [decay=2]

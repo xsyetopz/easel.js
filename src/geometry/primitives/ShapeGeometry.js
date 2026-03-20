@@ -7,7 +7,7 @@ import { Geometry } from "../Geometry.js";
  */
 export class ShapeGeometry extends Geometry {
 	/**
-	 * @param {import('../../curves/Shape.js').Shape|import('../../curves/Shape.js').Shape[]} shapes
+	 * @param {*|*[]} shapes
 	 * @param {number} [curveSegments=12]
 	 */
 	constructor(shapes, curveSegments = 12) {

@@ -5,7 +5,7 @@
 export class PolygonSorter {
 	/**
 	 * Sorts triangles within a draw call back-to-front by centroid Z.
-	 * @param {{ triangles: import('../TriangleBuffer.js').TriangleBuffer }} drawCall
+	 * @param {{ triangles: * }} drawCall
 	 * @returns {void}
 	 */
 	sort(drawCall) {

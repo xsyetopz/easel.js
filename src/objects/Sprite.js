@@ -5,11 +5,11 @@ export class Sprite extends Node {
 	/** @override @type {string} */
 	type = "Sprite";
 
-	/** @type {import('../materials/Material.js').Material|undefined} */
+	/** @type {*|undefined} */
 	material;
 
 	/**
-	 * @param {import('../materials/Material.js').Material} [material]
+	 * @param {*} [material]
 	 */
 	constructor(material = undefined) {
 		super();

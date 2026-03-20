@@ -23,13 +23,13 @@ export class AnimationClip {
 	/** @type {number} */
 	#duration;
 
-	/** @type {import('./Track.js').Track[]} */
+	/** @type {*[]} */
 	#tracks;
 
 	/**
 	 * @param {string} [name='']
 	 * @param {number} [duration=-1] - Pass -1 to compute from tracks
-	 * @param {import('./Track.js').Track[]} [tracks=[]]
+	 * @param {*[]} [tracks=[]]
 	 */
 	constructor(name = "", duration = -1, tracks = []) {
 		this.#name = name;
@@ -47,7 +47,7 @@ export class AnimationClip {
 		return this.#duration;
 	}
 
-	/** @returns {import('./Track.js').Track[]} */
+	/** @returns {*[]} */
 	get tracks() {
 		return this.#tracks;
 	}

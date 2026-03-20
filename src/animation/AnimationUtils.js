@@ -32,7 +32,7 @@ function subclip(clip, name, startFrame, endFrame, fps = 30) {
 
 		if (newTimes.length === 0) continue;
 
-		/** @type {new (name: string, times: Float32Array, values: Float32Array) => import('./Track.js').Track} */
+		/** @type {new (name: string, times: Float32Array, values: Float32Array) => *} */
 		const TrackCtor = /** @type {any} */ (track.constructor);
 		newTracks.push(
 			new TrackCtor(

@@ -5,7 +5,7 @@ export class WorldToView {
 	/**
 	 * Transforms an array of world-space Vector3 positions into view space.
 	 * @param {Vector3[]} positions
-	 * @param {{ matrixWorldInverse: import('../../math/Matrix4.js').Matrix4 }} camera
+	 * @param {{ matrixWorldInverse: * }} camera
 	 * @param {Vector3[]} output Output array (populated in place)
 	 * @returns {Vector3[]}
 	 */
@@ -20,7 +20,7 @@ export class WorldToView {
 	/**
 	 * Transforms a single world-space point into view space.
 	 * @param {Vector3} point
-	 * @param {{ matrixWorldInverse: import('../../math/Matrix4.js').Matrix4 }} camera
+	 * @param {{ matrixWorldInverse: * }} camera
 	 * @param {Vector3} target
 	 * @returns {Vector3}
 	 */

@@ -99,7 +99,7 @@ export class Renderer {
 
 	/**
 	 * Renders a scene from a camera's perspective.
-	 * @param {{ children: *, visible: boolean, fog?: import('../scenes/Fog.js').Fog, lights?: * }} scene
+	 * @param {{ children: *, visible: boolean, fog?: *, lights?: * }} scene
 	 * @param {{ matrixWorldInverse: *, projectionMatrix: *, updateMatrixWorld: () => void, position: { x: number, y: number, z: number } }} camera
 	 * @returns {void}
 	 */

@@ -17,14 +17,14 @@ export class PointsMaterial extends Material {
 	/** @type {boolean} Signals the rasterizer to use point rendering. */
 	points = true;
 
-	/** @type {import('../textures/Texture.js').Texture|undefined} */
+	/** @type {*|undefined} */
 	map = undefined;
 
 	/**
 	 * @param {object} [options]
 	 * @param {Color|number|string} [options.color=0xffffff]
 	 * @param {number} [options.size=1]
-	 * @param {import('../textures/Texture.js').Texture|undefined} [options.map=undefined]
+	 * @param {*|undefined} [options.map=undefined]
 	 * @param {number} [options.layer]
 	 * @param {number} [options.opacity]
 	 */

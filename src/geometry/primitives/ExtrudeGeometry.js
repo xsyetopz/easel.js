@@ -7,7 +7,7 @@ import { Geometry } from "../Geometry.js";
  */
 export class ExtrudeGeometry extends Geometry {
 	/**
-	 * @param {import('../../curves/Shape.js').Shape|import('../../curves/Shape.js').Shape[]} shapes
+	 * @param {*|*[]} shapes
 	 * @param {object} [options]
 	 * @param {number} [options.depth=1]
 	 * @param {number} [options.steps=1]

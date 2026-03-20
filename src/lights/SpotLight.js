@@ -71,7 +71,7 @@ export class SpotLight extends Light {
 	}
 
 	/**
-	 * @param {import('../math/Color.js').Color|number|string} [color=0xffffff]
+	 * @param {*|number|string} [color=0xffffff]
 	 * @param {number} [intensity=1]
 	 * @param {number} [distance=0]
 	 * @param {number} [angle=Math.PI/3]

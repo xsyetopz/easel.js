@@ -48,9 +48,7 @@ export class AnimationLoader extends Loader {
 			const clip = new AnimationClip(
 				clipDef.name ?? "",
 				clipDef.duration ?? -1,
-				/** @type {import('../animation/Track.js').Track[]} */ (
-					/** @type {unknown} */ (clipDef.tracks ?? [])
-				),
+				/** @type {*[]} */ (/** @type {unknown} */ (clipDef.tracks ?? [])),
 			);
 			clips.push(clip);
 		}

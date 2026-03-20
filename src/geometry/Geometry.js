@@ -21,10 +21,10 @@ export class Geometry {
 	/** @type {Uint16Array|Uint32Array|undefined} */
 	#index = undefined;
 
-	/** @type {import('../math/Box3.js').Box3|undefined} */
+	/** @type {*|undefined} */
 	boundingBox = undefined;
 
-	/** @type {import('../math/Sphere.js').Sphere|undefined} */
+	/** @type {*|undefined} */
 	boundingSphere = undefined;
 
 	/**

@@ -1,7 +1,7 @@
 /** Clears the framebuffer and depth buffer to initial state. */
 export class FramebufferClear {
 	/**
-	 * @param {import('./Framebuffer.js').Framebuffer} framebuffer
+	 * @param {*} framebuffer
 	 * @param {number} [r]
 	 * @param {number} [g]
 	 * @param {number} [b]

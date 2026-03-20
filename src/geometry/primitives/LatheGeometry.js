@@ -11,7 +11,7 @@ import { Geometry } from "../Geometry.js";
  *   phiStart: number,
  *   inverseSegments: number,
  *   phiLength: number,
- *   points: import('../../math/Vector2.js').Vector2[],
+ *   points: *[],
  * }} LatheState
  */
 
@@ -67,7 +67,7 @@ function buildCap(state, pointIndex, sign) {
 }
 
 /**
- * @param {import('../../math/Vector2.js').Vector2[]} points
+ * @param {*[]} points
  * @param {number[]} normals Output array.
  * @param {number} seg
  * @param {number} phiStart
@@ -128,7 +128,7 @@ function buildIndices(grid, indices, pointCount, seg) {
  */
 export class LatheGeometry extends Geometry {
 	/**
-	 * @param {import('../../math/Vector2.js').Vector2[]} points Array of 2D points (x=radius, y=height).
+	 * @param {*[]} points Array of 2D points (x=radius, y=height).
 	 * @param {number} [segments=12]
 	 * @param {number} [phiStart=0]
 	 * @param {number} [phiLength=Math.PI*2]

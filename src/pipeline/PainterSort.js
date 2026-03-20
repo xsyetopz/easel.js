@@ -11,7 +11,7 @@ export class PainterSort {
 	/**
 	 * Runs the full painter's algorithm sort chain:
 	 * tile distance (back-to-front) → material layer → per-polygon depth.
-	 * @param {import('./DrawList.js').DrawList} drawList
+	 * @param {*} drawList
 	 * @param {{ x: number, y: number }} cameraPosition
 	 * @returns {void}
 	 */

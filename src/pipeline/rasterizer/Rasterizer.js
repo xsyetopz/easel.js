@@ -33,7 +33,7 @@ export class Rasterizer {
 	#point = new PointRasterizer();
 
 	// Per-triangle state fields (set once per triangle, read in scanline handlers).
-	/** @type {import('../framebuffer/Framebuffer.js').Framebuffer['depthBuffer']} */
+	/** @type {*['depthBuffer']} */
 	#depthBuf = /** @type {*} */ (undefined);
 	/** @type {Uint16Array} */
 	#dbData = /** @type {*} */ (undefined);
@@ -602,7 +602,7 @@ export class Rasterizer {
 	 * Rasterizes a draw call to the framebuffer by dispatching to the appropriate
 	 * sub-rasterizer based on the material mode.
 	 * @param {{
-	 *   triangles: import('../TriangleBuffer.js').TriangleBuffer,
+	 *   triangles: *,
 	 *   material: {
 	 *     wireframe?: boolean,
 	 *     points?: boolean,
@@ -613,7 +613,7 @@ export class Rasterizer {
 	 *   shadedColorData?: Float32Array,
 	 *   shadedColorStride?: number
 	 * }} drawCall
-	 * @param {import('../framebuffer/Framebuffer.js').Framebuffer} framebuffer
+	 * @param {*} framebuffer
 	 * @param {unknown} _colorTable Ignored - internal ColorTable is used
 	 * @param {(x: number, y: number, r: number, g: number, b: number, a: number) => void} pixelWriter
 	 * @param {{ r: number, g: number, b: number }|undefined} [fogColor]
@@ -683,7 +683,7 @@ export class Rasterizer {
 	}
 
 	/**
-	 * @param {import('../TriangleBuffer.js').TriangleBuffer} tb
+	 * @param {*} tb
 	 * @param {number} physIdx Physical triangle index in typed arrays
 	 * @param {Float32Array | undefined} shadedColorData Packed shading data for the whole draw call
 	 * @param {number} shadedColorStride 3 for flat, 9 for gouraud, 0 when absent

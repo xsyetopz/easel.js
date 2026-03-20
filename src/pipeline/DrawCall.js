@@ -4,7 +4,7 @@ const _pos = new Vector3();
 
 /** Single polygon draw operation with material, depth, and vertex data. */
 export class DrawCall {
-	/** @type {import('../objects/Mesh.js').Mesh} */
+	/** @type {*} */
 	mesh;
 
 	/**
@@ -17,7 +17,7 @@ export class DrawCall {
 	/** @type {number} */
 	vertCount = 0;
 
-	/** @type {import('../materials/Material.js').Material} */
+	/** @type {*} */
 	material;
 
 	/** @type {number[] | Uint16Array | Uint32Array} */
@@ -26,7 +26,7 @@ export class DrawCall {
 	/** @type {{ x: number, y: number, z: number }} */
 	centroid = { x: 0, y: 0, z: 0 };
 
-	/** @type {import('./TriangleBuffer.js').TriangleBuffer} */
+	/** @type {*} */
 	triangles = /** @type {*} */ (undefined);
 
 	/** @type {Float32Array} */
@@ -49,8 +49,8 @@ export class DrawCall {
 	_sortIndex = 0;
 
 	/**
-	 * @param {import('../objects/Mesh.js').Mesh} mesh
-	 * @param {import('../materials/Material.js').Material} material
+	 * @param {*} mesh
+	 * @param {*} material
 	 */
 	constructor(mesh, material) {
 		this.mesh = mesh;

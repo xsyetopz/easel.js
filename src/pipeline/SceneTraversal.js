@@ -174,15 +174,13 @@ export class SceneTraversal {
 	 * @param {{ matrixWorldInverse: Matrix4, projectionMatrix: Matrix4 }} camera
 	 * @param {number} width
 	 * @param {number} height
-	 * @returns {import('./DrawCall.js').DrawCall}
+	 * @returns {*}
 	 */
 	#buildDrawCall(node, camera, width, height) {
 		node.updateMatrixWorld(false, false);
 
 		const drawCall = new DrawCall(
-			/** @type {import('../objects/Mesh.js').Mesh} */ (
-				/** @type {unknown} */ (node)
-			),
+			/** @type {*} */ (/** @type {unknown} */ (node)),
 			node.material,
 		);
 
@@ -396,7 +394,7 @@ export class SceneTraversal {
 	 * @param {Float32Array} worldPositions Stride-3 flat buffer
 	 * @param {number} width
 	 * @param {number} height
-	 * @param {import('../materials/Material.js').Material} material
+	 * @param {*} material
 	 * @param {{ _triangleBuffer?: TriangleBuffer, [k: string]: any }} node
 	 * @returns {TriangleBuffer}
 	 */

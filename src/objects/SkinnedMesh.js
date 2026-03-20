@@ -18,12 +18,12 @@ export class SkinnedMesh extends Mesh {
 	/** @type {Matrix4} */
 	#bindMatrixInverse = new Matrix4();
 
-	/** @type {import('./Skeleton.js').Skeleton|undefined} */
+	/** @type {*|undefined} */
 	#skeleton = undefined;
 
 	/**
-	 * @param {import('../geometry/Geometry.js').Geometry} [geometry]
-	 * @param {import('../materials/Material.js').Material} [material]
+	 * @param {*} [geometry]
+	 * @param {*} [material]
 	 */
 	constructor(geometry = undefined, material = undefined) {
 		super(geometry, material);
@@ -39,13 +39,13 @@ export class SkinnedMesh extends Mesh {
 		return this.#bindMatrixInverse;
 	}
 
-	/** @returns {import('./Skeleton.js').Skeleton|undefined} */
+	/** @returns {*|undefined} */
 	get skeleton() {
 		return this.#skeleton;
 	}
 
 	/**
-	 * @param {import('./Skeleton.js').Skeleton} skeleton
+	 * @param {*} skeleton
 	 * @param {Matrix4} [bindMatrix]
 	 * @returns {void}
 	 */
@@ -82,7 +82,7 @@ export class SkinnedMesh extends Mesh {
 
 	/**
 	 * @param {number} index
-	 * @param {import('../math/Vector3.js').Vector3} target
+	 * @param {*} target
 	 * @returns {void}
 	 */
 	boneTransform(index, target) {

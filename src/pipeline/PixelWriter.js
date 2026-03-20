@@ -28,7 +28,7 @@ function rgbToHsl(r, g, b) {
 export class PixelWriter {
 	/**
 	 * Writes a pixel to the framebuffer, blending by alpha if needed.
-	 * @param {import('./framebuffer/Framebuffer.js').Framebuffer} framebuffer
+	 * @param {*} framebuffer
 	 * @param {number} x
 	 * @param {number} y
 	 * @param {number} r
@@ -53,13 +53,13 @@ export class PixelWriter {
 
 	/**
 	 * Writes an HSL16 color to the framebuffer, applying translucency if opacity < 1.
-	 * @param {import('./framebuffer/Framebuffer.js').Framebuffer} framebuffer
+	 * @param {*} framebuffer
 	 * @param {number} x
 	 * @param {number} y
 	 * @param {number} hsl16
-	 * @param {import('./color/ColorTable.js').ColorTable} colorTable
+	 * @param {*} colorTable
 	 * @param {number} opacity Value in [0, 1]
-	 * @param {import('./color/TranslucencyTable.js').TranslucencyTable} translucencyTable
+	 * @param {*} translucencyTable
 	 * @returns {void}
 	 */
 	writeHsl16(framebuffer, x, y, hsl16, colorTable, opacity, translucencyTable) {
