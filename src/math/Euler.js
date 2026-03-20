@@ -217,10 +217,7 @@ export class Euler {
 		const asin = asinVal(m);
 		this.#setAxis(primary, MathUtils.safeAsin(asin));
 		if (Math.abs(lockVal(m)) >= Euler.#GIMBAL_LOCK_THRESHOLD) {
-			this.#setAxis(
-				locked.a.axis,
-				Math.atan2(locked.a.n(m), locked.a.d(m)),
-			);
+			this.#setAxis(locked.a.axis, Math.atan2(locked.a.n(m), locked.a.d(m)));
 			const fallback = Math.atan2(locked.b.n(m), locked.b.d(m));
 			this.#setAxis(
 				locked.b.axis,
