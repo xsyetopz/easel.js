@@ -11,7 +11,9 @@
 			"README.md"
 		],
 		"exclude": [
-			"src/**/*.test.js"
+			"src/**/*.test.js",
+			"!src/**/*.d.ts",
+			"!src/**/*.d.ts.map"
 		]
 	}
 }
