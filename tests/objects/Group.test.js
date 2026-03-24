@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Node } from "@/core/Node.js";
-import { Group } from "@/objects/Group.js";
+import { Group } from "@/objects/Group.ts";
 
 describe("Group", () => {
 	it("has type='Group'", () => {

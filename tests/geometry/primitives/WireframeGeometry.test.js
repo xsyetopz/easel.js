@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 import { Geometry } from "@/geometry/Geometry.js";
 import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
-import { WireframeGeometry } from "@/geometry/primitives/WireframeGeometry.js";
+import { WireframeGeometry } from "@/geometry/primitives/WireframeGeometry.ts";
 
 describe("WireframeGeometry", () => {
 	it("produces positions attribute from a BoxGeometry", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Node } from "@/core/Node.js";
-import { Bone } from "@/objects/Bone.js";
+import { Bone } from "@/objects/Bone.ts";
 
 describe("Bone", () => {
 	it("has type='Bone'", () => {

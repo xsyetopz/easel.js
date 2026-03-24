@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ColorTable } from "@/pipeline/color/ColorTable.js";
-import { Hsl16 } from "@/pipeline/color/Hsl16.js";
+import { Hsl16 } from "@/pipeline/color/Hsl16.ts";
 
 describe("ColorTable", () => {
 	it("constructs without throwing", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TextureClamp } from "@/pipeline/texture/TextureClamp.js";
+import { TextureClamp } from "@/pipeline/texture/TextureClamp.ts";
 
 describe("TextureClamp", () => {
 	const clamp = new TextureClamp();

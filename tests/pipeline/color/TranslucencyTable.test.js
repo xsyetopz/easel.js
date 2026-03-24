@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Hsl16 } from "@/pipeline/color/Hsl16.js";
+import { Hsl16 } from "@/pipeline/color/Hsl16.ts";
 import { TranslucencyTable } from "@/pipeline/color/TranslucencyTable.js";
 
 describe("TranslucencyTable", () => {

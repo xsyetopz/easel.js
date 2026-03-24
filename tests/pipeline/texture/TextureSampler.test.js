@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TextureSampler } from "@/pipeline/texture/TextureSampler.js";
+import { TextureSampler } from "@/pipeline/texture/TextureSampler.ts";
 
 function make2x2Texture(tl, tr, bl, br) {
 	const data = new Uint8ClampedArray(2 * 2 * 4);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ViewToScreen } from "@/pipeline/projection/ViewToScreen.js";
+import { ViewToScreen } from "@/pipeline/projection/ViewToScreen.ts";
 
 function makeTarget() {
 	const t = { x: 0, y: 0, z: 0 };

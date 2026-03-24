@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Side } from "@/core/Constants.js";
+import { Side } from "@/core/Constants.ts";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { DrawList } from "@/pipeline/DrawList.js";
 import { SceneTraversal } from "@/pipeline/SceneTraversal.js";

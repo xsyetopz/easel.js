@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
-import { TetrahedronGeometry } from "@/geometry/primitives/TetrahedronGeometry.js";
+import { TetrahedronGeometry } from "@/geometry/primitives/TetrahedronGeometry.ts";
 
 describe("TetrahedronGeometry vs THREE.TetrahedronGeometry", () => {
 	it("default - vertex count matches", () => {

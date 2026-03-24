@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { Shading } from "@/core/Constants.js";
+import { Shading } from "@/core/Constants.ts";
 import { LightBaker } from "@/pipeline/shading/LightBaker.js";
 import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 

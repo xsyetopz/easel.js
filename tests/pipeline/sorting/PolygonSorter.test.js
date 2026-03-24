@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PolygonSorter } from "@/pipeline/sorting/PolygonSorter.js";
+import { PolygonSorter } from "@/pipeline/sorting/PolygonSorter.ts";
 import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 
 // sx0,sy0,sx1,sy1,sx2,sy2, z0,z1,z2, fnx,fny,fnz, vn0x,vn0y,vn0z, vn1x,vn1y,vn1z, vn2x,vn2y,vn2z, u0,v0,u1,v1,u2,v2

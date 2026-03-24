@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DepthBuffer } from "@/pipeline/framebuffer/DepthBuffer.js";
+import { DepthBuffer } from "@/pipeline/framebuffer/DepthBuffer.ts";
 
 describe("DepthBuffer", () => {
 	it("constructor creates buffer with correct dimensions", () => {

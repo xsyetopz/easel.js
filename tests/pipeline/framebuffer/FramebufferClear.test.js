@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";
-import { FramebufferClear } from "@/pipeline/framebuffer/FramebufferClear.js";
+import { FramebufferClear } from "@/pipeline/framebuffer/FramebufferClear.ts";
 
 describe("FramebufferClear", () => {
 	it("fills all pixels with given color", () => {

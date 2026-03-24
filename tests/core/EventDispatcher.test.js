@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { EventDispatcher } from "@/core/EventDispatcher.js";
+import { EventDispatcher } from "@/core/EventDispatcher.ts";
 
 describe("EventDispatcher", () => {
 	it("adds and dispatches a listener", () => {

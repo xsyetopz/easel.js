@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { Side } from "@/core/Constants.js";
+import { Side } from "@/core/Constants.ts";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";
-import { FramebufferClear } from "@/pipeline/framebuffer/FramebufferClear.js";
+import { FramebufferClear } from "@/pipeline/framebuffer/FramebufferClear.ts";
 import { PainterSort } from "@/pipeline/PainterSort.js";
 import { PixelWriter } from "@/pipeline/PixelWriter.js";
 import { Rasterizer } from "@/pipeline/rasterizer/Rasterizer.js";

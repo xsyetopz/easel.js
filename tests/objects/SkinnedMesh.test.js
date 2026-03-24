@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Matrix4 } from "@/math/Matrix4.js";
-import { Bone } from "@/objects/Bone.js";
+import { Bone } from "@/objects/Bone.ts";
 import { Mesh } from "@/objects/Mesh.js";
 import { Skeleton } from "@/objects/Skeleton.js";
 import { SkinnedMesh } from "@/objects/SkinnedMesh.js";
