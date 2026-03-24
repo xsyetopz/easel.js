@@ -1,0 +1,191 @@
+import { Euler } from "../math/Euler.ts";
+import { Matrix4 } from "../math/Matrix4.ts";
+import { Quaternion } from "../math/Quaternion.ts";
+import { Vector3 } from "../math/Vector3.ts";
+import { EventDispatcher } from "./EventDispatcher.ts";
+import { Layers } from "./Layers.ts";
+
+const _position = new Vector3();
+const _m1 = new Matrix4();
+const _q1 = new Quaternion();
+
+let _nodeId = 0;
+
+/** Base scene graph node with transform, hierarchy, and traversal. */
+export class Node extends EventDispatcher {
+	id: number = _nodeId++;
+
+	name = "";
+
+	type = "Node";
+
+	parent: Node | undefined = undefined;
+
+	children: Node[] = [];
+
+	position = new Vector3();
+	#rotation = new Euler();
+	#quaternion = new Quaternion();
+	scale = new Vector3(1, 1, 1);
+
+	matrix = new Matrix4();
+	matrixWorld = new Matrix4();
+	autoUpdateMatrix = true;
+	matrixWorldAutoUpdate = true;
+
+	matrixWorldNeedsUpdate = true;
+
+	visible = true;
+	frustumCulled = true;
+	layers = new Layers();
+
+	userData: Record<string, unknown> = {};
+
+	constructor() {
+		super();
+		this.#rotation.setOnChangeCallback(() => {
+			this.#quaternion.setFromEuler(this.#rotation);
+		});
+		this.updateMatrix();
+	}
+
+	get rotation(): Euler {
+		return this.#rotation;
+	}
+
+	set rotation(value: Euler) {
+		this.#rotation.copy(value);
+	}
+
+	get quaternion(): Quaternion {
+		return this.#quaternion;
+	}
+
+	set quaternion(value: Quaternion) {
+		this.#quaternion.copy(value);
+		this.#rotation.setFromQuaternion(this.#quaternion);
+	}
+
+	add(object: Node): this {
+		if (object === this) return this;
+
+		object.parent?.remove(object);
+		object.parent = this;
+		this.children.push(object);
+		// Parent transform now applies — world matrix must be recomputed.
+		object.matrixWorldNeedsUpdate = true;
+
+		return this;
+	}
+
+	remove(object: Node): this {
+		const index = this.children.indexOf(object);
+		if (index !== -1) {
+			object.parent = undefined;
+			this.children.splice(index, 1);
+		}
+		return this;
+	}
+
+	traverse(callback: (node: Node) => void): void {
+		callback(this);
+		for (const child of this.children) {
+			child.traverse(callback);
+		}
+	}
+
+	traverseVisible(callback: (node: Node) => void): void {
+		if (!this.visible) return;
+		callback(this);
+		for (const child of this.children) {
+			child.traverseVisible(callback);
+		}
+	}
+
+	lookAt(target: Vector3 | number, y?: number, z?: number): this {
+		this.updateMatrixWorld(true, false);
+
+		const targetVector =
+			target instanceof Vector3 ? target : new Vector3(target, y, z);
+
+		_position.setFromMatrixPosition(this.matrixWorld);
+
+		if (typeof this.type === "string" && this.type.endsWith("Camera")) {
+			_m1.lookAt(_position, targetVector, new Vector3(0, 1, 0));
+		} else {
+			_m1.lookAt(targetVector, _position, new Vector3(0, 1, 0));
+		}
+
+		this.quaternion.setFromRotationMatrix(_m1);
+
+		if (this.parent) {
+			_m1.extractRotation(this.parent.matrixWorld);
+			_q1.setFromRotationMatrix(_m1);
+			this.quaternion.premul(_q1.invert());
+		}
+
+		this.rotation.setFromQuaternion(this.quaternion);
+
+		return this;
+	}
+
+	updateMatrix(): void {
+		this.matrix.compose(this.position, this.quaternion, this.scale);
+		// Local matrix changed — world matrix is now stale.
+		this.matrixWorldNeedsUpdate = true;
+	}
+
+	updateMatrixWorld(updateParents = false, updateChildren = true): void {
+		if (updateParents && this.parent) {
+			this.parent.updateMatrixWorld(true, false);
+		}
+		if (this.autoUpdateMatrix) this.updateMatrix();
+
+		if (this.matrixWorldNeedsUpdate || !this.parent) {
+			if (this.parent) {
+				this.matrixWorld.mulMatrices(this.parent.matrixWorld, this.matrix);
+			} else {
+				this.matrixWorld.copy(this.matrix);
+			}
+			// Dirty flag is consumed — propagate to children so they recompute next frame.
+			for (const child of this.children) {
+				child.matrixWorldNeedsUpdate = true;
+			}
+			this.matrixWorldNeedsUpdate = false;
+		}
+
+		if (updateChildren) {
+			for (const child of this.children) {
+				if (child.matrixWorldAutoUpdate) {
+					child.updateMatrixWorld(false, true);
+				}
+			}
+		}
+	}
+
+	clone(): Node {
+		return new Node().copy(this);
+	}
+
+	copy(source: Node, recursive = true): this {
+		this.name = source.name;
+
+		this.position.copy(source.position);
+		this.quaternion = source.quaternion;
+		this.scale.copy(source.scale);
+
+		this.matrix.copy(source.matrix);
+		this.matrixWorld.copy(source.matrixWorld);
+
+		this.visible = source.visible;
+		this.frustumCulled = source.frustumCulled;
+		this.userData = JSON.parse(JSON.stringify(source.userData));
+
+		if (recursive) {
+			for (const child of source.children) {
+				this.add(child.clone());
+			}
+		}
+		return this;
+	}
+}
