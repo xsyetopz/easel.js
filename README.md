@@ -8,7 +8,7 @@
 [![JSR Score](https://jsr.io/badges/@xsyetopz/easel/score)](https://jsr.io/@xsyetopz/easel)
 [![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/@xsyetopz/easel)](https://www.jsdelivr.com/package/npm/@xsyetopz/easel)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 A software renderer using HTML5 Canvas2D with a THREE.js-compatible scene graph API. Every pixel is drawn by the CPU using a painter's-algorithm scanline rasterizer - no WebGL, no GPU.
 
