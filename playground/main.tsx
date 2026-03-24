@@ -21,7 +21,9 @@ hljs.registerLanguage("typescript", typescript);
 hljs.registerLanguage("plaintext", plaintext);
 const highlightJsAdapter = createHighlightJsAdapter(hljs);
 
-createRoot(document.getElementById("root")!).render(
+const root = document.getElementById("root");
+if (!root) throw new Error("Root element not found");
+createRoot(root).render(
 	<MantineProvider theme={theme} defaultColorScheme="auto">
 		<CodeHighlightAdapterProvider adapter={highlightJsAdapter}>
 			<App />

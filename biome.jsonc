@@ -35,7 +35,7 @@
 			}
 		},
 		{
-			"includes": ["src/index.js"],
+			"includes": ["src/index.ts"],
 			"linter": {
 				"rules": {
 					"performance": {

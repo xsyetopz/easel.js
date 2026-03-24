@@ -14,7 +14,7 @@ describe("WorldToView", () => {
 	it("identity camera: point is unchanged", () => {
 		const cam = makeIdentityCamera();
 		const input = [new Vector3(1, 2, 3)];
-		const output = [];
+		const output: Vector3[] = [];
 		wtv.transform(input, cam, output);
 		expect(output[0].x).toBeCloseTo(1, 5);
 		expect(output[0].y).toBeCloseTo(2, 5);
@@ -24,7 +24,7 @@ describe("WorldToView", () => {
 	it("populates output array with Vector3 instances", () => {
 		const cam = makeIdentityCamera();
 		const input = [new Vector3(0, 0, 0)];
-		const output = [];
+		const output: Vector3[] = [];
 		wtv.transform(input, cam, output);
 		expect(output.length).toBe(1);
 		expect(output[0]).toBeInstanceOf(Vector3);
@@ -34,7 +34,7 @@ describe("WorldToView", () => {
 		const cam = makeIdentityCamera();
 		cam.matrixWorldInverse.makeTranslation(5, 0, 0);
 		const input = [new Vector3(0, 0, 0)];
-		const output = [];
+		const output: Vector3[] = [];
 		wtv.transform(input, cam, output);
 		expect(output[0].x).toBeCloseTo(5, 5);
 	});

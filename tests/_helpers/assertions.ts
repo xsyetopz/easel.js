@@ -3,7 +3,7 @@ import { expect } from "vitest";
 expect.extend({
 	toMatchVector(received, expected, epsilon = 1e-6) {
 		const keys = ["x", "y", "z", "w"];
-		const mismatches = [];
+		const mismatches: string[] = [];
 		for (const k of keys) {
 			if (k in expected) {
 				const r = received[k] ?? 0;
@@ -21,7 +21,7 @@ expect.extend({
 	toMatchMatrix(received, expected, epsilon = 1e-6) {
 		const re = received.elements ?? received;
 		const te = expected.elements ?? expected;
-		const mismatches = [];
+		const mismatches: string[] = [];
 		for (let i = 0; i < re.length; i++) {
 			if (Math.abs(re[i] - te[i]) >= epsilon) {
 				mismatches.push(`[${i}]: ${re[i]} vs ${te[i]}`);

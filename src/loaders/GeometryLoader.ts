@@ -2,7 +2,6 @@ import { Attribute } from "../geometry/Attribute.ts";
 import { Geometry } from "../geometry/Geometry.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
-import type { LoadingManager } from "./LoadingManager.ts";
 
 interface GeometryJSON {
 	attributes: Record<string, { array: number[]; itemSize: number }>;
@@ -11,10 +10,6 @@ interface GeometryJSON {
 
 /** Loads a JSON geometry definition and returns a Geometry instance. */
 export class GeometryLoader extends Loader {
-	constructor(manager?: LoadingManager) {
-		super(manager);
-	}
-
 	override load(
 		url: string,
 		onLoad?: (geometry: Geometry) => void,

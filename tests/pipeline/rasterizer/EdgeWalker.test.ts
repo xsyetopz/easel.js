@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EdgeWalker } from "@/pipeline/rasterizer/EdgeWalker.js";
 
 function collect(walker, x1, y1, x2, y2) {
-	const pixels = [];
+	const pixels: Array<{ x: number; y: number }> = [];
 	walker.walk(x1, y1, x2, y2, (x, y) => pixels.push({ x, y }));
 	return pixels;
 }

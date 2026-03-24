@@ -1,5 +1,4 @@
 import { Loader } from "./Loader.ts";
-import type { LoadingManager } from "./LoadingManager.ts";
 import { DefaultLoadingManager } from "./LoadingManager.ts";
 
 /** Loads files via the fetch API. */
@@ -7,10 +6,6 @@ export class FileLoader extends Loader {
 	#responseType = "";
 
 	#mimeType: string | undefined = undefined;
-
-	constructor(manager?: LoadingManager) {
-		super(manager);
-	}
 
 	setResponseType(type: string): this {
 		this.#responseType = type;

@@ -1,7 +1,6 @@
 import { AnimationClip } from "../animation/AnimationClip.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
-import type { LoadingManager } from "./LoadingManager.ts";
 
 interface ClipDefinition {
 	name?: string;
@@ -16,10 +15,6 @@ interface ClipDefinition {
 
 /** Loads a JSON array of animation clip definitions. */
 export class AnimationLoader extends Loader {
-	constructor(manager?: LoadingManager) {
-		super(manager);
-	}
-
 	override load(
 		url: string,
 		onLoad?: (clips: AnimationClip[]) => void,

@@ -6,7 +6,7 @@ import { ScanlineFill } from "@/pipeline/rasterizer/ScanlineFill.js";
  * xStart..xEnd for each scanline invocation.
  */
 function collectFill(fill, x1, y1, x2, y2, x3, y3, w = 20, h = 20) {
-	const pixels = [];
+	const pixels: Array<{ x: number; y: number }> = [];
 	fill.fill(x1, y1, x2, y2, x3, y3, w, h, (y, xStart, xEnd) => {
 		for (let x = xStart; x <= xEnd; x++) {
 			pixels.push({ x, y });
@@ -20,7 +20,13 @@ function collectFill(fill, x1, y1, x2, y2, x3, y3, w = 20, h = 20) {
  * the scanline start values and deltas.
  */
 function collectFillBary(fill, x1, y1, x2, y2, x3, y3, w = 20, h = 20) {
-	const pixels = [];
+	const pixels: Array<{
+		x: number;
+		y: number;
+		u: number;
+		v: number;
+		w: number;
+	}> = [];
 	fill.fill(
 		x1,
 		y1,
@@ -141,7 +147,15 @@ describe("ScanlineFill", () => {
 	});
 
 	it("callback receives duDx and dvDx that reconstruct correct barycentrics", () => {
-		const results = [];
+		const results: Array<{
+			y: number;
+			xStart: number;
+			xEnd: number;
+			uStart: number;
+			vStart: number;
+			duDx: number;
+			dvDx: number;
+		}> = [];
 		fill.fill(
 			3,
 			0,

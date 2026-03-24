@@ -9,7 +9,7 @@ export function compareArrays(easelArr, threeArr, epsilon = 1e-6) {
 			failures: [`length ${easelArr.length} vs ${threeArr.length}`],
 		};
 	}
-	const failures = [];
+	const failures: string[] = [];
 	for (let i = 0; i < easelArr.length; i++) {
 		if (Math.abs(easelArr[i] - threeArr[i]) >= epsilon) {
 			failures.push(`[${i}]: ${easelArr[i]} vs ${threeArr[i]}`);

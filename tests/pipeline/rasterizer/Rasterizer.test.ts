@@ -54,12 +54,12 @@ function makeEmptyDrawCall() {
 function appendCenterTriangle(
 	tb: TriangleBuffer,
 	z: number,
-	u0: number = 0,
-	v0: number = 0,
-	u1: number = 0,
-	v1: number = 0,
-	u2: number = 0,
-	v2: number = 0,
+	u0 = 0,
+	v0 = 0,
+	u1 = 0,
+	v1 = 0,
+	u2 = 0,
+	v2 = 0,
 ) {
 	tb.append(
 		8,
@@ -103,8 +103,10 @@ function countNonBlackPixels(fb: Framebuffer): number {
 }
 
 /** Collects non-black pixel colors from triangle area of a 20x20 framebuffer. */
-function collectNonBlackPixels(fb: Framebuffer): Array<{ r: number; g: number; b: number }> {
-	const pixels = [];
+function collectNonBlackPixels(
+	fb: Framebuffer,
+): Array<{ r: number; g: number; b: number }> {
+	const pixels: Array<{ r: number; g: number; b: number }> = [];
 	for (let y = 0; y < fb.height; y++) {
 		for (let x = 0; x < fb.width; x++) {
 			const p = fb.getPixel(x, y);

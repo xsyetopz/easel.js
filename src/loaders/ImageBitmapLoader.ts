@@ -1,14 +1,9 @@
 import { Loader } from "./Loader.ts";
-import type { LoadingManager } from "./LoadingManager.ts";
 import { DefaultLoadingManager } from "./LoadingManager.ts";
 
 /** Loads an image as an ImageBitmap. */
 export class ImageBitmapLoader extends Loader {
 	#options: ImageBitmapOptions = {};
-
-	constructor(manager?: LoadingManager) {
-		super(manager);
-	}
 
 	setOptions(options: ImageBitmapOptions): this {
 		this.#options = options;

@@ -1,7 +1,6 @@
 import { DataTexture } from "../textures/DataTexture.js";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
-import type { LoadingManager } from "./LoadingManager.ts";
 
 interface ParseResult {
 	data: Uint8ClampedArray;
@@ -14,10 +13,6 @@ interface ParseResult {
  * Subclasses override parse() to handle specific formats.
  */
 export class DataTextureLoader extends Loader {
-	constructor(manager?: LoadingManager) {
-		super(manager);
-	}
-
 	override load(
 		url: string,
 		onLoad?: (texture: DataTexture) => void,

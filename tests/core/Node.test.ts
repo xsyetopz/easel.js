@@ -56,7 +56,7 @@ describe("Node", () => {
 		const grandchild = new Node();
 		root.add(child);
 		child.add(grandchild);
-		const visited = [];
+		const visited: Node[] = [];
 		root.traverse((n) => visited.push(n));
 		expect(visited).toEqual([root, child, grandchild]);
 	});
@@ -68,7 +68,7 @@ describe("Node", () => {
 		root.add(child);
 		child.add(grandchild);
 		child.visible = false;
-		const visited = [];
+		const visited: Node[] = [];
 		root.traverseVisible((n) => visited.push(n));
 		expect(visited).toEqual([root]);
 	});

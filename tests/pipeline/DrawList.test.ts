@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { DrawCall } from "@/pipeline/DrawCall.js";
 import { DrawList } from "@/pipeline/DrawList.js";
 
 function makeDC(id) {
@@ -36,7 +37,7 @@ describe("DrawList", () => {
 		const list = new DrawList();
 		list.add(makeDC(1));
 		list.add(makeDC(2));
-		const collected = [];
+		const collected: DrawCall[] = [];
 		for (const dc of list) collected.push(dc);
 		expect(collected.length).toBe(2);
 	});

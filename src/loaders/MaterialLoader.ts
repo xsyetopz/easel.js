@@ -1,13 +1,8 @@
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
-import type { LoadingManager } from "./LoadingManager.ts";
 
 /** Loads a JSON material definition and returns a material instance. */
 export class MaterialLoader extends Loader {
-	constructor(manager?: LoadingManager) {
-		super(manager);
-	}
-
 	override load(
 		url: string,
 		onLoad?: ((material: Record<string, unknown>) => void) | undefined,

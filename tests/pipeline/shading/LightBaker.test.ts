@@ -45,7 +45,7 @@ function makeDrawCall(shading, triangles) {
 }
 
 describe("LightBaker", () => {
-	let baker;
+	let baker: LightBaker;
 
 	beforeEach(() => {
 		baker = new LightBaker();
