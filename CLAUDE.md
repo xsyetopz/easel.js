@@ -1,4 +1,4 @@
-# Easel.js
+# EASEL.js
 
 Canvas2D software renderer with a THREE.js-like scene graph API, constrained by the RuneTek 3 engine as observed in Old School RuneScape.
 
@@ -55,7 +55,7 @@ These are architectural, not bugs. Do not "fix" them.
 
 ## THREE.js name mapping
 
-| THREE.js             | Easel.js             | Why                     |
+| THREE.js             | EASEL.js             | Why                     |
 | -------------------- | -------------------- | ----------------------- |
 | `Object3D`           | `Node`               | Scene graph node        |
 | `BufferGeometry`     | `Geometry`           | No GPU buffers          |

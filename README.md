@@ -1,60 +1,37 @@
 # EASEL.js
 
 [![CI](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
-[![npm downloads](https://img.shields.io/npm/dm/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/@xsyetopz/easel)](https://bundlephobia.com/package/@xsyetopz/easel)
-[![JSR](https://jsr.io/badges/@xsyetopz/easel)](https://jsr.io/@xsyetopz/easel)
-[![JSR Score](https://jsr.io/badges/@xsyetopz/easel/score)](https://jsr.io/@xsyetopz/easel)
-[![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/@xsyetopz/easel)](https://www.jsdelivr.com/package/npm/@xsyetopz/easel)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![npm version](https://img.shields.io/npm/v/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
+[![npm downloads](https://img.shields.io/npm/dm/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
+[![JSR](https://jsr.io/badges/@xsyetopz/easel)](https://jsr.io/@xsyetopz/easel)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/@xsyetopz/easel)](https://bundlephobia.com/package/@xsyetopz/easel)
+[![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/@xsyetopz/easel)](https://www.jsdelivr.com/package/npm/@xsyetopz/easel)
+[![JSR Score](https://jsr.io/badges/@xsyetopz/easel/score)](https://jsr.io/@xsyetopz/easel)
 
-A software renderer using HTML5 Canvas2D with a THREE.js-compatible scene graph API. Every pixel is drawn by the CPU using a painter's-algorithm scanline rasterizer - no WebGL, no GPU.
+A software rasterizer using HTML5 Canvas2D with a THREE.js-compatible scene graph API. Every pixel is drawn by the CPU using a painter's-algorithm scanline rasterizer - no WebGL, no GPU.
 
 ## Install
 
-### npm
-
 ```bash
-# npmjs.com
+# npm
 npm install @xsyetopz/easel
 
-# jsr.io
-npx jsr add @xsyetopz/easel
-```
-
-### yarn
-
-```bash
+# yarn
 yarn install @xsyetopz/easel
-```
 
-### pnpm
-
-```bash
+# pnpm
 pnpm install @xsyetopz/easel
-```
 
-### Bun
-
-```bash
-# npmjs.com
+# bun
 bun install @xsyetopz/easel
 
-# jsr.io
-bunx jsr add @xsyetopz/easel
-```
-
-### Deno
-
-```bash
-# npmjs.com
+# deno
 deno add npm:@xsyetopz/easel
-
-# jsr.io
-deno add jsr:@xsyetopz/easel
 ```
+
+**JSR support:** `npx jsr add @xsyetopz/easel` (npm), `bunx jsr add @xsyetopz/easel` (bun), `deno add jsr:@xsyetopz/easel` (deno)
 
 ## Quick start
 
@@ -99,7 +76,7 @@ animate();
 
 ## Scene graph
 
-Easel.js mirrors the THREE.js API wherever it makes sense. If you know THREE.js, you already know the basics.
+EASEL.js mirrors the THREE.js API wherever it makes sense. If you know THREE.js, you already know the basics.
 
 | Category      | Classes                                                                                          |
 | ------------- | ------------------------------------------------------------------------------------------------ |
@@ -116,7 +93,7 @@ Easel.js mirrors the THREE.js API wherever it makes sense. If you know THREE.js,
 
 ### THREE.js name mapping
 
-| THREE.js              | Easel.js          | Reason                  |
+| THREE.js              | EASEL.js          | Reason                  |
 | --------------------- | ----------------- | ----------------------- |
 | `Object3D`            | `Node`            | Scene graph node        |
 | `BufferGeometry`      | `Geometry`        | No GPU buffers          |
@@ -157,6 +134,24 @@ bun run test:run       # Vitest (single run)
 bun run typecheck      # tsc --noEmit
 bun run biome:check    # Biome lint + format
 ```
+
+## Contributing
+
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow, coding guidelines, and the PR checklist.
+
+## Code of Conduct
+
+All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=xsyetopz%2Feasel.js&type=date&logscale=&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=xsyetopz/easel.js&type=date&theme=dark&logscale&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=xsyetopz/easel.js&type=date&logscale&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=xsyetopz/easel.js&type=date&logscale&legend=top-left" />
+ </picture>
+</a>
 
 ## License
 

@@ -243,7 +243,7 @@ export function Home() {
 						<Table.Thead>
 							<Table.Tr>
 								<Table.Th>THREE.js</Table.Th>
-								<Table.Th>Easel.js</Table.Th>
+								<Table.Th>EASEL.js</Table.Th>
 								<Table.Th>Reason</Table.Th>
 							</Table.Tr>
 						</Table.Thead>

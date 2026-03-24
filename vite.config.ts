@@ -5,22 +5,23 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default {
 	root: ".",
+	resolve: {
+		alias: {
+			"@": resolve(__dirname, "./src"),
+		},
+	},
 	build: {
 		lib: {
-			entry: "src/index.js",
-			fileName: (format, entryName) => `${entryName}.${format}.js`,
-			name: "Easel",
+			entry: "src/index.ts",
+			name: "easel",
+			fileName: (format: string, entryName: string) =>
+				`${entryName}.${format}.js`,
 		},
 		rollupOptions: {
 			external: [],
 			output: {
 				globals: {},
 			},
-		},
-	},
-	resolve: {
-		alias: {
-			"@": resolve(__dirname, "./src"),
 		},
 	},
 };

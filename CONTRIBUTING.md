@@ -1,4 +1,4 @@
-# Contributing to Easel.js
+# Contributing to EASEL.js
 
 ## Prerequisites
 
@@ -67,7 +67,7 @@ Keep changes focused. One concern per PR. If a refactor is needed to support a f
 
 ## Architecture
 
-Easel.js is a Canvas2D software renderer. The rendering pipeline runs entirely on the CPU - no WebGL, no GPU. Before adding a feature, ask: "Would this exist in a CPU scanline rasterizer with no z-buffer?" If no, it does not belong here.
+EASEL.js is a Canvas2D software renderer. The rendering pipeline runs entirely on the CPU - no WebGL, no GPU. Before adding a feature, ask: "Would this exist in a CPU scanline rasterizer with no z-buffer?" If no, it does not belong here.
 
 See [`docs/EASEL_vs_THREE.md`](docs/EASEL_vs_THREE.md) for the full design reference.
 

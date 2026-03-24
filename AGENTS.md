@@ -1,4 +1,4 @@
-# Agents Guide - Easel.js
+# Agents Guide - EASEL.js
 
 For AI coding agents (Copilot Workspace, Cursor, Claude Code, etc.).
 
