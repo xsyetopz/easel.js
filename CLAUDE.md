@@ -88,7 +88,3 @@ V8 JIT is the optimization target. See [`references/js-softrast-optguide.md`](re
 - **PoT bitmask UV wrap is safe** — `((texU * texW)|0 + texW) & texWm1` is branchless, +10%.
 - **Skip LightBaker for unlit materials** — BasicMaterial/PointsMaterial early return, +27%.
 - **Remove dead `?? 0` on typed arrays** — Float32Array values are never null/undefined, +8%.
-
-## Design docs
-
-See [`docs/EASEL_vs_THREE.md`](docs/EASEL_vs_THREE.md) for the full API reference, RuneTek 3 engine study, and THREE.js divergence rationale.
