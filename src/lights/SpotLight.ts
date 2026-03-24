@@ -11,10 +11,10 @@ import { Light } from "./Light.ts";
 export class SpotLight extends Light {
 	override type = "SpotLight";
 
-	lightType = LightType.Spot;
+	lightType: number = LightType.Spot;
 
 	/** Local-space cone direction. */
-	direction = new Vector3(0, -1, 0);
+	direction: Vector3 = new Vector3(0, -1, 0);
 
 	/**
 	 * Optional target node. When set, overrides direction.
@@ -24,14 +24,14 @@ export class SpotLight extends Light {
 
 	distance: number;
 
-	#angle = Math.PI / 3;
+	#angle: number = Math.PI / 3;
 	#penumbra = 0;
 
 	/** Precomputed `Math.cos(angle)`. Updated whenever `angle` or `penumbra` change. */
-	_cosAngle = Math.cos(Math.PI / 3);
+	_cosAngle: number = Math.cos(Math.PI / 3);
 
 	/** Precomputed `Math.cos(angle * (1 - penumbra))`. Updated whenever `angle` or `penumbra` change. */
-	_cosInnerAngle = Math.cos(Math.PI / 3);
+	_cosInnerAngle: number = Math.cos(Math.PI / 3);
 
 	decay: number;
 
@@ -62,7 +62,7 @@ export class SpotLight extends Light {
 		color: Color | number | string = 0xffffff,
 		intensity = 1,
 		distance = 0,
-		angle = Math.PI / 3,
+		angle: number = Math.PI / 3,
 		penumbra = 0,
 		decay = 2,
 	) {

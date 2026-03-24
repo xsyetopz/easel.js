@@ -13,7 +13,7 @@ export class CylinderGeometry extends Geometry {
 		heightSegments = 1,
 		openEnded = false,
 		thetaStart = 0,
-		thetaLength = Math.PI * 2,
+		thetaLength: number = Math.PI * 2,
 	) {
 		super();
 

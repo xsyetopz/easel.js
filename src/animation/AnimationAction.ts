@@ -17,7 +17,7 @@ export class AnimationAction {
 	timeScale = 1;
 	time = 0;
 	loop = LoopRepeat;
-	repetitions = Number.POSITIVE_INFINITY;
+	repetitions: number = Number.POSITIVE_INFINITY;
 	clampWhenFinished = false;
 	paused = false;
 	#repetitionCount = 0;

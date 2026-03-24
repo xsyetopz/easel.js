@@ -2,10 +2,10 @@ import { Vector3 } from "./Vector3.ts";
 
 /** Bounding sphere defined by center and radius. */
 export class Sphere {
-	#centre = new Vector3();
+	#centre: Vector3 = new Vector3();
 	#radius = 1;
 
-	constructor(centre = new Vector3(), radius = 1) {
+	constructor(centre: Vector3 = new Vector3(), radius = 1) {
 		this.#centre = centre.clone();
 		this.#radius = radius;
 	}

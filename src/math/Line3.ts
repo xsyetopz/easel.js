@@ -4,10 +4,10 @@ import { Vector3 } from "./Vector3.ts";
 
 /** Finite line segment between two 3D points. */
 export class Line3 {
-	#start = new Vector3();
-	#end = new Vector3();
+	#start: Vector3 = new Vector3();
+	#end: Vector3 = new Vector3();
 
-	constructor(start = new Vector3(), end = new Vector3()) {
+	constructor(start: Vector3 = new Vector3(), end: Vector3 = new Vector3()) {
 		this.#start = start.clone();
 		this.#end = end.clone();
 	}
@@ -46,7 +46,7 @@ export class Line3 {
 		return this;
 	}
 
-	at(t: number, target = new Vector3()): Vector3 {
+	at(t: number, target: Vector3 = new Vector3()): Vector3 {
 		return target.copy(this.delta).mulScalar(t).add(this.#start);
 	}
 
@@ -57,7 +57,7 @@ export class Line3 {
 	closestPointToPoint(
 		point: Vector3,
 		clampToLine = true,
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 {
 		const t = this.closestPointToPointParameter(point, clampToLine);
 		return this.at(t, target);
@@ -82,7 +82,7 @@ export class Line3 {
 		return this.#start.equals(line.start) && this.#end.equals(line.end);
 	}
 
-	getCenter(target = new Vector3()): Vector3 {
+	getCenter(target: Vector3 = new Vector3()): Vector3 {
 		return target.copy(this.#start).add(this.#end).mulScalar(0.5);
 	}
 

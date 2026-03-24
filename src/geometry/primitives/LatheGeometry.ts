@@ -120,7 +120,7 @@ export class LatheGeometry extends Geometry {
 		points: LathePoint[],
 		segments = 12,
 		phiStart = 0,
-		phiLength = Math.PI * 2,
+		phiLength: number = Math.PI * 2,
 	) {
 		super();
 

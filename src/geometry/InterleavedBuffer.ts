@@ -7,7 +7,7 @@ export class InterleavedBuffer {
 
 	needsUpdate = false;
 
-	updateRange = { offset: 0, count: -1 };
+	updateRange: { offset: number; count: number } = { offset: 0, count: -1 };
 
 	constructor(array: TypedArray, stride: number) {
 		this.#array = array;

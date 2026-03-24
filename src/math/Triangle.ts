@@ -95,11 +95,15 @@ function _projectOntoEdge(
 
 /** Triangle defined by three 3D vertices. */
 export class Triangle {
-	#a = new Vector3();
-	#b = new Vector3();
-	#c = new Vector3();
+	#a: Vector3 = new Vector3();
+	#b: Vector3 = new Vector3();
+	#c: Vector3 = new Vector3();
 
-	constructor(a = new Vector3(), b = new Vector3(), c = new Vector3()) {
+	constructor(
+		a: Vector3 = new Vector3(),
+		b: Vector3 = new Vector3(),
+		c: Vector3 = new Vector3(),
+	) {
 		this.#a = a.clone();
 		this.#b = b.clone();
 		this.#c = c.clone();
@@ -162,7 +166,7 @@ export class Triangle {
 		a: Vector3,
 		b: Vector3,
 		c: Vector3,
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 | undefined {
 		_v0.copy(c).sub(a);
 		_v1.copy(b).sub(a);
@@ -183,7 +187,10 @@ export class Triangle {
 		return target.set(1 - u - v, v, u);
 	}
 
-	getBarycoord(point: Vector3, target = new Vector3()): Vector3 | undefined {
+	getBarycoord(
+		point: Vector3,
+		target: Vector3 = new Vector3(),
+	): Vector3 | undefined {
 		return Triangle.getBarycoord(point, this.#a, this.#b, this.#c, target);
 	}
 
@@ -202,7 +209,10 @@ export class Triangle {
 		return Triangle.containsPoint(point, this.#a, this.#b, this.#c);
 	}
 
-	closestPointToPoint(point: Vector3, target = new Vector3()): Vector3 {
+	closestPointToPoint(
+		point: Vector3,
+		target: Vector3 = new Vector3(),
+	): Vector3 {
 		const a = this.#a;
 		const b = this.#b;
 		const c = this.#c;
@@ -245,7 +255,7 @@ export class Triangle {
 		v1: Vector3,
 		v2: Vector3,
 		v3: Vector3,
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 | undefined {
 		const bary = Triangle.getBarycoord(point, a, b, c, _v3);
 		if (bary === undefined) return undefined;
@@ -261,7 +271,7 @@ export class Triangle {
 		v1: Vector3,
 		v2: Vector3,
 		v3: Vector3,
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 | undefined {
 		return Triangle.getInterpolation(
 			point,
@@ -275,7 +285,7 @@ export class Triangle {
 		);
 	}
 
-	getMidpoint(target = new Vector3()): Vector3 {
+	getMidpoint(target: Vector3 = new Vector3()): Vector3 {
 		return target
 			.copy(this.#a)
 			.add(this.#b)
@@ -288,7 +298,7 @@ export class Triangle {
 		a: Vector3,
 		b: Vector3,
 		c: Vector3,
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 {
 		target.copy(c).sub(b);
 		_v0.copy(b).sub(a);
@@ -299,11 +309,11 @@ export class Triangle {
 			: target.set(0, 0, 0);
 	}
 
-	getNormal(target = new Vector3()): Vector3 {
+	getNormal(target: Vector3 = new Vector3()): Vector3 {
 		return Triangle.getNormal(this.#a, this.#b, this.#c, target);
 	}
 
-	getPlane(target = new Plane()): Plane {
+	getPlane(target: Plane = new Plane()): Plane {
 		return target.setFromCoplanarPoints(this.#a, this.#b, this.#c);
 	}
 

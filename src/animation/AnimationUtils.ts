@@ -76,4 +76,19 @@ function makeClipAdditive(
 }
 
 /** Utility functions for clipping and modifying AnimationClips. */
-export const AnimationUtils = { subclip, makeClipAdditive };
+export interface AnimationUtilsType {
+	subclip(
+		clip: AnimationClip,
+		name: string,
+		startFrame: number,
+		endFrame: number,
+		fps?: number,
+	): AnimationClip;
+	makeClipAdditive(
+		clip: AnimationClip,
+		referenceFrame?: number,
+		referenceClip?: AnimationClip,
+	): AnimationClip;
+}
+
+export const AnimationUtils: AnimationUtilsType = { subclip, makeClipAdditive };

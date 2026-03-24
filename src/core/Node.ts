@@ -23,13 +23,13 @@ export class Node extends EventDispatcher {
 
 	children: Node[] = [];
 
-	position = new Vector3();
-	#rotation = new Euler();
-	#quaternion = new Quaternion();
-	scale = new Vector3(1, 1, 1);
+	position: Vector3 = new Vector3();
+	#rotation: Euler = new Euler();
+	#quaternion: Quaternion = new Quaternion();
+	scale: Vector3 = new Vector3(1, 1, 1);
 
-	matrix = new Matrix4();
-	matrixWorld = new Matrix4();
+	matrix: Matrix4 = new Matrix4();
+	matrixWorld: Matrix4 = new Matrix4();
 	autoUpdateMatrix = true;
 	matrixWorldAutoUpdate = true;
 
@@ -37,7 +37,7 @@ export class Node extends EventDispatcher {
 
 	visible = true;
 	frustumCulled = true;
-	layers = new Layers();
+	layers: Layers = new Layers();
 
 	userData: Record<string, unknown> = {};
 

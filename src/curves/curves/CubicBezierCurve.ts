@@ -10,10 +10,10 @@ export class CubicBezierCurve extends Curve {
 	#v3: Vector2;
 
 	constructor(
-		v0 = new Vector2(),
-		v1 = new Vector2(),
-		v2 = new Vector2(),
-		v3 = new Vector2(),
+		v0: Vector2 = new Vector2(),
+		v1: Vector2 = new Vector2(),
+		v2: Vector2 = new Vector2(),
+		v3: Vector2 = new Vector2(),
 	) {
 		super();
 		this.#v0 = v0.clone();
@@ -41,7 +41,7 @@ export class CubicBezierCurve extends Curve {
 	/**
 	 * Returns B(t) = (1-t)^3*v0 + 3*(1-t)^2*t*v1 + 3*(1-t)*t^2*v2 + t^3*v3.
 	 */
-	override getPoint(t: number, target = new Vector2()): Vector2 {
+	override getPoint(t: number, target: Vector2 = new Vector2()): Vector2 {
 		const mt = 1 - t;
 		const mt2 = mt * mt;
 		const t2 = t * t;

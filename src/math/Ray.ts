@@ -98,12 +98,12 @@ function _boxSlab(
 
 /** Ray defined by an origin point and direction vector. */
 export class Ray {
-	#origin = new Vector3(0, 0, 0);
-	#direction = new Vector3(0, 0, -1);
+	#origin: Vector3 = new Vector3(0, 0, 0);
+	#direction: Vector3 = new Vector3(0, 0, -1);
 
 	constructor(
-		origin = new Vector3(0, 0, 0),
-		direction = new Vector3(0, 0, -1),
+		origin: Vector3 = new Vector3(0, 0, 0),
+		direction: Vector3 = new Vector3(0, 0, -1),
 	) {
 		this.#origin = origin.clone();
 		this.#direction = direction.clone();
@@ -142,7 +142,7 @@ export class Ray {
 	}
 
 	/** Returns the point at parameter t along the ray. */
-	at(t: number, target = new Vector3()): Vector3 {
+	at(t: number, target: Vector3 = new Vector3()): Vector3 {
 		return target.copy(this.#direction).mulScalar(t).add(this.#origin);
 	}
 
@@ -158,7 +158,10 @@ export class Ray {
 		return this;
 	}
 
-	closestPointToPoint(point: Vector3, target = new Vector3()): Vector3 {
+	closestPointToPoint(
+		point: Vector3,
+		target: Vector3 = new Vector3(),
+	): Vector3 {
 		target.copy(point).sub(this.#origin);
 		const dirDist = target.dot(this.#direction);
 		if (dirDist < 0) return target.copy(this.#origin);
@@ -234,7 +237,7 @@ export class Ray {
 
 	intersectSphere(
 		sphere: { centre: Vector3; radius: number },
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 | undefined {
 		_v1.copy(sphere.centre).sub(this.#origin);
 		const tca = _v1.dot(this.#direction);
@@ -256,7 +259,7 @@ export class Ray {
 
 	intersectPlane(
 		plane: { normal: Vector3; constant: number },
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 | undefined {
 		const t = this.distanceToPlane(plane);
 		if (t === undefined) return undefined;
@@ -285,7 +288,7 @@ export class Ray {
 
 	intersectBox3(
 		box: { min: Vector3; max: Vector3 },
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 | undefined {
 		const origin = this.#origin;
 		const invdirx = 1 / this.#direction.x;
@@ -319,7 +322,7 @@ export class Ray {
 		b: Vector3,
 		c: Vector3,
 		backfaceCulling: boolean,
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 | undefined {
 		_edge1.copy(b).sub(a);
 		_edge2.copy(c).sub(a);

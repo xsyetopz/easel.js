@@ -19,7 +19,7 @@ export class EllipseCurve extends Curve {
 		xRadius = 1,
 		yRadius = 1,
 		startAngle = 0,
-		endAngle = Math.PI * 2,
+		endAngle: number = Math.PI * 2,
 		clockwise = false,
 		rotation = 0,
 	) {
@@ -60,7 +60,7 @@ export class EllipseCurve extends Curve {
 	}
 
 	/** Returns the point on the ellipse at parameter t. */
-	override getPoint(t: number, target = new Vector2()): Vector2 {
+	override getPoint(t: number, target: Vector2 = new Vector2()): Vector2 {
 		let angle = this.#startAngle + t * (this.#endAngle - this.#startAngle);
 		if (this.#clockwise) {
 			angle = this.#endAngle - t * (this.#endAngle - this.#startAngle);

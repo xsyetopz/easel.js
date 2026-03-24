@@ -6,61 +6,61 @@ export class TriangleBuffer {
 	#capacity: number;
 
 	/** Screen-space X for 3 vertices per triangle (stride 3). */
-	screenX = new Int32Array(0);
+	screenX: Int32Array = new Int32Array(0);
 
 	/** Screen-space Y for 3 vertices per triangle (stride 3). */
-	screenY = new Int32Array(0);
+	screenY: Int32Array = new Int32Array(0);
 
 	/** NDC Z for 3 vertices per triangle (stride 3). */
-	ndcZ = new Float32Array(0);
+	ndcZ: Float32Array = new Float32Array(0);
 
 	/** Face normal X (stride 1). */
-	faceNormalX = new Float32Array(0);
+	faceNormalX: Float32Array = new Float32Array(0);
 
 	/** Face normal Y (stride 1). */
-	faceNormalY = new Float32Array(0);
+	faceNormalY: Float32Array = new Float32Array(0);
 
 	/** Face normal Z (stride 1). */
-	faceNormalZ = new Float32Array(0);
+	faceNormalZ: Float32Array = new Float32Array(0);
 
 	/** Vertex normal X for 3 vertices per triangle (stride 3). */
-	vertNormalX = new Float32Array(0);
+	vertNormalX: Float32Array = new Float32Array(0);
 
 	/** Vertex normal Y for 3 vertices per triangle (stride 3). */
-	vertNormalY = new Float32Array(0);
+	vertNormalY: Float32Array = new Float32Array(0);
 
 	/** Vertex normal Z for 3 vertices per triangle (stride 3). */
-	vertNormalZ = new Float32Array(0);
+	vertNormalZ: Float32Array = new Float32Array(0);
 
 	/** UV U coordinate for 3 vertices per triangle (stride 3). */
-	uvU = new Float32Array(0);
+	uvU: Float32Array = new Float32Array(0);
 
 	/** UV V coordinate for 3 vertices per triangle (stride 3). */
-	uvV = new Float32Array(0);
+	uvV: Float32Array = new Float32Array(0);
 
 	/** World-space X for 3 vertices per triangle (stride 3). */
-	worldX = new Float32Array(0);
+	worldX: Float32Array = new Float32Array(0);
 
 	/** World-space Y for 3 vertices per triangle (stride 3). */
-	worldY = new Float32Array(0);
+	worldY: Float32Array = new Float32Array(0);
 
 	/** World-space Z for 3 vertices per triangle (stride 3). */
-	worldZ = new Float32Array(0);
+	worldZ: Float32Array = new Float32Array(0);
 
 	/** Per-vertex fog factor for 3 vertices per triangle (stride 3). 0 = no fog, 1 = fully fogged. */
-	fogFactor = new Float32Array(0);
+	fogFactor: Float32Array = new Float32Array(0);
 
 	/** Original geometry vertex index for 3 vertices per triangle (stride 3). */
-	vertexIndex = new Int32Array(0);
+	vertexIndex: Int32Array = new Int32Array(0);
 
 	/** Highest vertex index seen across all appended triangles. */
 	maxVertexIndex = 0;
 
 	/** Centroid Z = (z0+z1+z2)/3, used for painter sort (stride 1). */
-	centroidZ = new Float32Array(0);
+	centroidZ: Float32Array = new Float32Array(0);
 
 	/** Iteration index -> physical triangle index, populated by buildSortOrder/sort. */
-	sortOrder = new Uint32Array(0);
+	sortOrder: Uint32Array = new Uint32Array(0);
 
 	constructor(capacity = 64) {
 		this.#capacity = capacity;

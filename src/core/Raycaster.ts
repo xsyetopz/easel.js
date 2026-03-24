@@ -74,10 +74,10 @@ export class Raycaster {
 	threshold: number;
 
 	constructor(
-		origin = new Vector3(),
-		direction = new Vector3(0, 0, -1),
+		origin: Vector3 = new Vector3(),
+		direction: Vector3 = new Vector3(0, 0, -1),
 		near = 0,
-		far = Number.POSITIVE_INFINITY,
+		far: number = Number.POSITIVE_INFINITY,
 	) {
 		this.ray = new Ray(origin, direction);
 		this.near = near;

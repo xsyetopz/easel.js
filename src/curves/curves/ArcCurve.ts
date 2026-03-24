@@ -9,7 +9,7 @@ export class ArcCurve extends EllipseCurve {
 		cy = 0,
 		radius = 1,
 		startAngle = 0,
-		endAngle = Math.PI * 2,
+		endAngle: number = Math.PI * 2,
 		clockwise = false,
 	) {
 		super(cx, cy, radius, radius, startAngle, endAngle, clockwise);

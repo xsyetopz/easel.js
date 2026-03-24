@@ -40,7 +40,7 @@ export class OrbitControls extends EventDispatcher {
 	domElement: OrbitDomElement;
 
 	/** World-space point the camera orbits around. */
-	target = new Vector3();
+	target: Vector3 = new Vector3();
 
 	/** When false, all interaction is ignored. */
 	enabled = true;
@@ -61,13 +61,13 @@ export class OrbitControls extends EventDispatcher {
 	minDistance = 0;
 
 	/** Maximum orbital radius. */
-	maxDistance = Number.POSITIVE_INFINITY;
+	maxDistance: number = Number.POSITIVE_INFINITY;
 
 	/** Minimum polar angle (radians, 0 = top). */
 	minPolarAngle = 0;
 
 	/** Maximum polar angle (radians, Math.PI = bottom). */
-	maxPolarAngle = Math.PI;
+	maxPolarAngle: number = Math.PI;
 
 	/** When true, movements decelerate smoothly instead of stopping instantly. */
 	enableDamping = false;
@@ -83,13 +83,13 @@ export class OrbitControls extends EventDispatcher {
 	/** When true, panning moves in screen space. When false, panning moves along the horizontal plane. */
 	screenSpacePanning = true;
 
-	#spherical = new Spherical();
+	#spherical: Spherical = new Spherical();
 
 	/** Pending delta applied each update(). */
-	#sphericalDelta = new Spherical(0, 0, 0);
+	#sphericalDelta: Spherical = new Spherical(0, 0, 0);
 
 	/** Pending pan offset accumulated across pointer moves. */
-	#panOffset = new Vector3();
+	#panOffset: Vector3 = new Vector3();
 
 	/** Saved initial camera state for reset(). */
 	#initialState: { position: Vector3; target: Vector3 };

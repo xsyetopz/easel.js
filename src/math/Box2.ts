@@ -4,12 +4,24 @@ const _v = new Vector2();
 
 /** 2D axis-aligned bounding box. */
 export class Box2 {
-	#min = new Vector2(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
-	#max = new Vector2(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+	#min: Vector2 = new Vector2(
+		Number.POSITIVE_INFINITY,
+		Number.POSITIVE_INFINITY,
+	);
+	#max: Vector2 = new Vector2(
+		Number.NEGATIVE_INFINITY,
+		Number.NEGATIVE_INFINITY,
+	);
 
 	constructor(
-		min = new Vector2(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
-		max = new Vector2(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY),
+		min: Vector2 = new Vector2(
+			Number.POSITIVE_INFINITY,
+			Number.POSITIVE_INFINITY,
+		),
+		max: Vector2 = new Vector2(
+			Number.NEGATIVE_INFINITY,
+			Number.NEGATIVE_INFINITY,
+		),
 	) {
 		this.#min = min.clone();
 		this.#max = max.clone();
@@ -57,7 +69,7 @@ export class Box2 {
 		return this.#max.x < this.#min.x || this.#max.y < this.#min.y;
 	}
 
-	getCenter(target = new Vector2()): Vector2 {
+	getCenter(target: Vector2 = new Vector2()): Vector2 {
 		return this.isEmpty()
 			? target.set(0, 0)
 			: target.set(
@@ -66,7 +78,7 @@ export class Box2 {
 				);
 	}
 
-	getSize(target = new Vector2()): Vector2 {
+	getSize(target: Vector2 = new Vector2()): Vector2 {
 		return this.isEmpty()
 			? target.set(0, 0)
 			: target.set(this.#max.x - this.#min.x, this.#max.y - this.#min.y);
@@ -115,7 +127,7 @@ export class Box2 {
 	}
 
 	/** Returns [0,1] parameter of point within box dimensions. */
-	getParameter(point: Vector2, target = new Vector2()): Vector2 {
+	getParameter(point: Vector2, target: Vector2 = new Vector2()): Vector2 {
 		return target.set(
 			(point.x - this.#min.x) / (this.#max.x - this.#min.x),
 			(point.y - this.#min.y) / (this.#max.y - this.#min.y),
@@ -131,7 +143,7 @@ export class Box2 {
 		);
 	}
 
-	clampPoint(point: Vector2, target = new Vector2()): Vector2 {
+	clampPoint(point: Vector2, target: Vector2 = new Vector2()): Vector2 {
 		return target.set(
 			Math.max(this.#min.x, Math.min(this.#max.x, point.x)),
 			Math.max(this.#min.y, Math.min(this.#max.y, point.y)),

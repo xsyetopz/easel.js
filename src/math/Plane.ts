@@ -4,10 +4,10 @@ import { Vector3 } from "./Vector3.ts";
 
 /** Infinite plane defined by a unit normal and signed distance. */
 export class Plane {
-	#normal = new Vector3(1, 0, 0);
+	#normal: Vector3 = new Vector3(1, 0, 0);
 	#constant = 0;
 
-	constructor(normal = new Vector3(1, 0, 0), constant = 0) {
+	constructor(normal: Vector3 = new Vector3(1, 0, 0), constant = 0) {
 		const length = normal.length;
 		this.#normal = normal.clone().normalize();
 		this.#constant = constant / length;
@@ -37,7 +37,7 @@ export class Plane {
 		return this;
 	}
 
-	coplanarPoint(target = new Vector3()): Vector3 {
+	coplanarPoint(target: Vector3 = new Vector3()): Vector3 {
 		return target.copy(this.normal).mulScalar(-this.constant);
 	}
 
@@ -61,7 +61,7 @@ export class Plane {
 
 	intersectLine(
 		line: { start: Vector3; end: Vector3 },
-		target = new Vector3(),
+		target: Vector3 = new Vector3(),
 	): Vector3 | undefined {
 		const dir = line.end.sub(line.start);
 		const denom = this.normal.dot(dir);
@@ -79,7 +79,7 @@ export class Plane {
 		return this.distanceToPoint(sphere.centre) <= sphere.radius;
 	}
 
-	projectPoint(point: Vector3, target = new Vector3()): Vector3 {
+	projectPoint(point: Vector3, target: Vector3 = new Vector3()): Vector3 {
 		return target
 			.copy(this.normal)
 			.mulScalar(-this.distanceToPoint(point))

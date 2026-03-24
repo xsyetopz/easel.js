@@ -8,8 +8,8 @@ import { Matrix4 } from "../math/Matrix4.ts";
 export class Camera extends Node {
 	override type = "Camera";
 
-	projectionMatrix = new Matrix4();
-	matrixWorldInverse = new Matrix4();
+	projectionMatrix: Matrix4 = new Matrix4();
+	matrixWorldInverse: Matrix4 = new Matrix4();
 
 	#near: number;
 	#far: number;

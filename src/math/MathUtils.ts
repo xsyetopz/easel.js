@@ -1,5 +1,33 @@
 /** Common math utilities: clamp, lerp, remap, UUID generation. */
-export const MathUtils = {
+export interface MathUtilsType {
+	EPSILON: number;
+	TAU: number;
+	HALF_PI: number;
+	THIRD_PI: number;
+	QUARTER_PI: number;
+	SIXTH_PI: number;
+	RAD2DEG: number;
+	DEG2RAD: number;
+	clamp(x: number, min: number, max: number): number;
+	fastAtan2(y: number, x: number): number;
+	fastMax(a: number, b: number): number;
+	fastMin(a: number, b: number): number;
+	fastRound(x: number): number;
+	fastTrunc(x: number): number;
+	isPowerOf2(n: number): boolean;
+	nextPowerOf2(n: number): number;
+	safeAsin(value: number): number;
+	toDegrees(radians: number): number;
+	toRadians(degrees: number): number;
+	tileDistance(
+		a: { x: number; y: number },
+		b: { x: number; y: number },
+	): number;
+	packHsl16(h: number, s: number, l: number): number;
+	unpackHsl16(value: number): { h: number; s: number; l: number };
+}
+
+export const MathUtils: MathUtilsType = {
 	EPSILON: 1e-6,
 	TAU: 6.283185307179586,
 	HALF_PI: 1.5707963267948966,

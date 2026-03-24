@@ -7,7 +7,7 @@ export class TorusGeometry extends Geometry {
 		tube = 0.4,
 		radialSegments = 12,
 		tubularSegments = 48,
-		arc = Math.PI * 2,
+		arc: number = Math.PI * 2,
 	) {
 		super();
 
