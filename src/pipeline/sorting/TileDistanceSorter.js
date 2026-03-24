@@ -25,8 +25,7 @@ export class TileDistanceSorter {
 
 		calls.sort(
 			(/** @type {*} */ a, /** @type {*} */ b) =>
-				/** @type {number} */ (dm.get(b)) -
-				/** @type {number} */ (dm.get(a)),
+				/** @type {number} */ (dm.get(b)) - /** @type {number} */ (dm.get(a)),
 		);
 	}
 }

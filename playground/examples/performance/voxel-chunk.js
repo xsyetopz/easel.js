@@ -22,7 +22,7 @@ export const controls = [
 		type: "select",
 		key: "meshMode",
 		label: "Mesh Mode",
-		options: ["Individual Cubes", "Merged Geometry"],
+		options: ["Individual Cubes", "Merged Geometry", "InstancedMesh"],
 		default: "Individual Cubes",
 	},
 	{
@@ -257,7 +257,7 @@ export function setup(canvas, params = {}) {
 	const sharedBoxGeo = new EASEL.BoxGeometry(1, 1, 1);
 	const voxelTexture = createVoxelTexture();
 
-	/** @type {EASEL.Mesh[]} */
+	/** @type {(EASEL.Mesh | EASEL.InstancedMesh)[]} */
 	let meshes = [];
 	let cubeCount = 0;
 	let triCount = 0;
@@ -298,6 +298,42 @@ export function setup(canvas, params = {}) {
 				}
 			}
 			triCount = cubeCount * 12;
+		} else if (mode === "InstancedMesh") {
+			/** @type {{ x: number, y: number, z: number, color: number }[]} */
+			const voxels = [];
+			for (let x = 0; x < size; x++) {
+				for (let y = 0; y < size; y++) {
+					for (let z = 0; z < size; z++) {
+						if (isHollow && !isOnSurface(x, y, z, size)) continue;
+						voxels.push({
+							x: x - half + 0.5,
+							y: y - half + 0.5,
+							z: z - half + 0.5,
+							color: layerColor(y, size),
+						});
+					}
+				}
+			}
+
+			cubeCount = voxels.length;
+			const mat = new EASEL.LambertMaterial({ color: 0xffffff });
+			if (isTextured) {
+				mat.map = voxelTexture;
+			}
+			const im = new EASEL.InstancedMesh(sharedBoxGeo, mat, cubeCount);
+			const tmpMatrix = new EASEL.Matrix4();
+
+			for (let idx = 0; idx < voxels.length; idx++) {
+				const v = voxels[idx];
+				tmpMatrix.makeTranslation(v.x, v.y, v.z);
+				im.setMatrixAt(idx, tmpMatrix);
+				const [cr, cg, cb] = colorToRgb(v.color);
+				im.setColorAt(idx, { r: cr, g: cg, b: cb });
+			}
+
+			scene.add(im);
+			meshes.push(im);
+			triCount = cubeCount * 12;
 		} else {
 			const result = buildMergedGeometry(size, isHollow);
 			const mat = new EASEL.LambertMaterial({ color: 0xffffff });
@@ -311,7 +347,6 @@ export function setup(canvas, params = {}) {
 			const idx = result.geometry.index;
 			triCount = idx ? Math.floor(idx.length / 3) : 0;
 
-			// Count how many voxels were included
 			for (let x = 0; x < size; x++) {
 				for (let y = 0; y < size; y++) {
 					for (let z = 0; z < size; z++) {

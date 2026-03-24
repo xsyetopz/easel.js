@@ -4,6 +4,7 @@ import { Matrix4 } from "../math/Matrix4.js";
 import { Vector3 } from "../math/Vector3.js";
 import { DrawCall } from "./DrawCall.js";
 import { DrawList } from "./DrawList.js";
+import { buildInstancedDrawCalls } from "./InstancedMeshBuilder.js";
 import { TriangleBuffer } from "./TriangleBuffer.js";
 
 const _mvp = new Matrix4();
@@ -73,6 +74,7 @@ export class SceneTraversal {
 			width,
 			height,
 		);
+
 		return drawList;
 	}
 
@@ -119,16 +121,47 @@ export class SceneTraversal {
 					}
 				}
 
-				const dc = this.#buildDrawCall(
-					/** @type {{ matrixWorld: Matrix4, geometry: *, material: * }} */ (
-						/** @type {unknown} */ (node)
-					),
-					camera,
-					width,
-					height,
-				);
-				drawList.add(dc);
+				{
+					const dc = this.#buildDrawCall(
+						/** @type {{ matrixWorld: Matrix4, geometry: *, material: * }} */ (
+							/** @type {unknown} */ (node)
+						),
+						camera,
+						width,
+						height,
+					);
+					drawList.add(dc);
+				}
 			}
+		} else if (
+			node.type === "InstancedMesh" &&
+			node.geometry &&
+			node.material
+		) {
+			if (node.updateMatrixWorld) {
+				node.updateMatrixWorld(true, false);
+			}
+			buildInstancedDrawCalls(
+				/** @type {*} */ (node),
+				camera,
+				frustum,
+				width,
+				height,
+				drawList,
+				{ hasFog: this.#hasFog, fogFar: this.#fogFar },
+				(
+					/** @type {*} */ a,
+					/** @type {*} */ b,
+					/** @type {*} */ c,
+					/** @type {*} */ d,
+					/** @type {*} */ e,
+					/** @type {*} */ f,
+					/** @type {*} */ g,
+					/** @type {*} */ h,
+					/** @type {*} */ i,
+				) => this.#assembleTriangles(a, b, c, d, e, f, g, h, i),
+				(/** @type {*} */ n) => this.#buildUvs(n),
+			);
 		} else if (typeof node.type === "string" && node.type.endsWith("Light")) {
 			this.#collectLight(/** @type {any} */ (node), drawList);
 		}
