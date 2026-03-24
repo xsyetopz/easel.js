@@ -1698,7 +1698,7 @@ export const docClasses = [
 		category: "Objects",
 		signature: "new InstancedMesh(geometry?, material?, count?)",
 		description:
-			"Renders multiple instances of the same geometry/material pair with per-instance transforms and optional per-instance colors.",
+			"Renders multiple instances of the same geometry/material pair with per-instance transforms and optional per-instance colors. Each instance becomes a separate draw call, so use for entities/particles (100s of shared models), not per-face terrain (use merged Geometry instead).",
 		properties: [
 			{
 				name: "count",

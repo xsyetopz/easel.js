@@ -32,9 +32,9 @@
         "test": "vitest",
         "test:run": "vitest run",
         "typecheck": "bunx tsc --noEmit",
-        "biome:check": "bunx biome check . --write --max-diagnostics 16384",
-        "biome:format": "bunx biome format . --write --max-diagnostics 16384",
-        "biome:lint": "bunx biome lint . --write --max-diagnostics 16384",
+        "biome:check": "bun run biome:format && bunx biome check . --write --max-diagnostics 16384",
+        "biome:format": "bun run biome:format && bunx biome format . --write --max-diagnostics 16384",
+        "biome:lint": "bun run biome:format && bunx biome lint . --write --max-diagnostics 16384",
         "jsr:clean": "find src \\( -name '*.d.ts' ! -name 'globals.d.ts' -o -name '*.d.ts.map' \\) | xargs rm -f",
         "jsr:build": "bun run jsr:clean && tsc -p tsconfig.jsr.json",
         "jsr:publish": "bun run jsr:build && npx jsr publish"
