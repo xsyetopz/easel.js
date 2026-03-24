@@ -10,12 +10,12 @@ jobs:
   version-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Verify version consistency
         run: |
           PKG=$(jq -r .version package.json)
           JSR=$(jq -r .version jsr.json)
-          REV=$(grep -oP '(?<=REVISION = ")[^"]+' src/index.js)
+          REV=$(grep -oP '(?<=REVISION = ")[^"]+' src/index.ts)
           echo "package.json: $PKG"
           echo "jsr.json:     $JSR"
           echo "REVISION:     $REV"
@@ -27,7 +27,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bunx biome check . --max-diagnostics 16384
@@ -35,7 +35,7 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
         with:
