@@ -1,17 +1,59 @@
-# Easel.js
+# EASEL.js
 
 [![CI](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
+[![npm version](https://img.shields.io/npm/v/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
+[![npm downloads](https://img.shields.io/npm/dm/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/@xsyetopz/easel)](https://bundlephobia.com/package/@xsyetopz/easel)
 [![JSR](https://jsr.io/badges/@xsyetopz/easel)](https://jsr.io/@xsyetopz/easel)
+[![JSR Score](https://jsr.io/badges/@xsyetopz/easel/score)](https://jsr.io/@xsyetopz/easel)
+[![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/@xsyetopz/easel)](https://www.jsdelivr.com/package/npm/@xsyetopz/easel)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-Canvas2D software renderer with a THREE.js-compatible scene graph API. Every pixel is drawn by the CPU using a painter's-algorithm scanline rasterizer - no WebGL, no GPU.
+A software renderer using HTML5 Canvas2D with a THREE.js-compatible scene graph API. Every pixel is drawn by the CPU using a painter's-algorithm scanline rasterizer - no WebGL, no GPU.
 
 ## Install
 
+### npm
+
 ```bash
-bun install @xsyetopz/easel    # npm
-bunx jsr add @xsyetopz/easel   # jsr
+# npmjs.com
+npm install @xsyetopz/easel
+
+# jsr.io
+npx jsr add @xsyetopz/easel
+```
+
+### yarn
+
+```bash
+yarn install @xsyetopz/easel
+```
+
+### pnpm
+
+```bash
+pnpm install @xsyetopz/easel
+```
+
+### Bun
+
+```bash
+# npmjs.com
+bun install @xsyetopz/easel
+
+# jsr.io
+bunx jsr add @xsyetopz/easel
+```
+
+### Deno
+
+```bash
+# npmjs.com
+deno add npm:@xsyetopz/easel
+
+# jsr.io
+deno add jsr:@xsyetopz/easel
 ```
 
 ## Quick start
