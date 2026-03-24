@@ -105,4 +105,4 @@ gouraud.position.x = 2.5;`;
 
 // THREE.js does not expose a Flat/Gouraud toggle on MeshLambertMaterial the
 // same way - FlatShading is a geometry/normal flag, not a material property.
-export const threeSource = null;
+export const threeSource = undefined;

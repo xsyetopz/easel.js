@@ -1,6 +1,6 @@
 {
     "name": "@xsyetopz/easel",
-    "version": "0.4.2",
+    "version": "0.4.3",
     "description": "Legacy JavaScript 3D library with a THREE.js-compatible scene graph API",
     "type": "module",
     "main": "./dist/index.umd.js",

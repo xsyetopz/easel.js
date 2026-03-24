@@ -368,4 +368,4 @@ for (let i = 0; i < 4; i++) {
 // Optional fog
 // scene.fog = new EASEL.Fog({ color: 0x222222, near: 5, far: 30 });`;
 
-export const threeSource = null;
+export const threeSource = undefined;

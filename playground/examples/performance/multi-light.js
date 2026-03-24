@@ -163,4 +163,4 @@ for (let i = 0; i < lightCount; i++) {
   scene.add(pl);
 }`;
 
-export const threeSource = null;
+export const threeSource = undefined;

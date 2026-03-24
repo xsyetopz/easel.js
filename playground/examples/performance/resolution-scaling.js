@@ -147,4 +147,4 @@ renderer.setSize(width * scale, height * scale);
 canvas.style.width = width + "px";
 canvas.style.height = height + "px";`;
 
-export const threeSource = null;
+export const threeSource = undefined;

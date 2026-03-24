@@ -205,4 +205,4 @@ const material = new EASEL.PointsMaterial({ size: 2 });
 const points = new EASEL.Points(geometry, material);
 scene.add(points);`;
 
-export const threeSource = null;
+export const threeSource = undefined;

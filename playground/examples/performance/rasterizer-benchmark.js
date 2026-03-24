@@ -203,4 +203,4 @@ scene.add(sphere);
 // new EASEL.ToonMaterial({ color })
 // const mat = new EASEL.BasicMaterial({ color }); mat.wireframe = true;`;
 
-export const threeSource = null;
+export const threeSource = undefined;

@@ -348,4 +348,4 @@ for (let i = 0; i < 100; i++) {
   scene.add(mesh);
 }`;
 
-export const threeSource = null;
+export const threeSource = undefined;

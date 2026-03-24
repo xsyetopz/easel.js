@@ -86,4 +86,4 @@ loader.load("textures/Glass_01.png", (texture) => {
   glassMat.map = texture;
 });`;
 
-export const threeSource = null;
+export const threeSource = undefined;

@@ -150,4 +150,4 @@ scene.remove(mesh);
 mesh = new EASEL.Mesh(buildGeometry(shape, segments), material);
 scene.add(mesh);`;
 
-export const threeSource = null;
+export const threeSource = undefined;

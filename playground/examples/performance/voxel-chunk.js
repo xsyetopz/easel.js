@@ -486,4 +486,4 @@ for (let x = 0; x < size; x++) {
 // geo.setIndex(allIndices);
 // scene.add(new EASEL.Mesh(geo, new EASEL.LambertMaterial({ color: 0xffffff })));`;
 
-export const threeSource = null;
+export const threeSource = undefined;

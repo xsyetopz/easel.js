@@ -200,4 +200,4 @@ const root = new EASEL.Group();
 buildTree(root, 0, 8, 2);
 scene.add(root);`;
 
-export const threeSource = null;
+export const threeSource = undefined;

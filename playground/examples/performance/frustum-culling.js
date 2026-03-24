@@ -173,4 +173,4 @@ for (let i = 0; i < 1000; i++) {
 
 // Camera aimed at one corner — frustum culling skips ~70% of meshes`;
 
-export const threeSource = null;
+export const threeSource = undefined;

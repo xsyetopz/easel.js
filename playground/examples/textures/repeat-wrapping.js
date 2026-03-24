@@ -156,4 +156,4 @@ for (let i = 0; i < uv.array.length; i += 2) {
 const mesh = new EASEL.Mesh(plane, material);
 scene.add(mesh);`;
 
-export const threeSource = null;
+export const threeSource = undefined;
