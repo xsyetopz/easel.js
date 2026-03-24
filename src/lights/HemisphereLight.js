@@ -1,5 +1,5 @@
 import { LightType } from "../core/Constants.js";
-import { Color } from "../math/Color.js";
+import { Color } from "../math/Color.ts";
 import { Light } from "./Light.js";
 
 /**

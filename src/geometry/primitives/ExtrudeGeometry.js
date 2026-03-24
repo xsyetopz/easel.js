@@ -1,4 +1,4 @@
-import { earcut } from "../../math/Earcut.js";
+import { earcut } from "../../math/Earcut.ts";
 import { Geometry } from "../Geometry.js";
 
 /**

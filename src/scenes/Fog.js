@@ -1,4 +1,4 @@
-import { Color } from "../math/Color.js";
+import { Color } from "../math/Color.ts";
 
 /**
  * Linear fog that blends fragment colors toward a configurable color based on

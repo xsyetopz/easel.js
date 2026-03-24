@@ -1,4 +1,4 @@
-import { MathUtils } from "../../math/MathUtils.js";
+import { MathUtils } from "../../math/MathUtils.ts";
 
 /** Fills a horizontal scanline span with shaded pixels. */
 export class ScanlineFill {

@@ -1,18 +1,28 @@
+export interface EarcutNode {
+	i: number;
+	x: number;
+	y: number;
+	prev: EarcutNode;
+	next: EarcutNode;
+	z: number;
+	prevZ: EarcutNode | null;
+	nextZ: EarcutNode | null;
+	steiner: boolean;
+}
+
 /**
  * Earcut polygon triangulator.
  * ISC-licensed port of https://github.com/mapbox/earcut
- *
- * @param {number[]} data - flat array of 2D coordinates [x0,y0, x1,y1, ...]
- * @param {number[]} [holeIndices] - array of hole start indices in data
- * @param {number} [dim=2] - number of coordinates per vertex
- * @returns {number[]} - array of triangle indices (groups of 3)
  */
-export function earcut(data, holeIndices, dim = 2) {
+export function earcut(
+	data: number[],
+	holeIndices?: number[],
+	dim = 2,
+): number[] {
 	const hasHoles = holeIndices != null && holeIndices.length > 0;
 	const outerLen = hasHoles ? holeIndices[0] * dim : data.length;
 	let outerNode = linkedList(data, 0, outerLen, dim, true);
-	/** @type {number[]} */
-	const triangles = [];
+	const triangles: number[] = [];
 
 	if (!outerNode || outerNode.next === outerNode.prev) return triangles;
 
@@ -22,13 +32,7 @@ export function earcut(data, holeIndices, dim = 2) {
 	let maxY = 0;
 	let invSize = 0;
 
-	if (hasHoles)
-		outerNode = eliminateHoles(
-			data,
-			/** @type {number[]} */ (holeIndices),
-			outerNode,
-			dim,
-		);
+	if (hasHoles) outerNode = eliminateHoles(data, holeIndices, outerNode, dim);
 
 	if (data.length > 80 * dim) {
 		minX = maxX = data[0];
@@ -51,28 +55,7 @@ export function earcut(data, holeIndices, dim = 2) {
 	return triangles;
 }
 
-/**
- * @typedef {{
- *   i: number,
- *   x: number,
- *   y: number,
- *   prev: EarcutNode,
- *   next: EarcutNode,
- *   z: number,
- *   prevZ: EarcutNode|null,
- *   nextZ: EarcutNode|null,
- *   steiner: boolean,
- * }} EarcutNode
- */
-
-/**
- * @param {number} i
- * @param {number} x
- * @param {number} y
- * @returns {EarcutNode}
- */
-function createNode(i, x, y) {
-	/** @type {any} */
+function createNode(i: number, x: number, y: number): EarcutNode {
 	const node = {
 		i,
 		x,
@@ -81,20 +64,18 @@ function createNode(i, x, y) {
 		prevZ: null,
 		nextZ: null,
 		steiner: false,
-	};
+	} as EarcutNode;
 	node.prev = node;
 	node.next = node;
-	return /** @type {EarcutNode} */ (node);
+	return node;
 }
 
-/**
- * @param {number} i
- * @param {number} x
- * @param {number} y
- * @param {EarcutNode} [last]
- * @returns {EarcutNode}
- */
-function insertNode(i, x, y, last) {
+function insertNode(
+	i: number,
+	x: number,
+	y: number,
+	last?: EarcutNode,
+): EarcutNode {
 	const p = createNode(i, x, y);
 
 	if (last) {
@@ -106,10 +87,7 @@ function insertNode(i, x, y, last) {
 	return p;
 }
 
-/**
- * @param {EarcutNode} p
- */
-function removeNode(p) {
+function removeNode(p: EarcutNode): void {
 	p.next.prev = p.prev;
 	p.prev.next = p.next;
 
@@ -117,17 +95,14 @@ function removeNode(p) {
 	if (p.nextZ) p.nextZ.prevZ = p.prevZ;
 }
 
-/**
- * @param {number[]} data
- * @param {number} start
- * @param {number} end
- * @param {number} dim
- * @param {boolean} clockwise
- * @returns {EarcutNode|undefined}
- */
-function linkedList(data, start, end, dim, clockwise) {
-	/** @type {EarcutNode|undefined} */
-	let last;
+function linkedList(
+	data: number[],
+	start: number,
+	end: number,
+	dim: number,
+	clockwise: boolean,
+): EarcutNode | undefined {
+	let last: EarcutNode | undefined;
 
 	if (clockwise === signedArea(data, start, end, dim) > 0) {
 		for (let i = start; i < end; i += dim) {
@@ -147,16 +122,14 @@ function linkedList(data, start, end, dim, clockwise) {
 	return last;
 }
 
-/**
- * @param {EarcutNode} list
- * @param {EarcutNode|undefined} start
- * @returns {EarcutNode}
- */
-function filterPoints(list, start) {
+function filterPoints(
+	list: EarcutNode,
+	start: EarcutNode | undefined,
+): EarcutNode {
 	let cur = start ?? list;
 
 	let p = cur;
-	let again;
+	let again: boolean;
 	do {
 		again = false;
 		if (!p.steiner && (equals(p, p.next) || area(p.prev, p, p.next) === 0)) {
@@ -173,22 +146,20 @@ function filterPoints(list, start) {
 	return cur;
 }
 
-/**
- * @param {EarcutNode|undefined} ear
- * @param {number[]} triangles
- * @param {number} dim
- * @param {number} minX
- * @param {number} minY
- * @param {number} invSize
- * @param {number} pass
- */
-function earcutLinked(ear, triangles, dim, minX, minY, invSize, pass) {
+function earcutLinked(
+	ear: EarcutNode | undefined,
+	triangles: number[],
+	dim: number,
+	minX: number,
+	minY: number,
+	invSize: number,
+	pass: number,
+): void {
 	if (!ear) return;
 
 	if (!pass && invSize) indexCurve(ear, minX, minY, invSize);
 
-	/** @type {EarcutNode} */
-	let node = ear;
+	let node: EarcutNode = ear;
 	let stop = node;
 
 	while (node.prev !== node.next) {
@@ -238,11 +209,7 @@ function earcutLinked(ear, triangles, dim, minX, minY, invSize, pass) {
 	}
 }
 
-/**
- * @param {EarcutNode} ear
- * @returns {boolean}
- */
-function testEar(ear) {
+function testEar(ear: EarcutNode): boolean {
 	const a = ear.prev;
 	const b = ear;
 	const c = ear.next;
@@ -278,14 +245,12 @@ function testEar(ear) {
 	return true;
 }
 
-/**
- * @param {EarcutNode} ear
- * @param {number} minX
- * @param {number} minY
- * @param {number} invSize
- * @returns {boolean}
- */
-function testEarHashed(ear, minX, minY, invSize) {
+function testEarHashed(
+	ear: EarcutNode,
+	minX: number,
+	minY: number,
+	invSize: number,
+): boolean {
 	const a = ear.prev;
 	const b = ear;
 	const c = ear.next;
@@ -354,13 +319,11 @@ function testEarHashed(ear, minX, minY, invSize) {
 	return true;
 }
 
-/**
- * @param {EarcutNode} list
- * @param {number[]} triangles
- * @param {number} dim
- * @returns {EarcutNode}
- */
-function cureLocalIntersections(list, triangles, dim) {
+function cureLocalIntersections(
+	list: EarcutNode,
+	triangles: number[],
+	dim: number,
+): EarcutNode {
 	let head = list;
 	let p = head;
 	do {
@@ -386,15 +349,14 @@ function cureLocalIntersections(list, triangles, dim) {
 	return filterPoints(head, undefined);
 }
 
-/**
- * @param {EarcutNode} ear
- * @param {number[]} triangles
- * @param {number} dim
- * @param {number} minX
- * @param {number} minY
- * @param {number} invSize
- */
-function splitEarcut(ear, triangles, dim, minX, minY, invSize) {
+function splitEarcut(
+	ear: EarcutNode,
+	triangles: number[],
+	dim: number,
+	minX: number,
+	minY: number,
+	invSize: number,
+): void {
 	let a = ear;
 	do {
 		let b = a.next.next;
@@ -413,16 +375,13 @@ function splitEarcut(ear, triangles, dim, minX, minY, invSize) {
 	} while (a !== ear);
 }
 
-/**
- * @param {number[]} data
- * @param {number[]} holeIndices
- * @param {EarcutNode} outerNode
- * @param {number} dim
- * @returns {EarcutNode}
- */
-function eliminateHoles(data, holeIndices, outerNode, dim) {
-	/** @type {EarcutNode[]} */
-	const queue = [];
+function eliminateHoles(
+	data: number[],
+	holeIndices: number[],
+	outerNode: EarcutNode,
+	dim: number,
+): EarcutNode {
+	const queue: EarcutNode[] = [];
 
 	for (let i = 0, len = holeIndices.length; i < len; i++) {
 		const start = holeIndices[i] * dim;
@@ -444,21 +403,11 @@ function eliminateHoles(data, holeIndices, outerNode, dim) {
 	return node;
 }
 
-/**
- * @param {EarcutNode} a
- * @param {EarcutNode} b
- * @returns {number}
- */
-function compareX(a, b) {
+function compareX(a: EarcutNode, b: EarcutNode): number {
 	return a.x - b.x;
 }
 
-/**
- * @param {EarcutNode} hole
- * @param {EarcutNode} outerNode
- * @returns {EarcutNode}
- */
-function eliminateHole(hole, outerNode) {
+function eliminateHole(hole: EarcutNode, outerNode: EarcutNode): EarcutNode {
 	const bridge = findHoleBridge(hole, outerNode);
 	if (!bridge) return outerNode;
 
@@ -467,18 +416,15 @@ function eliminateHole(hole, outerNode) {
 	return filterPoints(bridge, bridge.next);
 }
 
-/**
- * @param {EarcutNode} hole
- * @param {EarcutNode} outerNode
- * @returns {EarcutNode|undefined}
- */
-function findHoleBridge(hole, outerNode) {
+function findHoleBridge(
+	hole: EarcutNode,
+	outerNode: EarcutNode,
+): EarcutNode | undefined {
 	let p = outerNode;
 	const hx = hole.x;
 	const hy = hole.y;
 	let qx = Number.NEGATIVE_INFINITY;
-	/** @type {EarcutNode|undefined} */
-	let m;
+	let m: EarcutNode | undefined;
 
 	do {
 		if (hy <= p.y && hy >= p.next.y && p.next.y !== p.y) {
@@ -533,22 +479,16 @@ function findHoleBridge(hole, outerNode) {
 	return m;
 }
 
-/**
- * @param {EarcutNode} m
- * @param {EarcutNode} p
- * @returns {boolean}
- */
-function sectorContainsSector(m, p) {
+function sectorContainsSector(m: EarcutNode, p: EarcutNode): boolean {
 	return area(m.prev, m, p.prev) < 0 && area(p.next, m, m.next) < 0;
 }
 
-/**
- * @param {EarcutNode} start
- * @param {number} minX
- * @param {number} minY
- * @param {number} invSize
- */
-function indexCurve(start, minX, minY, invSize) {
+function indexCurve(
+	start: EarcutNode,
+	minX: number,
+	minY: number,
+	invSize: number,
+): void {
 	let p = start;
 	do {
 		if (p.z === 0) p.z = zOrder(p.x, p.y, minX, minY, invSize);
@@ -557,36 +497,27 @@ function indexCurve(start, minX, minY, invSize) {
 		p = p.next;
 	} while (p !== start);
 
-	/** @type {EarcutNode} */ (p.prevZ).nextZ = null;
+	(p.prevZ as EarcutNode).nextZ = null;
 	p.prevZ = null;
 
 	sortLinked(p);
 }
 
-/**
- * Merge sort on z-order linked list (Simon Tatham's bottom-up algorithm).
- * @param {EarcutNode} list
- * @returns {EarcutNode}
- */
-function sortLinked(list) {
+/** Merge sort on z-order linked list (Simon Tatham's bottom-up algorithm). */
+function sortLinked(list: EarcutNode): EarcutNode {
 	let inSize = 1;
-	let numMerges;
-	/** @type {EarcutNode} */
-	let result = list;
+	let numMerges: number;
+	let result: EarcutNode = list;
 
 	do {
-		/** @type {EarcutNode|null} */
-		let p = result;
-		/** @type {EarcutNode|null} */
-		let head = null;
-		/** @type {EarcutNode|null} */
-		let tail = null;
+		let p: EarcutNode | null = result;
+		let head: EarcutNode | null = null;
+		let tail: EarcutNode | null = null;
 		numMerges = 0;
 
 		while (p) {
 			numMerges++;
-			/** @type {EarcutNode|null} */
-			let q = p;
+			let q: EarcutNode | null = p;
 			let pSize = 0;
 			for (let i = 0; i < inSize; i++) {
 				pSize++;
@@ -596,18 +527,14 @@ function sortLinked(list) {
 			let qSize = inSize;
 
 			while (pSize > 0 || (qSize > 0 && q)) {
-				/** @type {EarcutNode} */
-				let e;
-				if (
-					pSize !== 0 &&
-					(qSize === 0 || !q || /** @type {EarcutNode} */ (p).z <= q.z)
-				) {
-					e = /** @type {EarcutNode} */ (p);
+				let e: EarcutNode;
+				if (pSize !== 0 && (qSize === 0 || !q || (p as EarcutNode).z <= q.z)) {
+					e = p as EarcutNode;
 					p = e.nextZ;
 					pSize--;
 				} else {
-					e = /** @type {EarcutNode} */ (q);
-					q = /** @type {EarcutNode} */ (q).nextZ;
+					e = q as EarcutNode;
+					q = (q as EarcutNode).nextZ;
 					qSize--;
 				}
 
@@ -621,23 +548,21 @@ function sortLinked(list) {
 			p = q;
 		}
 
-		/** @type {EarcutNode} */ (tail).nextZ = null;
+		(tail as EarcutNode).nextZ = null;
 		inSize *= 2;
-		result = /** @type {EarcutNode} */ (head);
+		result = head as EarcutNode;
 	} while (numMerges > 1);
 
 	return result;
 }
 
-/**
- * @param {number} x
- * @param {number} y
- * @param {number} minX
- * @param {number} minY
- * @param {number} invSize
- * @returns {number}
- */
-function zOrder(x, y, minX, minY, invSize) {
+function zOrder(
+	x: number,
+	y: number,
+	minX: number,
+	minY: number,
+	invSize: number,
+): number {
 	let lx = (32767 * (x - minX) * invSize) | 0;
 	let ly = (32767 * (y - minY) * invSize) | 0;
 
@@ -654,11 +579,7 @@ function zOrder(x, y, minX, minY, invSize) {
 	return lx | (ly << 1);
 }
 
-/**
- * @param {EarcutNode} p
- * @returns {EarcutNode}
- */
-function getLeftmost(p) {
+function getLeftmost(p: EarcutNode): EarcutNode {
 	let leftmost = p;
 	let cur = p;
 	do {
@@ -670,18 +591,16 @@ function getLeftmost(p) {
 	return leftmost;
 }
 
-/**
- * @param {number} ax
- * @param {number} ay
- * @param {number} bx
- * @param {number} by
- * @param {number} cx
- * @param {number} cy
- * @param {number} px
- * @param {number} py
- * @returns {boolean}
- */
-function pointInTriangle(ax, ay, bx, by, cx, cy, px, py) {
+function pointInTriangle(
+	ax: number,
+	ay: number,
+	bx: number,
+	by: number,
+	cx: number,
+	cy: number,
+	px: number,
+	py: number,
+): boolean {
 	return (
 		(cx - px) * (ay - py) >= (ax - px) * (cy - py) &&
 		(ax - px) * (by - py) >= (bx - px) * (ay - py) &&
@@ -689,12 +608,7 @@ function pointInTriangle(ax, ay, bx, by, cx, cy, px, py) {
 	);
 }
 
-/**
- * @param {EarcutNode} a
- * @param {EarcutNode} b
- * @returns {boolean}
- */
-function isValidDiagonal(a, b) {
+function isValidDiagonal(a: EarcutNode, b: EarcutNode): boolean {
 	return (
 		a.next.i !== b.i &&
 		a.prev.i !== b.i &&
@@ -709,33 +623,20 @@ function isValidDiagonal(a, b) {
 	);
 }
 
-/**
- * @param {EarcutNode} p
- * @param {EarcutNode} q
- * @param {EarcutNode} r
- * @returns {number}
- */
-function area(p, q, r) {
+function area(p: EarcutNode, q: EarcutNode, r: EarcutNode): number {
 	return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
 }
 
-/**
- * @param {EarcutNode} p1
- * @param {EarcutNode} p2
- * @returns {boolean}
- */
-function equals(p1, p2) {
+function equals(p1: EarcutNode, p2: EarcutNode): boolean {
 	return p1.x === p2.x && p1.y === p2.y;
 }
 
-/**
- * @param {EarcutNode} p1
- * @param {EarcutNode} p2
- * @param {EarcutNode} p3
- * @param {EarcutNode} p4
- * @returns {boolean}
- */
-function intersects(p1, p2, p3, p4) {
+function intersects(
+	p1: EarcutNode,
+	p2: EarcutNode,
+	p3: EarcutNode,
+	p4: EarcutNode,
+): boolean {
 	const o1 = sign(area(p1, p2, p3));
 	const o2 = sign(area(p1, p2, p4));
 	const o3 = sign(area(p3, p4, p1));
@@ -751,13 +652,7 @@ function intersects(p1, p2, p3, p4) {
 	return false;
 }
 
-/**
- * @param {EarcutNode} p
- * @param {EarcutNode} q
- * @param {EarcutNode} r
- * @returns {boolean}
- */
-function onSegment(p, q, r) {
+function onSegment(p: EarcutNode, q: EarcutNode, r: EarcutNode): boolean {
 	return (
 		q.x <= Math.max(p.x, r.x) &&
 		q.x >= Math.min(p.x, r.x) &&
@@ -766,20 +661,11 @@ function onSegment(p, q, r) {
 	);
 }
 
-/**
- * @param {number} n
- * @returns {number}
- */
-function sign(n) {
+function sign(n: number): number {
 	return n > 0 ? 1 : n < 0 ? -1 : 0;
 }
 
-/**
- * @param {EarcutNode} a
- * @param {EarcutNode} b
- * @returns {boolean}
- */
-function intersectsPolygon(a, b) {
+function intersectsPolygon(a: EarcutNode, b: EarcutNode): boolean {
 	let p = a;
 	do {
 		if (
@@ -796,23 +682,13 @@ function intersectsPolygon(a, b) {
 	return false;
 }
 
-/**
- * @param {EarcutNode} a
- * @param {EarcutNode} b
- * @returns {boolean}
- */
-function locallyInside(a, b) {
+function locallyInside(a: EarcutNode, b: EarcutNode): boolean {
 	return area(a.prev, a, a.next) < 0
 		? area(a, b, a.next) >= 0 && area(a, a.prev, b) >= 0
 		: area(a, b, a.prev) < 0 || area(a, a.next, b) < 0;
 }
 
-/**
- * @param {EarcutNode} a
- * @param {EarcutNode} b
- * @returns {boolean}
- */
-function middleInside(a, b) {
+function middleInside(a: EarcutNode, b: EarcutNode): boolean {
 	let p = a;
 	let inside = false;
 	const px = (a.x + b.x) / 2;
@@ -830,12 +706,7 @@ function middleInside(a, b) {
 	return inside;
 }
 
-/**
- * @param {EarcutNode} a
- * @param {EarcutNode} b
- * @returns {EarcutNode}
- */
-function splitPolygon(a, b) {
+function splitPolygon(a: EarcutNode, b: EarcutNode): EarcutNode {
 	const a2 = createNode(a.i, a.x, a.y);
 	const b2 = createNode(b.i, b.x, b.y);
 	const an = a.next;
@@ -856,14 +727,13 @@ function splitPolygon(a, b) {
 	return b2;
 }
 
-/**
- * @param {number[]} data
- * @param {number} start
- * @param {number} end
- * @param {number} dim
- * @returns {number} positive = CCW winding
- */
-function signedArea(data, start, end, dim) {
+/** @returns positive = CCW winding */
+function signedArea(
+	data: number[],
+	start: number,
+	end: number,
+	dim: number,
+): number {
 	let sum = 0;
 	let j = end - dim;
 	for (let i = start; i < end; i += dim) {

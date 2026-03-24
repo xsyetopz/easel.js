@@ -1,15 +1,12 @@
-import { MathUtils } from "./MathUtils.js";
-import { Vector2 } from "./Vector2.js";
-/** @typedef {import("./Matrix4.js").Matrix4} Matrix4 */
+import { MathUtils } from "./MathUtils.ts";
+import type { Matrix4 } from "./Matrix4.ts";
+import { Vector2 } from "./Vector2.ts";
 
-/** 3×3 matrix for 2D transforms and normal matrices. */
+/** 3x3 matrix for 2D transforms and normal matrices. */
 export class Matrix3 {
-	#elements = new Float32Array(9);
+	#elements: Float32Array<ArrayBufferLike> = new Float32Array(9);
 
-	/**
-	 * @param {Float32Array<ArrayBuffer>} [elements]
-	 */
-	constructor(elements) {
+	constructor(elements?: Float32Array<ArrayBufferLike>) {
 		if (elements) {
 			this.#elements = elements;
 		} else {
@@ -17,28 +14,19 @@ export class Matrix3 {
 		}
 	}
 
-	/**
-	 * @returns {Float32Array}
-	 */
-	get elements() {
+	get elements(): Float32Array {
 		return this.#elements;
 	}
 
-	/**
-	 * @returns {Matrix3}
-	 */
-	clone() {
+	clone(): Matrix3 {
 		return new Matrix3().copy(this);
 	}
 
 	/**
 	 * Composes this matrix from a 2D position, rotation angle, and scale.
-	 * @param {Vector2} position
-	 * @param {number} rotation - Angle in radians
-	 * @param {Vector2} scale
-	 * @returns {this}
+	 * @param rotation Angle in radians
 	 */
-	compose(position, rotation, scale) {
+	compose(position: Vector2, rotation: number, scale: Vector2): this {
 		this.makeRotation(rotation);
 
 		const te = this.elements;
@@ -57,26 +45,20 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Copies elements from another Matrix3 into this one.
-	 * @param {Matrix3} m
-	 * @returns {this}
-	 */
-	copy(m) {
+	/** Copies elements from another Matrix3 into this one. */
+	copy(m: Matrix3): this {
 		const me = m.elements;
 		if (me === this.elements) return this;
 		this.elements.set(me);
 		return this;
 	}
 
-	/**
-	 * Decomposes this matrix into position, rotation, and scale components.
-	 * @param {Vector2} position
-	 * @param {{ angle: number }} rotation
-	 * @param {Vector2} scale
-	 * @returns {this}
-	 */
-	decompose(position, rotation, scale) {
+	/** Decomposes this matrix into position, rotation, and scale components. */
+	decompose(
+		position: Vector2,
+		rotation: { angle: number },
+		scale: Vector2,
+	): this {
 		this.extractPosition(position);
 		this.extractScale(scale);
 
@@ -89,11 +71,8 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Computes the determinant of this matrix.
-	 * @returns {number}
-	 */
-	determinant() {
+	/** Computes the determinant of this matrix. */
+	determinant(): number {
 		const te = this.elements;
 
 		const a = te[0];
@@ -109,12 +88,8 @@ export class Matrix3 {
 		return a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
 	}
 
-	/**
-	 * Extracts the translation component into the given Vector2.
-	 * @param {Vector2} position
-	 * @returns {this}
-	 */
-	extractPosition(position) {
+	/** Extracts the translation component into the given Vector2. */
+	extractPosition(position: Vector2): this {
 		const te = this.elements;
 
 		position.x = te[6];
@@ -122,12 +97,8 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Extracts the rotation component from another Matrix3, normalizing by scale.
-	 * @param {Matrix3} m
-	 * @returns {this}
-	 */
-	extractRotation(m) {
+	/** Extracts the rotation component from another Matrix3, normalizing by scale. */
+	extractRotation(m: Matrix3): this {
 		const me = m.elements;
 
 		const scale = new Vector2();
@@ -149,12 +120,8 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Extracts the scale component into the given Vector2.
-	 * @param {Vector2} scale
-	 * @returns {this}
-	 */
-	extractScale(scale) {
+	/** Extracts the scale component into the given Vector2. */
+	extractScale(scale: Vector2): this {
 		const me = this.elements;
 
 		const sx = Math.hypot(me[0], me[3]);
@@ -165,20 +132,13 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Sets this to the normal matrix derived from the given Matrix4.
-	 * @param {Matrix4} m
-	 * @returns {this}
-	 */
-	getNormalMatrix(m) {
+	/** Sets this to the normal matrix derived from the given Matrix4. */
+	getNormalMatrix(m: Matrix4): this {
 		return this.setFromMatrix4(m).invert().transpose();
 	}
 
-	/**
-	 * Resets this matrix to the identity.
-	 * @returns {this}
-	 */
-	identity() {
+	/** Resets this matrix to the identity. */
+	identity(): this {
 		const te = this.elements;
 		te[0] = 1;
 		te[1] = 0;
@@ -194,10 +154,9 @@ export class Matrix3 {
 
 	/**
 	 * Inverts this matrix in place.
-	 * @throws {Error} When the matrix is non-invertible (det === 0)
-	 * @returns {this}
+	 * @throws When the matrix is non-invertible (det === 0)
 	 */
-	invert() {
+	invert(): this {
 		const te = this.elements;
 
 		const n11 = te[0];
@@ -230,12 +189,8 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Sets this to a 2D rotation matrix.
-	 * @param {number} radians
-	 * @returns {this}
-	 */
-	makeRotation(radians) {
+	/** Sets this to a 2D rotation matrix. */
+	makeRotation(radians: number): this {
 		const c = Math.cos(radians);
 		const s = Math.sin(radians);
 
@@ -252,13 +207,8 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Sets this to a 2D scale matrix.
-	 * @param {number} x
-	 * @param {number} y
-	 * @returns {this}
-	 */
-	makeScale(x, y) {
+	/** Sets this to a 2D scale matrix. */
+	makeScale(x: number, y: number): this {
 		const te = this.elements;
 		te[0] = x;
 		te[1] = 0;
@@ -272,13 +222,8 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Sets this to a 2D translation matrix.
-	 * @param {number} x
-	 * @param {number} y
-	 * @returns {this}
-	 */
-	makeTranslation(x, y) {
+	/** Sets this to a 2D translation matrix. */
+	makeTranslation(x: number, y: number): this {
 		const te = this.elements;
 		te[0] = 1;
 		te[1] = 0;
@@ -292,22 +237,13 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Post-multiplies this matrix by m.
-	 * @param {Matrix3} m
-	 * @returns {this}
-	 */
-	mul(m) {
+	/** Post-multiplies this matrix by m. */
+	mul(m: Matrix3): this {
 		return this.mulMatrices(this, m);
 	}
 
-	/**
-	 * Sets this matrix to the product a * b.
-	 * @param {Matrix3} a
-	 * @param {Matrix3} b
-	 * @returns {this}
-	 */
-	mulMatrices(a, b) {
+	/** Sets this matrix to the product a * b. */
+	mulMatrices(a: Matrix3, b: Matrix3): this {
 		const ae = a.elements;
 		const be = b.elements;
 		const te = this.elements;
@@ -344,20 +280,18 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Sets all nine elements directly (row-major argument order).
-	 * @param {number} n11
-	 * @param {number} n12
-	 * @param {number} n13
-	 * @param {number} n21
-	 * @param {number} n22
-	 * @param {number} n23
-	 * @param {number} n31
-	 * @param {number} n32
-	 * @param {number} n33
-	 * @returns {this}
-	 */
-	set(n11, n12, n13, n21, n22, n23, n31, n32, n33) {
+	/** Sets all nine elements directly (row-major argument order). */
+	set(
+		n11: number,
+		n12: number,
+		n13: number,
+		n21: number,
+		n22: number,
+		n23: number,
+		n31: number,
+		n32: number,
+		n33: number,
+	): this {
 		const te = this.elements;
 		te[0] = n11;
 		te[1] = n21;
@@ -371,12 +305,8 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Sets this matrix from the upper-left 3x3 of a Matrix4.
-	 * @param {Matrix4} m
-	 * @returns {this}
-	 */
-	setFromMatrix4(m) {
+	/** Sets this matrix from the upper-left 3x3 of a Matrix4. */
+	setFromMatrix4(m: Matrix4): this {
 		const me = m.elements;
 		const te = this.elements;
 
@@ -392,14 +322,11 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Transposes this matrix in place.
-	 * @returns {this}
-	 */
-	transpose() {
+	/** Transposes this matrix in place. */
+	transpose(): this {
 		const te = this.elements;
 
-		let temp;
+		let temp: number;
 		temp = te[1];
 		te[1] = te[3];
 		te[3] = temp;
@@ -413,11 +340,8 @@ export class Matrix3 {
 		return this;
 	}
 
-	/**
-	 * Iterates over all nine elements in column-major order.
-	 * @returns {IterableIterator<number>}
-	 */
-	*[Symbol.iterator]() {
+	/** Iterates over all nine elements in column-major order. */
+	*[Symbol.iterator](): Generator<number> {
 		const te = this.elements;
 
 		yield te[0];

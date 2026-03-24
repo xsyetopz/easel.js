@@ -1,4 +1,4 @@
-import { MathUtils } from "../../math/MathUtils.js";
+import { MathUtils } from "../../math/MathUtils.ts";
 
 /** Module-level reusable output for lookup() to avoid per-call allocation. */
 const _lookupOut = { r: 0, g: 0, b: 0 };

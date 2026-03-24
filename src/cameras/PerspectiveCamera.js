@@ -1,4 +1,4 @@
-import { MathUtils } from "../math/MathUtils.js";
+import { MathUtils } from "../math/MathUtils.ts";
 import { Camera } from "./Camera.js";
 
 /**

@@ -1,5 +1,5 @@
 import { Node } from "../core/Node.js";
-import { Matrix4 } from "../math/Matrix4.js";
+import { Matrix4 } from "../math/Matrix4.ts";
 
 /**
  * Abstract base class for all camera types.

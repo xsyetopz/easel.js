@@ -1,15 +1,24 @@
-import { MathUtils } from "./MathUtils.js";
-import { Matrix4 } from "./Matrix4.js";
-import { Quaternion } from "./Quaternion.js";
+import { MathUtils } from "./MathUtils.ts";
+import { Matrix4 } from "./Matrix4.ts";
+import { Quaternion } from "./Quaternion.ts";
 
-/**
- * @typedef {"XYZ" | "YXZ" | "ZXY" | "ZYX" | "YZX" | "XZY"} EulerOrder
- */
+export type EulerOrder = "XYZ" | "YXZ" | "ZXY" | "ZYX" | "YZX" | "XZY";
 
-/**
- * @typedef {{ axis: "x"|"y"|"z", n: (m: Record<string, number>) => number, d: (m: Record<string, number>) => number }} AxisFn
- * @typedef {{ primary: "x"|"y"|"z", asinVal: (m: Record<string, number>) => number, lockVal: (m: Record<string, number>) => number, locked: { a: AxisFn, b: AxisFn }, unlocked: { a: AxisFn, b: AxisFn } }} RotationOrderConfig
- */
+type Axis = "x" | "y" | "z";
+
+interface AxisFn {
+	axis: Axis;
+	n: (m: Record<string, number>) => number;
+	d: (m: Record<string, number>) => number;
+}
+
+interface RotationOrderConfig {
+	primary: Axis;
+	asinVal: (m: Record<string, number>) => number;
+	lockVal: (m: Record<string, number>) => number;
+	locked: { a: AxisFn; b: AxisFn };
+	unlocked: { a: AxisFn; b: AxisFn };
+}
 
 const _m = new Matrix4();
 
@@ -20,84 +29,61 @@ export class Euler {
 	#x = 0;
 	#y = 0;
 	#z = 0;
-	/** @type {EulerOrder} */
-	#order = "XYZ";
-	/** @type {(() => void) | undefined} */
-	#onChangeCallback = undefined;
+	#order: EulerOrder = "XYZ";
+	#onChangeCallback: (() => void) | undefined = undefined;
 
-	/**
-	 * @param {number} [x]
-	 * @param {number} [y]
-	 * @param {number} [z]
-	 * @param {EulerOrder} [order]
-	 */
-	constructor(x = 0, y = 0, z = 0, order = "XYZ") {
+	constructor(x = 0, y = 0, z = 0, order: EulerOrder = "XYZ") {
 		this.#x = x;
 		this.#y = y;
 		this.#z = z;
 		this.#order = order;
 	}
 
-	/** @returns {number} */
-	get x() {
+	get x(): number {
 		return this.#x;
 	}
 
-	/** @param {number} value */
-	set x(value) {
+	set x(value: number) {
 		this.#x = value;
 		this.#onChange();
 	}
 
-	/** @returns {number} */
-	get y() {
+	get y(): number {
 		return this.#y;
 	}
 
-	/** @param {number} value */
-	set y(value) {
+	set y(value: number) {
 		this.#y = value;
 		this.#onChange();
 	}
 
-	/** @returns {number} */
-	get z() {
+	get z(): number {
 		return this.#z;
 	}
 
-	/** @param {number} value */
-	set z(value) {
+	set z(value: number) {
 		this.#z = value;
 		this.#onChange();
 	}
 
-	/** @returns {EulerOrder} */
-	get order() {
+	get order(): EulerOrder {
 		return this.#order;
 	}
 
-	/** @param {EulerOrder} value */
-	set order(value) {
+	set order(value: EulerOrder) {
 		this.#order = value;
 		this.#onChange();
 	}
 
-	#onChange() {
+	#onChange(): void {
 		if (this.#onChangeCallback) this.#onChangeCallback();
 	}
 
-	/**
-	 * @returns {Euler}
-	 */
-	clone() {
+	clone(): Euler {
 		return new Euler(this.x, this.y, this.z, this.order);
 	}
 
-	/**
-	 * @param {Euler} euler
-	 * @returns {this}
-	 */
-	copy(euler) {
+	copy(euler: Euler): this {
 		this.x = euler.x;
 		this.y = euler.y;
 		this.z = euler.z;
@@ -106,11 +92,7 @@ export class Euler {
 		return this;
 	}
 
-	/**
-	 * @param {[number, number, number, EulerOrder?]} array
-	 * @returns {this}
-	 */
-	fromArray(array) {
+	fromArray(array: [number, number, number, EulerOrder?]): this {
 		this.x = array[0];
 		this.y = array[1];
 		this.z = array[2];
@@ -119,24 +101,13 @@ export class Euler {
 		return this;
 	}
 
-	/**
-	 * Re-expresses this euler in a different rotation order, preserving orientation.
-	 * @param {EulerOrder} newOrder
-	 * @returns {this}
-	 */
-	reorder(newOrder) {
+	/** Re-expresses this euler in a different rotation order, preserving orientation. */
+	reorder(newOrder: EulerOrder): this {
 		const q = new Quaternion().setFromEuler(this);
 		return this.setFromQuaternion(q, newOrder);
 	}
 
-	/**
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} z
-	 * @param {EulerOrder} [order]
-	 * @returns {this}
-	 */
-	set(x, y, z, order) {
+	set(x: number, y: number, z: number, order?: EulerOrder): this {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -145,22 +116,15 @@ export class Euler {
 		return this;
 	}
 
-	/**
-	 * @param {Quaternion} q
-	 * @param {EulerOrder} [order]
-	 * @returns {this}
-	 */
-	setFromQuaternion(q, order) {
+	setFromQuaternion(q: Quaternion, order?: EulerOrder): this {
 		_m.makeRotationFromQuaternion(q);
 		return this.setFromRotationMatrix(_m, order);
 	}
 
-	/**
-	 * @param {Matrix4 | { elements: number[] }} m
-	 * @param {EulerOrder} [order]
-	 * @returns {this}
-	 */
-	setFromRotationMatrix(m, order) {
+	setFromRotationMatrix(
+		m: Matrix4 | { elements: number[] },
+		order?: EulerOrder,
+	): this {
 		const te = m.elements;
 		const m11 = te[0];
 		const m12 = te[4];
@@ -189,30 +153,25 @@ export class Euler {
 		return this;
 	}
 
-	/**
-	 * @param {EulerOrder} ord
-	 * @param {number} m11
-	 * @param {number} m12
-	 * @param {number} m13
-	 * @param {number} m21
-	 * @param {number} m22
-	 * @param {number} m23
-	 * @param {number} m31
-	 * @param {number} m32
-	 * @param {number} m33
-	 */
-	#applyRotationOrder(ord, m11, m12, m13, m21, m22, m23, m31, m32, m33) {
+	#applyRotationOrder(
+		ord: EulerOrder,
+		m11: number,
+		m12: number,
+		m13: number,
+		m21: number,
+		m22: number,
+		m23: number,
+		m31: number,
+		m32: number,
+		m33: number,
+	): void {
 		const m = { m11, m12, m13, m21, m22, m23, m31, m32, m33 };
 		const cfg = Euler.#ROTATION_ORDER_CONFIG[ord];
 		if (cfg === undefined) return;
 		this.#applyOrderConfig(cfg, m);
 	}
 
-	/**
-	 * @param {RotationOrderConfig} cfg
-	 * @param {Record<string, number>} m
-	 */
-	#applyOrderConfig(cfg, m) {
+	#applyOrderConfig(cfg: RotationOrderConfig, m: Record<string, number>): void {
 		const { primary, asinVal, lockVal, locked, unlocked } = cfg;
 		const asin = asinVal(m);
 		this.#setAxis(primary, MathUtils.safeAsin(asin));
@@ -237,28 +196,19 @@ export class Euler {
 		}
 	}
 
-	/**
-	 * @param {"x"|"y"|"z"} axis
-	 * @param {number} value
-	 */
-	#setAxis(axis, value) {
+	#setAxis(axis: Axis, value: number): void {
 		if (axis === "x") this.x = value;
 		else if (axis === "y") this.y = value;
 		else this.z = value;
 	}
 
-	/**
-	 * @param {"x"|"y"|"z"} axis
-	 * @returns {number}
-	 */
-	#getAxis(axis) {
+	#getAxis(axis: Axis): number {
 		if (axis === "x") return this.x;
 		if (axis === "y") return this.y;
 		return this.z;
 	}
 
-	/** @type {Record<EulerOrder, RotationOrderConfig>} */
-	static #ROTATION_ORDER_CONFIG = {
+	static #ROTATION_ORDER_CONFIG: Record<EulerOrder, RotationOrderConfig> = {
 		XYZ: {
 			primary: "y",
 			asinVal: (m) => m["m13"],
@@ -339,12 +289,8 @@ export class Euler {
 		},
 	};
 
-	/**
-	 * Registers a callback invoked whenever x, y, z, or order changes.
-	 * @param {() => void} callback
-	 * @returns {this}
-	 */
-	setOnChangeCallback(callback) {
+	/** Registers a callback invoked whenever x, y, z, or order changes. */
+	setOnChangeCallback(callback: () => void): this {
 		this.#onChangeCallback = callback;
 		return this;
 	}

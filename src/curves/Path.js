@@ -1,4 +1,4 @@
-import { Vector2 } from "../math/Vector2.js";
+import { Vector2 } from "../math/Vector2.ts";
 import { CurvePath } from "./CurvePath.js";
 import { CubicBezierCurve } from "./curves/CubicBezierCurve.js";
 import { EllipseCurve } from "./curves/EllipseCurve.js";

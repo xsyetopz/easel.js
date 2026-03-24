@@ -1,5 +1,5 @@
-import { Plane } from "./Plane.js";
-import { Vector3 } from "./Vector3.js";
+import { Plane } from "./Plane.ts";
+import { Vector3 } from "./Vector3.ts";
 
 const _v0 = new Vector3();
 const _v1 = new Vector3();
@@ -8,16 +8,14 @@ const _v3 = new Vector3();
 const _v4 = new Vector3();
 const _v5 = new Vector3();
 
-/**
- * Projects point onto the nearest edge/vertex of triangle (a, b, c).
- * @param {Vector3} a
- * @param {Vector3} b
- * @param {Vector3} c
- * @param {Vector3} point
- * @param {Vector3} target
- * @returns {Vector3}
- */
-function _closestOnEdges(a, b, c, point, target) {
+/** Projects point onto the nearest edge/vertex of triangle (a, b, c). */
+function _closestOnEdges(
+	a: Vector3,
+	b: Vector3,
+	c: Vector3,
+	point: Vector3,
+	target: Vector3,
+): Vector3 {
 	const ab = _v3.copy(b).sub(a);
 	const ac = _v4.copy(c).sub(a);
 	const bc = _v5.copy(c).sub(b);
@@ -56,41 +54,23 @@ function _closestOnEdges(a, b, c, point, target) {
 	);
 }
 
-/**
- * @param {Vector3} n
- * @param {Vector3} a
- * @param {Vector3} b
- * @param {Vector3} c
- * @param {Vector3} point
- * @param {Vector3} target
- * @param {Vector3} ab
- * @param {Vector3} ac
- * @param {Vector3} bc
- * @param {number} snom
- * @param {number} sdenom
- * @param {number} tnom
- * @param {number} tdenom
- * @param {number} unom
- * @param {number} udenom
- * @returns {Vector3}
- */
 function _projectOntoEdge(
-	n,
-	a,
-	b,
-	c,
-	point,
-	target,
-	ab,
-	ac,
-	bc,
-	snom,
-	sdenom,
-	tnom,
-	tdenom,
-	unom,
-	udenom,
-) {
+	n: Vector3,
+	a: Vector3,
+	b: Vector3,
+	c: Vector3,
+	point: Vector3,
+	target: Vector3,
+	ab: Vector3,
+	ac: Vector3,
+	bc: Vector3,
+	snom: number,
+	sdenom: number,
+	tnom: number,
+	tdenom: number,
+	unom: number,
+	udenom: number,
+): Vector3 {
 	const vc = n.dot(_v0.copy(a).sub(point).cross(_v0.copy(b).sub(point)));
 	if (vc <= 0 && snom >= 0 && sdenom >= 0) {
 		return target.copy(a).add(_v0.copy(ab).mulScalar(snom / (snom + sdenom)));
@@ -119,78 +99,55 @@ export class Triangle {
 	#b = new Vector3();
 	#c = new Vector3();
 
-	/**
-	 * @param {Vector3} [a]
-	 * @param {Vector3} [b]
-	 * @param {Vector3} [c]
-	 */
 	constructor(a = new Vector3(), b = new Vector3(), c = new Vector3()) {
 		this.#a = a.clone();
 		this.#b = b.clone();
 		this.#c = c.clone();
 	}
 
-	/** @returns {Vector3} */
-	get a() {
+	get a(): Vector3 {
 		return this.#a;
 	}
 
-	/** @param {Vector3} value */
-	set a(value) {
+	set a(value: Vector3) {
 		this.#a.copy(value);
 	}
 
-	/** @returns {Vector3} */
-	get b() {
+	get b(): Vector3 {
 		return this.#b;
 	}
 
-	/** @param {Vector3} value */
-	set b(value) {
+	set b(value: Vector3) {
 		this.#b.copy(value);
 	}
 
-	/** @returns {Vector3} */
-	get c() {
+	get c(): Vector3 {
 		return this.#c;
 	}
 
-	/** @param {Vector3} value */
-	set c(value) {
+	set c(value: Vector3) {
 		this.#c.copy(value);
 	}
 
-	/**
-	 * @param {Vector3} a
-	 * @param {Vector3} b
-	 * @param {Vector3} c
-	 * @returns {this}
-	 */
-	set(a, b, c) {
+	set(a: Vector3, b: Vector3, c: Vector3): this {
 		this.#a.copy(a);
 		this.#b.copy(b);
 		this.#c.copy(c);
 		return this;
 	}
 
-	/** @returns {Triangle} */
-	clone() {
+	clone(): Triangle {
 		return new Triangle(this.#a, this.#b, this.#c);
 	}
 
-	/**
-	 * @param {Triangle} triangle
-	 * @returns {this}
-	 */
-	copy(triangle) {
+	copy(triangle: Triangle): this {
 		this.#a.copy(triangle.a);
 		this.#b.copy(triangle.b);
 		this.#c.copy(triangle.c);
 		return this;
 	}
 
-	/** @returns {number} */
-	getArea() {
+	getArea(): number {
 		_v0.copy(this.#c).sub(this.#b);
 		_v1.copy(this.#b).sub(this.#a);
 		return _v0.cross(_v1).length * 0.5;
@@ -199,14 +156,14 @@ export class Triangle {
 	/**
 	 * Computes barycentric coordinates of point relative to triangle (a, b, c).
 	 * Returns undefined if point is not coplanar or triangle is degenerate.
-	 * @param {Vector3} point
-	 * @param {Vector3} a
-	 * @param {Vector3} b
-	 * @param {Vector3} c
-	 * @param {Vector3} [target]
-	 * @returns {Vector3|undefined}
 	 */
-	static getBarycoord(point, a, b, c, target = new Vector3()) {
+	static getBarycoord(
+		point: Vector3,
+		a: Vector3,
+		b: Vector3,
+		c: Vector3,
+		target = new Vector3(),
+	): Vector3 | undefined {
 		_v0.copy(c).sub(a);
 		_v1.copy(b).sub(a);
 		_v2.copy(point).sub(a);
@@ -226,42 +183,26 @@ export class Triangle {
 		return target.set(1 - u - v, v, u);
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @param {Vector3} [target]
-	 * @returns {Vector3|undefined}
-	 */
-	getBarycoord(point, target = new Vector3()) {
+	getBarycoord(point: Vector3, target = new Vector3()): Vector3 | undefined {
 		return Triangle.getBarycoord(point, this.#a, this.#b, this.#c, target);
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @param {Vector3} a
-	 * @param {Vector3} b
-	 * @param {Vector3} c
-	 * @returns {boolean}
-	 */
-	static containsPoint(point, a, b, c) {
+	static containsPoint(
+		point: Vector3,
+		a: Vector3,
+		b: Vector3,
+		c: Vector3,
+	): boolean {
 		const bary = Triangle.getBarycoord(point, a, b, c, _v3);
 		if (bary === undefined) return false;
 		return bary.x >= 0 && bary.y >= 0 && bary.x + bary.y <= 1;
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @returns {boolean}
-	 */
-	containsPoint(point) {
+	containsPoint(point: Vector3): boolean {
 		return Triangle.containsPoint(point, this.#a, this.#b, this.#c);
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @param {Vector3} [target]
-	 * @returns {Vector3}
-	 */
-	closestPointToPoint(point, target = new Vector3()) {
+	closestPointToPoint(point: Vector3, target = new Vector3()): Vector3 {
 		const a = this.#a;
 		const b = this.#b;
 		const c = this.#c;
@@ -287,11 +228,7 @@ export class Triangle {
 		return target.copy(a).add(_v0.mulScalar(v)).add(_v1.mulScalar(w));
 	}
 
-	/**
-	 * @param {Triangle} triangle
-	 * @returns {boolean}
-	 */
-	equals(triangle) {
+	equals(triangle: Triangle): boolean {
 		return (
 			triangle.a.equals(this.#a) &&
 			triangle.b.equals(this.#b) &&
@@ -299,19 +236,17 @@ export class Triangle {
 		);
 	}
 
-	/**
-	 * Interpolates v1, v2, v3 at the barycentric coordinate of point in triangle (a,b,c).
-	 * @param {Vector3} point
-	 * @param {Vector3} a
-	 * @param {Vector3} b
-	 * @param {Vector3} c
-	 * @param {Vector3} v1
-	 * @param {Vector3} v2
-	 * @param {Vector3} v3
-	 * @param {Vector3} [target]
-	 * @returns {Vector3|undefined}
-	 */
-	static getInterpolation(point, a, b, c, v1, v2, v3, target = new Vector3()) {
+	/** Interpolates v1, v2, v3 at the barycentric coordinate of point in triangle (a,b,c). */
+	static getInterpolation(
+		point: Vector3,
+		a: Vector3,
+		b: Vector3,
+		c: Vector3,
+		v1: Vector3,
+		v2: Vector3,
+		v3: Vector3,
+		target = new Vector3(),
+	): Vector3 | undefined {
 		const bary = Triangle.getBarycoord(point, a, b, c, _v3);
 		if (bary === undefined) return undefined;
 		target.set(0, 0, 0);
@@ -321,15 +256,13 @@ export class Triangle {
 		return target;
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @param {Vector3} v1
-	 * @param {Vector3} v2
-	 * @param {Vector3} v3
-	 * @param {Vector3} [target]
-	 * @returns {Vector3|undefined}
-	 */
-	getInterpolation(point, v1, v2, v3, target = new Vector3()) {
+	getInterpolation(
+		point: Vector3,
+		v1: Vector3,
+		v2: Vector3,
+		v3: Vector3,
+		target = new Vector3(),
+	): Vector3 | undefined {
 		return Triangle.getInterpolation(
 			point,
 			this.#a,
@@ -342,11 +275,7 @@ export class Triangle {
 		);
 	}
 
-	/**
-	 * @param {Vector3} [target]
-	 * @returns {Vector3}
-	 */
-	getMidpoint(target = new Vector3()) {
+	getMidpoint(target = new Vector3()): Vector3 {
 		return target
 			.copy(this.#a)
 			.add(this.#b)
@@ -354,15 +283,13 @@ export class Triangle {
 			.mulScalar(1 / 3);
 	}
 
-	/**
-	 * Computes the normal of triangle (a, b, c) into target.
-	 * @param {Vector3} a
-	 * @param {Vector3} b
-	 * @param {Vector3} c
-	 * @param {Vector3} [target]
-	 * @returns {Vector3}
-	 */
-	static getNormal(a, b, c, target = new Vector3()) {
+	/** Computes the normal of triangle (a, b, c) into target. */
+	static getNormal(
+		a: Vector3,
+		b: Vector3,
+		c: Vector3,
+		target = new Vector3(),
+	): Vector3 {
 		target.copy(c).sub(b);
 		_v0.copy(b).sub(a);
 		target.cross(_v0);
@@ -372,49 +299,35 @@ export class Triangle {
 			: target.set(0, 0, 0);
 	}
 
-	/**
-	 * @param {Vector3} [target]
-	 * @returns {Vector3}
-	 */
-	getNormal(target = new Vector3()) {
+	getNormal(target = new Vector3()): Vector3 {
 		return Triangle.getNormal(this.#a, this.#b, this.#c, target);
 	}
 
-	/**
-	 * @param {Plane} [target]
-	 * @returns {Plane}
-	 */
-	getPlane(target = new Plane()) {
+	getPlane(target = new Plane()): Plane {
 		return target.setFromCoplanarPoints(this.#a, this.#b, this.#c);
 	}
 
-	/**
-	 * @param {{ min: Vector3, max: Vector3, intersectsTriangle?: (tri: Triangle) => boolean }} box
-	 * @returns {boolean}
-	 */
-	intersectsBox(box) {
+	intersectsBox(box: {
+		min: Vector3;
+		max: Vector3;
+		intersectsTriangle?: (tri: Triangle) => boolean;
+	}): boolean {
 		return box.intersectsTriangle ? box.intersectsTriangle(this) : false;
 	}
 
-	/**
-	 * Returns true if triangle (a,b,c) is front-facing relative to direction.
-	 * @param {Vector3} a
-	 * @param {Vector3} b
-	 * @param {Vector3} c
-	 * @param {Vector3} direction
-	 * @returns {boolean}
-	 */
-	static isFrontFacing(a, b, c, direction) {
+	/** Returns true if triangle (a,b,c) is front-facing relative to direction. */
+	static isFrontFacing(
+		a: Vector3,
+		b: Vector3,
+		c: Vector3,
+		direction: Vector3,
+	): boolean {
 		_v0.copy(c).sub(b);
 		_v1.copy(b).sub(a);
 		return _v0.cross(_v1).dot(direction) < 0;
 	}
 
-	/**
-	 * @param {Vector3} direction
-	 * @returns {boolean}
-	 */
-	isFrontFacing(direction) {
+	isFrontFacing(direction: Vector3): boolean {
 		return Triangle.isFrontFacing(this.#a, this.#b, this.#c, direction);
 	}
 }

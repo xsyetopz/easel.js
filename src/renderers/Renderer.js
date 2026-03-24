@@ -1,4 +1,4 @@
-import { Color } from "../math/Color.js";
+import { Color } from "../math/Color.ts";
 import { FogCuller } from "../pipeline/FogCuller.js";
 import { Framebuffer } from "../pipeline/framebuffer/Framebuffer.js";
 import { FramebufferClear } from "../pipeline/framebuffer/FramebufferClear.js";

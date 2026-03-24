@@ -1,20 +1,17 @@
-import { MathUtils } from "./MathUtils.js";
-import { Quaternion } from "./Quaternion.js";
-import { Vector3 } from "./Vector3.js";
+import { MathUtils } from "./MathUtils.ts";
+import { Quaternion } from "./Quaternion.ts";
+import { Vector3 } from "./Vector3.ts";
 
 const _v1 = new Vector3();
 const _v2 = new Vector3();
 const _v3 = new Vector3();
 const _q = new Quaternion();
 
-/** 4×4 matrix for 3D affine and projection transforms. */
+/** 4x4 matrix for 3D affine and projection transforms. */
 export class Matrix4 {
-	#elements = new Float32Array(16);
+	#elements: Float32Array<ArrayBufferLike> = new Float32Array(16);
 
-	/**
-	 * @param {Float32Array<ArrayBuffer>} [elements]
-	 */
-	constructor(elements) {
+	constructor(elements?: Float32Array<ArrayBufferLike>) {
 		if (elements) {
 			this.#elements = elements;
 		} else {
@@ -22,28 +19,16 @@ export class Matrix4 {
 		}
 	}
 
-	/**
-	 * @returns {Float32Array}
-	 */
-	get elements() {
+	get elements(): Float32Array {
 		return this.#elements;
 	}
 
-	/**
-	 * @returns {Matrix4}
-	 */
-	clone() {
+	clone(): Matrix4 {
 		return new Matrix4().copy(this);
 	}
 
-	/**
-	 * Composes this matrix from a position, quaternion rotation, and scale.
-	 * @param {Vector3} position
-	 * @param {Quaternion} q
-	 * @param {Vector3} scale
-	 * @returns {this}
-	 */
-	compose(position, q, scale) {
+	/** Composes this matrix from a position, quaternion rotation, and scale. */
+	compose(position: Vector3, q: Quaternion, scale: Vector3): this {
 		const te = this.elements;
 
 		const { x: qx, y: qy, z: qz, w: qw } = q;
@@ -82,26 +67,16 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Copies elements from another Matrix4 into this one.
-	 * @param {Matrix4} m
-	 * @returns {this}
-	 */
-	copy(m) {
+	/** Copies elements from another Matrix4 into this one. */
+	copy(m: Matrix4): this {
 		const me = m.elements;
 		if (me === this.elements) return this;
 		this.elements.set(me);
 		return this;
 	}
 
-	/**
-	 * Decomposes this matrix into position, quaternion rotation, and scale.
-	 * @param {Vector3} position
-	 * @param {Quaternion} q
-	 * @param {Vector3} scale
-	 * @returns {this}
-	 */
-	decompose(position, q, scale) {
+	/** Decomposes this matrix into position, quaternion rotation, and scale. */
+	decompose(position: Vector3, q: Quaternion, scale: Vector3): this {
 		this.extractPosition(position);
 		this.extractScale(scale);
 
@@ -111,11 +86,8 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Computes the determinant of this matrix.
-	 * @returns {number}
-	 */
-	determinant() {
+	/** Computes the determinant of this matrix. */
+	determinant(): number {
 		const te = this.elements;
 
 		const n11 = te[0];
@@ -150,12 +122,8 @@ export class Matrix4 {
 		return n11 * det11 - n12 * det12 + n13 * det13 - n14 * det14;
 	}
 
-	/**
-	 * Extracts the translation component into the given Vector3.
-	 * @param {Vector3} position
-	 * @returns {this}
-	 */
-	extractPosition(position) {
+	/** Extracts the translation component into the given Vector3. */
+	extractPosition(position: Vector3): this {
 		const te = this.elements;
 		position.x = te[12];
 		position.y = te[13];
@@ -163,12 +131,8 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Extracts the rotation component from another Matrix4, normalizing by scale.
-	 * @param {Matrix4} m
-	 * @returns {this}
-	 */
-	extractRotation(m) {
+	/** Extracts the rotation component from another Matrix4, normalizing by scale. */
+	extractRotation(m: Matrix4): this {
 		const me = m.elements;
 
 		const scale = new Vector3();
@@ -201,10 +165,8 @@ export class Matrix4 {
 	/**
 	 * Extracts the scale component into the given Vector3.
 	 * Negates X when the determinant is negative (reflection).
-	 * @param {Vector3} scale
-	 * @returns {this}
 	 */
-	extractScale(scale) {
+	extractScale(scale: Vector3): this {
 		const me = this.elements;
 
 		let sx = Math.hypot(me[0], me[1], me[2]);
@@ -221,11 +183,8 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Resets this matrix to the identity.
-	 * @returns {this}
-	 */
-	identity() {
+	/** Resets this matrix to the identity. */
+	identity(): this {
 		const te = this.elements;
 		te[0] = 1;
 		te[4] = 0;
@@ -248,10 +207,9 @@ export class Matrix4 {
 
 	/**
 	 * Inverts this matrix in place.
-	 * @throws {Error} When the matrix is non-invertible (det === 0)
-	 * @returns {this}
+	 * @throws When the matrix is non-invertible (det === 0)
 	 */
-	invert() {
+	invert(): this {
 		const te = this.elements;
 
 		const n11 = te[0];
@@ -411,14 +369,8 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Sets this matrix to a look-at view matrix.
-	 * @param {Vector3} eye
-	 * @param {Vector3} target
-	 * @param {Vector3} up
-	 * @returns {this}
-	 */
-	lookAt(eye, target, up) {
+	/** Sets this matrix to a look-at view matrix. */
+	lookAt(eye: Vector3, target: Vector3, up: Vector3): this {
 		_v1.copy(eye).sub(target);
 		if (_v1.lengthSq === 0) _v1.z = 1;
 		_v1.normalize();
@@ -451,17 +403,15 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Sets this to an orthographic projection matrix.
-	 * @param {number} left
-	 * @param {number} right
-	 * @param {number} top
-	 * @param {number} bottom
-	 * @param {number} near
-	 * @param {number} far
-	 * @returns {this}
-	 */
-	makeOrthographic(left, right, top, bottom, near, far) {
+	/** Sets this to an orthographic projection matrix. */
+	makeOrthographic(
+		left: number,
+		right: number,
+		top: number,
+		bottom: number,
+		near: number,
+		far: number,
+	): this {
 		const w = 1.0 / (right - left);
 		const h = 1.0 / (top - bottom);
 		const p = 1.0 / (far - near);
@@ -488,13 +438,17 @@ export class Matrix4 {
 
 	/**
 	 * Sets this to a perspective projection matrix.
-	 * @param {number} fov - Vertical field of view in radians
-	 * @param {number} aspect - Viewport aspect ratio (width / height)
-	 * @param {number} near - Near clipping plane distance
-	 * @param {number} far - Far clipping plane distance
-	 * @returns {this}
+	 * @param fov Vertical field of view in radians
+	 * @param aspect Viewport aspect ratio (width / height)
+	 * @param near Near clipping plane distance
+	 * @param far Far clipping plane distance
 	 */
-	makePerspective(fov, aspect, near, far) {
+	makePerspective(
+		fov: number,
+		aspect: number,
+		near: number,
+		far: number,
+	): this {
 		const tHalfFov = Math.tan(fov / 2);
 
 		const left = -aspect * tHalfFov * near;
@@ -522,33 +476,21 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Sets this to the rotation component of an Euler angle set.
-	 * @param {import("./Euler.js").Euler} euler
-	 * @returns {this}
-	 */
-	makeRotationFromEuler(euler) {
+	/** Sets this to the rotation component of an Euler angle set. */
+	makeRotationFromEuler(euler: import("./Euler.js").Euler): this {
 		_q.setFromEuler(euler);
 		return this.makeRotationFromQuaternion(_q);
 	}
 
-	/**
-	 * Sets this to the rotation represented by the given quaternion.
-	 * @param {Quaternion} q
-	 * @returns {this}
-	 */
-	makeRotationFromQuaternion(q) {
+	/** Sets this to the rotation represented by the given quaternion. */
+	makeRotationFromQuaternion(q: Quaternion): this {
 		_v1.set(0, 0, 0);
 		_v2.set(1, 1, 1);
 		return this.compose(_v1, q, _v2);
 	}
 
-	/**
-	 * Sets this to a rotation matrix around the X axis.
-	 * @param {number} radians
-	 * @returns {this}
-	 */
-	makeRotationX(radians) {
+	/** Sets this to a rotation matrix around the X axis. */
+	makeRotationX(radians: number): this {
 		const c = Math.cos(radians);
 		const s = Math.sin(radians);
 
@@ -572,12 +514,8 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Sets this to a rotation matrix around the Y axis.
-	 * @param {number} radians
-	 * @returns {this}
-	 */
-	makeRotationY(radians) {
+	/** Sets this to a rotation matrix around the Y axis. */
+	makeRotationY(radians: number): this {
 		const c = Math.cos(radians);
 		const s = Math.sin(radians);
 
@@ -601,12 +539,8 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Sets this to a rotation matrix around the Z axis.
-	 * @param {number} radians
-	 * @returns {this}
-	 */
-	makeRotationZ(radians) {
+	/** Sets this to a rotation matrix around the Z axis. */
+	makeRotationZ(radians: number): this {
 		const c = Math.cos(radians);
 		const s = Math.sin(radians);
 
@@ -630,14 +564,8 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Sets this to a 3D scale matrix.
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} z
-	 * @returns {this}
-	 */
-	makeScale(x, y, z) {
+	/** Sets this to a 3D scale matrix. */
+	makeScale(x: number, y: number, z: number): this {
 		const te = this.elements;
 		te[0] = x;
 		te[1] = 0;
@@ -658,14 +586,8 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Sets this to a 3D translation matrix.
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} z
-	 * @returns {this}
-	 */
-	makeTranslation(x, y, z) {
+	/** Sets this to a 3D translation matrix. */
+	makeTranslation(x: number, y: number, z: number): this {
 		const te = this.elements;
 		te[0] = 1;
 		te[1] = 0;
@@ -686,22 +608,13 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Post-multiplies this matrix by m.
-	 * @param {Matrix4} m
-	 * @returns {this}
-	 */
-	mul(m) {
+	/** Post-multiplies this matrix by m. */
+	mul(m: Matrix4): this {
 		return this.mulMatrices(this, m);
 	}
 
-	/**
-	 * Sets this matrix to the product a * b.
-	 * @param {Matrix4} a
-	 * @param {Matrix4} b
-	 * @returns {this}
-	 */
-	mulMatrices(a, b) {
+	/** Sets this matrix to the product a * b. */
+	mulMatrices(a: Matrix4, b: Matrix4): this {
 		const ae = a.elements;
 		const be = b.elements;
 
@@ -759,44 +672,25 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Sets all sixteen elements directly (row-major argument order).
-	 * @param {number} n11
-	 * @param {number} n12
-	 * @param {number} n13
-	 * @param {number} n14
-	 * @param {number} n21
-	 * @param {number} n22
-	 * @param {number} n23
-	 * @param {number} n24
-	 * @param {number} n31
-	 * @param {number} n32
-	 * @param {number} n33
-	 * @param {number} n34
-	 * @param {number} n41
-	 * @param {number} n42
-	 * @param {number} n43
-	 * @param {number} n44
-	 * @returns {this}
-	 */
+	/** Sets all sixteen elements directly (row-major argument order). */
 	set(
-		n11,
-		n12,
-		n13,
-		n14,
-		n21,
-		n22,
-		n23,
-		n24,
-		n31,
-		n32,
-		n33,
-		n34,
-		n41,
-		n42,
-		n43,
-		n44,
-	) {
+		n11: number,
+		n12: number,
+		n13: number,
+		n14: number,
+		n21: number,
+		n22: number,
+		n23: number,
+		n24: number,
+		n31: number,
+		n32: number,
+		n33: number,
+		n34: number,
+		n41: number,
+		n42: number,
+		n43: number,
+		n44: number,
+	): this {
 		const te = this.elements;
 		te[0] = n11;
 		te[1] = n21;
@@ -817,14 +711,11 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Transposes this matrix in place.
-	 * @returns {this}
-	 */
-	transpose() {
+	/** Transposes this matrix in place. */
+	transpose(): this {
 		const te = this.elements;
 
-		let temp;
+		let temp: number;
 		temp = te[1];
 		te[1] = te[4];
 		te[4] = temp;
@@ -847,11 +738,8 @@ export class Matrix4 {
 		return this;
 	}
 
-	/**
-	 * Iterates over all sixteen elements in column-major order.
-	 * @returns {IterableIterator<number>}
-	 */
-	*[Symbol.iterator]() {
+	/** Iterates over all sixteen elements in column-major order. */
+	*[Symbol.iterator](): Generator<number> {
 		const te = this.elements;
 
 		yield te[0];

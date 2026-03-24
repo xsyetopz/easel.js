@@ -1,75 +1,50 @@
-import { Vector3 } from "./Vector3.js";
+import { Vector3 } from "./Vector3.ts";
 
 /** Bounding sphere defined by center and radius. */
 export class Sphere {
 	#centre = new Vector3();
 	#radius = 1;
 
-	/**
-	 * @param {Vector3} [centre]
-	 * @param {number} [radius]
-	 */
 	constructor(centre = new Vector3(), radius = 1) {
 		this.#centre = centre.clone();
 		this.#radius = radius;
 	}
 
-	/** @returns {Vector3} */
-	get centre() {
+	get centre(): Vector3 {
 		return this.#centre;
 	}
 
-	/** @param {Vector3} value */
-	set centre(value) {
+	set centre(value: Vector3) {
 		this.#centre.copy(value);
 	}
 
-	/** @returns {number} */
-	get radius() {
+	get radius(): number {
 		return this.#radius;
 	}
 
-	/** @param {number} value */
-	set radius(value) {
+	set radius(value: number) {
 		this.#radius = value;
 	}
 
-	/** @returns {Sphere} */
-	clone() {
+	clone(): Sphere {
 		return new Sphere(this.centre, this.radius);
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @returns {boolean}
-	 */
-	containsPoint(point) {
+	containsPoint(point: Vector3): boolean {
 		return point.clone().sub(this.centre).lengthSq <= this.radius * this.radius;
 	}
 
-	/**
-	 * @param {Sphere} sphere
-	 * @returns {Sphere}
-	 */
-	copy(sphere) {
+	copy(sphere: Sphere): Sphere {
 		this.centre.copy(sphere.centre);
 		this.radius = sphere.radius;
 		return this;
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @returns {number}
-	 */
-	distanceToPoint(point) {
+	distanceToPoint(point: Vector3): number {
 		return point.clone().sub(this.centre).length - this.radius;
 	}
 
-	/**
-	 * @param {Sphere} sphere
-	 * @returns {boolean}
-	 */
-	equals(sphere) {
+	equals(sphere: Sphere): boolean {
 		return (
 			sphere.centre.x === this.centre.x &&
 			sphere.centre.y === this.centre.y &&
@@ -78,20 +53,12 @@ export class Sphere {
 		);
 	}
 
-	/**
-	 * @param {Sphere} sphere
-	 * @returns {boolean}
-	 */
-	intersectsSphere(sphere) {
+	intersectsSphere(sphere: Sphere): boolean {
 		const r = this.radius + sphere.radius;
 		return this.centre.clone().sub(sphere.centre).lengthSq <= r * r;
 	}
 
-	/**
-	 * @param {Vector3} offset
-	 * @returns {Sphere}
-	 */
-	translate(offset) {
+	translate(offset: Vector3): Sphere {
 		this.centre.add(offset);
 		return this;
 	}
@@ -99,11 +66,8 @@ export class Sphere {
 	/**
 	 * Sets this sphere to tightly bound the given points. If optionalCenter is
 	 * provided it is used as the sphere centre; otherwise the centroid is used.
-	 * @param {Vector3[]} points
-	 * @param {Vector3} [optionalCenter]
-	 * @returns {this}
 	 */
-	setFromPoints(points, optionalCenter) {
+	setFromPoints(points: Vector3[], optionalCenter?: Vector3): this {
 		const center = this.centre;
 		if (optionalCenter) {
 			center.copy(optionalCenter);
@@ -130,10 +94,8 @@ export class Sphere {
 	/**
 	 * Expands the sphere radius to include the given point if it lies outside.
 	 * The centre is not moved.
-	 * @param {Vector3} point
-	 * @returns {this}
 	 */
-	expandByPoint(point) {
+	expandByPoint(point: Vector3): this {
 		const dx = point.x - this.centre.x;
 		const dy = point.y - this.centre.y;
 		const dz = point.z - this.centre.z;

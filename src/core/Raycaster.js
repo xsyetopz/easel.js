@@ -1,5 +1,5 @@
-import { Ray } from "../math/Ray.js";
-import { Vector3 } from "../math/Vector3.js";
+import { Ray } from "../math/Ray.ts";
+import { Vector3 } from "../math/Vector3.ts";
 import { Layers } from "./Layers.js";
 
 const _v0 = new Vector3();

@@ -1,9 +1,9 @@
-import { Plane } from "./Plane.js";
+import { Plane } from "./Plane.ts";
 
 /** Six-plane view frustum for visibility culling. */
 export class Frustum {
-	/** @type {Plane[]} 0: left, 1: right, 2: bottom, 3: top, 4: near, 5: far */
-	planes = [];
+	/** 0: left, 1: right, 2: bottom, 3: top, 4: near, 5: far */
+	planes: Plane[] = [];
 
 	constructor() {
 		this.planes.push(new Plane());
@@ -14,16 +14,11 @@ export class Frustum {
 		this.planes.push(new Plane());
 	}
 
-	/** @returns {Frustum} */
-	clone() {
+	clone(): Frustum {
 		return new Frustum().copy(this);
 	}
 
-	/**
-	 * @param {{ x: number, y: number, z: number }} point
-	 * @returns {boolean}
-	 */
-	containsPoint(point) {
+	containsPoint(point: { x: number; y: number; z: number }): boolean {
 		const planes = this.planes;
 		if (planes[0].distanceToPoint(point) < 0) return false;
 		if (planes[1].distanceToPoint(point) < 0) return false;
@@ -34,11 +29,7 @@ export class Frustum {
 		return true;
 	}
 
-	/**
-	 * @param {Frustum} frustum
-	 * @returns {this}
-	 */
-	copy(frustum) {
+	copy(frustum: Frustum): this {
 		const planes = this.planes;
 		planes[0].copy(frustum.planes[0]);
 		planes[1].copy(frustum.planes[1]);
@@ -49,11 +40,10 @@ export class Frustum {
 		return this;
 	}
 
-	/**
-	 * @param {{ min: { x: number, y: number, z: number }, max: { x: number, y: number, z: number } }} box
-	 * @returns {boolean}
-	 */
-	intersectsBox(box) {
+	intersectsBox(box: {
+		min: { x: number; y: number; z: number };
+		max: { x: number; y: number; z: number };
+	}): boolean {
 		const planes = this.planes;
 
 		for (let i = 0; i < 6; i++) {
@@ -72,11 +62,10 @@ export class Frustum {
 		return true;
 	}
 
-	/**
-	 * @param {{ centre: { x: number, y: number, z: number }, radius: number }} sphere
-	 * @returns {boolean}
-	 */
-	intersectsSphere(sphere) {
+	intersectsSphere(sphere: {
+		centre: { x: number; y: number; z: number };
+		radius: number;
+	}): boolean {
 		const planes = this.planes;
 		const centre = sphere.centre;
 		const negRadius = -sphere.radius;
@@ -89,8 +78,7 @@ export class Frustum {
 		return true;
 	}
 
-	/** @returns {this} */
-	makeEmpty() {
+	makeEmpty(): this {
 		for (let i = 0; i < 6; i++) {
 			this.planes[i] = new Plane();
 		}
@@ -100,11 +88,8 @@ export class Frustum {
 	/**
 	 * Extracts the six frustum planes from a combined projection matrix.
 	 * Uses the Gribb/Hartmann method (column-major layout).
-	 *
-	 * @param {{ elements: ArrayLike<number> }} m
-	 * @returns {this}
 	 */
-	setFromProjectionMatrix(m) {
+	setFromProjectionMatrix(m: { elements: ArrayLike<number> }): this {
 		const me = m.elements;
 		const planes = this.planes;
 

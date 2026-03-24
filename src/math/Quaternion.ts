@@ -5,12 +5,6 @@ export class Quaternion {
 	#z = 0;
 	#w = 1;
 
-	/**
-	 * @param {number} [x]
-	 * @param {number} [y]
-	 * @param {number} [z]
-	 * @param {number} [w]
-	 */
 	constructor(x = 0, y = 0, z = 0, w = 1) {
 		this.#x = x;
 		this.#y = y;
@@ -18,69 +12,52 @@ export class Quaternion {
 		this.#w = w;
 	}
 
-	/** @returns {number} */
-	get x() {
+	get x(): number {
 		return this.#x;
 	}
 
-	/** @param {number} value */
-	set x(value) {
+	set x(value: number) {
 		this.#x = value;
 	}
 
-	/** @returns {number} */
-	get y() {
+	get y(): number {
 		return this.#y;
 	}
 
-	/** @param {number} value */
-	set y(value) {
+	set y(value: number) {
 		this.#y = value;
 	}
 
-	/** @returns {number} */
-	get z() {
+	get z(): number {
 		return this.#z;
 	}
 
-	/** @param {number} value */
-	set z(value) {
+	set z(value: number) {
 		this.#z = value;
 	}
 
-	/** @returns {number} */
-	get w() {
+	get w(): number {
 		return this.#w;
 	}
 
-	/** @param {number} value */
-	set w(value) {
+	set w(value: number) {
 		this.#w = value;
 	}
 
-	/** @returns {number} */
-	get length() {
+	get length(): number {
 		return Math.sqrt(this.lengthSq);
 	}
 
-	/** @returns {number} */
-	get lengthSq() {
+	get lengthSq(): number {
 		const { x, y, z, w } = this;
 		return x * x + y * y + z * z + w * w;
 	}
 
-	/**
-	 * @returns {Quaternion}
-	 */
-	clone() {
+	clone(): Quaternion {
 		return new Quaternion().copy(this);
 	}
 
-	/**
-	 * @param {Quaternion} q
-	 * @returns {this}
-	 */
-	copy(q) {
+	copy(q: Quaternion): this {
 		this.x = q.x;
 		this.y = q.y;
 		this.z = q.z;
@@ -88,11 +65,7 @@ export class Quaternion {
 		return this;
 	}
 
-	/**
-	 * @param {number} scalar
-	 * @returns {this}
-	 */
-	divScalar(scalar) {
+	divScalar(scalar: number): this {
 		this.x /= scalar;
 		this.y /= scalar;
 		this.z /= scalar;
@@ -100,11 +73,7 @@ export class Quaternion {
 		return this;
 	}
 
-	/**
-	 * @param {number[]} array
-	 * @returns {this}
-	 */
-	fromArray(array) {
+	fromArray(array: number[]): this {
 		this.x = array[0];
 		this.y = array[1];
 		this.z = array[2];
@@ -112,23 +81,16 @@ export class Quaternion {
 		return this;
 	}
 
-	/**
-	 * Computes the conjugate (assumes unit quaternion).
-	 * @returns {this}
-	 */
-	invert() {
+	/** Computes the conjugate (assumes unit quaternion). */
+	invert(): this {
 		this.x = -this.x;
 		this.y = -this.y;
 		this.z = -this.z;
 		return this;
 	}
 
-	/**
-	 * Pre-multiplies this quaternion by q (Hamilton product: q * this).
-	 * @param {Quaternion} q
-	 * @returns {this}
-	 */
-	premul(q) {
+	/** Pre-multiplies this quaternion by q (Hamilton product: q * this). */
+	premul(q: Quaternion): this {
 		const { x, y, z, w } = this;
 		const { x: qx, y: qy, z: qz, w: qw } = q;
 
@@ -139,14 +101,7 @@ export class Quaternion {
 		return this;
 	}
 
-	/**
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} z
-	 * @param {number} w
-	 * @returns {this}
-	 */
-	set(x, y, z, w) {
+	set(x: number, y: number, z: number, w: number): this {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -154,12 +109,10 @@ export class Quaternion {
 		return this;
 	}
 
-	/**
-	 * @param {{ x: number, y: number, z: number }} axis
-	 * @param {number} angle
-	 * @returns {this}
-	 */
-	setFromAxisAngle(axis, angle) {
+	setFromAxisAngle(
+		axis: { x: number; y: number; z: number },
+		angle: number,
+	): this {
 		const halfAngle = angle / 2;
 		const s = Math.sin(halfAngle);
 
@@ -170,11 +123,12 @@ export class Quaternion {
 		return this;
 	}
 
-	/**
-	 * @param {{ x: number, y: number, z: number, order: string }} euler
-	 * @returns {this}
-	 */
-	setFromEuler(euler) {
+	setFromEuler(euler: {
+		x: number;
+		y: number;
+		z: number;
+		order: string;
+	}): this {
 		const { x, y, z, order } = euler;
 
 		const c1 = Math.cos(x / 2);
@@ -226,11 +180,7 @@ export class Quaternion {
 		}
 	}
 
-	/**
-	 * @param {{ elements: ArrayLike<number> }} m
-	 * @returns {this}
-	 */
-	setFromRotationMatrix(m) {
+	setFromRotationMatrix(m: { elements: ArrayLike<number> }): this {
 		const te = m.elements;
 
 		const m11 = te[0];
@@ -276,15 +226,12 @@ export class Quaternion {
 		return this;
 	}
 
-	/**
-	 * Normalizes this quaternion to unit length.
-	 * @returns {this}
-	 */
-	normalize() {
+	/** Normalizes this quaternion to unit length. */
+	normalize(): this {
 		return this.divScalar(this.length || 1);
 	}
 
-	*[Symbol.iterator]() {
+	*[Symbol.iterator](): Generator<number> {
 		yield this.x;
 		yield this.y;
 		yield this.z;

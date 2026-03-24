@@ -1,4 +1,4 @@
-import { MathUtils } from "../math/MathUtils.js";
+import { MathUtils } from "../math/MathUtils.ts";
 
 /**
  * Converts 0-255 RGB to normalized 0-1 HSL.

@@ -1,4 +1,4 @@
-import { Vector3 } from "../math/Vector3.js";
+import { Vector3 } from "../math/Vector3.ts";
 
 const _pos = new Vector3();
 

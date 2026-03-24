@@ -1,4 +1,4 @@
-import { MathUtils } from "./MathUtils.js";
+import { MathUtils } from "./MathUtils.ts";
 
 /** Spherical coordinate (radius, phi, theta). */
 export class Spherical {
@@ -6,70 +6,48 @@ export class Spherical {
 	#phi = 0;
 	#theta = 0;
 
-	/**
-	 * @param {number} [radius]
-	 * @param {number} [phi]
-	 * @param {number} [theta]
-	 */
 	constructor(radius = 1, phi = 0, theta = 0) {
 		this.#radius = radius;
 		this.#phi = phi;
 		this.#theta = theta;
 	}
 
-	/** @returns {number} */
-	get radius() {
+	get radius(): number {
 		return this.#radius;
 	}
 
-	/** @param {number} value */
-	set radius(value) {
+	set radius(value: number) {
 		this.#radius = value;
 	}
 
-	/** @returns {number} */
-	get phi() {
+	get phi(): number {
 		return this.#phi;
 	}
 
-	/** @param {number} value */
-	set phi(value) {
+	set phi(value: number) {
 		this.#phi = value;
 	}
 
-	/** @returns {number} */
-	get theta() {
+	get theta(): number {
 		return this.#theta;
 	}
 
-	/** @param {number} value */
-	set theta(value) {
+	set theta(value: number) {
 		this.#theta = value;
 	}
 
-	/**
-	 * @param {number} radius
-	 * @param {number} phi
-	 * @param {number} theta
-	 * @returns {this}
-	 */
-	set(radius, phi, theta) {
+	set(radius: number, phi: number, theta: number): this {
 		this.#radius = radius;
 		this.#phi = phi;
 		this.#theta = theta;
 		return this;
 	}
 
-	/** @returns {Spherical} */
-	clone() {
+	clone(): Spherical {
 		return new Spherical(this.#radius, this.#phi, this.#theta);
 	}
 
-	/**
-	 * @param {Spherical} s
-	 * @returns {this}
-	 */
-	copy(s) {
+	copy(s: Spherical): this {
 		this.#radius = s.radius;
 		this.#phi = s.phi;
 		this.#theta = s.theta;
@@ -78,30 +56,19 @@ export class Spherical {
 
 	/**
 	 * Restricts phi to [EPS, PI - EPS] to avoid singularities at poles.
-	 * @returns {this}
 	 */
-	makeSafe() {
+	makeSafe(): this {
 		const EPS = MathUtils.EPSILON;
 		this.#phi = Math.max(EPS, Math.min(Math.PI - EPS, this.#phi));
 		return this;
 	}
 
-	/**
-	 * Sets from a Vector3 in Cartesian coordinates.
-	 * @param {{ x: number, y: number, z: number }} v
-	 * @returns {this}
-	 */
-	setFromVector3(v) {
+	/** Sets from a Vector3 in Cartesian coordinates. */
+	setFromVector3(v: { x: number; y: number; z: number }): this {
 		return this.setFromCartesianCoords(v.x, v.y, v.z);
 	}
 
-	/**
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} z
-	 * @returns {this}
-	 */
-	setFromCartesianCoords(x, y, z) {
+	setFromCartesianCoords(x: number, y: number, z: number): this {
 		this.#radius = Math.sqrt(x * x + y * y + z * z);
 		if (this.#radius === 0) {
 			this.#phi = 0;

@@ -1,20 +1,26 @@
-import { MathUtils } from "./MathUtils.js";
-import { Vector3 } from "./Vector3.js";
+import { MathUtils } from "./MathUtils.ts";
+import type { Matrix4 } from "./Matrix4.ts";
+import { Vector3 } from "./Vector3.ts";
 
-/**
- * @typedef {{ type: string, matrixWorld: *, updateMatrixWorld: Function, geometry?: { attributes?: { position?: { array: ArrayLike<number>, itemSize: number } } }, children: SceneNode[], visible?: boolean }} SceneNode
- */
+export interface SceneNode {
+	type: string;
+	matrixWorld: Matrix4;
+	updateMatrixWorld: (force: boolean, parentUpdated: boolean) => void;
+	geometry?: {
+		attributes?: {
+			position?: { array: ArrayLike<number>; itemSize: number };
+		};
+	};
+	children: SceneNode[];
+	visible?: boolean;
+}
 
 /** 3D axis-aligned bounding box. */
 export class Box3 {
-	#min;
-	#max;
+	#min: Vector3;
+	#max: Vector3;
 
-	/**
-	 * @param {Vector3} [min]
-	 * @param {Vector3} [max]
-	 */
-	constructor(min, max) {
+	constructor(min?: Vector3, max?: Vector3) {
 		this.#min = min
 			? min.clone()
 			: new Vector3(
@@ -31,53 +37,43 @@ export class Box3 {
 				);
 	}
 
-	/** @returns {Vector3} */
-	get min() {
+	get min(): Vector3 {
 		return this.#min;
 	}
 
-	/** @param {Vector3} value */
-	set min(value) {
+	set min(value: Vector3) {
 		this.#min.copy(value);
 	}
 
-	/** @returns {Vector3} */
-	get max() {
+	get max(): Vector3 {
 		return this.#max;
 	}
 
-	/** @param {Vector3} value */
-	set max(value) {
+	set max(value: Vector3) {
 		this.#max.copy(value);
 	}
 
-	/** @returns {Vector3} */
-	get centre() {
+	get centre(): Vector3 {
 		return this.#min.clone().add(this.#max).mulScalar(0.5);
 	}
 
-	/** @returns {Vector3} */
-	get size() {
+	get size(): Vector3 {
 		return this.#max.clone().sub(this.#min);
 	}
 
-	/** @returns {number} */
-	get width() {
+	get width(): number {
 		return this.#max.x - this.#min.x;
 	}
 
-	/** @returns {number} */
-	get height() {
+	get height(): number {
 		return this.#max.y - this.#min.y;
 	}
 
-	/** @returns {number} */
-	get depth() {
+	get depth(): number {
 		return this.#max.z - this.#min.z;
 	}
 
-	/** @returns {Vector3[]} */
-	get corners() {
+	get corners(): Vector3[] {
 		const { x, y, z } = this.#min;
 		const { x: x2, y: y2, z: z2 } = this.#max;
 
@@ -93,8 +89,7 @@ export class Box3 {
 		];
 	}
 
-	/** @returns {boolean} */
-	get isEmpty() {
+	get isEmpty(): boolean {
 		return (
 			this.#max.x < this.#min.x ||
 			this.#max.y < this.#min.y ||
@@ -102,16 +97,11 @@ export class Box3 {
 		);
 	}
 
-	/** @returns {Box3} */
-	clone() {
+	clone(): Box3 {
 		return new Box3(this.#min.clone(), this.#max.clone());
 	}
 
-	/**
-	 * @param {Box3} box
-	 * @returns {boolean}
-	 */
-	containsBox(box) {
+	containsBox(box: Box3): boolean {
 		return (
 			this.#min.x <= box.min.x &&
 			this.#max.x >= box.max.x &&
@@ -122,11 +112,7 @@ export class Box3 {
 		);
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @returns {boolean}
-	 */
-	containsPoint(point) {
+	containsPoint(point: Vector3): boolean {
 		return (
 			point.x >= this.#min.x &&
 			point.x <= this.#max.x &&
@@ -137,29 +123,17 @@ export class Box3 {
 		);
 	}
 
-	/**
-	 * @param {Box3} box
-	 * @returns {this}
-	 */
-	copy(box) {
+	copy(box: Box3): this {
 		this.#min.copy(box.min);
 		this.#max.copy(box.max);
 		return this;
 	}
 
-	/**
-	 * @param {Box3} box
-	 * @returns {boolean}
-	 */
-	equals(box) {
+	equals(box: Box3): boolean {
 		return box.min.equals(this.#min) && box.max.equals(this.#max);
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @returns {this}
-	 */
-	expandByPoint(point) {
+	expandByPoint(point: Vector3): this {
 		const { x, y, z } = this.#min;
 		const { x: x2, y: y2, z: z2 } = this.#max;
 		const { x: px, y: py, z: pz } = point;
@@ -173,11 +147,7 @@ export class Box3 {
 		return this;
 	}
 
-	/**
-	 * @param {number} scalar
-	 * @returns {this}
-	 */
-	expandByScalar(scalar) {
+	expandByScalar(scalar: number): this {
 		this.#min.x -= scalar;
 		this.#min.y -= scalar;
 		this.#min.z -= scalar;
@@ -187,29 +157,17 @@ export class Box3 {
 		return this;
 	}
 
-	/**
-	 * @param {Vector3} v
-	 * @returns {this}
-	 */
-	expandByVector3(v) {
+	expandByVector3(v: Vector3): this {
 		this.#min.sub(v);
 		this.#max.add(v);
 		return this;
 	}
 
-	/**
-	 * @param {Vector3} out
-	 * @returns {Vector3}
-	 */
-	getCentre(out) {
+	getCentre(out: Vector3): Vector3 {
 		return out.copy(this.#min).add(this.#max).mulScalar(0.5);
 	}
 
-	/**
-	 * @param {Box3} box
-	 * @returns {boolean}
-	 */
-	intersectsBox(box) {
+	intersectsBox(box: Box3): boolean {
 		return (
 			this.#max.x >= box.min.x &&
 			this.#min.x <= box.max.x &&
@@ -220,11 +178,7 @@ export class Box3 {
 		);
 	}
 
-	/**
-	 * @param {{ centre: Vector3, radius: number }} sphere
-	 * @returns {boolean}
-	 */
-	intersectsSphere(sphere) {
+	intersectsSphere(sphere: { centre: Vector3; radius: number }): boolean {
 		const closestPoint = new Vector3();
 		closestPoint.x = MathUtils.fastMin(
 			MathUtils.fastMax(sphere.centre.x, this.#min.x),
@@ -244,8 +198,7 @@ export class Box3 {
 		);
 	}
 
-	/** @returns {this} */
-	makeEmpty() {
+	makeEmpty(): this {
 		this.#min.set(
 			Number.POSITIVE_INFINITY,
 			Number.POSITIVE_INFINITY,
@@ -259,12 +212,7 @@ export class Box3 {
 		return this;
 	}
 
-	/**
-	 * @param {Vector3} centre
-	 * @param {Vector3} size
-	 * @returns {this}
-	 */
-	setFromCentreAndSize(centre, size) {
+	setFromCentreAndSize(centre: Vector3, size: Vector3): this {
 		const halfSize = size.clone().mulScalar(0.5);
 		this.#min.copy(centre).sub(halfSize);
 		this.#max.copy(centre).add(halfSize);
@@ -275,21 +223,15 @@ export class Box3 {
 	 * Computes the world-space bounding box of an object and its visible
 	 * children. Accesses vertex positions via `object.geometry?.attributes?.position`
 	 * for Mesh nodes; will be refined once Geometry is implemented.
-	 *
-	 * @param {SceneNode} object
-	 * @returns {this}
 	 */
-	setFromObject(object) {
+	setFromObject(object: SceneNode): this {
 		this.makeEmpty();
 		object.updateMatrixWorld(true, false);
 		this.#expandFromObject(object);
 		return this;
 	}
 
-	/**
-	 * @param {SceneNode} obj
-	 */
-	#expandFromObject(obj) {
+	#expandFromObject(obj: SceneNode): void {
 		if (obj.type === "Mesh") {
 			const posAttr = obj.geometry?.attributes?.position;
 			if (posAttr && posAttr.array.length > 0) {
@@ -299,9 +241,9 @@ export class Box3 {
 				const count = arr.length / itemSize;
 				for (let i = 0; i < count; i++) {
 					const vertex = new Vector3(
-						arr[i * itemSize],
-						arr[i * itemSize + 1],
-						arr[i * itemSize + 2],
+						arr[i * itemSize] as number,
+						arr[i * itemSize + 1] as number,
+						arr[i * itemSize + 2] as number,
 					);
 					this.expandByPoint(vertex.applyMatrix4(obj.matrixWorld));
 				}
@@ -312,11 +254,7 @@ export class Box3 {
 		}
 	}
 
-	/**
-	 * @param {Vector3[]} points
-	 * @returns {this}
-	 */
-	setFromPoints(points) {
+	setFromPoints(points: Vector3[]): this {
 		this.makeEmpty();
 		for (const point of points) {
 			this.expandByPoint(point);
@@ -324,21 +262,13 @@ export class Box3 {
 		return this;
 	}
 
-	/**
-	 * @param {Vector3} offset
-	 * @returns {this}
-	 */
-	translate(offset) {
+	translate(offset: Vector3): this {
 		this.#min.add(offset);
 		this.#max.add(offset);
 		return this;
 	}
 
-	/**
-	 * @param {Box3} box
-	 * @returns {this}
-	 */
-	union(box) {
+	union(box: Box3): this {
 		const { x, y, z } = this.#min;
 		const { x: x2, y: y2, z: z2 } = this.#max;
 		const { x: px, y: py, z: pz } = box.min;

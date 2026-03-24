@@ -1,4 +1,4 @@
-import { MathUtils } from "../../math/MathUtils.js";
+import { MathUtils } from "../../math/MathUtils.ts";
 
 /** Per-vertex color interpolator for Gouraud shading. */
 export class GouraudInterpolator {

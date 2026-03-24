@@ -1,4 +1,4 @@
-import { Vector3 } from "./Vector3.js";
+import { Vector3 } from "./Vector3.ts";
 
 const _v1 = new Vector3();
 const _v2 = new Vector3();
@@ -8,23 +8,21 @@ const _edge1 = new Vector3();
 const _edge2 = new Vector3();
 const _normal = new Vector3();
 
-/**
- * Handles the s0 >= 0 sub-case of ray-segment distance (det > 0 branch).
- * @param {number} s0In
- * @param {number} s1In
- * @param {number} extDet
- * @param {number} segExtent
- * @param {number} a01
- * @param {number} b0
- * @param {number} b1
- * @param {number} det
- * @param {number} c
- * @returns {{ s0: number, s1: number, sqrDist: number }}
- */
-function _segS0NonNeg(s0In, s1In, extDet, segExtent, a01, b0, b1, det, c) {
+/** Handles the s0 >= 0 sub-case of ray-segment distance (det > 0 branch). */
+function _segS0NonNeg(
+	s0In: number,
+	s1In: number,
+	extDet: number,
+	segExtent: number,
+	a01: number,
+	b0: number,
+	b1: number,
+	det: number,
+	c: number,
+): { s0: number; s1: number; sqrDist: number } {
 	let s0 = s0In;
 	let s1 = s1In;
-	let sqrDist;
+	let sqrDist: number;
 	if (s1 >= -extDet) {
 		if (s1 <= extDet) {
 			const invDet = 1 / det;
@@ -45,23 +43,21 @@ function _segS0NonNeg(s0In, s1In, extDet, segExtent, a01, b0, b1, det, c) {
 	return { s0, s1, sqrDist };
 }
 
-/**
- * Handles the det > 0 case of ray-segment distance.
- * @param {number} s0In
- * @param {number} s1In
- * @param {number} extDet
- * @param {number} segExtent
- * @param {number} a01
- * @param {number} b0
- * @param {number} b1
- * @param {number} det
- * @param {number} c
- * @returns {{ s0: number, s1: number, sqrDist: number }}
- */
-function _segDetNonZero(s0In, s1In, extDet, segExtent, a01, b0, b1, det, c) {
+/** Handles the det > 0 case of ray-segment distance. */
+function _segDetNonZero(
+	s0In: number,
+	s1In: number,
+	extDet: number,
+	segExtent: number,
+	a01: number,
+	b0: number,
+	b1: number,
+	det: number,
+	c: number,
+): { s0: number; s1: number; sqrDist: number } {
 	let s0 = s0In;
 	let s1 = s1In;
-	let sqrDist;
+	let sqrDist: number;
 	if (s0 >= 0) {
 		return _segS0NonNeg(s0, s1, extDet, segExtent, a01, b0, b1, det, c);
 	}
@@ -81,15 +77,13 @@ function _segDetNonZero(s0In, s1In, extDet, segExtent, a01, b0, b1, det, c) {
 	return { s0, s1, sqrDist };
 }
 
-/**
- * Computes slab interval along one axis for ray-box intersection.
- * @param {number} minVal
- * @param {number} maxVal
- * @param {number} originVal
- * @param {number} invdir
- * @returns {{ lo: number, hi: number }}
- */
-function _boxSlab(minVal, maxVal, originVal, invdir) {
+/** Computes slab interval along one axis for ray-box intersection. */
+function _boxSlab(
+	minVal: number,
+	maxVal: number,
+	originVal: number,
+	invdir: number,
+): { lo: number; hi: number } {
 	if (invdir >= 0) {
 		return {
 			lo: (minVal - originVal) * invdir,
@@ -107,10 +101,6 @@ export class Ray {
 	#origin = new Vector3(0, 0, 0);
 	#direction = new Vector3(0, 0, -1);
 
-	/**
-	 * @param {Vector3} [origin]
-	 * @param {Vector3} [direction]
-	 */
 	constructor(
 		origin = new Vector3(0, 0, 0),
 		direction = new Vector3(0, 0, -1),
@@ -119,122 +109,80 @@ export class Ray {
 		this.#direction = direction.clone();
 	}
 
-	/** @returns {Vector3} */
-	get origin() {
+	get origin(): Vector3 {
 		return this.#origin;
 	}
 
-	/** @param {Vector3} value */
-	set origin(value) {
+	set origin(value: Vector3) {
 		this.#origin.copy(value);
 	}
 
-	/** @returns {Vector3} */
-	get direction() {
+	get direction(): Vector3 {
 		return this.#direction;
 	}
 
-	/** @param {Vector3} value */
-	set direction(value) {
+	set direction(value: Vector3) {
 		this.#direction.copy(value);
 	}
 
-	/**
-	 * @param {Vector3} origin
-	 * @param {Vector3} direction
-	 * @returns {this}
-	 */
-	set(origin, direction) {
+	set(origin: Vector3, direction: Vector3): this {
 		this.#origin.copy(origin);
 		this.#direction.copy(direction);
 		return this;
 	}
 
-	/** @returns {Ray} */
-	clone() {
+	clone(): Ray {
 		return new Ray(this.#origin, this.#direction);
 	}
 
-	/**
-	 * @param {Ray} ray
-	 * @returns {this}
-	 */
-	copy(ray) {
+	copy(ray: Ray): this {
 		this.#origin.copy(ray.origin);
 		this.#direction.copy(ray.direction);
 		return this;
 	}
 
-	/**
-	 * Returns the point at parameter t along the ray.
-	 * @param {number} t
-	 * @param {Vector3} [target]
-	 * @returns {Vector3}
-	 */
-	at(t, target = new Vector3()) {
+	/** Returns the point at parameter t along the ray. */
+	at(t: number, target = new Vector3()): Vector3 {
 		return target.copy(this.#direction).mulScalar(t).add(this.#origin);
 	}
 
-	/**
-	 * Aims the ray direction toward v.
-	 * @param {Vector3} v
-	 * @returns {this}
-	 */
-	lookAt(v) {
+	/** Aims the ray direction toward v. */
+	lookAt(v: Vector3): this {
 		this.#direction.copy(v).sub(this.#origin).normalize();
 		return this;
 	}
 
-	/**
-	 * Moves the origin to the point at t and keeps the direction.
-	 * @param {number} t
-	 * @returns {this}
-	 */
-	recast(t) {
+	/** Moves the origin to the point at t and keeps the direction. */
+	recast(t: number): this {
 		this.#origin.copy(this.at(t, _v1));
 		return this;
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @param {Vector3} [target]
-	 * @returns {Vector3}
-	 */
-	closestPointToPoint(point, target = new Vector3()) {
+	closestPointToPoint(point: Vector3, target = new Vector3()): Vector3 {
 		target.copy(point).sub(this.#origin);
 		const dirDist = target.dot(this.#direction);
 		if (dirDist < 0) return target.copy(this.#origin);
 		return target.copy(this.#direction).mulScalar(dirDist).add(this.#origin);
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @returns {number}
-	 */
-	distanceToPoint(point) {
+	distanceToPoint(point: Vector3): number {
 		return Math.sqrt(this.distanceSqToPoint(point));
 	}
 
-	/**
-	 * @param {Vector3} point
-	 * @returns {number}
-	 */
-	distanceSqToPoint(point) {
+	distanceSqToPoint(point: Vector3): number {
 		const dirDist = _v1.copy(point).sub(this.#origin).dot(this.#direction);
 		if (dirDist < 0) return this.#origin.distanceSqTo(point);
 		_v1.copy(this.#direction).mulScalar(dirDist).add(this.#origin);
 		return _v1.distanceSqTo(point);
 	}
 
-	/**
-	 * Squared distance from the ray to the closest point on a segment [v0,v1].
-	 * @param {Vector3} v0
-	 * @param {Vector3} v1
-	 * @param {Vector3} [optionalPointOnRay]
-	 * @param {Vector3} [optionalPointOnSegment]
-	 * @returns {number}
-	 */
-	distanceSqToSegment(v0, v1, optionalPointOnRay, optionalPointOnSegment) {
+	/** Squared distance from the ray to the closest point on a segment [v0,v1]. */
+	distanceSqToSegment(
+		v0: Vector3,
+		v1: Vector3,
+		optionalPointOnRay?: Vector3,
+		optionalPointOnSegment?: Vector3,
+	): number {
 		const segCenter = _v1.copy(v0).add(v1).mulScalar(0.5);
 		const segDir = _v2.copy(v1).sub(v0).normalize();
 		const diff = _v3.copy(this.#origin).sub(segCenter);
@@ -246,9 +194,9 @@ export class Ray {
 		const c = diff.dot(diff);
 		const det = Math.abs(1 - a01 * a01);
 
-		let s0;
-		let s1;
-		let sqrDist;
+		let s0: number;
+		let s1: number;
+		let sqrDist: number;
 
 		if (det > 0) {
 			const s0raw = a01 * b1 - b0;
@@ -284,12 +232,10 @@ export class Ray {
 		return sqrDist;
 	}
 
-	/**
-	 * @param {{ centre: Vector3, radius: number }} sphere
-	 * @param {Vector3} [target]
-	 * @returns {Vector3|undefined}
-	 */
-	intersectSphere(sphere, target = new Vector3()) {
+	intersectSphere(
+		sphere: { centre: Vector3; radius: number },
+		target = new Vector3(),
+	): Vector3 | undefined {
 		_v1.copy(sphere.centre).sub(this.#origin);
 		const tca = _v1.dot(this.#direction);
 		const d2 = _v1.dot(_v1) - tca * tca;
@@ -302,43 +248,32 @@ export class Ray {
 		return this.at(t0 >= 0 ? t0 : t1, target);
 	}
 
-	/**
-	 * @param {{ centre: Vector3, radius: number }} sphere
-	 * @returns {boolean}
-	 */
-	intersectsSphere(sphere) {
+	intersectsSphere(sphere: { centre: Vector3; radius: number }): boolean {
 		return (
 			this.distanceSqToPoint(sphere.centre) <= sphere.radius * sphere.radius
 		);
 	}
 
-	/**
-	 * @param {{ normal: Vector3, constant: number }} plane
-	 * @param {Vector3} [target]
-	 * @returns {Vector3|undefined}
-	 */
-	intersectPlane(plane, target = new Vector3()) {
+	intersectPlane(
+		plane: { normal: Vector3; constant: number },
+		target = new Vector3(),
+	): Vector3 | undefined {
 		const t = this.distanceToPlane(plane);
 		if (t === undefined) return undefined;
 		return this.at(t, target);
 	}
 
-	/**
-	 * @param {{ normal: Vector3, constant: number }} plane
-	 * @returns {boolean}
-	 */
-	intersectsPlane(plane) {
+	intersectsPlane(plane: { normal: Vector3; constant: number }): boolean {
 		const distToPoint = plane.normal.dot(this.#origin) + plane.constant;
 		if (distToPoint === 0) return true;
 		const denominator = plane.normal.dot(this.#direction);
 		return denominator * distToPoint < 0;
 	}
 
-	/**
-	 * @param {{ normal: Vector3, constant: number }} plane
-	 * @returns {number|undefined}
-	 */
-	distanceToPlane(plane) {
+	distanceToPlane(plane: {
+		normal: Vector3;
+		constant: number;
+	}): number | undefined {
 		const denominator = plane.normal.dot(this.#direction);
 		if (denominator === 0) {
 			if (plane.normal.dot(this.#origin) + plane.constant === 0) return 0;
@@ -348,12 +283,10 @@ export class Ray {
 		return t >= 0 ? t : undefined;
 	}
 
-	/**
-	 * @param {{ min: Vector3, max: Vector3 }} box
-	 * @param {Vector3} [target]
-	 * @returns {Vector3|undefined}
-	 */
-	intersectBox3(box, target = new Vector3()) {
+	intersectBox3(
+		box: { min: Vector3; max: Vector3 },
+		target = new Vector3(),
+	): Vector3 | undefined {
 		const origin = this.#origin;
 		const invdirx = 1 / this.#direction.x;
 		const invdiry = 1 / this.#direction.y;
@@ -376,30 +309,24 @@ export class Ray {
 		return this.at(tmin >= 0 ? tmin : tmax, target);
 	}
 
-	/**
-	 * @param {{ min: Vector3, max: Vector3 }} box
-	 * @returns {boolean}
-	 */
-	intersectsBox3(box) {
+	intersectsBox3(box: { min: Vector3; max: Vector3 }): boolean {
 		return this.intersectBox3(box, _v1) !== undefined;
 	}
 
-	/**
-	 * Möller–Trumbore ray-triangle intersection.
-	 * @param {Vector3} a
-	 * @param {Vector3} b
-	 * @param {Vector3} c
-	 * @param {boolean} backfaceCulling
-	 * @param {Vector3} [target]
-	 * @returns {Vector3|undefined}
-	 */
-	intersectTriangle(a, b, c, backfaceCulling, target = new Vector3()) {
+	/** Moller-Trumbore ray-triangle intersection. */
+	intersectTriangle(
+		a: Vector3,
+		b: Vector3,
+		c: Vector3,
+		backfaceCulling: boolean,
+		target = new Vector3(),
+	): Vector3 | undefined {
 		_edge1.copy(b).sub(a);
 		_edge2.copy(c).sub(a);
 		_normal.copy(_edge1).cross(_edge2);
 
 		let DdN = this.#direction.dot(_normal);
-		let sign;
+		let sign: number;
 		if (DdN > 0) {
 			if (backfaceCulling) return undefined;
 			sign = 1;
@@ -427,11 +354,7 @@ export class Ray {
 		return this.at(QdN / DdN, target);
 	}
 
-	/**
-	 * @param {{ elements: ArrayLike<number> }} matrix4
-	 * @returns {this}
-	 */
-	applyMatrix4(matrix4) {
+	applyMatrix4(matrix4: { elements: ArrayLike<number> }): this {
 		this.#direction.add(this.#origin);
 		this.#origin.applyMatrix4(matrix4);
 		this.#direction.applyMatrix4(matrix4);
@@ -439,11 +362,7 @@ export class Ray {
 		return this;
 	}
 
-	/**
-	 * @param {Ray} ray
-	 * @returns {boolean}
-	 */
-	equals(ray) {
+	equals(ray: Ray): boolean {
 		return (
 			ray.origin.equals(this.#origin) && ray.direction.equals(this.#direction)
 		);

@@ -1,7 +1,7 @@
 import { Node } from "../core/Node.js";
 import { Attribute } from "../geometry/Attribute.js";
 import { Geometry } from "../geometry/Geometry.js";
-import { Vector3 } from "../math/Vector3.js";
+import { Vector3 } from "../math/Vector3.ts";
 import { LineSegments } from "../objects/LineSegments.js";
 
 /**

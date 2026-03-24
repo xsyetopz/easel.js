@@ -1,4 +1,4 @@
-import { Vector3 } from "../../math/Vector3.js";
+import { Vector3 } from "../../math/Vector3.ts";
 import { Curve } from "../Curve.js";
 
 /** 3D straight line segment between two points. */

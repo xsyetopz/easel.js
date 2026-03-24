@@ -1,5 +1,5 @@
 import { LightType } from "../core/Constants.js";
-import { Vector3 } from "../math/Vector3.js";
+import { Vector3 } from "../math/Vector3.ts";
 import { Light } from "./Light.js";
 
 /** @typedef {import("../core/Node.js").Node} Node */

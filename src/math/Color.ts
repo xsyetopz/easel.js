@@ -1,11 +1,20 @@
-import { MathUtils } from "./MathUtils.js";
+import { MathUtils } from "./MathUtils.ts";
 
-/**
- * @typedef {{ r: number, g: number, b: number }} RGB
- * @typedef {{ h: number, s: number, l: number }} HSL
- * @typedef {number[]} RGBArray  Three-element [r, g, b] tuple (0–1 range)
- * @typedef {number | string | Color} ColorValue
- */
+export interface RGB {
+	r: number;
+	g: number;
+	b: number;
+}
+
+export interface HSL {
+	h: number;
+	s: number;
+	l: number;
+}
+
+export type RGBArray = [number, number, number];
+
+export type ColorValue = number | string | Color;
 
 /** RGB color with channel values in [0, 1]. */
 export class Color {
@@ -15,11 +24,7 @@ export class Color {
 
 	static RGB_SCALE = 255;
 
-	/**
-	 * @param {ColorValue} color
-	 * @returns {RGB}
-	 */
-	static toRGB(color) {
+	static toRGB(color: ColorValue): RGB {
 		const tempColor = new Color(color);
 		return {
 			r: MathUtils.fastTrunc(tempColor.r * Color.RGB_SCALE),
@@ -31,11 +36,8 @@ export class Color {
 	/**
 	 * Creates a Color from a packed 16-bit HSL integer produced by
 	 * {@link MathUtils.packHsl16}.
-	 *
-	 * @param {number} value
-	 * @returns {Color}
 	 */
-	static fromHsl16(value) {
+	static fromHsl16(value: number): Color {
 		const { h, s, l } = MathUtils.unpackHsl16(value);
 		return new Color().setHSL(h, s, l);
 	}
@@ -47,12 +49,15 @@ export class Color {
 	/**
 	 * Accepts a single ColorValue or three separate r, g, b components.
 	 * With no arguments the color is initialised to black.
-	 *
-	 * @param {...any} args
 	 */
-	constructor(...args) {
-		if (args.length > 0) {
-			this.set(...args);
+	constructor();
+	constructor(value: ColorValue);
+	constructor(r: number, g: number, b: number);
+	constructor(...args: [] | [ColorValue] | [number, number, number]) {
+		if (args.length === 3) {
+			this.set(args[0], args[1], args[2]);
+		} else if (args.length === 1) {
+			this.set(args[0]);
 		} else {
 			this.r = 0;
 			this.g = 0;
@@ -60,8 +65,7 @@ export class Color {
 		}
 	}
 
-	/** @returns {number} */
-	get hex() {
+	get hex(): number {
 		return (
 			((this.r * Color.RGB_SCALE) << 16) ^
 			((this.g * Color.RGB_SCALE) << 8) ^
@@ -69,13 +73,11 @@ export class Color {
 		);
 	}
 
-	/** @returns {string} */
-	get hexString() {
+	get hexString(): string {
 		return `#${this.hex.toString(16).padStart(6, "0")}`;
 	}
 
-	/** @returns {HSL} */
-	get hsl() {
+	get hsl(): HSL {
 		const r = this.r;
 		const g = this.g;
 		const b = this.b;
@@ -103,18 +105,13 @@ export class Color {
 		return { h, s, l };
 	}
 
-	/**
-	 * Returns the color as a packed 16-bit HSL integer.
-	 *
-	 * @returns {number}
-	 */
-	get hsl16() {
+	/** Returns the color as a packed 16-bit HSL integer. */
+	get hsl16(): number {
 		const { h, s, l } = this.hsl;
 		return MathUtils.packHsl16(h, s, l);
 	}
 
-	/** @returns {string} */
-	get hslString() {
+	get hslString(): string {
 		const hsl = this.hsl;
 
 		const h = MathUtils.fastTrunc(hsl.h * Color.HUE_SCALE);
@@ -123,29 +120,19 @@ export class Color {
 		return `hsl(${h},${s}%,${l}%)`;
 	}
 
-	/** @returns {Color} */
-	clone() {
+	clone(): Color {
 		return new Color(this);
 	}
 
-	/**
-	 * @param {Color} source
-	 * @returns {this}
-	 */
-	copy(source) {
+	copy(source: Color): this {
 		this.r = source.r;
 		this.g = source.g;
 		this.b = source.b;
 		return this;
 	}
 
-	/**
-	 * Writes h, s, l into target and returns it.
-	 *
-	 * @param {{ h: number, s: number, l: number }} [target]
-	 * @returns {{ h: number, s: number, l: number }}
-	 */
-	getHSL(target = { h: 0, s: 0, l: 0 }) {
+	/** Writes h, s, l into target and returns it. */
+	getHSL(target: HSL = { h: 0, s: 0, l: 0 }): HSL {
 		const { h, s, l } = this.hsl;
 		target.h = h;
 		target.s = s;
@@ -153,24 +140,14 @@ export class Color {
 		return target;
 	}
 
-	/**
-	 * @param {Color} c1
-	 * @param {Color} c2
-	 * @param {number} t
-	 * @returns {this}
-	 */
-	lerpColors(c1, c2, t) {
+	lerpColors(c1: Color, c2: Color, t: number): this {
 		this.r = c1.r + (c2.r - c1.r) * t;
 		this.g = c1.g + (c2.g - c1.g) * t;
 		this.b = c1.b + (c2.b - c1.b) * t;
 		return this;
 	}
 
-	/**
-	 * @param {ColorValue} value
-	 * @returns {this}
-	 */
-	parse(value) {
+	parse(value: ColorValue): this {
 		if (value instanceof Color) {
 			this.copy(value);
 			return this;
@@ -185,13 +162,10 @@ export class Color {
 		throw new Error(`EASEL.Color.parse(): invalid value: ${value}`);
 	}
 
-	/**
-	 * Accepts a single ColorValue or three separate r, g, b components.
-	 *
-	 * @param {...any} args
-	 * @returns {this}
-	 */
-	set(...args) {
+	/** Accepts a single ColorValue or three separate r, g, b components. */
+	set(value: ColorValue): this;
+	set(r: number, g: number, b: number): this;
+	set(...args: [ColorValue] | [number, number, number]): this {
 		if (args.length === 1) {
 			const value = args[0];
 
@@ -209,11 +183,8 @@ export class Color {
 		return this;
 	}
 
-	/**
-	 * @param {number} value  24-bit integer (0x000000–0xFFFFFF)
-	 * @returns {this}
-	 */
-	setHex(value) {
+	/** @param value 24-bit integer (0x000000-0xFFFFFF) */
+	setHex(value: number): this {
 		if (value > 0xffffff || value < 0) {
 			throw new Error("EASEL.Color.setHex(): hex out of range");
 		}
@@ -226,17 +197,12 @@ export class Color {
 	}
 
 	/**
-	 * @param {number} h  Hue in [0, 1]
-	 * @param {number} s  Saturation in [0, 1]
-	 * @param {number} l  Lightness in [0, 1]
-	 * @returns {this}
+	 * @param h Hue in [0, 1]
+	 * @param s Saturation in [0, 1]
+	 * @param l Lightness in [0, 1]
 	 */
-	setHSL(h, s, l) {
-		const hue2rgb = (
-			/** @type {number} */ p,
-			/** @type {number} */ q,
-			/** @type {number} */ _t,
-		) => {
+	setHSL(h: number, s: number, l: number): this {
+		const hue2rgb = (p: number, q: number, _t: number): number => {
 			let t = _t;
 			if (t < 0) t += 1;
 			if (t > 1) t -= 1;
@@ -262,15 +228,8 @@ export class Color {
 		return this;
 	}
 
-	/**
-	 * Components must be in [0, 1] range (not 0–255).
-	 *
-	 * @param {number} r
-	 * @param {number} g
-	 * @param {number} b
-	 * @returns {this}
-	 */
-	setRGB(r, g, b) {
+	/** Components must be in [0, 1] range (not 0-255). */
+	setRGB(r: number, g: number, b: number): this {
 		if (r > Color.RGB_SCALE || g > Color.RGB_SCALE || b > Color.RGB_SCALE) {
 			throw new Error("EASEL.Color.setRGB(): rgb out of range");
 		}
@@ -281,11 +240,8 @@ export class Color {
 		return this;
 	}
 
-	/**
-	 * @param {string} value  CSS color string: `#rgb`, `#rrggbb`, `rgb(…)`, `hsl(…)`
-	 * @returns {this}
-	 */
-	setStyle(value) {
+	/** @param value CSS color string: `#rgb`, `#rrggbb`, `rgb(...)`, `hsl(...)` */
+	setStyle(value: string): this {
 		const style = value.toLowerCase();
 		if (style.startsWith("#")) return this.#parseHex(style);
 		if (style.startsWith("rgb")) return this.#parseRGB(style);
@@ -294,11 +250,7 @@ export class Color {
 		throw new Error(`EASEL.Color.setStyle(): invalid style: ${style}`);
 	}
 
-	/**
-	 * @param {string} style
-	 * @returns {this}
-	 */
-	#parseHex(style) {
+	#parseHex(style: string): this {
 		if (style.length !== 4 && style.length !== 7) {
 			throw new Error(
 				"EASEL.Color.#parseHex(): hex style must be in '#rgb' or '#rrggbb' format",
@@ -316,11 +268,7 @@ export class Color {
 		return this.setHex(Number.parseInt(hex, 16));
 	}
 
-	/**
-	 * @param {string} style
-	 * @returns {this}
-	 */
-	#parseHSL(style) {
+	#parseHSL(style: string): this {
 		const values = style.match(/\d+/g);
 		if (!values || values.length < 3) {
 			throw new Error(
@@ -335,11 +283,7 @@ export class Color {
 		const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
 		const p = 2 * l - q;
 
-		const hueToRGB = (
-			/** @type {number} */ pp,
-			/** @type {number} */ qq,
-			/** @type {number} */ _t,
-		) => {
+		const hueToRGB = (pp: number, qq: number, _t: number): number => {
 			let t = _t;
 			if (t < 0) t += 1;
 			if (t > 1) t -= 1;
@@ -355,11 +299,7 @@ export class Color {
 		return this;
 	}
 
-	/**
-	 * @param {string} style
-	 * @returns {this}
-	 */
-	#parseRGB(style) {
+	#parseRGB(style: string): this {
 		const values = style.match(/\d+/g);
 		if (!values || values.length < 3) {
 			throw new Error(

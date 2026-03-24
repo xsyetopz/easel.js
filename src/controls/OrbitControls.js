@@ -1,7 +1,7 @@
 import { EventDispatcher } from "../core/EventDispatcher.js";
-import { MathUtils } from "../math/MathUtils.js";
-import { Spherical } from "../math/Spherical.js";
-import { Vector3 } from "../math/Vector3.js";
+import { MathUtils } from "../math/MathUtils.ts";
+import { Spherical } from "../math/Spherical.ts";
+import { Vector3 } from "../math/Vector3.ts";
 
 /** @typedef {{ position: Vector3, matrixWorld: { elements: number[] }, lookAt: (target: Vector3) => void, updateMatrixWorld: (force?: boolean) => void }} OrbitCamera */
 

@@ -1,7 +1,7 @@
 import { LightType, Side } from "../core/Constants.js";
-import { Frustum } from "../math/Frustum.js";
-import { Matrix4 } from "../math/Matrix4.js";
-import { Vector3 } from "../math/Vector3.js";
+import { Frustum } from "../math/Frustum.ts";
+import { Matrix4 } from "../math/Matrix4.ts";
+import { Vector3 } from "../math/Vector3.ts";
 import { DrawCall } from "./DrawCall.js";
 import { DrawList } from "./DrawList.js";
 import { buildInstancedDrawCalls } from "./InstancedMeshBuilder.js";

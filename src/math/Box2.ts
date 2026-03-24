@@ -1,4 +1,4 @@
-import { Vector2 } from "./Vector2.js";
+import { Vector2 } from "./Vector2.ts";
 
 const _v = new Vector2();
 
@@ -7,10 +7,6 @@ export class Box2 {
 	#min = new Vector2(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
 	#max = new Vector2(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
 
-	/**
-	 * @param {Vector2} [min]
-	 * @param {Vector2} [max]
-	 */
 	constructor(
 		min = new Vector2(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
 		max = new Vector2(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY),
@@ -19,69 +15,49 @@ export class Box2 {
 		this.#max = max.clone();
 	}
 
-	/** @returns {Vector2} */
-	get min() {
+	get min(): Vector2 {
 		return this.#min;
 	}
 
-	/** @param {Vector2} value */
-	set min(value) {
+	set min(value: Vector2) {
 		this.#min.copy(value);
 	}
 
-	/** @returns {Vector2} */
-	get max() {
+	get max(): Vector2 {
 		return this.#max;
 	}
 
-	/** @param {Vector2} value */
-	set max(value) {
+	set max(value: Vector2) {
 		this.#max.copy(value);
 	}
 
-	/**
-	 * @param {Vector2} min
-	 * @param {Vector2} max
-	 * @returns {this}
-	 */
-	set(min, max) {
+	set(min: Vector2, max: Vector2): this {
 		this.#min.copy(min);
 		this.#max.copy(max);
 		return this;
 	}
 
-	/** @returns {Box2} */
-	clone() {
+	clone(): Box2 {
 		return new Box2(this.#min, this.#max);
 	}
 
-	/**
-	 * @param {Box2} box
-	 * @returns {this}
-	 */
-	copy(box) {
+	copy(box: Box2): this {
 		this.#min.copy(box.min);
 		this.#max.copy(box.max);
 		return this;
 	}
 
-	/** @returns {this} */
-	makeEmpty() {
+	makeEmpty(): this {
 		this.#min.set(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
 		this.#max.set(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
 		return this;
 	}
 
-	/** @returns {boolean} */
-	isEmpty() {
+	isEmpty(): boolean {
 		return this.#max.x < this.#min.x || this.#max.y < this.#min.y;
 	}
 
-	/**
-	 * @param {Vector2} [target]
-	 * @returns {Vector2}
-	 */
-	getCenter(target = new Vector2()) {
+	getCenter(target = new Vector2()): Vector2 {
 		return this.isEmpty()
 			? target.set(0, 0)
 			: target.set(
@@ -90,21 +66,13 @@ export class Box2 {
 				);
 	}
 
-	/**
-	 * @param {Vector2} [target]
-	 * @returns {Vector2}
-	 */
-	getSize(target = new Vector2()) {
+	getSize(target = new Vector2()): Vector2 {
 		return this.isEmpty()
 			? target.set(0, 0)
 			: target.set(this.#max.x - this.#min.x, this.#max.y - this.#min.y);
 	}
 
-	/**
-	 * @param {Vector2} point
-	 * @returns {this}
-	 */
-	expandByPoint(point) {
+	expandByPoint(point: Vector2): this {
 		if (point.x < this.#min.x) this.#min.x = point.x;
 		if (point.y < this.#min.y) this.#min.y = point.y;
 		if (point.x > this.#max.x) this.#max.x = point.x;
@@ -112,11 +80,7 @@ export class Box2 {
 		return this;
 	}
 
-	/**
-	 * @param {Vector2} vector
-	 * @returns {this}
-	 */
-	expandByVector(vector) {
+	expandByVector(vector: Vector2): this {
 		this.#min.x -= vector.x;
 		this.#min.y -= vector.y;
 		this.#max.x += vector.x;
@@ -124,11 +88,7 @@ export class Box2 {
 		return this;
 	}
 
-	/**
-	 * @param {number} scalar
-	 * @returns {this}
-	 */
-	expandByScalar(scalar) {
+	expandByScalar(scalar: number): this {
 		this.#min.x -= scalar;
 		this.#min.y -= scalar;
 		this.#max.x += scalar;
@@ -136,11 +96,7 @@ export class Box2 {
 		return this;
 	}
 
-	/**
-	 * @param {Vector2} point
-	 * @returns {boolean}
-	 */
-	containsPoint(point) {
+	containsPoint(point: Vector2): boolean {
 		return (
 			point.x >= this.#min.x &&
 			point.x <= this.#max.x &&
@@ -149,11 +105,7 @@ export class Box2 {
 		);
 	}
 
-	/**
-	 * @param {Box2} box
-	 * @returns {boolean}
-	 */
-	containsBox(box) {
+	containsBox(box: Box2): boolean {
 		return (
 			this.#min.x <= box.min.x &&
 			box.max.x <= this.#max.x &&
@@ -162,24 +114,15 @@ export class Box2 {
 		);
 	}
 
-	/**
-	 * Returns [0,1] parameter of point within box dimensions.
-	 * @param {Vector2} point
-	 * @param {Vector2} [target]
-	 * @returns {Vector2}
-	 */
-	getParameter(point, target = new Vector2()) {
+	/** Returns [0,1] parameter of point within box dimensions. */
+	getParameter(point: Vector2, target = new Vector2()): Vector2 {
 		return target.set(
 			(point.x - this.#min.x) / (this.#max.x - this.#min.x),
 			(point.y - this.#min.y) / (this.#max.y - this.#min.y),
 		);
 	}
 
-	/**
-	 * @param {Box2} box
-	 * @returns {boolean}
-	 */
-	intersectsBox(box) {
+	intersectsBox(box: Box2): boolean {
 		return !(
 			box.max.x < this.#min.x ||
 			box.min.x > this.#max.x ||
@@ -188,34 +131,21 @@ export class Box2 {
 		);
 	}
 
-	/**
-	 * @param {Vector2} point
-	 * @param {Vector2} [target]
-	 * @returns {Vector2}
-	 */
-	clampPoint(point, target = new Vector2()) {
+	clampPoint(point: Vector2, target = new Vector2()): Vector2 {
 		return target.set(
 			Math.max(this.#min.x, Math.min(this.#max.x, point.x)),
 			Math.max(this.#min.y, Math.min(this.#max.y, point.y)),
 		);
 	}
 
-	/**
-	 * @param {Vector2} point
-	 * @returns {number}
-	 */
-	distanceToPoint(point) {
+	distanceToPoint(point: Vector2): number {
 		this.clampPoint(point, _v);
 		_v.sub(point);
 		return Math.sqrt(_v.x * _v.x + _v.y * _v.y);
 	}
 
-	/**
-	 * Returns the intersection of this box with another.
-	 * @param {Box2} box
-	 * @returns {this}
-	 */
-	intersect(box) {
+	/** Returns the intersection of this box with another. */
+	intersect(box: Box2): this {
 		this.#min.x = Math.max(this.#min.x, box.min.x);
 		this.#min.y = Math.max(this.#min.y, box.min.y);
 		this.#max.x = Math.min(this.#max.x, box.max.x);
@@ -223,12 +153,8 @@ export class Box2 {
 		return this;
 	}
 
-	/**
-	 * Expands this box to contain another.
-	 * @param {Box2} box
-	 * @returns {this}
-	 */
-	union(box) {
+	/** Expands this box to contain another. */
+	union(box: Box2): this {
 		this.#min.x = Math.min(this.#min.x, box.min.x);
 		this.#min.y = Math.min(this.#min.y, box.min.y);
 		this.#max.x = Math.max(this.#max.x, box.max.x);
@@ -236,21 +162,13 @@ export class Box2 {
 		return this;
 	}
 
-	/**
-	 * @param {Vector2} offset
-	 * @returns {this}
-	 */
-	translate(offset) {
+	translate(offset: Vector2): this {
 		this.#min.add(offset);
 		this.#max.add(offset);
 		return this;
 	}
 
-	/**
-	 * @param {Box2} box
-	 * @returns {boolean}
-	 */
-	equals(box) {
+	equals(box: Box2): boolean {
 		return box.min.equals(this.#min) && box.max.equals(this.#max);
 	}
 }

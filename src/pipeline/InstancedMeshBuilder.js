@@ -1,5 +1,5 @@
-import { Matrix4 } from "../math/Matrix4.js";
-import { Vector3 } from "../math/Vector3.js";
+import { Matrix4 } from "../math/Matrix4.ts";
+import { Vector3 } from "../math/Vector3.ts";
 import { DrawCall } from "./DrawCall.js";
 import { TriangleBuffer } from "./TriangleBuffer.js";
 

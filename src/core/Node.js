@@ -1,7 +1,7 @@
-import { Euler } from "../math/Euler.js";
-import { Matrix4 } from "../math/Matrix4.js";
-import { Quaternion } from "../math/Quaternion.js";
-import { Vector3 } from "../math/Vector3.js";
+import { Euler } from "../math/Euler.ts";
+import { Matrix4 } from "../math/Matrix4.ts";
+import { Quaternion } from "../math/Quaternion.ts";
+import { Vector3 } from "../math/Vector3.ts";
 import { EventDispatcher } from "./EventDispatcher.js";
 import { Layers } from "./Layers.js";
 

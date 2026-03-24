@@ -327,10 +327,10 @@ export class Rasterizer {
 
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
-				: (((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0);
+				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
 			const ty = wT
 				? (((texV * texH) | 0) + texH) & texHm1
-				: (((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0);
+				: ((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0;
 			const tidx = (ty * texW + tx) << 2;
 
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
@@ -450,10 +450,10 @@ export class Rasterizer {
 
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
-				: (((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0);
+				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
 			const ty = wT
 				? (((texV * texH) | 0) + texH) & texHm1
-				: (((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0);
+				: ((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0;
 			const tidx = (ty * texW + tx) << 2;
 
 			let r;
@@ -550,10 +550,10 @@ export class Rasterizer {
 
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
-				: (((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0);
+				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
 			const ty = wT
 				? (((texV * texH) | 0) + texH) & texHm1
-				: (((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0);
+				: ((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0;
 			const tidx = (ty * texW + tx) << 2;
 
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];

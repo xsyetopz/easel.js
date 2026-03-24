@@ -1,4 +1,4 @@
-import { Quaternion } from "./Quaternion.js";
+import { Quaternion } from "./Quaternion.ts";
 
 const _q = new Quaternion();
 
@@ -8,85 +8,60 @@ export class Vector3 {
 	#y = 0;
 	#z = 0;
 
-	/**
-	 * @param {number} [x]
-	 * @param {number} [y]
-	 * @param {number} [z]
-	 */
 	constructor(x = 0, y = 0, z = 0) {
 		this.#x = x;
 		this.#y = y;
 		this.#z = z;
 	}
 
-	/** @returns {number} */
-	get x() {
+	get x(): number {
 		return this.#x;
 	}
 
-	/** @param {number} value */
-	set x(value) {
+	set x(value: number) {
 		this.#x = value;
 	}
 
-	/** @returns {number} */
-	get y() {
+	get y(): number {
 		return this.#y;
 	}
 
-	/** @param {number} value */
-	set y(value) {
+	set y(value: number) {
 		this.#y = value;
 	}
 
-	/** @returns {number} */
-	get z() {
+	get z(): number {
 		return this.#z;
 	}
 
-	/** @param {number} value */
-	set z(value) {
+	set z(value: number) {
 		this.#z = value;
 	}
 
-	/** @returns {number} */
-	get length() {
+	get length(): number {
 		return Math.sqrt(this.lengthSq);
 	}
 
-	/** @returns {number} */
-	get lengthSq() {
+	get lengthSq(): number {
 		const { x, y, z } = this;
 		return x * x + y * y + z * z;
 	}
 
-	/**
-	 * @param {Vector3} v
-	 * @returns {this}
-	 */
-	add(v) {
+	add(v: Vector3): this {
 		this.x += v.x;
 		this.y += v.y;
 		this.z += v.z;
 		return this;
 	}
 
-	/**
-	 * Applies an Euler rotation (XYZ order) in-place.
-	 * @param {{ x: number, y: number, z: number, order: string }} euler
-	 * @returns {this}
-	 */
-	applyEuler(euler) {
+	/** Applies an Euler rotation (XYZ order) in-place. */
+	applyEuler(euler: { x: number; y: number; z: number; order: string }): this {
 		_q.setFromEuler(euler);
 		return this.applyQuaternion(_q);
 	}
 
-	/**
-	 * Multiplies this vector by a 3x3 matrix (column-major flat array).
-	 * @param {{ elements: ArrayLike<number> }} m
-	 * @returns {this}
-	 */
-	applyMatrix3(m) {
+	/** Multiplies this vector by a 3x3 matrix (column-major flat array). */
+	applyMatrix3(m: { elements: ArrayLike<number> }): this {
 		const me = m.elements;
 		const { x, y, z } = this;
 		this.x = me[0] * x + me[3] * y + me[6] * z;
@@ -95,12 +70,8 @@ export class Vector3 {
 		return this;
 	}
 
-	/**
-	 * Multiplies this vector by a 4x4 matrix (column-major flat array), treating w=1.
-	 * @param {{ elements: ArrayLike<number> }} m
-	 * @returns {this}
-	 */
-	applyMatrix4(m) {
+	/** Multiplies this vector by a 4x4 matrix (column-major flat array), treating w=1. */
+	applyMatrix4(m: { elements: ArrayLike<number> }): this {
 		const me = m.elements;
 		const { x, y, z } = this;
 		const w = 1 / (me[3] * x + me[7] * y + me[11] * z + me[15] || 1);
@@ -110,12 +81,8 @@ export class Vector3 {
 		return this;
 	}
 
-	/**
-	 * Rotates this vector by a quaternion.
-	 * @param {{ x: number, y: number, z: number, w: number }} q
-	 * @returns {this}
-	 */
-	applyQuaternion(q) {
+	/** Rotates this vector by a quaternion. */
+	applyQuaternion(q: { x: number; y: number; z: number; w: number }): this {
 		const { x, y, z } = this;
 		const qx = q.x;
 		const qy = q.y;
@@ -131,54 +98,36 @@ export class Vector3 {
 		return this;
 	}
 
-	/**
-	 * @returns {Vector3}
-	 */
-	clone() {
+	clone(): Vector3 {
 		return new Vector3(this.x, this.y, this.z);
 	}
 
-	/**
-	 * @param {Vector3} v
-	 * @returns {this}
-	 */
-	copy(v) {
+	copy(v: Vector3): this {
 		this.x = v.x;
 		this.y = v.y;
 		this.z = v.z;
 		return this;
 	}
 
-	/**
-	 * Cross product of two 3D vectors, returned as a new Vector3.
-	 * @param {number} x1
-	 * @param {number} y1
-	 * @param {number} z1
-	 * @param {number} x2
-	 * @param {number} y2
-	 * @param {number} z2
-	 * @returns {Vector3}
-	 */
-	static cross(x1, y1, z1, x2, y2, z2) {
+	/** Cross product of two 3D vectors, returned as a new Vector3. */
+	static cross(
+		x1: number,
+		y1: number,
+		z1: number,
+		x2: number,
+		y2: number,
+		z2: number,
+	): Vector3 {
 		return new Vector3(y1 * z2 - y2 * z1, z1 * x2 - z2 * x1, x1 * y2 - x2 * y1);
 	}
 
-	/**
-	 * Sets this vector to the cross product of this × v.
-	 * @param {Vector3} v
-	 * @returns {this}
-	 */
-	cross(v) {
+	/** Sets this vector to the cross product of this x v. */
+	cross(v: Vector3): this {
 		return this.crossVectors(this, v);
 	}
 
-	/**
-	 * Sets this vector to the cross product of a × b.
-	 * @param {Vector3} a
-	 * @param {Vector3} b
-	 * @returns {this}
-	 */
-	crossVectors(a, b) {
+	/** Sets this vector to the cross product of a x b. */
+	crossVectors(a: Vector3, b: Vector3): this {
 		const ax = a.x;
 		const ay = a.y;
 		const az = a.z;
@@ -191,111 +140,70 @@ export class Vector3 {
 		return this;
 	}
 
-	/**
-	 * @param {Vector3} v
-	 * @returns {number}
-	 */
-	distanceTo(v) {
+	distanceTo(v: Vector3): number {
 		return Math.sqrt(this.distanceSqTo(v));
 	}
 
-	/**
-	 * @param {Vector3} v
-	 * @returns {number}
-	 */
-	distanceSqTo(v) {
+	distanceSqTo(v: Vector3): number {
 		const dx = this.x - v.x;
 		const dy = this.y - v.y;
 		const dz = this.z - v.z;
 		return dx * dx + dy * dy + dz * dz;
 	}
 
-	/**
-	 * @param {number} scalar
-	 * @returns {this}
-	 */
-	divScalar(scalar) {
+	divScalar(scalar: number): this {
 		return this.mulScalar(1 / scalar);
 	}
 
-	/**
-	 * Dot product of (x, y, z) with a target vector.
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} z
-	 * @param {Vector3} [target]
-	 * @returns {number}
-	 */
-	static dot(x, y, z, target = new Vector3()) {
+	/** Dot product of (x, y, z) with a target vector. */
+	static dot(
+		x: number,
+		y: number,
+		z: number,
+		target: Vector3 = new Vector3(),
+	): number {
 		return x * target.x + y * target.y + z * target.z;
 	}
 
-	/**
-	 * @param {{ x: number, y: number, z: number }} v
-	 * @returns {number}
-	 */
-	dot(v) {
+	dot(v: { x: number; y: number; z: number }): number {
 		return this.x * v.x + this.y * v.y + this.z * v.z;
 	}
 
-	/**
-	 * @param {Vector3} v
-	 * @returns {boolean}
-	 */
-	equals(v) {
+	equals(v: Vector3): boolean {
 		return this.x === v.x && this.y === v.y && this.z === v.z;
 	}
 
-	/**
-	 * @param {number[]} array
-	 * @returns {this}
-	 */
-	fromArray(array) {
+	fromArray(array: number[]): this {
 		this.x = array[0];
 		this.y = array[1];
 		this.z = array[2];
 		return this;
 	}
 
-	/**
-	 * Linearly interpolates toward v by t.
-	 * @param {Vector3} v
-	 * @param {number} t
-	 * @returns {this}
-	 */
-	lerp(v, t) {
+	/** Linearly interpolates toward v by t. */
+	lerp(v: Vector3, t: number): this {
 		this.x += (v.x - this.x) * t;
 		this.y += (v.y - this.y) * t;
 		this.z += (v.z - this.z) * t;
 		return this;
 	}
 
-	/**
-	 * @param {number} scalar
-	 * @returns {this}
-	 */
-	mulScalar(scalar) {
+	mulScalar(scalar: number): this {
 		this.x *= scalar;
 		this.y *= scalar;
 		this.z *= scalar;
 		return this;
 	}
 
-	/**
-	 * @returns {this}
-	 */
-	negate() {
+	negate(): this {
 		this.x = -this.x;
 		this.y = -this.y;
 		this.z = -this.z;
 		return this;
 	}
 
-	/**
-	 * Normalizes this vector to unit length.
-	 * @returns {this}
-	 */
-	normalize() {
+	/** Normalizes this vector to unit length. */
+	normalize(): this {
 		const len = this.length;
 		return len > 0 ? this.divScalar(len) : this.set(0, 0, 0);
 	}
@@ -303,34 +211,25 @@ export class Vector3 {
 	/**
 	 * Projects this world-space vector into normalized device coordinates
 	 * using the camera's matrixWorldInverse and projectionMatrix.
-	 * @param {{ matrixWorldInverse: { elements: number[] }, projectionMatrix: { elements: number[] } }} camera
-	 * @returns {this}
 	 */
-	project(camera) {
+	project(camera: {
+		matrixWorldInverse: { elements: ArrayLike<number> };
+		projectionMatrix: { elements: ArrayLike<number> };
+	}): this {
 		return this.applyMatrix4(camera.matrixWorldInverse).applyMatrix4(
 			camera.projectionMatrix,
 		);
 	}
 
-	/**
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} z
-	 * @returns {this}
-	 */
-	set(x, y, z) {
+	set(x: number, y: number, z: number): this {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		return this;
 	}
 
-	/**
-	 * Reads the translation column from a 4x4 column-major matrix.
-	 * @param {{ elements: ArrayLike<number> }} m
-	 * @returns {this}
-	 */
-	setFromMatrixPosition(m) {
+	/** Reads the translation column from a 4x4 column-major matrix. */
+	setFromMatrixPosition(m: { elements: ArrayLike<number> }): this {
 		const me = m.elements;
 		this.x = me[12];
 		this.y = me[13];
@@ -338,59 +237,38 @@ export class Vector3 {
 		return this;
 	}
 
-	/**
-	 * @param {number} scalar
-	 * @returns {this}
-	 */
-	setScalar(scalar) {
+	setScalar(scalar: number): this {
 		this.x = scalar;
 		this.y = scalar;
 		this.z = scalar;
 		return this;
 	}
 
-	/**
-	 * @param {Vector3} v
-	 * @returns {this}
-	 */
-	sub(v) {
+	sub(v: Vector3): this {
 		this.x -= v.x;
 		this.y -= v.y;
 		this.z -= v.z;
 		return this;
 	}
 
-	/**
-	 * Sets this vector to a - b.
-	 * @param {Vector3} a
-	 * @param {Vector3} b
-	 * @returns {this}
-	 */
-	subVectors(a, b) {
+	/** Sets this vector to a - b. */
+	subVectors(a: Vector3, b: Vector3): this {
 		this.x = a.x - b.x;
 		this.y = a.y - b.y;
 		this.z = a.z - b.z;
 		return this;
 	}
 
-	/**
-	 * Sets this vector from spherical coordinates.
-	 * @param {{ radius: number, phi: number, theta: number }} s
-	 * @returns {this}
-	 */
-	setFromSpherical(s) {
+	/** Sets this vector from spherical coordinates. */
+	setFromSpherical(s: { radius: number; phi: number; theta: number }): this {
 		return this.setFromSphericalCoords(s.radius, s.phi, s.theta);
 	}
 
 	/**
 	 * Sets this vector from spherical coordinates (radius, phi, theta).
 	 * phi is polar angle from Y+ axis, theta is azimuthal angle from Z+ axis.
-	 * @param {number} radius
-	 * @param {number} phi
-	 * @param {number} theta
-	 * @returns {this}
 	 */
-	setFromSphericalCoords(radius, phi, theta) {
+	setFromSphericalCoords(radius: number, phi: number, theta: number): this {
 		const sinPhiRadius = Math.sin(phi) * radius;
 		this.x = sinPhiRadius * Math.sin(theta);
 		this.y = Math.cos(phi) * radius;
@@ -398,7 +276,7 @@ export class Vector3 {
 		return this;
 	}
 
-	*[Symbol.iterator]() {
+	*[Symbol.iterator](): Generator<number> {
 		yield this.x;
 		yield this.y;
 		yield this.z;

@@ -1,5 +1,5 @@
-import { Sphere } from "../math/Sphere.js";
-import { Vector3 } from "../math/Vector3.js";
+import { Sphere } from "../math/Sphere.ts";
+import { Vector3 } from "../math/Vector3.ts";
 import { Attribute } from "./Attribute.js";
 
 let _geometryId = 0;

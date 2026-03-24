@@ -1,4 +1,4 @@
-import { Color } from "../math/Color.js";
+import { Color } from "../math/Color.ts";
 import { LineMaterial } from "./LineMaterial.js";
 
 /** Line material that renders a repeating dash pattern. */

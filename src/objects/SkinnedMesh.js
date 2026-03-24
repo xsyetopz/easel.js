@@ -1,4 +1,4 @@
-import { Matrix4 } from "../math/Matrix4.js";
+import { Matrix4 } from "../math/Matrix4.ts";
 import { Mesh } from "./Mesh.js";
 
 const _boneMatrix = new Matrix4();
