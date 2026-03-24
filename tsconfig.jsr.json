@@ -1,10 +1,11 @@
 {
 	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
-		"noEmit": false,
 		"composite": false,
 		"emitDeclarationOnly": true,
-		"removeComments": true
+		"noEmit": false,
+		"removeComments": true,
+		"rootDir": "src"
 	},
 	"include": [
 		"src"
