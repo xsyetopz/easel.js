@@ -25,7 +25,7 @@ bun run biome:check    # Biome lint + format (with --write)
 
 These are architectural, not bugs. Do not "fix" them.
 
-- **Painter's algorithm primary** - back-to-front sort by tile distance + layer integer, `Uint16Array` depth buffer for early-Z rejection within sorted draw calls
+- **Painter's algorithm primary** - opaque draw calls render front-to-back (early-Z rejects overdraw), transparent draw calls render back-to-front per layer. `Uint16Array` depth buffer. Sort key: layer integer → tile distance (XY Manhattan)
 - **Affine UV mapping** - no perspective-correct textures, visible with PerspectiveCamera
 - **HSL16 color** - 16-bit packed (6H/3S/7L), precomputed LUT to RGB
 - **Integer screen coords** - round-half `(x + 0.5) | 0` on projected vertices (vertex wobble is correct)
@@ -51,6 +51,7 @@ These are architectural, not bugs. Do not "fix" them.
 - Class hierarchy: `EventDispatcher` → `Node` → `Mesh`/`Light`/`Camera`/etc.
 - Materials: `Material` base → `BasicMaterial`, `LambertMaterial`, `ToonMaterial`, etc.
 - Pipeline stages: `SceneTraversal` → `FogCuller` → `PainterSort` → `LightBaker` → `Rasterizer` → `Framebuffer` (with `DepthBuffer`)
+- InstancedMesh rendering: `InstancedMeshBuilder` (separate module from `SceneTraversal` to avoid V8 class-size deoptimization)
 
 ## THREE.js name mapping
 
@@ -74,6 +75,19 @@ These are architectural, not bugs. Do not "fix" them.
 3. `ImageBitmap` drawn to OffscreenCanvas never taints - `getImageData()` always succeeds
 
 `Loader.crossOrigin` defaults to `""` (not `"anonymous"` like THREE.js). `ImageLoader` only sets `image.crossOrigin` when the value is truthy.
+
+## Performance constraints
+
+V8 JIT is the optimization target. See [`references/js-softrast-optguide.md`](references/js-softrast-optguide.md) for measured findings. Key rules:
+
+- **No object pooling in render loop** — V8 young-gen GC is faster than pool reset. DrawCall pool was -50%.
+- **No bitwise replacements for Math.floor** — V8 compiles Math.floor to a single instruction. Bitwise fract was -20%.
+- **No manual inlining of frozen-object methods** — bloats functions past V8's ~460 bytecode inlining threshold. Was -20%.
+- **No private class fields holding closures** — changes V8 hidden class layout, deoptimizes entire class. Was -48%.
+- **No per-frame Map-based batch detection** — Map overhead exceeds saved DrawCall overhead. Was -43%.
+- **PoT bitmask UV wrap is safe** — `((texU * texW)|0 + texW) & texWm1` is branchless, +10%.
+- **Skip LightBaker for unlit materials** — BasicMaterial/PointsMaterial early return, +27%.
+- **Remove dead `?? 0` on typed arrays** — Float32Array values are never null/undefined, +8%.
 
 ## Design docs
 
