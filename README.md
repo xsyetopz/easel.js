@@ -59,35 +59,33 @@ deno add jsr:@xsyetopz/easel
 ## Quick start
 
 ```js
-import {
-  Scene, PerspectiveCamera, Mesh,
-  BoxGeometry, LambertMaterial, Renderer,
-  AmbientLight, DirectionalLight,
-} from "@xsyetopz/easel";
+import * as EASEL from "@xsyetopz/easel";
 
-const renderer = new Renderer({
+const [WIDTH, HEIGHT] = [800, 600];
+
+const renderer = new EASEL.Renderer({
   canvas: document.querySelector("canvas"),
-  width: 800,
-  height: 600,
+  width: WIDTH,
+  height: HEIGHT,
 });
 
-const scene = new Scene();
-const camera = new PerspectiveCamera({
+const scene = new EASEL.Scene();
+const camera = new EASEL.PerspectiveCamera({
   fov: 45,
-  aspect: 800 / 600,
+  aspect: WIDTH / HEIGHT,
   near: 0.1,
   far: 100,
 });
 camera.position.set(0, 2, 5);
 
-scene.add(new AmbientLight(0xffffff, 0.4));
-const sun = new DirectionalLight(0xffffff, 0.8);
+scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+const sun = new EASEL.DirectionalLight(0xffffff, 0.8);
 sun.position.set(3, 5, 4);
 scene.add(sun);
 
-const box = new Mesh(
-  new BoxGeometry(1, 1, 1),
-  new LambertMaterial({ color: 0xff4444 }),
+const box = new EASEL.Mesh(
+  new EASEL.BoxGeometry(1, 1, 1),
+  new EASEL.LambertMaterial({ color: 0xff4444 }),
 );
 scene.add(box);
 
