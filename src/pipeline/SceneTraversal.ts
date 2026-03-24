@@ -65,6 +65,7 @@ interface SceneLike {
 		near: number;
 		far: number;
 		color: { r: number; g: number; b: number };
+		lut: Float32Array;
 	};
 	autoUpdate?: boolean;
 }
@@ -75,6 +76,8 @@ const VERT_STRIDE = 4;
 export class SceneTraversal {
 	#fogNear = 0;
 	#fogFar = 0;
+	#fogLutScale = 0;
+	#fogLut: Float32Array | null = null;
 	#hasFog = false;
 	#autoUpdate = false;
 
@@ -100,6 +103,9 @@ export class SceneTraversal {
 		this.#hasFog = !!fog;
 		this.#fogNear = fog?.near ?? 0;
 		this.#fogFar = fog?.far ?? 0;
+		this.#fogLut = fog?.lut ?? null;
+		this.#fogLutScale =
+			fog && fog.far - fog.near > 0 ? 255 / (fog.far - fog.near) : 0;
 
 		_vp.copy(camera.projectionMatrix).mul(camera.matrixWorldInverse);
 		_frustum.setFromProjectionMatrix(_vp);
@@ -470,8 +476,8 @@ export class SceneTraversal {
 
 		const hasFog = this.#hasFog;
 		const fogNear = this.#fogNear;
-		const fogInvRange =
-			this.#fogFar - fogNear > 0 ? 1 / (this.#fogFar - fogNear) : 0;
+		const fogLutScale = this.#fogLutScale;
+		const fogLut = this.#fogLut;
 		const wnLen = worldNormals.length;
 		const uvLen = uvs.length;
 		const wpLen = worldPositions.length;
@@ -511,13 +517,13 @@ export class SceneTraversal {
 			let ff0 = 0;
 			let ff1 = 0;
 			let ff2 = 0;
-			if (hasFog) {
-				const raw0 = (w0 - fogNear) * fogInvRange;
-				const raw1 = (w1 - fogNear) * fogInvRange;
-				const raw2 = (w2 - fogNear) * fogInvRange;
-				ff0 = raw0 < 0 ? 0 : raw0 > 1 ? 1 : raw0;
-				ff1 = raw1 < 0 ? 0 : raw1 > 1 ? 1 : raw1;
-				ff2 = raw2 < 0 ? 0 : raw2 > 1 ? 1 : raw2;
+			if (hasFog && fogLut) {
+				const i0f = ((w0 - fogNear) * fogLutScale) | 0;
+				const i1f = ((w1 - fogNear) * fogLutScale) | 0;
+				const i2f = ((w2 - fogNear) * fogLutScale) | 0;
+				ff0 = i0f <= 0 ? 0 : i0f >= 255 ? fogLut[255] : fogLut[i0f];
+				ff1 = i1f <= 0 ? 0 : i1f >= 255 ? fogLut[255] : fogLut[i1f];
+				ff2 = i2f <= 0 ? 0 : i2f >= 255 ? fogLut[255] : fogLut[i2f];
 			}
 
 			let fnx = 0;
