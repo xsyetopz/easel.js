@@ -43,6 +43,7 @@ import * as voxelChunk from "./performance/voxel-chunk.js";
 import * as groupTransforms from "./scene-graph/group-transforms.js";
 import * as sceneHierarchy from "./scene-graph/scene-hierarchy.js";
 // Textures
+import * as alphaTest from "./textures/alpha-test.js";
 import * as canvasTexture from "./textures/canvas-texture.js";
 import * as repeatWrapping from "./textures/repeat-wrapping.js";
 import * as textureMapping from "./textures/texture-mapping.js";
@@ -91,6 +92,7 @@ export const examples = [
 	keyframeAnimation,
 	animationBlending,
 	// Textures
+	alphaTest,
 	canvasTexture,
 	textureMapping,
 	repeatWrapping,

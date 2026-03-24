@@ -339,7 +339,6 @@ export class Rasterizer {
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
 			if (depth16 > dbData[dIdx]) continue;
-			if (opacity === 0) dbData[dIdx] = depth16;
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
 				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
@@ -347,6 +346,8 @@ export class Rasterizer {
 				? (((texV * texH) | 0) + texH) & texHm1
 				: ((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0;
 			const tidx = (ty * texW + tx) << 2;
+			if (texD[tidx + 3] === 0) continue;
+			if (opacity === 0) dbData[dIdx] = depth16;
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
 			let r: number;
 			let g: number;
@@ -458,11 +459,6 @@ export class Rasterizer {
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
 			if (depth16 > dbData[dIdx]) continue;
-			if (opacity === 0) dbData[dIdx] = depth16;
-			const d = BAYER4[((y & 3) << 2) | (x & 3)];
-			const cr = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
-			const cg = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
-			const cb = (baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + d) | 0;
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
 				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
@@ -470,6 +466,12 @@ export class Rasterizer {
 				? (((texV * texH) | 0) + texH) & texHm1
 				: ((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0;
 			const tidx = (ty * texW + tx) << 2;
+			if (texD[tidx + 3] === 0) continue;
+			if (opacity === 0) dbData[dIdx] = depth16;
+			const d = BAYER4[((y & 3) << 2) | (x & 3)];
+			const cr = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
+			const cg = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
+			const cb = (baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + d) | 0;
 			let r: number;
 			let g: number;
 			let b: number;
@@ -565,7 +567,6 @@ export class Rasterizer {
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
 			if (depth16 > dbData[dIdx]) continue;
-			if (opacity === 0) dbData[dIdx] = depth16;
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
 				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
@@ -573,6 +574,8 @@ export class Rasterizer {
 				? (((texV * texH) | 0) + texH) & texHm1
 				: ((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0;
 			const tidx = (ty * texW + tx) << 2;
+			if (texD[tidx + 3] === 0) continue;
+			if (opacity === 0) dbData[dIdx] = depth16;
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
 			let r = ((texD[tidx] * baseR) / 255 + d) | 0;
 			let g = ((texD[tidx + 1] * baseG) / 255 + d) | 0;
