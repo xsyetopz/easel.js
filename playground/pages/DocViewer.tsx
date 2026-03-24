@@ -10,7 +10,11 @@ import {
 } from "@mantine/core";
 import { docClasses } from "../docs/classes.js";
 
-export function DocViewer({ classId }) {
+interface DocViewerProps {
+	classId: string | null;
+}
+
+export function DocViewer({ classId }: DocViewerProps) {
 	const doc = docClasses.find((c) => c.id === classId);
 
 	if (!doc) {

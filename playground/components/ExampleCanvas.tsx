@@ -1,9 +1,22 @@
 import { Box } from "@mantine/core";
 import { useEffect, useRef } from "react";
 
-export function ExampleCanvas({ setup, params }) {
-	const canvasRef = useRef(undefined);
-	const instanceRef = useRef(undefined);
+interface ExampleInstance {
+	cleanup?: () => void;
+	update?: (params: Record<string, string | number>) => void;
+}
+
+interface ExampleCanvasProps {
+	setup: (
+		canvas: HTMLCanvasElement,
+		params: Record<string, string | number>,
+	) => ExampleInstance | undefined;
+	params: Record<string, string | number>;
+}
+
+export function ExampleCanvas({ setup, params }: ExampleCanvasProps) {
+	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const instanceRef = useRef<ExampleInstance | undefined>(undefined);
 	const paramsRef = useRef(params);
 	paramsRef.current = params;
 
@@ -12,6 +25,7 @@ export function ExampleCanvas({ setup, params }) {
 		if (!canvas) return;
 
 		const container = canvas.parentElement;
+		if (!container) return;
 		const width = Math.max(300, container.clientWidth);
 		const height = Math.max(400, container.clientHeight);
 		canvas.width = width;

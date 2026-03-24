@@ -1,22 +1,26 @@
 import { SegmentedControl, Stack } from "@mantine/core";
 import { useState } from "react";
-import { CodeBlock } from "./CodeBlock.jsx";
+import { CodeBlock } from "./CodeBlock.tsx";
+
+interface CodeToggleProps {
+	easelSource: string;
+	threeSource?: string | undefined;
+}
 
 /**
  * EASEL/THREE.js code comparison toggle.
  * Shows SegmentedControl when threeSource is provided.
- * @param {{ easelSource: string, threeSource?: string|null }} props
  */
-export function CodeToggle({ easelSource, threeSource }) {
-	const [view, setView] = useState("easel");
-	const hasComparison = threeSource != null;
+export function CodeToggle({ easelSource, threeSource }: CodeToggleProps) {
+	const [view, setView] = useState<"easel" | "three">("easel");
+	const hasComparison = threeSource !== undefined;
 
 	return (
 		<Stack gap="xs">
 			{hasComparison && (
 				<SegmentedControl
 					value={view}
-					onChange={setView}
+					onChange={(val) => setView(val as "easel" | "three")}
 					data={[
 						{ label: "EASEL.js", value: "easel" },
 						{ label: "THREE.js", value: "three" },

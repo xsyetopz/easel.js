@@ -9,6 +9,7 @@ import {
 	useMantineColorScheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import type { Icon } from "@tabler/icons-react";
 import {
 	IconBrandGithub,
 	IconDeviceDesktop,
@@ -17,39 +18,44 @@ import {
 } from "@tabler/icons-react";
 import { navigate } from "../hooks/navigate.js";
 
-const SCHEME_CYCLE = /** @type {const} */ (["light", "dark", "auto"]);
+type ColorScheme = "light" | "dark" | "auto";
 
-const schemeIcon = {
+const SCHEME_CYCLE: readonly ColorScheme[] = ["light", "dark", "auto"] as const;
+
+const schemeIcon: Record<ColorScheme, Icon> = {
 	light: IconSun,
 	dark: IconMoon,
 	auto: IconDeviceDesktop,
 };
 
-const schemeLabel = {
+const schemeLabel: Record<ColorScheme, string> = {
 	light: "Switch to dark mode",
 	dark: "Switch to system mode",
 	auto: "Switch to light mode",
 };
 
-/**
- * @param {{ opened: boolean, onToggle: () => void }} props
- */
-export function NavHeader({ opened, onToggle }) {
+interface NavHeaderProps {
+	opened: boolean;
+	onToggle: () => void;
+}
+
+export function NavHeader({ opened, onToggle }: NavHeaderProps) {
 	const { colorScheme, setColorScheme } = useMantineColorScheme();
 	const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
 		useDisclosure(false);
 
 	const cycleScheme = () => {
-		const idx = SCHEME_CYCLE.indexOf(colorScheme);
+		const idx = SCHEME_CYCLE.indexOf(colorScheme as ColorScheme);
 		setColorScheme(SCHEME_CYCLE[(idx + 1) % SCHEME_CYCLE.length]);
 	};
 
-	const SchemeIcon = schemeIcon[colorScheme] ?? IconDeviceDesktop;
+	const SchemeIcon =
+		schemeIcon[colorScheme as ColorScheme] ?? IconDeviceDesktop;
 
 	const navLinks = (
 		<>
 			<Anchor
-				onClick={(e) => {
+				onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
 					e.preventDefault();
 					closeDrawer();
 					navigate("examples");
@@ -62,7 +68,7 @@ export function NavHeader({ opened, onToggle }) {
 				Examples
 			</Anchor>
 			<Anchor
-				onClick={(e) => {
+				onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
 					e.preventDefault();
 					closeDrawer();
 					navigate("docs");
@@ -103,7 +109,7 @@ export function NavHeader({ opened, onToggle }) {
 						size="sm"
 					/>
 					<Anchor
-						onClick={(e) => {
+						onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
 							e.preventDefault();
 							navigate("");
 						}}
@@ -123,8 +129,8 @@ export function NavHeader({ opened, onToggle }) {
 						variant="subtle"
 						color="gray"
 						onClick={cycleScheme}
-						title={schemeLabel[colorScheme]}
-						aria-label={schemeLabel[colorScheme]}
+						title={schemeLabel[colorScheme as ColorScheme]}
+						aria-label={schemeLabel[colorScheme as ColorScheme]}
 					>
 						<SchemeIcon size={18} />
 					</ActionIcon>

@@ -3,10 +3,12 @@ import { useState } from "react";
 import { categoryLabels, examples } from "../examples/registry.js";
 import { navigate } from "../hooks/navigate.js";
 
-/**
- * @param {{ activeId: string|null, onClose: () => void }} props
- */
-export function ExampleSidebar({ activeId, onClose }) {
+interface ExampleSidebarProps {
+	activeId: string | undefined;
+	onClose: () => void;
+}
+
+export function ExampleSidebar({ activeId, onClose }: ExampleSidebarProps) {
 	const [filter, setFilter] = useState("");
 
 	const filtered = filter
@@ -26,12 +28,14 @@ export function ExampleSidebar({ activeId, onClose }) {
 				size="xs"
 				mb="sm"
 				value={filter}
-				onChange={(e) => setFilter(e.currentTarget.value)}
+				onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+					setFilter(e.currentTarget.value)
+				}
 			/>
 			{categories.map((cat) => (
 				<NavLink
 					key={cat}
-					label={categoryLabels[cat] || cat}
+					label={categoryLabels[cat] ?? cat}
 					defaultOpened={true}
 					childrenOffset={16}
 				>

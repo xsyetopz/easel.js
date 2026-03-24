@@ -1,14 +1,14 @@
 import { AppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { DocSidebar } from "./components/DocSidebar.jsx";
-import { ExampleSidebar } from "./components/ExampleSidebar.jsx";
-import { NavHeader } from "./components/NavHeader.jsx";
+import { DocSidebar } from "./components/DocSidebar.tsx";
+import { ExampleSidebar } from "./components/ExampleSidebar.tsx";
+import { NavHeader } from "./components/NavHeader.tsx";
 import { useHashRoute } from "./hooks/useHashRoute.js";
-import { DocsLanding } from "./pages/DocsLanding.jsx";
-import { DocViewer } from "./pages/DocViewer.jsx";
-import { ExamplesGallery } from "./pages/ExamplesGallery.jsx";
-import { ExampleViewer } from "./pages/ExampleViewer.jsx";
-import { Home } from "./pages/Home.jsx";
+import { DocsLanding } from "./pages/DocsLanding.tsx";
+import { DocViewer } from "./pages/DocViewer.tsx";
+import { ExamplesGallery } from "./pages/ExamplesGallery.tsx";
+import { ExampleViewer } from "./pages/ExampleViewer.tsx";
+import { Home } from "./pages/Home.tsx";
 
 const SIDEBAR_PAGES = new Set(["example", "docs", "doc"]);
 
@@ -25,7 +25,7 @@ export function App() {
 		if (route.page === "docs" || route.page === "doc") {
 			return <DocSidebar activeId={route.param} onClose={close} />;
 		}
-		return null;
+		return undefined;
 	};
 
 	const renderPage = () => {

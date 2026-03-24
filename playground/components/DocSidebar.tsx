@@ -3,10 +3,12 @@ import { useState } from "react";
 import { docCategories, docClasses } from "../docs/classes.js";
 import { navigate } from "../hooks/navigate.js";
 
-/**
- * @param {{ activeId: string|null, onClose: () => void }} props
- */
-export function DocSidebar({ activeId, onClose }) {
+interface DocSidebarProps {
+	activeId: string | undefined;
+	onClose: () => void;
+}
+
+export function DocSidebar({ activeId, onClose }: DocSidebarProps) {
 	const [filter, setFilter] = useState("");
 
 	const filtered = filter
@@ -26,7 +28,9 @@ export function DocSidebar({ activeId, onClose }) {
 				size="xs"
 				mb="sm"
 				value={filter}
-				onChange={(e) => setFilter(e.currentTarget.value)}
+				onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+					setFilter(e.currentTarget.value)
+				}
 			/>
 			{categories.map((cat) => (
 				<NavLink key={cat} label={cat} defaultOpened={true} childrenOffset={16}>

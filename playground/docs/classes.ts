@@ -1,4 +1,4 @@
-/** @typedef {{ id: string, name: string, category: string, signature: string, description: string, properties: Array<{ name: string, type: string, description: string }>, methods: Array<{ name: string, signature: string, description: string }>, threeEquivalent: string|null, divergence: string|null }} DocEntry */
+/** @typedef {{ id: string, name: string, category: string, signature: string, description: string, properties: Array<{ name: string, type: string, description: string }>, methods: Array<{ name: string, signature: string, description: string }>, threeEquivalent: string|undefined, divergence: string|undefined }} DocEntry */
 
 /** @type {string[]} */
 export const docCategories = [
@@ -54,7 +54,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.EventDispatcher",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Node",
@@ -323,7 +323,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Raycaster",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Renderer",
@@ -638,7 +638,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.BoxGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "SphereGeometry",
@@ -658,7 +658,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.SphereGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "CylinderGeometry",
@@ -678,7 +678,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.CylinderGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "PlaneGeometry",
@@ -698,7 +698,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.PlaneGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "TorusKnotGeometry",
@@ -718,7 +718,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.TorusKnotGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "CapsuleGeometry",
@@ -738,7 +738,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.CapsuleGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "ConeGeometry",
@@ -758,7 +758,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.ConeGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "DodecahedronGeometry",
@@ -776,7 +776,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.DodecahedronGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "EdgesGeometry",
@@ -795,7 +795,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.EdgesGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "ExtrudeGeometry",
@@ -832,7 +832,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.IcosahedronGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "LatheGeometry",
@@ -852,7 +852,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.LatheGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "OctahedronGeometry",
@@ -870,7 +870,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.OctahedronGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "PolyhedronGeometry",
@@ -890,7 +890,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.PolyhedronGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "RingGeometry",
@@ -910,7 +910,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.RingGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "ShapeGeometry",
@@ -928,7 +928,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.ShapeGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "TetrahedronGeometry",
@@ -946,7 +946,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.TetrahedronGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "TorusGeometry",
@@ -966,7 +966,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.TorusGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "TubeGeometry",
@@ -986,7 +986,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.TubeGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "WireframeGeometry",
@@ -1004,7 +1004,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.WireframeGeometry",
-		divergence: null,
+		divergence: undefined,
 	},
 
 	// ── Materials ─────────────────────────────────────────────────────────────
@@ -1168,7 +1168,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.LineBasicMaterial",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "DashedLineMaterial",
@@ -1202,7 +1202,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.LineDashedMaterial",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "PointsMaterial",
@@ -1230,7 +1230,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.PointsMaterial",
-		divergence: null,
+		divergence: undefined,
 	},
 
 	// ── Lights ────────────────────────────────────────────────────────────────
@@ -1255,7 +1255,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.Light",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "AmbientLight",
@@ -1278,7 +1278,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.AmbientLight",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "DirectionalLight",
@@ -1343,7 +1343,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.HemisphereLight",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "PointLight",
@@ -1460,7 +1460,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Mesh",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Group",
@@ -1472,7 +1472,7 @@ export const docClasses = [
 		properties: [],
 		methods: [],
 		threeEquivalent: "THREE.Group",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Line",
@@ -1495,7 +1495,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.Line",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "LineLoop",
@@ -1518,7 +1518,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.LineLoop",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "LineSegments",
@@ -1541,7 +1541,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.LineSegments",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Points",
@@ -1564,7 +1564,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.Points",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Bone",
@@ -1576,7 +1576,7 @@ export const docClasses = [
 		properties: [],
 		methods: [],
 		threeEquivalent: "THREE.Bone",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Skeleton",
@@ -1633,7 +1633,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Skeleton",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "SkinnedMesh",
@@ -1690,7 +1690,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.SkinnedMesh",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "InstancedMesh",
@@ -1749,8 +1749,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.InstancedMesh",
-		divergence:
-			"frustumCulled defaults to false because instances may span a large area and per-instance bounding spheres are not tracked.",
+		divergence: undefined,
 	},
 	{
 		id: "Sprite",
@@ -1768,7 +1767,7 @@ export const docClasses = [
 		],
 		methods: [],
 		threeEquivalent: "THREE.Sprite",
-		divergence: null,
+		divergence: undefined,
 	},
 
 	// ── Animation ─────────────────────────────────────────────────────────────
@@ -1872,7 +1871,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.AnimationClip",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "AnimationAction",
@@ -1970,7 +1969,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.AnimationAction",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Track",
@@ -2090,8 +2089,7 @@ export const docClasses = [
 		properties: [],
 		methods: [],
 		threeEquivalent: "THREE.CanvasTexture",
-		divergence:
-			"Triggers needsUpdate = true in the constructor. After painting to the canvas again, set needsUpdate = true manually to refresh the cached pixel data.",
+		divergence: undefined,
 	},
 	{
 		id: "DataTexture",
@@ -2114,7 +2112,7 @@ export const docClasses = [
 		methods: [],
 		threeEquivalent: "THREE.DataTexture",
 		divergence:
-			"No needsUpdate step. Data is used directly without re-sampling. Still subject to the 128×128 rendering limit if used as a material map.",
+			"CPU renderer reads pixel data directly each frame. No GPU upload step, so changes to the underlying array are reflected immediately without needsUpdate.",
 	},
 	{
 		id: "FramebufferTexture",
@@ -2181,7 +2179,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.VideoTexture",
-		divergence: null,
+		divergence: undefined,
 	},
 
 	// ── Scene ─────────────────────────────────────────────────────────────────
@@ -2381,7 +2379,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.AxesHelper",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "GridHelper",
@@ -2405,7 +2403,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.GridHelper",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "BoxHelper",
@@ -2441,7 +2439,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.BoxHelper",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "DirectionalLightHelper",
@@ -2464,7 +2462,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.DirectionalLightHelper",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "PointLightHelper",
@@ -2487,7 +2485,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.PointLightHelper",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "SpotLightHelper",
@@ -2511,7 +2509,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.SpotLightHelper",
-		divergence: null,
+		divergence: undefined,
 	},
 
 	// ── Math ──────────────────────────────────────────────────────────────────
@@ -2889,7 +2887,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Vector4",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Box2",
@@ -2947,7 +2945,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Box2",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Box3",
@@ -3058,7 +3056,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Cylindrical",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Euler",
@@ -3119,7 +3117,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Euler",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Frustum",
@@ -3167,7 +3165,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Frustum",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Line3",
@@ -3222,7 +3220,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Line3",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "MathUtils",
@@ -3412,7 +3410,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Plane",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Quaternion",
@@ -3664,7 +3662,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Spherical",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Triangle",
@@ -3724,7 +3722,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Triangle",
-		divergence: null,
+		divergence: undefined,
 	},
 
 	// ── Loaders ──────────────────────────────────────────────────────────────
@@ -3822,7 +3820,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.LoadingManager",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "FileLoader",
@@ -3852,7 +3850,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.FileLoader",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "TextureLoader",
@@ -3897,7 +3895,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.ImageBitmapLoader",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "ImageLoader",
@@ -3943,7 +3941,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.BufferGeometryLoader",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "MaterialLoader",
@@ -3967,7 +3965,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.MaterialLoader",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "ObjectLoader",
@@ -3992,7 +3990,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.ObjectLoader",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "AnimationLoader",
@@ -4016,7 +4014,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.AnimationLoader",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "DataTextureLoader",
@@ -4065,7 +4063,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.AnimationUtils",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Binding",
@@ -4104,7 +4102,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.PropertyBinding",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "PropertyMixer",
@@ -4139,7 +4137,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.PropertyMixer",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "BooleanTrack",
@@ -4165,7 +4163,7 @@ export const docClasses = [
 		properties: [],
 		methods: [],
 		threeEquivalent: "THREE.ColorKeyframeTrack",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "NumberTrack",
@@ -4178,7 +4176,7 @@ export const docClasses = [
 		properties: [],
 		methods: [],
 		threeEquivalent: "THREE.NumberKeyframeTrack",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "QuaternionTrack",
@@ -4191,7 +4189,7 @@ export const docClasses = [
 		properties: [],
 		methods: [],
 		threeEquivalent: "THREE.QuaternionKeyframeTrack",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "VectorTrack",
@@ -4204,7 +4202,7 @@ export const docClasses = [
 		properties: [],
 		methods: [],
 		threeEquivalent: "THREE.VectorKeyframeTrack",
-		divergence: null,
+		divergence: undefined,
 	},
 
 	// ── Curves ───────────────────────────────────────────────────────────────
@@ -4264,7 +4262,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Curve",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "CurvePath",
@@ -4305,7 +4303,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.CurvePath",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Path",
@@ -4358,7 +4356,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Path",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Shape",
@@ -4388,7 +4386,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Shape",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "ShapePath",
@@ -4416,7 +4414,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.ShapePath",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "EllipseCurve",
@@ -4467,7 +4465,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.EllipseCurve",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "ArcCurve",
@@ -4480,7 +4478,7 @@ export const docClasses = [
 		properties: [],
 		methods: [],
 		threeEquivalent: "THREE.ArcCurve",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "LineCurve",
@@ -4500,7 +4498,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.LineCurve",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "LineCurve3",
@@ -4520,7 +4518,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.LineCurve3",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "QuadraticBezierCurve",
@@ -4546,7 +4544,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.QuadraticBezierCurve",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "QuadraticBezierCurve3",
@@ -4572,7 +4570,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.QuadraticBezierCurve3",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "CubicBezierCurve",
@@ -4603,7 +4601,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.CubicBezierCurve",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "CubicBezierCurve3",
@@ -4634,7 +4632,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.CubicBezierCurve3",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "CatmullRomCurve3",
@@ -4675,7 +4673,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.CatmullRomCurve3",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "SplineCurve",
@@ -4698,7 +4696,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.SplineCurve",
-		divergence: null,
+		divergence: undefined,
 	},
 
 	// ── Geometry (additional) ────────────────────────────────────────────────
@@ -4794,7 +4792,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.InterleavedBuffer",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "InterleavedAttribute",
@@ -4844,7 +4842,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.InterleavedBufferAttribute",
-		divergence: null,
+		divergence: undefined,
 	},
 
 	// ── Constants ────────────────────────────────────────────────────────────
@@ -4905,7 +4903,7 @@ export const docClasses = [
 			},
 		],
 		threeEquivalent: "THREE.Layers",
-		divergence: null,
+		divergence: undefined,
 	},
 	{
 		id: "Layer",
@@ -4937,7 +4935,7 @@ export const docClasses = [
 			},
 		],
 		methods: [],
-		threeEquivalent: null,
+		threeEquivalent: undefined,
 		divergence: "RuneTek-specific draw-order constant. No THREE equivalent.",
 	},
 	{
@@ -5048,7 +5046,7 @@ export const docClasses = [
 			},
 		],
 		methods: [],
-		threeEquivalent: null,
+		threeEquivalent: undefined,
 		divergence: "RuneTek-specific. No THREE equivalent.",
 	},
 ];

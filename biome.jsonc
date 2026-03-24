@@ -88,7 +88,7 @@
 				"noUnusedPrivateClassMembers": "error",
 				"noUnusedVariables": "error",
 				"useHookAtTopLevel": "error",
-				"useImportExtensions": "warn",
+				"useImportExtensions": "off",
 				"noInvalidBuiltinInstantiation": "error",
 				"noSwitchDeclarations": "info"
 			},

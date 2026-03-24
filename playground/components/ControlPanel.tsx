@@ -1,6 +1,39 @@
 import { ColorInput, Select, Slider, Stack, Text } from "@mantine/core";
 
-function Control({ control, value, onChange }) {
+interface SliderControl {
+	type: "slider";
+	key: string;
+	label: string;
+	min: number;
+	max: number;
+	step: number;
+	default: number;
+}
+
+interface ColorControl {
+	type: "color";
+	key: string;
+	label: string;
+	default: string;
+}
+
+interface SelectControl {
+	type: "select";
+	key: string;
+	label: string;
+	options: string[];
+	default: string;
+}
+
+export type ControlDefinition = SliderControl | ColorControl | SelectControl;
+
+interface ControlProps {
+	control: ControlDefinition;
+	value: string | number;
+	onChange: (value: string | number) => void;
+}
+
+function Control({ control, value, onChange }: ControlProps) {
 	switch (control.type) {
 		case "slider":
 			return (
@@ -9,7 +42,7 @@ function Control({ control, value, onChange }) {
 						{control.label}
 					</Text>
 					<Slider
-						value={value}
+						value={value as number}
 						onChange={onChange}
 						min={control.min}
 						max={control.max}
@@ -27,7 +60,7 @@ function Control({ control, value, onChange }) {
 			return (
 				<ColorInput
 					label={control.label}
-					value={value}
+					value={value as string}
 					onChange={onChange}
 					format="hex"
 				/>
@@ -36,8 +69,10 @@ function Control({ control, value, onChange }) {
 			return (
 				<Select
 					label={control.label}
-					value={value}
-					onChange={onChange}
+					value={value as string}
+					onChange={(val) => {
+						if (val !== null) onChange(val);
+					}}
 					data={control.options}
 					allowDeselect={false}
 				/>
@@ -47,7 +82,17 @@ function Control({ control, value, onChange }) {
 	}
 }
 
-export function ControlPanel({ controls, params, onParamChange }) {
+interface ControlPanelProps {
+	controls: ControlDefinition[] | undefined;
+	params: Record<string, string | number>;
+	onParamChange: (key: string, value: string | number) => void;
+}
+
+export function ControlPanel({
+	controls,
+	params,
+	onParamChange,
+}: ControlPanelProps) {
 	if (!controls || controls.length === 0) return undefined;
 
 	return (
@@ -56,7 +101,7 @@ export function ControlPanel({ controls, params, onParamChange }) {
 				<Control
 					key={control.key}
 					control={control}
-					value={params[control.key]}
+					value={params[control.key] as string | number}
 					onChange={(val) => onParamChange(control.key, val)}
 				/>
 			))}

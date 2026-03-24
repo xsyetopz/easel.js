@@ -24,11 +24,11 @@
         "tests": "tests"
     },
     "scripts": {
-        "dev": "vite --config playground/vite.config.js",
+        "dev": "vite --config playground/vite.config.ts",
         "build": "vite build && bun run build:types",
         "build:types": "tsc -p tsconfig.build.json",
         "preview": "vite preview",
-        "playground:build": "vite build --config playground/vite.config.js",
+        "playground:build": "vite build --config playground/vite.config.ts",
         "test": "vitest",
         "test:run": "vitest run",
         "typecheck": "bunx tsc --noEmit",

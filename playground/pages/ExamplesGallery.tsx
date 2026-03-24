@@ -1,5 +1,5 @@
 import { Container, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import { ExampleCard } from "../components/ExampleCard.jsx";
+import { ExampleCard } from "../components/ExampleCard.tsx";
 import { categoryLabels, examples } from "../examples/registry.js";
 
 export function ExamplesGallery() {

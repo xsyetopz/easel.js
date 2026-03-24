@@ -1,23 +1,28 @@
 import { Grid, Paper, Stack, Text, Title } from "@mantine/core";
 import { useEffect, useMemo, useState } from "react";
-import { CodeToggle } from "../components/CodeToggle.jsx";
-import { ControlPanel } from "../components/ControlPanel.jsx";
-import { ExampleCanvas } from "../components/ExampleCanvas.jsx";
+import { CodeToggle } from "../components/CodeToggle.tsx";
+import { ControlPanel } from "../components/ControlPanel.tsx";
+import { ExampleCanvas } from "../components/ExampleCanvas.tsx";
 import { examples } from "../examples/registry.js";
 
-export function ExampleViewer({ exampleId }) {
+interface ExampleViewerProps {
+	exampleId: string | null;
+}
+
+export function ExampleViewer({ exampleId }: ExampleViewerProps) {
 	const example = examples.find((e) => e.meta.id === exampleId);
 
 	const defaultParams = useMemo(() => {
 		if (!example?.controls) return {};
-		const p = {};
+		const p: Record<string, string | number> = {};
 		for (const c of example.controls) {
 			p[c.key] = c.default;
 		}
 		return p;
 	}, [example]);
 
-	const [params, setParams] = useState(defaultParams);
+	const [params, setParams] =
+		useState<Record<string, string | number>>(defaultParams);
 
 	useEffect(() => {
 		setParams(defaultParams);
@@ -31,7 +36,7 @@ export function ExampleViewer({ exampleId }) {
 		);
 	}
 
-	const handleParamChange = (key, value) => {
+	const handleParamChange = (key: string, value: string | number) => {
 		setParams((prev) => ({ ...prev, [key]: value }));
 	};
 

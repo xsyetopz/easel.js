@@ -1,7 +1,7 @@
 import { Paper, Text } from "@mantine/core";
 import { navigate } from "../hooks/navigate.js";
 
-const CATEGORY_COLORS = {
+const CATEGORY_COLORS: Record<string, string> = {
 	"getting-started": "#4c6ef5",
 	geometry: "#e06060",
 	materials: "#60e060",
@@ -15,11 +15,19 @@ const CATEGORY_COLORS = {
 	performance: "#e04080",
 };
 
-/**
- * @param {{ meta: { id: string, name: string, category: string, description: string } }} props
- */
-export function ExampleCard({ meta }) {
-	const color = CATEGORY_COLORS[meta.category] || "#666";
+interface ExampleMeta {
+	id: string;
+	name: string;
+	category: string;
+	description: string;
+}
+
+interface ExampleCardProps {
+	meta: ExampleMeta;
+}
+
+export function ExampleCard({ meta }: ExampleCardProps) {
+	const color = CATEGORY_COLORS[meta.category] ?? "#666";
 
 	return (
 		<Paper
@@ -31,10 +39,10 @@ export function ExampleCard({ meta }) {
 				transition: "background 0.15s",
 			}}
 			onClick={() => navigate(`examples/${meta.id}`)}
-			onMouseEnter={(e) => {
+			onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
 				e.currentTarget.style.background = "var(--mantine-color-default-hover)";
 			}}
-			onMouseLeave={(e) => {
+			onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
 				e.currentTarget.style.background = "";
 			}}
 		>

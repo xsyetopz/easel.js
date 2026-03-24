@@ -1,6 +1,11 @@
 import { CodeHighlight } from "@mantine/code-highlight";
 
-export function CodeBlock({ code, language = "javascript" }) {
+interface CodeBlockProps {
+	code: string;
+	language?: string;
+}
+
+export function CodeBlock({ code, language = "javascript" }: CodeBlockProps) {
 	return (
 		<CodeHighlight
 			code={code}

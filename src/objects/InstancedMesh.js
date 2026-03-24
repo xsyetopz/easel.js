@@ -15,7 +15,7 @@ export class InstancedMesh extends Mesh {
 	#instanceColor = undefined;
 
 	/** @override */
-	frustumCulled = false;
+	frustumCulled = true;
 
 	/**
 	 * @param {*} [geometry]
