@@ -68,6 +68,8 @@ export class Rasterizer {
 	/** @type {number} */
 	#texWm1 = 0;
 	/** @type {number} */
+	#texH = 0;
+	/** @type {number} */
 	#texHm1 = 0;
 	/** @type {number} */
 	#uv0u = 0;
@@ -286,6 +288,7 @@ export class Rasterizer {
 		const dbData = this.#dbData;
 		const dbW = this.#dbWidth;
 		const texWm1 = this.#texWm1;
+		const texH = this.#texH;
 		const texHm1 = this.#texHm1;
 		const texW = this.#texW;
 		const hasFog = this.#hasFog;
@@ -322,22 +325,12 @@ export class Rasterizer {
 			if (depth16 > dbData[dIdx]) continue;
 			dbData[dIdx] = depth16;
 
-			const cu = wS
-				? texU - Math.floor(texU)
-				: texU < 0
-					? 0
-					: texU > 1
-						? 1
-						: texU;
-			const cv = wT
-				? texV - Math.floor(texV)
-				: texV < 0
-					? 0
-					: texV > 1
-						? 1
-						: texV;
-			const tx = (cu * texWm1 + 0.5) | 0;
-			const ty = (cv * texHm1 + 0.5) | 0;
+			const tx = wS
+				? (((texU * texW) | 0) + texW) & texWm1
+				: (((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0);
+			const ty = wT
+				? (((texV * texH) | 0) + texH) & texHm1
+				: (((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0);
 			const tidx = (ty * texW + tx) << 2;
 
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
@@ -404,6 +397,7 @@ export class Rasterizer {
 		const dbW = this.#dbWidth;
 		const texD = /** @type {Uint8ClampedArray} */ (this.#texData);
 		const texWm1 = this.#texWm1;
+		const texH = this.#texH;
 		const texHm1 = this.#texHm1;
 		const texW = this.#texW;
 		const baseR = this.#baseR;
@@ -454,22 +448,12 @@ export class Rasterizer {
 			const cg = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
 			const cb = (baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + d) | 0;
 
-			const cu = wS
-				? texU - Math.floor(texU)
-				: texU < 0
-					? 0
-					: texU > 1
-						? 1
-						: texU;
-			const cv = wT
-				? texV - Math.floor(texV)
-				: texV < 0
-					? 0
-					: texV > 1
-						? 1
-						: texV;
-			const tx = (cu * texWm1 + 0.5) | 0;
-			const ty = (cv * texHm1 + 0.5) | 0;
+			const tx = wS
+				? (((texU * texW) | 0) + texW) & texWm1
+				: (((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0);
+			const ty = wT
+				? (((texV * texH) | 0) + texH) & texHm1
+				: (((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0);
 			const tidx = (ty * texW + tx) << 2;
 
 			let r;
@@ -529,6 +513,7 @@ export class Rasterizer {
 		const dbW = this.#dbWidth;
 		const texD = /** @type {Uint8ClampedArray} */ (this.#texData);
 		const texWm1 = this.#texWm1;
+		const texH = this.#texH;
 		const texHm1 = this.#texHm1;
 		const texW = this.#texW;
 		const baseR = this.#baseR;
@@ -563,22 +548,12 @@ export class Rasterizer {
 			if (depth16 > dbData[dIdx]) continue;
 			dbData[dIdx] = depth16;
 
-			const cu = wS
-				? texU - Math.floor(texU)
-				: texU < 0
-					? 0
-					: texU > 1
-						? 1
-						: texU;
-			const cv = wT
-				? texV - Math.floor(texV)
-				: texV < 0
-					? 0
-					: texV > 1
-						? 1
-						: texV;
-			const tx = (cu * texWm1 + 0.5) | 0;
-			const ty = (cv * texHm1 + 0.5) | 0;
+			const tx = wS
+				? (((texU * texW) | 0) + texW) & texWm1
+				: (((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0);
+			const ty = wT
+				? (((texV * texH) | 0) + texH) & texHm1
+				: (((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0);
 			const tidx = (ty * texW + tx) << 2;
 
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
@@ -647,6 +622,7 @@ export class Rasterizer {
 			this.#texData = texture.data;
 			this.#texW = texture.width;
 			this.#texWm1 = texture.width - 1;
+			this.#texH = texture.height;
 			this.#texHm1 = texture.height - 1;
 		}
 

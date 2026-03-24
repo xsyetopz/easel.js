@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { DrawList } from "@/pipeline/DrawList.js";
 import { PainterSort } from "@/pipeline/PainterSort.js";
 
-function makeDrawCall(x, y, layer = 0) {
+function makeDrawCall(x, y, layer = 0, opacity = 0) {
 	return {
 		centroid: { x, y, z: 0 },
-		material: { layer },
+		material: { layer, opacity },
 		faceIndices: [],
 		projectedVerts: [],
 		mesh: {},
@@ -16,15 +16,37 @@ describe("PainterSort", () => {
 	const sorter = new PainterSort();
 	const camera = { x: 0, y: 0 };
 
-	it("sorts back-to-front by tile distance", () => {
+	it("sorts opaque meshes front-to-back for early-Z rejection", () => {
 		const list = new DrawList();
 		const near = makeDrawCall(1, 0);
 		const far = makeDrawCall(10, 0);
 		list.add(near);
 		list.add(far);
 		sorter.sort(list, camera);
+		expect(list.calls[0]).toBe(near);
+		expect(list.calls[1]).toBe(far);
+	});
+
+	it("sorts transparent meshes back-to-front for correct blending", () => {
+		const list = new DrawList();
+		const near = makeDrawCall(1, 0, 0, 4);
+		const far = makeDrawCall(10, 0, 0, 4);
+		list.add(near);
+		list.add(far);
+		sorter.sort(list, camera);
 		expect(list.calls[0]).toBe(far);
 		expect(list.calls[1]).toBe(near);
+	});
+
+	it("renders opaques before transparents", () => {
+		const list = new DrawList();
+		const opaqueNear = makeDrawCall(1, 0, 0, 0);
+		const transparentFar = makeDrawCall(10, 0, 0, 4);
+		list.add(transparentFar);
+		list.add(opaqueNear);
+		sorter.sort(list, camera);
+		expect(list.calls[0].material.opacity).toBe(0);
+		expect(list.calls[1].material.opacity).toBe(4);
 	});
 
 	it("layer 1 appears after layer 0 at same distance", () => {

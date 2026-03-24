@@ -39,13 +39,15 @@ export class LightBaker {
 	 * Bakes lighting onto a draw call's faces or vertices.
 	 * Writes shaded RGB into drawCall.shadedColorData (flat Float32Array).
 	 * Stride is 3 for flat shading (r,g,b per face) or 9 for gouraud (r,g,b × 3 vertices).
-	 * @param {{ triangles: *, material: { shading?: number }, shadedColorData: Float32Array, shadedColorStride: number }} drawCall
+	 * @param {{ triangles: *, material: { shading?: number, type?: string }, shadedColorData: Float32Array, shadedColorStride: number }} drawCall
 	 * @param {Array<Record<string, unknown>>} lights
 	 * @returns {void}
 	 */
 	bake(drawCall, lights) {
 		drawCall.shadedColorStride = 0;
 		if (lights.length === 0) return;
+		const matType = drawCall.material?.type;
+		if (matType === "BasicMaterial" || matType === "PointsMaterial") return;
 
 		const tb = drawCall.triangles;
 		const isFlat = drawCall.material.shading === Shading.Flat;
