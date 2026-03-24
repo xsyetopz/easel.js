@@ -18,7 +18,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run build
-      - run: npm publish --provenance --access public
+      - run: npm publish --provenance --access public --dry-run
 
   jsr:
     runs-on: ubuntu-latest
@@ -30,4 +30,4 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run jsr:build
-      - run: bunx jsr publish
+      - run: npx jsr publish --dry-run

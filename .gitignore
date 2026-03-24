@@ -7,3 +7,6 @@ dist/
 .env.local
 src/**/*.d.ts
 src/**/*.d.ts.map
+
+# temporary
+references/

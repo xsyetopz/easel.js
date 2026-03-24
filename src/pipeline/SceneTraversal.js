@@ -487,15 +487,15 @@ export class SceneTraversal {
 			let fny = 1;
 			let fnz = 0;
 			if (wnLen > 0) {
-				const n0x = worldNormals[i0 * 3] ?? 0;
-				const n0y = worldNormals[i0 * 3 + 1] ?? 0;
-				const n0z = worldNormals[i0 * 3 + 2] ?? 0;
-				const n1x = worldNormals[i1 * 3] ?? 0;
-				const n1y = worldNormals[i1 * 3 + 1] ?? 0;
-				const n1z = worldNormals[i1 * 3 + 2] ?? 0;
-				const n2x = worldNormals[i2 * 3] ?? 0;
-				const n2y = worldNormals[i2 * 3 + 1] ?? 0;
-				const n2z = worldNormals[i2 * 3 + 2] ?? 0;
+				const n0x = worldNormals[i0 * 3];
+				const n0y = worldNormals[i0 * 3 + 1];
+				const n0z = worldNormals[i0 * 3 + 2];
+				const n1x = worldNormals[i1 * 3];
+				const n1y = worldNormals[i1 * 3 + 1];
+				const n1z = worldNormals[i1 * 3 + 2];
+				const n2x = worldNormals[i2 * 3];
+				const n2y = worldNormals[i2 * 3 + 1];
+				const n2z = worldNormals[i2 * 3 + 2];
 				const ax = (n0x + n1x + n2x) / 3;
 				const ay = (n0y + n1y + n2y) / 3;
 				const az = (n0z + n1z + n2z) / 3;

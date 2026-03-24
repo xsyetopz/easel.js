@@ -29,10 +29,16 @@ import * as materialTypes from "./materials/material-types.js";
 import * as pointsMaterial from "./materials/points-material.js";
 import * as toonShading from "./materials/toon-shading.js";
 // Performance
-import * as fogDepth from "./performance/fog-depth.js";
-import * as meshStress from "./performance/mesh-stress.js";
-import * as textureStress from "./performance/texture-stress.js";
-import * as triangleDensity from "./performance/triangle-density.js";
+import * as frustumCulling from "./performance/frustum-culling.js";
+import * as mixedScene from "./performance/mixed-scene.js";
+import * as multiLight from "./performance/multi-light.js";
+import * as overdraw from "./performance/overdraw.js";
+import * as pointCloud from "./performance/point-cloud.js";
+import * as rasterizerBenchmark from "./performance/rasterizer-benchmark.js";
+import * as resolutionScaling from "./performance/resolution-scaling.js";
+import * as perfSceneHierarchy from "./performance/scene-hierarchy.js";
+import * as sceneStress from "./performance/scene-stress.js";
+import * as voxelChunk from "./performance/voxel-chunk.js";
 // Scene Graph
 import * as groupTransforms from "./scene-graph/group-transforms.js";
 import * as sceneHierarchy from "./scene-graph/scene-hierarchy.js";
@@ -94,8 +100,14 @@ export const examples = [
 	// Helpers
 	sceneHelpers,
 	// Performance
-	meshStress,
-	triangleDensity,
-	textureStress,
-	fogDepth,
+	sceneStress,
+	rasterizerBenchmark,
+	frustumCulling,
+	multiLight,
+	pointCloud,
+	overdraw,
+	perfSceneHierarchy,
+	resolutionScaling,
+	voxelChunk,
+	mixedScene,
 ];
