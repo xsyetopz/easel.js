@@ -46,6 +46,7 @@ interface RasterMaterial {
 	pointRadius?: number;
 	color?: { r: number; g: number; b: number };
 	map?: MaterialMap;
+	opacity?: number;
 }
 
 interface RasterDrawCall {
@@ -126,6 +127,10 @@ export class Rasterizer {
 	#wrapS = 0;
 	#wrapT = 0;
 
+	// 9-step opacity (0 = fully opaque, 8 = fully transparent)
+	#opacity = 0;
+	#srcWeight = 1;
+
 	// Bound callbacks - created once, reused for every triangle.
 	#cbFlat: ScanlineCallback = this.#fillFlat.bind(this);
 	#cbGouraud: ScanlineCallback = this.#fillGouraud.bind(this);
@@ -167,10 +172,12 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
+		const opacity = this.#opacity;
+		const srcWeight = this.#srcWeight;
 		for (let x = xStart; x <= xEnd; x++, dIdx++, ndcZ += dNdcZ) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
 			if (depth16 > dbData[dIdx]) continue;
-			dbData[dIdx] = depth16;
+			if (opacity === 0) dbData[dIdx] = depth16;
 			let r = flatR;
 			let g = flatG;
 			let b = flatB;
@@ -181,7 +188,18 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
+			if (opacity === 0) {
+				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
+			} else {
+				const dstPx = fbU32[dIdx];
+				const sw = srcWeight;
+				const dw = 1 - sw;
+				fbU32[dIdx] =
+					0xff000000 |
+					(((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
+					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
+					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			}
 			if (hasFog) fogF += dFogF;
 		}
 	}
@@ -230,6 +248,8 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
+		const opacity = this.#opacity;
+		const srcWeight = this.#srcWeight;
 		for (
 			let x = xStart;
 			x <= xEnd;
@@ -237,7 +257,7 @@ export class Rasterizer {
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
 			if (depth16 > dbData[dIdx]) continue;
-			dbData[dIdx] = depth16;
+			if (opacity === 0) dbData[dIdx] = depth16;
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
 			let r = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
 			let g = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
@@ -248,7 +268,18 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				bl = (bl + (fogB - bl) * f + d) | 0;
 			}
-			fbU32[dIdx] = 0xff000000 | (bl << 16) | (g << 8) | r;
+			if (opacity === 0) {
+				fbU32[dIdx] = 0xff000000 | (bl << 16) | (g << 8) | r;
+			} else {
+				const dstPx = fbU32[dIdx];
+				const sw = srcWeight;
+				const dw = 1 - sw;
+				fbU32[dIdx] =
+					0xff000000 |
+					(((bl * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
+					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
+					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			}
 			if (hasFog) fogF += dFogF;
 		}
 	}
@@ -299,6 +330,8 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
+		const opacity = this.#opacity;
+		const srcWeight = this.#srcWeight;
 		for (
 			let x = xStart;
 			x <= xEnd;
@@ -306,7 +339,7 @@ export class Rasterizer {
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
 			if (depth16 > dbData[dIdx]) continue;
-			dbData[dIdx] = depth16;
+			if (opacity === 0) dbData[dIdx] = depth16;
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
 				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
@@ -333,7 +366,18 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
+			if (opacity === 0) {
+				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
+			} else {
+				const dstPx = fbU32[dIdx];
+				const sw = srcWeight;
+				const dw = 1 - sw;
+				fbU32[dIdx] =
+					0xff000000 |
+					(((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
+					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
+					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			}
 			if (hasFog) fogF += dFogF;
 		}
 	}
@@ -398,6 +442,8 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
+		const opacity = this.#opacity;
+		const srcWeight = this.#srcWeight;
 		for (
 			let x = xStart;
 			x <= xEnd;
@@ -412,7 +458,7 @@ export class Rasterizer {
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
 			if (depth16 > dbData[dIdx]) continue;
-			dbData[dIdx] = depth16;
+			if (opacity === 0) dbData[dIdx] = depth16;
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
 			const cr = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
 			const cg = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
@@ -447,7 +493,18 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
+			if (opacity === 0) {
+				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
+			} else {
+				const dstPx = fbU32[dIdx];
+				const sw = srcWeight;
+				const dw = 1 - sw;
+				fbU32[dIdx] =
+					0xff000000 |
+					(((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
+					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
+					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			}
 			if (hasFog) fogF += dFogF;
 		}
 	}
@@ -499,6 +556,8 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
+		const opacity = this.#opacity;
+		const srcWeight = this.#srcWeight;
 		for (
 			let x = xStart;
 			x <= xEnd;
@@ -506,7 +565,7 @@ export class Rasterizer {
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
 			if (depth16 > dbData[dIdx]) continue;
-			dbData[dIdx] = depth16;
+			if (opacity === 0) dbData[dIdx] = depth16;
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
 				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
@@ -524,7 +583,18 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
+			if (opacity === 0) {
+				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
+			} else {
+				const dstPx = fbU32[dIdx];
+				const sw = srcWeight;
+				const dw = 1 - sw;
+				fbU32[dIdx] =
+					0xff000000 |
+					(((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
+					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
+					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			}
 			if (hasFog) fogF += dFogF;
 		}
 	}
@@ -567,6 +637,9 @@ export class Rasterizer {
 			this.#texH = texture.height;
 			this.#texHm1 = texture.height - 1;
 		}
+
+		this.#opacity = (drawCall.material as RasterMaterial).opacity ?? 0;
+		this.#srcWeight = (8 - this.#opacity) / 8;
 
 		this.#brightnessLevels = drawCall.material.map?.brightnessLevels;
 		this.#wrapS = drawCall.material.map?.wrapS ?? 0;
