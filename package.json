@@ -1,6 +1,6 @@
 {
     "name": "@xsyetopz/easel",
-    "version": "0.4.3",
+    "version": "0.4.4",
     "description": "Legacy JavaScript 3D library with a THREE.js-compatible scene graph API",
     "type": "module",
     "main": "./dist/index.umd.js",
@@ -67,10 +67,10 @@
     "bugs": {
         "url": "https://github.com/xsyetopz/easel.js/issues"
     },
-    "homepage": "https://github.com/xsyetopz/easel.js",
+    "homepage": "https://easeljs.org",
     "readme": "README.md",
     "devDependencies": {
-        "@biomejs/biome": "^2.4.8",
+        "@biomejs/biome": "^2.4.9",
         "@mantine/code-highlight": "^8.3.18",
         "@mantine/core": "^8.3.18",
         "@mantine/hooks": "^8.3.18",
