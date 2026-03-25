@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -35,7 +35,9 @@
 			}
 		},
 		{
-			"includes": ["src/index.ts"],
+			"includes": [
+				"src/index.ts"
+			],
 			"linter": {
 				"rules": {
 					"performance": {
@@ -114,14 +116,6 @@
 				"useConsistentBuiltinInstantiation": "warn",
 				"useDefaultSwitchClause": "info",
 				"useExplicitLengthCheck": "warn",
-				// "useFilenamingConvention": {
-				// 	"level": "warn",
-				// 	"options": {
-				// 		"strictCase": false,
-				// 		"requireAscii": true,
-				// 		"match": "%?(.+?)[.](.+)"
-				// 	}
-				// },
 				"useForOf": "info",
 				"useFragmentSyntax": "warn",
 				"useLiteralEnumMembers": "warn",
@@ -154,7 +148,10 @@
 		}
 	},
 	"javascript": {
-		"globals": ["Bun", "$"],
+		"globals": [
+			"Bun",
+			"$"
+		],
 		"formatter": {
 			"quoteStyle": "double"
 		}
