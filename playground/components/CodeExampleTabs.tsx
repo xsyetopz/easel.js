@@ -1,6 +1,7 @@
-import { CodeHighlight } from "@mantine/code-highlight";
 import { Anchor, Tabs } from "@mantine/core";
 import { navigate } from "../hooks/navigate.js";
+import { routeToPath } from "../routes.ts";
+import { CodeBlock } from "./CodeBlock.tsx";
 
 const ESM_CODE = `import * as EASEL from "@xsyetopz/easel";
 
@@ -53,10 +54,6 @@ scene.add(box);
 
 renderer.render(scene, camera);`;
 
-const CODE_STYLE = {
-	root: { borderRadius: "var(--mantine-radius-sm)" },
-};
-
 /**
  * Tabbed code example with ESM, CJS, and TypeScript variants.
  */
@@ -71,33 +68,19 @@ export function CodeExampleTabs() {
 				</Tabs.List>
 
 				<Tabs.Panel value="esm" pt="xs">
-					<CodeHighlight
-						code={ESM_CODE}
-						language="javascript"
-						withCopyButton={true}
-						styles={CODE_STYLE}
-					/>
+					<CodeBlock code={ESM_CODE} language="javascript" />
 				</Tabs.Panel>
 
 				<Tabs.Panel value="cjs" pt="xs">
-					<CodeHighlight
-						code={CJS_CODE}
-						language="javascript"
-						withCopyButton={true}
-						styles={CODE_STYLE}
-					/>
+					<CodeBlock code={CJS_CODE} language="javascript" />
 				</Tabs.Panel>
 
 				<Tabs.Panel value="typescript" pt="xs">
-					<CodeHighlight
-						code={TS_CODE}
-						language="typescript"
-						withCopyButton={true}
-						styles={CODE_STYLE}
-					/>
+					<CodeBlock code={TS_CODE} language="typescript" />
 				</Tabs.Panel>
 			</Tabs>
 			<Anchor
+				href={routeToPath("examples/hello-cube")}
 				size="xs"
 				c="dimmed"
 				onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {

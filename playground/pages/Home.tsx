@@ -15,27 +15,33 @@ import {
 	Title,
 } from "@mantine/core";
 import { IconArrowRight, IconBrandGithub } from "@tabler/icons-react";
+import { lazy, Suspense } from "react";
 import { REVISION } from "@/index.js";
 import { CodeExampleTabs } from "../components/CodeExampleTabs.tsx";
-import { HeroCanvas } from "../components/HeroCanvas.tsx";
 import { InstallTabs } from "../components/InstallTabs.tsx";
 import { navigate } from "../hooks/navigate.js";
+import { routeToPath } from "../routes.ts";
+
+const HeroCanvas = lazy(async () => {
+	const module = await import("../components/HeroCanvas.tsx");
+	return { default: module.HeroCanvas };
+});
 
 const FEATURES = [
 	{
-		title: "THREE.js-Compatible API",
+		title: "THREE.js-Compatible Mental Model",
 		description:
-			"Same scene graph concepts: Scene, Mesh, Camera, Light. If you know THREE.js, you already know the API.",
+			"Same scene graph vocabulary: Scene, Mesh, Camera, Light, Material, Geometry. The migration path is legible instead of theoretical.",
 	},
 	{
 		title: "CPU Software Renderer",
 		description:
-			"Every pixel drawn by the CPU using a painter's-algorithm scanline rasterizer. No WebGL, no GPU.",
+			"Every pixel is drawn by the CPU using a painter-sorted scanline rasterizer. No WebGL, no shader setup, no GPU dependency.",
 	},
 	{
 		title: "Canvas2D Output",
 		description:
-			"Renders to a standard HTML5 Canvas via ImageData. Works everywhere a browser runs.",
+			"Renders to a standard HTML5 Canvas via ImageData, making the renderer easy to inspect, record, and embed in browser tooling.",
 	},
 	{
 		title: "Zero Dependencies",
@@ -45,12 +51,12 @@ const FEATURES = [
 	{
 		title: "TypeScript",
 		description:
-			"Full type definitions via JSDoc. Works with checkJs, strict mode, and IDE autocompletion out of the box.",
+			"Typed API surface with JSDoc-backed definitions, checkJs compatibility, and editor autocomplete out of the box.",
 	},
 	{
-		title: "RuneTek 3 Inspired",
+		title: "Retro Pipeline Constraints",
 		description:
-			"Rendering constraints modeled after the OldSchool RuneScape engine: affine UV, HSL16 color, integer coordinates, flat/Gouraud shading.",
+			"Rendering constraints modeled after old software pipelines: affine UV, HSL16 color, integer coordinates, and flat or Gouraud shading.",
 	},
 ];
 
@@ -115,7 +121,6 @@ const PIPELINE_STAGES = [
 export function Home() {
 	return (
 		<Container size="lg" py="md">
-			{/* -- Hero ------------------------------------------------- */}
 			<Grid gutter="xl" align="center" mt="md">
 				<Grid.Col span={{ base: 12, md: 7 }}>
 					<Group gap="sm" align="center">
@@ -127,16 +132,33 @@ export function Home() {
 						</Badge>
 					</Group>
 					<Text size="lg" c="dimmed" mt="sm" maw={500}>
-						A software renderer for the browser. No WebGL. No GPU. Every pixel
-						drawn by the CPU.
+						A Canvas2D software renderer for the browser with a THREE.js-style
+						scene graph, CPU rasterization, and examples built for people
+						searching beyond WebGL.
 					</Text>
 					<Group mt="md">
 						<Button
+							component="a"
+							href={routeToPath("examples/hello-cube")}
 							variant="filled"
 							rightSection={<IconArrowRight size={16} />}
-							onClick={() => navigate("examples/hello-cube")}
+							onClick={(event) => {
+								event.preventDefault();
+								navigate("examples/hello-cube");
+							}}
 						>
-							Get Started
+							Open Playground
+						</Button>
+						<Button
+							component="a"
+							href={routeToPath("compare/threejs")}
+							variant="light"
+							onClick={(event) => {
+								event.preventDefault();
+								navigate("compare/threejs");
+							}}
+						>
+							Compare with THREE.js
 						</Button>
 						<Button
 							variant="outline"
@@ -150,22 +172,94 @@ export function Home() {
 					</Group>
 				</Grid.Col>
 				<Grid.Col span={{ base: 12, md: 5 }}>
-					<HeroCanvas />
+					<Suspense
+						fallback={
+							<Paper
+								radius="md"
+								style={{ background: "#0b0f17", minHeight: 220 }}
+							/>
+						}
+					>
+						<HeroCanvas />
+					</Suspense>
 				</Grid.Col>
 			</Grid>
 
 			<Divider my={40} />
 
-			{/* -- 1. Code Example ------------------------------------- */}
+			<Title order={3} mb="md">
+				Why people land here
+			</Title>
+			<Grid gutter="xl">
+				<Grid.Col span={{ base: 12, md: 5 }}>
+					<Text c="dimmed">
+						The strongest entry points are concrete search intents: a
+						THREE.js-style API for Canvas2D, a browser CPU rasterizer, and a
+						clear answer for people who typed `easeljs` but actually want a
+						modern playground for software-rendered 3D.
+					</Text>
+				</Grid.Col>
+				<Grid.Col span={{ base: 12, md: 7 }}>
+					<List spacing="xs" size="sm">
+						<List.Item>
+							<Anchor
+								href={routeToPath("compare/easeljs")}
+								onClick={(e) => {
+									e.preventDefault();
+									navigate("compare/easeljs");
+								}}
+							>
+								EaselJS / CreateJS alternative
+							</Anchor>
+						</List.Item>
+						<List.Item>
+							<Anchor
+								href={routeToPath("compare/threejs")}
+								onClick={(e) => {
+									e.preventDefault();
+									navigate("compare/threejs");
+								}}
+							>
+								THREE.js alternative for CPU Canvas rendering
+							</Anchor>
+						</List.Item>
+						<List.Item>
+							<Anchor
+								href={routeToPath("canvas-software-renderer")}
+								onClick={(e) => {
+									e.preventDefault();
+									navigate("canvas-software-renderer");
+								}}
+							>
+								Canvas2D software renderer category page
+							</Anchor>
+						</List.Item>
+						<List.Item>
+							<Anchor
+								href={routeToPath("cpu-rasterizer")}
+								onClick={(e) => {
+									e.preventDefault();
+									navigate("cpu-rasterizer");
+								}}
+							>
+								CPU rasterizer in JavaScript
+							</Anchor>
+						</List.Item>
+					</List>
+				</Grid.Col>
+			</Grid>
+
+			<Divider my={40} />
+
 			<Title order={3} mb="md">
 				Write familiar code
 			</Title>
 			<Grid gutter="xl">
 				<Grid.Col span={{ base: 12, md: 5 }}>
 					<Text c="dimmed">
-						The API mirrors THREE.js wherever it makes sense. Scene, Mesh,
-						Camera, Light, Material, Geometry — all the same concepts. Switch
-						from THREE.js by changing your imports and removing the GPU setup.
+						The API mirrors THREE.js where that improves approachability. Scene,
+						Mesh, Camera, Light, Material, and Geometry stay familiar while the
+						renderer swaps GPU assumptions for a readable CPU pipeline.
 					</Text>
 				</Grid.Col>
 				<Grid.Col span={{ base: 12, md: 7 }}>
@@ -175,12 +269,11 @@ export function Home() {
 
 			<Divider my={40} />
 
-			{/* -- 2. Install ------------------------------------------ */}
 			<Title order={3} mb="md">
 				Install
 			</Title>
 			<Text c="dimmed" mb="md">
-				Available on npm and JSR. One package, zero dependencies.
+				Available on npm and JSR. One package, zero runtime dependencies.
 			</Text>
 			<InstallTabs />
 			<Group gap="sm" mt="md">
@@ -206,7 +299,6 @@ export function Home() {
 
 			<Divider my={40} />
 
-			{/* -- 3. Features ----------------------------------------- */}
 			<Title order={3} mb="lg" ta="center">
 				Features
 			</Title>
@@ -225,7 +317,6 @@ export function Home() {
 
 			<Divider my={40} />
 
-			{/* -- 4. THREE.js comparison ------------------------------ */}
 			<Title order={3} mb="md">
 				Coming from THREE.js?
 			</Title>
@@ -276,7 +367,52 @@ export function Home() {
 
 			<Divider my={40} />
 
-			{/* -- 5. RuneTek 3 Origin --------------------------------- */}
+			<Title order={3} mb="md">
+				Looking for EaselJS / CreateJS?
+			</Title>
+			<Grid gutter="xl">
+				<Grid.Col span={{ base: 12, md: 7 }}>
+					<Paper p="xl" withBorder={true} radius="md">
+						<Text size="lg" fw={500} mb="sm">
+							EASEL.js is not the original CreateJS EaselJS package.
+						</Text>
+						<Text c="dimmed">
+							If you searched for `easeljs`, you probably expected a Canvas
+							library. This project targets a narrower, stranger niche:
+							software-rendered 3D scenes, painter sorting, scanline fill, and
+							Canvas2D output without WebGL.
+						</Text>
+					</Paper>
+				</Grid.Col>
+				<Grid.Col span={{ base: 12, md: 5 }}>
+					<List spacing="xs" size="sm">
+						<List.Item>
+							Scene graph and geometry instead of a 2D stage graph
+						</List.Item>
+						<List.Item>
+							CPU rasterization instead of sprite composition
+						</List.Item>
+						<List.Item>
+							Docs and examples aimed at rendering pipelines
+						</List.Item>
+					</List>
+					<Anchor
+						href={routeToPath("compare/easeljs")}
+						onClick={(e) => {
+							e.preventDefault();
+							navigate("compare/easeljs");
+						}}
+						size="sm"
+						mt="md"
+						display="inline-block"
+					>
+						Read the EaselJS comparison &rarr;
+					</Anchor>
+				</Grid.Col>
+			</Grid>
+
+			<Divider my={40} />
+
 			<Title order={3} mb="md">
 				Why RuneTek 3?
 			</Title>
@@ -307,7 +443,6 @@ export function Home() {
 
 			<Divider my={40} />
 
-			{/* -- 6. Rendering Pipeline ------------------------------- */}
 			<Title order={3} mb="md">
 				Rendering Pipeline
 			</Title>
@@ -338,9 +473,9 @@ export function Home() {
 
 			<Divider my={40} />
 
-			{/* -- Footer ---------------------------------------------- */}
 			<Group justify="center" gap="lg">
 				<Anchor
+					href={routeToPath("docs")}
 					onClick={(e) => {
 						e.preventDefault();
 						navigate("docs");
@@ -352,6 +487,7 @@ export function Home() {
 					Documentation
 				</Anchor>
 				<Anchor
+					href={routeToPath("examples")}
 					onClick={(e) => {
 						e.preventDefault();
 						navigate("examples");
@@ -361,6 +497,17 @@ export function Home() {
 					style={{ cursor: "pointer" }}
 				>
 					Examples
+				</Anchor>
+				<Anchor
+					href={routeToPath("compare/threejs")}
+					onClick={(e) => {
+						e.preventDefault();
+						navigate("compare/threejs");
+					}}
+					size="sm"
+					c="dimmed"
+				>
+					Compare
 				</Anchor>
 				<Anchor
 					href="https://github.com/xsyetopz/easel.js"

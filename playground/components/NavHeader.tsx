@@ -17,6 +17,7 @@ import {
 	IconSun,
 } from "@tabler/icons-react";
 import { navigate } from "../hooks/navigate.js";
+import { routeToPath } from "../routes.ts";
 
 type ColorScheme = "light" | "dark" | "auto";
 
@@ -55,6 +56,7 @@ export function NavHeader({ opened, onToggle }: NavHeaderProps) {
 	const navLinks = (
 		<>
 			<Anchor
+				href={routeToPath("examples")}
 				onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
 					e.preventDefault();
 					closeDrawer();
@@ -68,6 +70,7 @@ export function NavHeader({ opened, onToggle }: NavHeaderProps) {
 				Examples
 			</Anchor>
 			<Anchor
+				href={routeToPath("docs")}
 				onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
 					e.preventDefault();
 					closeDrawer();
@@ -79,6 +82,20 @@ export function NavHeader({ opened, onToggle }: NavHeaderProps) {
 				style={{ cursor: "pointer" }}
 			>
 				Docs
+			</Anchor>
+			<Anchor
+				href={routeToPath("compare/threejs")}
+				onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+					e.preventDefault();
+					closeDrawer();
+					navigate("compare/threejs");
+				}}
+				underline="never"
+				c="dimmed"
+				size="sm"
+				style={{ cursor: "pointer" }}
+			>
+				Compare
 			</Anchor>
 			<Anchor
 				href="https://github.com/xsyetopz/easel.js"
@@ -109,6 +126,7 @@ export function NavHeader({ opened, onToggle }: NavHeaderProps) {
 						size="sm"
 					/>
 					<Anchor
+						href={routeToPath("")}
 						onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
 							e.preventDefault();
 							navigate("");

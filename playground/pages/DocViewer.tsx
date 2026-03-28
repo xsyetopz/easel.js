@@ -1,4 +1,5 @@
 import {
+	Anchor,
 	Badge,
 	Code,
 	Container,
@@ -8,19 +9,69 @@ import {
 	Text,
 	Title,
 } from "@mantine/core";
-import { docClasses } from "../docs/classes.js";
+import { useEffect, useState } from "react";
+import { navigate } from "../hooks/navigate.js";
+import { useDocCatalog } from "../hooks/useDocCatalog.ts";
+import {
+	type DocCatalogData,
+	type DocEntry,
+	loadDocDetail,
+} from "../loaders/docs.ts";
 
 interface DocViewerProps {
 	classId: string | null;
+	initialCatalog?: DocCatalogData;
+	initialDoc?: DocEntry;
 }
 
-export function DocViewer({ classId }: DocViewerProps) {
-	const doc = docClasses.find((c) => c.id === classId);
+export function DocViewer({
+	classId,
+	initialCatalog,
+	initialDoc,
+}: DocViewerProps) {
+	const catalog = useDocCatalog(initialCatalog);
+	const docSummary = catalog?.docClasses.find(
+		(docClass) => docClass.id === classId,
+	);
+	const [doc, setDoc] = useState<DocEntry | null>(initialDoc ?? null);
+
+	useEffect(() => {
+		if (!classId) {
+			setDoc(null);
+			return;
+		}
+
+		if (initialDoc?.id === classId) {
+			setDoc(initialDoc);
+			return;
+		}
+
+		let active = true;
+		setDoc(null);
+		loadDocDetail(classId).then((nextDoc) => {
+			if (!active) return;
+			setDoc(nextDoc);
+		});
+
+		return () => {
+			active = false;
+		};
+	}, [classId, initialDoc]);
+
+	if (catalog === null) {
+		return (
+			<Text c="dimmed" size="lg" ta="center" mt="xl">
+				Loading documentation...
+			</Text>
+		);
+	}
 
 	if (!doc) {
 		return (
 			<Text c="dimmed" size="lg" ta="center" mt="xl">
-				Class not found: {classId}
+				{docSummary
+					? "Loading documentation..."
+					: `Class not found: ${classId}`}
 			</Text>
 		);
 	}
@@ -39,6 +90,28 @@ export function DocViewer({ classId }: DocViewerProps) {
 				</div>
 
 				<Text size="sm">{doc.description}</Text>
+				<Stack gap={4}>
+					<Anchor
+						href="/compare/threejs"
+						size="xs"
+						onClick={(event) => {
+							event.preventDefault();
+							navigate("/compare/threejs");
+						}}
+					>
+						Read the THREE.js comparison page
+					</Anchor>
+					<Anchor
+						href="/canvas-software-renderer"
+						size="xs"
+						onClick={(event) => {
+							event.preventDefault();
+							navigate("/canvas-software-renderer");
+						}}
+					>
+						Open the Canvas2D software renderer guide
+					</Anchor>
+				</Stack>
 
 				{doc.divergence && (
 					<Paper p="sm" withBorder={true} bg="dark.7">

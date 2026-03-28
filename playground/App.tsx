@@ -3,27 +3,48 @@ import { useDisclosure } from "@mantine/hooks";
 import { DocSidebar } from "./components/DocSidebar.tsx";
 import { ExampleSidebar } from "./components/ExampleSidebar.tsx";
 import { NavHeader } from "./components/NavHeader.tsx";
-import { useHashRoute } from "./hooks/useHashRoute.js";
+import { SeoHead } from "./components/SeoHead.tsx";
+import { useRoute } from "./hooks/useRoute.ts";
+import type { InitialPayload } from "./initialPayload.ts";
 import { DocsLanding } from "./pages/DocsLanding.tsx";
 import { DocViewer } from "./pages/DocViewer.tsx";
 import { ExamplesGallery } from "./pages/ExamplesGallery.tsx";
 import { ExampleViewer } from "./pages/ExampleViewer.tsx";
 import { Home } from "./pages/Home.tsx";
+import { LandingPage } from "./pages/LandingPage.tsx";
+import type { AppRoute } from "./routes.ts";
 
 const SIDEBAR_PAGES = new Set(["example", "docs", "doc"]);
 
-export function App() {
-	const route = useHashRoute();
+interface AppProps {
+	initialRoute?: AppRoute;
+	initialPayload?: InitialPayload;
+}
+
+export function App({ initialRoute, initialPayload }: AppProps) {
+	const route = useRoute(initialRoute);
 	const [opened, { toggle, close }] = useDisclosure();
 
 	const hasSidebar = SIDEBAR_PAGES.has(route.page);
 
 	const renderSidebar = () => {
 		if (route.page === "example") {
-			return <ExampleSidebar activeId={route.param} onClose={close} />;
+			return (
+				<ExampleSidebar
+					activeId={route.param}
+					initialCatalog={initialPayload?.exampleCatalog}
+					onClose={close}
+				/>
+			);
 		}
 		if (route.page === "docs" || route.page === "doc") {
-			return <DocSidebar activeId={route.param} onClose={close} />;
+			return (
+				<DocSidebar
+					activeId={route.page === "doc" ? route.param : undefined}
+					initialCatalog={initialPayload?.docCatalog}
+					onClose={close}
+				/>
+			);
 		}
 		return undefined;
 	};
@@ -33,13 +54,29 @@ export function App() {
 			case "home":
 				return <Home />;
 			case "examples":
-				return <ExamplesGallery />;
+				return (
+					<ExamplesGallery initialCatalog={initialPayload?.exampleCatalog} />
+				);
 			case "example":
-				return <ExampleViewer exampleId={route.param} />;
+				return (
+					<ExampleViewer
+						exampleId={route.param}
+						initialCatalog={initialPayload?.exampleCatalog}
+						initialExample={initialPayload?.initialExample}
+					/>
+				);
 			case "docs":
-				return <DocsLanding />;
+				return <DocsLanding initialCatalog={initialPayload?.docCatalog} />;
 			case "doc":
-				return <DocViewer classId={route.param} />;
+				return (
+					<DocViewer
+						classId={route.param}
+						initialCatalog={initialPayload?.docCatalog}
+						initialDoc={initialPayload?.initialDoc}
+					/>
+				);
+			case "landing":
+				return <LandingPage slug={route.slug} />;
 			default:
 				return <Home />;
 		}
@@ -55,6 +92,7 @@ export function App() {
 			}
 			padding="md"
 		>
+			<SeoHead route={route} />
 			<AppShell.Header>
 				<NavHeader opened={opened} onToggle={toggle} />
 			</AppShell.Header>

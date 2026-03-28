@@ -1,16 +1,58 @@
-import { Grid, Paper, Stack, Text, Title } from "@mantine/core";
+import { Anchor, Grid, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { useEffect, useMemo, useState } from "react";
 import { CodeToggle } from "../components/CodeToggle.tsx";
 import { ControlPanel } from "../components/ControlPanel.tsx";
 import { ExampleCanvas } from "../components/ExampleCanvas.tsx";
-import { examples } from "../examples/registry.js";
+import { navigate } from "../hooks/navigate.js";
+import { useExampleCatalog } from "../hooks/useExampleCatalog.ts";
+import {
+	buildExampleRouteData,
+	type ExampleCatalogData,
+	type ExampleRouteData,
+	loadExampleModule,
+} from "../loaders/examples.ts";
 
 interface ExampleViewerProps {
 	exampleId: string | null;
+	initialCatalog?: ExampleCatalogData;
+	initialExample?: ExampleRouteData;
 }
 
-export function ExampleViewer({ exampleId }: ExampleViewerProps) {
-	const example = examples.find((e) => e.meta.id === exampleId);
+export function ExampleViewer({
+	exampleId,
+	initialCatalog,
+	initialExample,
+}: ExampleViewerProps) {
+	const catalog = useExampleCatalog(initialCatalog);
+	const exampleMeta = catalog?.examples.find(
+		(example) => example.meta.id === exampleId,
+	);
+	const [example, setExample] = useState<ExampleRouteData | null>(
+		initialExample ?? null,
+	);
+
+	useEffect(() => {
+		if (!exampleId) {
+			setExample(null);
+			return;
+		}
+
+		if (initialExample?.meta.id === exampleId) {
+			setExample(initialExample);
+			return;
+		}
+
+		let active = true;
+		setExample(null);
+		loadExampleModule(exampleId).then((module) => {
+			if (!active) return;
+			setExample(module ? buildExampleRouteData(module) : null);
+		});
+
+		return () => {
+			active = false;
+		};
+	}, [exampleId, initialExample]);
 
 	const defaultParams = useMemo(() => {
 		if (!example?.controls) return {};
@@ -28,10 +70,18 @@ export function ExampleViewer({ exampleId }: ExampleViewerProps) {
 		setParams(defaultParams);
 	}, [defaultParams]);
 
+	if (catalog === null) {
+		return (
+			<Text c="dimmed" size="lg" ta="center" mt="xl">
+				Loading example...
+			</Text>
+		);
+	}
+
 	if (!example) {
 		return (
 			<Text c="dimmed" size="lg" ta="center" mt="xl">
-				Example not found: {exampleId}
+				{exampleMeta ? "Loading example..." : `Example not found: ${exampleId}`}
 			</Text>
 		);
 	}
@@ -51,6 +101,28 @@ export function ExampleViewer({ exampleId }: ExampleViewerProps) {
 						{example.meta.description}
 					</Text>
 				)}
+				<Group gap="md" mt="xs">
+					<Anchor
+						href="/compare/threejs"
+						size="xs"
+						onClick={(event) => {
+							event.preventDefault();
+							navigate("/compare/threejs");
+						}}
+					>
+						THREE.js migration page
+					</Anchor>
+					<Anchor
+						href="/cpu-rasterizer"
+						size="xs"
+						onClick={(event) => {
+							event.preventDefault();
+							navigate("/cpu-rasterizer");
+						}}
+					>
+						CPU rasterizer guide
+					</Anchor>
+				</Group>
 			</div>
 
 			<Grid>

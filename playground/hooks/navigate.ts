@@ -1,7 +1,15 @@
+import { routeToPath } from "../routes.ts";
+
 /**
- * Navigate to a hash route.
- * @param {string} hash - Route path without leading #, e.g. "examples/hello-cube"
+ * Navigate to a path route.
+ * @param {string} path - Route path without leading slash, e.g. "examples/hello-cube"
  */
-export function navigate(hash) {
-	window.location.hash = `#/${hash}`;
+export function navigate(path: string) {
+	if (typeof window === "undefined") return;
+
+	const nextPath = routeToPath(path);
+	if (window.location.pathname === nextPath) return;
+
+	window.history.pushState({}, "", nextPath);
+	window.dispatchEvent(new PopStateEvent("popstate"));
 }

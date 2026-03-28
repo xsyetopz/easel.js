@@ -1,15 +1,25 @@
 import { NavLink, ScrollArea, TextInput } from "@mantine/core";
 import { useState } from "react";
-import { docCategories, docClasses } from "../docs/classes.js";
 import { navigate } from "../hooks/navigate.js";
+import { useDocCatalog } from "../hooks/useDocCatalog.ts";
+import type { DocCatalogData } from "../loaders/docs.ts";
+import { routeToPath } from "../routes.ts";
 
 interface DocSidebarProps {
 	activeId: string | undefined;
+	initialCatalog?: DocCatalogData;
 	onClose: () => void;
 }
 
-export function DocSidebar({ activeId, onClose }: DocSidebarProps) {
+export function DocSidebar({
+	activeId,
+	initialCatalog,
+	onClose,
+}: DocSidebarProps) {
 	const [filter, setFilter] = useState("");
+	const catalog = useDocCatalog(initialCatalog);
+	const docCategories = catalog?.docCategories ?? [];
+	const docClasses = catalog?.docClasses ?? [];
 
 	const filtered = filter
 		? docClasses.filter((c) =>
@@ -39,9 +49,12 @@ export function DocSidebar({ activeId, onClose }: DocSidebarProps) {
 						.map((c) => (
 							<NavLink
 								key={c.id}
+								component="a"
+								href={routeToPath(`docs/${c.id}`)}
 								label={c.name}
 								active={activeId === c.id}
-								onClick={() => {
+								onClick={(event) => {
+									event.preventDefault();
 									navigate(`docs/${c.id}`);
 									onClose();
 								}}

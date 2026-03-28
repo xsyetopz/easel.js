@@ -6,18 +6,37 @@ import {
 	Text,
 	Title,
 } from "@mantine/core";
-import { docCategories, docClasses } from "../docs/classes.js";
 import { navigate } from "../hooks/navigate.js";
+import { useDocCatalog } from "../hooks/useDocCatalog.ts";
+import type { DocCatalogData } from "../loaders/docs.ts";
+import { routeToPath } from "../routes.ts";
 
-export function DocsLanding() {
+interface DocsLandingProps {
+	initialCatalog?: DocCatalogData;
+}
+
+export function DocsLanding({ initialCatalog }: DocsLandingProps) {
+	const catalog = useDocCatalog(initialCatalog);
+	const docCategories = catalog?.docCategories ?? [];
+	const docClasses = catalog?.docClasses ?? [];
+
+	if (catalog === null) {
+		return (
+			<Container size="lg" py="md">
+				<Text c="dimmed">Loading documentation...</Text>
+			</Container>
+		);
+	}
+
 	return (
 		<Container size="lg" py="md">
 			<Stack gap="xl">
 				<div>
-					<Title order={2}>API Reference</Title>
+					<Title order={1}>API Reference</Title>
 					<Text size="sm" c="dimmed">
 						{docClasses.length} classes across {docCategories.length} modules.
-						THREE.js equivalents noted where applicable.
+						THREE.js equivalents and divergence notes are called out on each
+						entry.
 					</Text>
 				</div>
 
@@ -28,10 +47,16 @@ export function DocsLanding() {
 						return (
 							<Paper
 								key={cat}
+								component="a"
+								href={first ? routeToPath(`docs/${first.id}`) : undefined}
 								p="md"
 								withBorder={true}
 								style={{ cursor: "pointer" }}
-								onClick={() => first && navigate(`docs/${first.id}`)}
+								onClick={(event) => {
+									if (!first) return;
+									event.preventDefault();
+									navigate(`docs/${first.id}`);
+								}}
 							>
 								<Text fw={600}>{cat}</Text>
 								<Text size="xs" c="dimmed" mt={4}>

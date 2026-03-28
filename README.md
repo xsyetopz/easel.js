@@ -10,7 +10,9 @@
 [![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/@xsyetopz/easel)](https://www.jsdelivr.com/package/npm/@xsyetopz/easel)
 [![JSR Score](https://jsr.io/badges/@xsyetopz/easel/score)](https://jsr.io/@xsyetopz/easel)
 
-A software rasterizer using HTML5 Canvas2D with a THREE.js-compatible scene graph API. Every pixel is drawn by the CPU using a painter's-algorithm scanline rasterizer - no WebGL, no GPU.
+EASEL.js is a Canvas2D software renderer and CPU rasterizer for the browser with a THREE.js-style scene graph API. Every pixel is drawn by the CPU using a painter-sorted scanline rasterizer, which makes the library a good fit for retro 3D, graphics experiments, and people searching for a browser-side software renderer instead of WebGL.
+
+If you searched for `easeljs`, note that this project is not the original CreateJS EaselJS package. EASEL.js is a different library aimed at CPU-rendered 3D scenes and readable rendering pipelines.
 
 ## Install
 
@@ -76,7 +78,7 @@ animate();
 
 ## Scene graph
 
-EASEL.js mirrors the THREE.js API wherever it makes sense. If you know THREE.js, you already know the basics.
+EASEL.js mirrors the THREE.js API wherever it helps. If you know THREE.js, you already know the basics and can map most concepts directly.
 
 | Category      | Classes                                                                                          |
 | ------------- | ------------------------------------------------------------------------------------------------ |
@@ -124,6 +126,12 @@ graph LR
 - **Integer screen coords** - `(x + 0.5) | 0` on projected vertices
 - **128x128 max texture** - nearest-neighbor, no mipmaps
 - **9-step opacity** - discrete 0-8, not continuous alpha
+
+## Migration targets
+
+- **THREE.js users** - familiar scene graph, geometry, lighting, math, animation, and paired examples
+- **Software renderer / rasterizer searches** - browser-side Canvas2D renderer with readable pipeline stages
+- **CreateJS / EaselJS searchers** - not a drop-in replacement for the original 2D display-list library; aimed at CPU-rendered 3D and retro pipeline work
 
 ## Development
 

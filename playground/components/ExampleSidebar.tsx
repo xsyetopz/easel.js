@@ -1,15 +1,25 @@
 import { NavLink, ScrollArea, TextInput } from "@mantine/core";
 import { useState } from "react";
-import { categoryLabels, examples } from "../examples/registry.js";
 import { navigate } from "../hooks/navigate.js";
+import { useExampleCatalog } from "../hooks/useExampleCatalog.ts";
+import type { ExampleCatalogData } from "../loaders/examples.ts";
+import { routeToPath } from "../routes.ts";
 
 interface ExampleSidebarProps {
 	activeId: string | undefined;
+	initialCatalog?: ExampleCatalogData;
 	onClose: () => void;
 }
 
-export function ExampleSidebar({ activeId, onClose }: ExampleSidebarProps) {
+export function ExampleSidebar({
+	activeId,
+	initialCatalog,
+	onClose,
+}: ExampleSidebarProps) {
 	const [filter, setFilter] = useState("");
+	const catalog = useExampleCatalog(initialCatalog);
+	const categoryLabels = catalog?.categoryLabels ?? {};
+	const examples = catalog?.examples ?? [];
 
 	const filtered = filter
 		? examples.filter(
@@ -44,9 +54,12 @@ export function ExampleSidebar({ activeId, onClose }: ExampleSidebarProps) {
 						.map((e) => (
 							<NavLink
 								key={e.meta.id}
+								component="a"
+								href={routeToPath(`examples/${e.meta.id}`)}
 								label={e.meta.name}
 								active={activeId === e.meta.id}
-								onClick={() => {
+								onClick={(event) => {
+									event.preventDefault();
 									navigate(`examples/${e.meta.id}`);
 									onClose();
 								}}

@@ -1,5 +1,6 @@
 import { Paper, Text } from "@mantine/core";
 import { navigate } from "../hooks/navigate.js";
+import { routeToPath } from "../routes.ts";
 
 const CATEGORY_COLORS: Record<string, string> = {
 	"getting-started": "#4c6ef5",
@@ -31,6 +32,8 @@ export function ExampleCard({ meta }: ExampleCardProps) {
 
 	return (
 		<Paper
+			component="a"
+			href={routeToPath(`examples/${meta.id}`)}
 			withBorder={true}
 			p="md"
 			style={{
@@ -38,7 +41,10 @@ export function ExampleCard({ meta }: ExampleCardProps) {
 				borderLeft: `3px solid ${color}`,
 				transition: "background 0.15s",
 			}}
-			onClick={() => navigate(`examples/${meta.id}`)}
+			onClick={(event) => {
+				event.preventDefault();
+				navigate(`examples/${meta.id}`);
+			}}
 			onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
 				e.currentTarget.style.background = "var(--mantine-color-default-hover)";
 			}}

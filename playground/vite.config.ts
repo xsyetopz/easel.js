@@ -14,5 +14,23 @@ export default defineConfig({
 	build: {
 		outDir: "dist/playground",
 		emptyOutDir: true,
+		rollupOptions: {
+			output: {
+				manualChunks(id) {
+					if (!id.includes("node_modules")) return undefined;
+					if (id.includes("@mantine/")) return "mantine";
+					if (
+						id.includes("/react/") ||
+						id.includes("/react-dom/") ||
+						id.includes("/scheduler/")
+					) {
+						return "react-vendor";
+					}
+					if (id.includes("@floating-ui/")) return "floating-ui";
+					if (id.includes("@tabler/icons-react/")) return "tabler-icons";
+					return "vendor";
+				},
+			},
+		},
 	},
 });
