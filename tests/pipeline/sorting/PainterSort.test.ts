@@ -16,15 +16,30 @@ describe("PainterSort", () => {
 	const sorter = new PainterSort();
 	const camera = { x: 0, y: 0 };
 
-	it("sorts opaque meshes front-to-back for early-Z rejection", () => {
+	it("does not reorder opaque-only draw calls by distance", () => {
 		const list = new DrawList();
 		const near = makeDrawCall(1, 0);
 		const far = makeDrawCall(10, 0);
-		list.add(near);
 		list.add(far);
+		list.add(near);
 		sorter.sort(list, camera);
-		expect(list.calls[0]).toBe(near);
-		expect(list.calls[1]).toBe(far);
+		expect(list.calls[0]).toBe(far);
+		expect(list.calls[1]).toBe(near);
+	});
+
+	it("still sorts opaques front-to-back when transparents are present", () => {
+		const list = new DrawList();
+		const opaqueNear = makeDrawCall(1, 0, 0, 0);
+		const opaqueFar = makeDrawCall(10, 0, 0, 0);
+		const transparent = makeDrawCall(5, 0, 0, 4);
+		list.add(opaqueFar);
+		list.add(transparent);
+		list.add(opaqueNear);
+		sorter.sort(list, camera);
+		// Opaques first and front-to-back among them.
+		expect(list.calls[0]).toBe(opaqueNear);
+		expect(list.calls[1]).toBe(opaqueFar);
+		expect(list.calls[2]).toBe(transparent);
 	});
 
 	it("sorts transparent meshes back-to-front for correct blending", () => {

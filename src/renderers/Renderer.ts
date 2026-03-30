@@ -48,6 +48,23 @@ interface CameraLike {
 	position: { x: number; y: number; z: number };
 }
 
+export interface RenderTimings {
+	clearMs?: number;
+	traversalMs?: number;
+	fogCullMs?: number;
+	sortMs?: number;
+	shadeRasterMs?: number;
+	uploadMs?: number;
+	totalMs?: number;
+	// Optional detailed traversal breakdown (enabled by setting timings.profileTraversal = true).
+	profileTraversal?: boolean;
+	travUpdateWorldMs?: number;
+	travWalkMs?: number;
+	travProjectMs?: number;
+	travAssembleMs?: number;
+	travDrawCalls?: number;
+}
+
 /** Canvas2D software renderer orchestrating the full pipeline. */
 export class Renderer {
 	#width: number;
@@ -126,7 +143,109 @@ export class Renderer {
 	}
 
 	/** Renders a scene from a camera's perspective. */
-	render(scene: SceneLike, camera: CameraLike): void {
+	render(scene: SceneLike, camera: CameraLike, timings?: RenderTimings): void {
+		if (timings) {
+			const perf = globalThis.performance;
+			const now =
+				typeof perf?.now === "function" ? perf.now.bind(perf) : Date.now;
+			const t0 = now();
+
+			// 0. Mark auto-updating CanvasTextures dirty before the pipeline runs
+			this.#refreshAutoUpdateTextures(scene as unknown as SceneNodeLike);
+
+			const tTex = now();
+
+			// 1. Clear framebuffer + depth buffer
+			const fog = scene.fog;
+			let clearR: number;
+			let clearG: number;
+			let clearB: number;
+			if (fog) {
+				clearR = Math.round(fog.color.r * 255);
+				clearG = Math.round(fog.color.g * 255);
+				clearB = Math.round(fog.color.b * 255);
+			} else if (scene.background === undefined) {
+				clearR = this.#clearColor.r;
+				clearG = this.#clearColor.g;
+				clearB = this.#clearColor.b;
+			} else {
+				const bg = scene.background;
+				if (typeof bg === "object" && bg !== null) {
+					clearR = Math.round(bg.r * 255);
+					clearG = Math.round(bg.g * 255);
+					clearB = Math.round(bg.b * 255);
+				} else {
+					const hex = bg as number;
+					clearR = (hex >> 16) & 0xff;
+					clearG = (hex >> 8) & 0xff;
+					clearB = hex & 0xff;
+				}
+			}
+			this.#clear.clear(this.#framebuffer, clearR, clearG, clearB);
+			this.#framebuffer.depthBuffer.clear();
+
+			const tClear = now();
+
+			// 2. Scene traversal -> DrawList
+			const drawList = this.#traversal.traverse(
+				scene as never,
+				camera as never,
+				this.#width,
+				this.#height,
+				timings,
+			);
+
+			const tTrav = now();
+
+			// 3. Fog culling
+			if (scene.fog) {
+				this.#fogCuller.cull(
+					drawList,
+					scene.fog as never,
+					camera.position as never,
+				);
+			}
+
+			const tFogCull = now();
+
+			// 4. Painter's sort
+			this.#painterSort.sort(drawList, camera.position);
+
+			const tSort = now();
+
+			// 5. Light baking + 6. Rasterize per draw call
+			const lights = drawList.lights;
+			const fb = this.#framebuffer;
+			const fogColor = fog ? fog.color : undefined;
+			for (const drawCall of drawList) {
+				this.#lightBaker.bake(drawCall as never, lights);
+				this.#rasterizer.rasterize(
+					drawCall as never,
+					fb as never,
+					undefined,
+					fogColor,
+				);
+			}
+
+			const tShadeRaster = now();
+
+			// 7. Upload to canvas
+			if (this.#context) {
+				this.#upload.upload(this.#framebuffer, this.#context);
+			}
+
+			const tUpload = now();
+
+			timings.clearMs = tClear - tTex;
+			timings.traversalMs = tTrav - tClear;
+			timings.fogCullMs = tFogCull - tTrav;
+			timings.sortMs = tSort - tFogCull;
+			timings.shadeRasterMs = tShadeRaster - tSort;
+			timings.uploadMs = tUpload - tShadeRaster;
+			timings.totalMs = tUpload - t0;
+			return;
+		}
+
 		// 0. Mark auto-updating CanvasTextures dirty before the pipeline runs
 		this.#refreshAutoUpdateTextures(scene as unknown as SceneNodeLike);
 

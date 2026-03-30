@@ -25,6 +25,11 @@ interface InstancedNode {
 	_instProjVerts?: Float32Array[];
 	_instWorldPos?: Float32Array[];
 	_instTriBuf?: TriangleBuffer[];
+	_instDrawCalls?: DrawCall[];
+	_instMaterials?: (Material & {
+		color?: { r: number; g: number; b: number };
+	})[];
+	_instMaterialBaseId?: number;
 	_instWorldNormals?: Float32Array[];
 	_instWorldNormalKey?: Float32Array[];
 }
@@ -58,7 +63,6 @@ type AssembleTrianglesFn = (
 	verts: Float32Array,
 	worldNormals: Float32Array,
 	uvs: Float32Array,
-	worldPositions: Float32Array,
 	width: number,
 	height: number,
 	material: Material,
@@ -90,6 +94,10 @@ export function buildInstancedDrawCalls(
 	const ic = node.instanceColor;
 	const geometry = node.geometry;
 	const baseMat = node.material;
+	if (node._instMaterialBaseId !== baseMat.id) {
+		node._instMaterialBaseId = baseMat.id;
+		if (node._instMaterials) node._instMaterials.length = 0;
+	}
 
 	if (
 		geometry.boundingSphere === undefined &&
@@ -102,6 +110,8 @@ export function buildInstancedDrawCalls(
 	if (!node._instProjVerts) node._instProjVerts = [];
 	if (!node._instWorldPos) node._instWorldPos = [];
 	if (!node._instTriBuf) node._instTriBuf = [];
+	if (!node._instDrawCalls) node._instDrawCalls = [];
+	if (!node._instMaterials) node._instMaterials = [];
 	if (!node._instWorldNormals) node._instWorldNormals = [];
 	if (!node._instWorldNormalKey) node._instWorldNormalKey = [];
 
@@ -144,7 +154,7 @@ export function buildInstancedDrawCalls(
 	for (let i = 0; i < count; i++) {
 		const off = i * 16;
 		_instLocal.elements.set(im.subarray(off, off + 16));
-		_instWorld.mulMatrices(node.matrixWorld, _instLocal);
+		_instWorld.mulMatricesAffine(node.matrixWorld, _instLocal);
 
 		const iwe = _instWorld.elements;
 
@@ -305,12 +315,21 @@ export function buildInstancedDrawCalls(
 		if (ic) {
 			const baseColor = baseMat.color;
 			if (baseColor) {
-				material = Object.create(baseMat) as typeof baseMat;
-				(material as typeof baseMat).color = {
-					r: baseColor.r * ic[i * 3],
-					g: baseColor.g * ic[i * 3 + 1],
-					b: baseColor.b * ic[i * 3 + 2],
+				let instMat = node._instMaterials[i];
+				if (!instMat) {
+					instMat = Object.create(baseMat) as typeof baseMat;
+					(instMat as typeof baseMat).color = { r: 1, g: 1, b: 1 };
+					node._instMaterials[i] = instMat;
+				}
+				const c = (instMat as typeof baseMat).color as {
+					r: number;
+					g: number;
+					b: number;
 				};
+				c.r = baseColor.r * ic[i * 3];
+				c.g = baseColor.g * ic[i * 3 + 1];
+				c.b = baseColor.b * ic[i * 3 + 2];
+				material = instMat;
 			}
 		}
 
@@ -326,17 +345,29 @@ export function buildInstancedDrawCalls(
 			pv,
 			worldNormals,
 			uvs,
-			wp,
 			width,
 			height,
 			material,
 			{ _triangleBuffer: triBuf },
 		);
 
-		const drawCall = new DrawCall(node as unknown as Node, material);
-		drawCall.centroid.x = lastBsCenterX;
-		drawCall.centroid.y = lastBsCenterY;
-		drawCall.centroid.z = lastBsCenterZ;
+		let drawCall = node._instDrawCalls[i];
+		if (drawCall) {
+			drawCall.mesh = node as unknown as Node;
+			drawCall.material = material;
+			drawCall.centroid.x = lastBsCenterX;
+			drawCall.centroid.y = lastBsCenterY;
+			drawCall.centroid.z = lastBsCenterZ;
+		} else {
+			drawCall = new DrawCall(
+				node as unknown as Node,
+				material,
+				lastBsCenterX,
+				lastBsCenterY,
+				lastBsCenterZ,
+			);
+			node._instDrawCalls[i] = drawCall;
+		}
 		drawCall.projectedVerts = pv;
 		drawCall.vertCount = vertCount;
 		drawCall.faceIndices = faceIndices as number[] | Uint16Array | Uint32Array;

@@ -51,7 +51,7 @@ export class Camera extends Node {
 	}
 
 	override updateMatrixWorld(force = false): void {
-		super.updateMatrixWorld(force, false);
+		super.updateMatrixWorld(force, false, force);
 		this.matrixWorldInverse.copy(this.matrixWorld).invert();
 	}
 

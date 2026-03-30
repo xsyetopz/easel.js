@@ -52,10 +52,33 @@ describe("SceneTraversal", () => {
 		expect(result.length).toBe(0);
 	});
 
+	it("calls scene.updateMatrixWorld with correct this binding", () => {
+		const scene = {
+			visible: true,
+			children: [],
+			updated: false,
+			updateMatrixWorld(updateParents?: boolean, updateChildren?: boolean) {
+				// will throw if called unbound (this === undefined)
+				this.updated = updateParents === true && updateChildren === true;
+			},
+		};
+
+		expect(() => traversal.traverse(scene, makeCamera())).not.toThrow();
+		expect(scene.updated).toBe(true);
+	});
+
 	it("scene with 2 visible meshes produces 2 draw calls", () => {
 		const scene = makeScene(makeMeshNode(), makeMeshNode());
 		const result = traversal.traverse(scene, makeCamera());
 		expect(result.length).toBe(2);
+	});
+
+	it("reuses DrawCall instances across traverse calls", () => {
+		const scene = makeScene(makeMeshNode());
+		const cam = makeCamera();
+		const first = traversal.traverse(scene, cam).calls[0];
+		const second = traversal.traverse(scene, cam).calls[0];
+		expect(second).toBe(first);
 	});
 
 	it("invisible mesh is excluded", () => {
@@ -303,7 +326,11 @@ describe("SceneTraversal", () => {
 				/* no-op */
 			},
 			geometry,
-			material: { side: Side.Double, shading: 0 },
+			material: {
+				side: Side.Double,
+				shading: 0,
+				map: { data: { data: new Uint8Array([0]), width: 1, height: 1 } },
+			},
 		};
 		const scene = makeScene(node);
 		traversal.traverse(scene, makeCamera(), 100, 100);

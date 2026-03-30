@@ -31,6 +31,7 @@ export function setup(canvas, params = {}) {
 	const height = canvas.height;
 
 	const scene = new EASEL.Scene();
+	const origin = new EASEL.Vector3(0, 0, 0);
 	const camera = new EASEL.PerspectiveCamera({
 		fov: 45,
 		aspect: width / height,
@@ -38,7 +39,7 @@ export function setup(canvas, params = {}) {
 		far: 80,
 	});
 	camera.position.set(-20, 12, -20);
-	camera.lookAt(new EASEL.Vector3(0, 0, 0));
+	camera.lookAt(origin);
 
 	const renderer = new EASEL.Renderer({ canvas, width, height });
 
@@ -95,6 +96,7 @@ export function setup(canvas, params = {}) {
 	let fps = 0;
 	let elapsed = 0;
 	const ctx = canvas.getContext("2d");
+	const timings = {};
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
@@ -107,9 +109,9 @@ export function setup(canvas, params = {}) {
 		camera.position.x = Math.cos(angle) * radius;
 		camera.position.z = Math.sin(angle) * radius;
 		camera.position.y = 12 + Math.sin(elapsed * 0.1) * 4;
-		camera.lookAt(new EASEL.Vector3(0, 0, 0));
+		camera.lookAt(origin);
 
-		renderer.render(scene, camera);
+		renderer.render(scene, camera, timings);
 
 		frames++;
 		fpsTime += dt;
@@ -126,6 +128,27 @@ export function setup(canvas, params = {}) {
 				`FPS: ${fps}  Total: ${meshes.length}  (cull saves work on off-screen objects)`,
 				8,
 				20,
+			);
+			const total =
+				typeof timings.totalMs === "number" ? timings.totalMs.toFixed(2) : "—";
+			const trav =
+				typeof timings.traversalMs === "number"
+					? timings.traversalMs.toFixed(2)
+					: "—";
+			const sort =
+				typeof timings.sortMs === "number" ? timings.sortMs.toFixed(2) : "—";
+			const shade =
+				typeof timings.shadeRasterMs === "number"
+					? timings.shadeRasterMs.toFixed(2)
+					: "—";
+			const upload =
+				typeof timings.uploadMs === "number"
+					? timings.uploadMs.toFixed(2)
+					: "—";
+			ctx.fillText(
+				`ms: total ${total}  trav ${trav}  sort ${sort}  shade+rast ${shade}  upload ${upload}`,
+				8,
+				40,
 			);
 		}
 	}

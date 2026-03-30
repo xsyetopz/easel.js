@@ -32,6 +32,91 @@ export class Matrix4 {
 		const te = this.elements;
 
 		const { x: qx, y: qy, z: qz, w: qw } = q;
+		const { x: sx, y: sy, z: sz } = scale;
+
+		// Fast paths for axis-only quaternions (common in animation).
+		// Uses sin(theta) = 2*q*w and cos(theta) = 1 - 2*q^2 identities.
+		if (qx === 0 && qz === 0) {
+			// Rotation about Y.
+			const yy2 = 2 * qy * qy;
+			const cos = 1 - yy2;
+			const sin = 2 * qw * qy;
+
+			te[0] = cos * sx;
+			te[1] = 0;
+			te[2] = -sin * sx;
+			te[3] = 0;
+
+			te[4] = 0;
+			te[5] = sy;
+			te[6] = 0;
+			te[7] = 0;
+
+			te[8] = sin * sz;
+			te[9] = 0;
+			te[10] = cos * sz;
+			te[11] = 0;
+
+			te[12] = position.x;
+			te[13] = position.y;
+			te[14] = position.z;
+			te[15] = 1;
+			return this;
+		}
+		if (qy === 0 && qz === 0) {
+			// Rotation about X.
+			const xx2 = 2 * qx * qx;
+			const cos = 1 - xx2;
+			const sin = 2 * qw * qx;
+
+			te[0] = sx;
+			te[1] = 0;
+			te[2] = 0;
+			te[3] = 0;
+
+			te[4] = 0;
+			te[5] = cos * sy;
+			te[6] = sin * sy;
+			te[7] = 0;
+
+			te[8] = 0;
+			te[9] = -sin * sz;
+			te[10] = cos * sz;
+			te[11] = 0;
+
+			te[12] = position.x;
+			te[13] = position.y;
+			te[14] = position.z;
+			te[15] = 1;
+			return this;
+		}
+		if (qx === 0 && qy === 0) {
+			// Rotation about Z.
+			const zz2 = 2 * qz * qz;
+			const cos = 1 - zz2;
+			const sin = 2 * qw * qz;
+
+			te[0] = cos * sx;
+			te[1] = sin * sx;
+			te[2] = 0;
+			te[3] = 0;
+
+			te[4] = -sin * sy;
+			te[5] = cos * sy;
+			te[6] = 0;
+			te[7] = 0;
+
+			te[8] = 0;
+			te[9] = 0;
+			te[10] = sz;
+			te[11] = 0;
+
+			te[12] = position.x;
+			te[13] = position.y;
+			te[14] = position.z;
+			te[15] = 1;
+			return this;
+		}
 		const qx2 = qx + qx;
 		const qy2 = qy + qy;
 		const qz2 = qz + qz;
@@ -45,8 +130,6 @@ export class Matrix4 {
 		const wx = qw * qx2;
 		const wy = qw * qy2;
 		const wz = qw * qz2;
-
-		const { x: sx, y: sy, z: sz } = scale;
 
 		te[0] = (1 - (yy + zz)) * sx;
 		te[1] = (xy + wz) * sx;
@@ -669,6 +752,61 @@ export class Matrix4 {
 		te[13] = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
 		te[14] = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
 		te[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+		return this;
+	}
+
+	/**
+	 * Sets this matrix to the product a * b, assuming both are affine transforms:
+	 * last row is [0,0,0,1]. This is the common case for scene graph world-matrix
+	 * propagation and is substantially cheaper than full 4x4 multiplication.
+	 */
+	mulMatricesAffine(a: Matrix4, b: Matrix4): this {
+		const ae = a.elements;
+		const be = b.elements;
+
+		const a11 = ae[0];
+		const a21 = ae[1];
+		const a31 = ae[2];
+		const a12 = ae[4];
+		const a22 = ae[5];
+		const a32 = ae[6];
+		const a13 = ae[8];
+		const a23 = ae[9];
+		const a33 = ae[10];
+		const a14 = ae[12];
+		const a24 = ae[13];
+		const a34 = ae[14];
+
+		const b11 = be[0];
+		const b21 = be[1];
+		const b31 = be[2];
+		const b12 = be[4];
+		const b22 = be[5];
+		const b32 = be[6];
+		const b13 = be[8];
+		const b23 = be[9];
+		const b33 = be[10];
+		const b14 = be[12];
+		const b24 = be[13];
+		const b34 = be[14];
+
+		const te = this.elements;
+		te[0] = a11 * b11 + a12 * b21 + a13 * b31;
+		te[1] = a21 * b11 + a22 * b21 + a23 * b31;
+		te[2] = a31 * b11 + a32 * b21 + a33 * b31;
+		te[3] = 0;
+		te[4] = a11 * b12 + a12 * b22 + a13 * b32;
+		te[5] = a21 * b12 + a22 * b22 + a23 * b32;
+		te[6] = a31 * b12 + a32 * b22 + a33 * b32;
+		te[7] = 0;
+		te[8] = a11 * b13 + a12 * b23 + a13 * b33;
+		te[9] = a21 * b13 + a22 * b23 + a23 * b33;
+		te[10] = a31 * b13 + a32 * b23 + a33 * b33;
+		te[11] = 0;
+		te[12] = a11 * b14 + a12 * b24 + a13 * b34 + a14;
+		te[13] = a21 * b14 + a22 * b24 + a23 * b34 + a24;
+		te[14] = a31 * b14 + a32 * b24 + a33 * b34 + a34;
+		te[15] = 1;
 		return this;
 	}
 

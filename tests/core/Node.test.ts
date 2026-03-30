@@ -2,6 +2,15 @@ import { describe, expect, it } from "vitest";
 import { Node } from "@/core/Node.js";
 
 describe("Node", () => {
+	class TestNode extends Node {
+		updateCalls = 0;
+
+		override updateMatrix(): void {
+			this.updateCalls++;
+			super.updateMatrix();
+		}
+	}
+
 	it("assigns incrementing ids", () => {
 		const a = new Node();
 		const b = new Node();
@@ -39,8 +48,10 @@ describe("Node", () => {
 		const parent = new Node();
 		const child = new Node();
 		parent.add(child);
+		child.matrixWorldNeedsUpdate = false;
 		parent.remove(child);
 		expect(child.parent).toBeUndefined();
+		expect(child.matrixWorldNeedsUpdate).toBe(true);
 		expect(parent.children).not.toContain(child);
 	});
 
@@ -85,20 +96,58 @@ describe("Node", () => {
 	});
 
 	it("updateMatrixWorld without parent copies matrix to matrixWorld", () => {
-		const node = new Node();
+		const node = new TestNode();
+		node.updateCalls = 0;
 		node.position.set(5, 0, 0);
 		node.updateMatrixWorld(false, false);
+		expect(node.updateCalls).toBe(1);
 		expect(node.matrixWorld.elements[12]).toBeCloseTo(5);
+
+		// Subsequent update without changes should not re-compose local matrix.
+		node.updateMatrixWorld(false, false);
+		expect(node.updateCalls).toBe(1);
 	});
 
 	it("updateMatrixWorld propagates parent transform to child", () => {
+		const parent = new TestNode();
+		const child = new TestNode();
+		parent.add(child);
+		parent.updateCalls = 0;
+		child.updateCalls = 0;
+		parent.position.set(10, 0, 0);
+		child.position.set(1, 0, 0);
+		parent.updateMatrixWorld(false, true);
+		expect(parent.updateCalls).toBe(1);
+		expect(child.updateCalls).toBe(1);
+		expect(child.matrixWorld.elements[12]).toBeCloseTo(11);
+
+		// Parent-only motion should not force child local recomposition on next frame.
+		parent.position.x = 12;
+		parent.updateMatrixWorld(false, true);
+		expect(parent.updateCalls).toBe(2);
+		expect(child.updateCalls).toBe(1);
+		expect(child.matrixWorld.elements[12]).toBeCloseTo(13);
+	});
+
+	it("updateMatrixWorld copies parent matrix when child local transform is identity", () => {
 		const parent = new Node();
 		const child = new Node();
 		parent.add(child);
 		parent.position.set(10, 0, 0);
-		child.position.set(1, 0, 0);
 		parent.updateMatrixWorld(false, true);
-		expect(child.matrixWorld.elements[12]).toBeCloseTo(11);
+		expect(child.matrixWorld.elements[12]).toBeCloseTo(10);
+	});
+
+	it("updateMatrixWorld(updateChildren=false) marks children dirty", () => {
+		const parent = new Node();
+		const child = new Node();
+		parent.add(child);
+		parent.position.set(10, 0, 0);
+		parent.updateMatrixWorld(false, false);
+		expect(child.matrixWorldNeedsUpdate).toBe(true);
+
+		child.updateMatrixWorld(false, false);
+		expect(child.matrixWorld.elements[12]).toBeCloseTo(10);
 	});
 
 	it("clone returns new node with same position", () => {

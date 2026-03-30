@@ -41,6 +41,18 @@ export class Node extends EventDispatcher {
 
 	userData: Record<string, unknown> = {};
 
+	#lastPosX = 0;
+	#lastPosY = 0;
+	#lastPosZ = 0;
+	#lastQuatX = 0;
+	#lastQuatY = 0;
+	#lastQuatZ = 0;
+	#lastQuatW = 1;
+	#lastScaleX = 1;
+	#lastScaleY = 1;
+	#lastScaleZ = 1;
+	#localIsIdentity = false;
+
 	constructor() {
 		super();
 		this.#rotation.setOnChangeCallback(() => {
@@ -82,6 +94,7 @@ export class Node extends EventDispatcher {
 		const index = this.children.indexOf(object);
 		if (index !== -1) {
 			object.parent = undefined;
+			object.matrixWorldNeedsUpdate = true;
 			this.children.splice(index, 1);
 		}
 		return this;
@@ -133,31 +146,98 @@ export class Node extends EventDispatcher {
 		this.matrix.compose(this.position, this.quaternion, this.scale);
 		// Local matrix changed — world matrix is now stale.
 		this.matrixWorldNeedsUpdate = true;
+		this.#syncLocalCache();
 	}
 
-	updateMatrixWorld(updateParents = false, updateChildren = true): void {
+	#syncLocalCache(): void {
+		const pos = this.position;
+		const q = this.quaternion;
+		const s = this.scale;
+		this.#lastPosX = pos.x;
+		this.#lastPosY = pos.y;
+		this.#lastPosZ = pos.z;
+		this.#lastQuatX = q.x;
+		this.#lastQuatY = q.y;
+		this.#lastQuatZ = q.z;
+		this.#lastQuatW = q.w;
+		this.#lastScaleX = s.x;
+		this.#lastScaleY = s.y;
+		this.#lastScaleZ = s.z;
+		this.#localIsIdentity =
+			this.#lastPosX === 0 &&
+			this.#lastPosY === 0 &&
+			this.#lastPosZ === 0 &&
+			this.#lastQuatX === 0 &&
+			this.#lastQuatY === 0 &&
+			this.#lastQuatZ === 0 &&
+			this.#lastQuatW === 1 &&
+			this.#lastScaleX === 1 &&
+			this.#lastScaleY === 1 &&
+			this.#lastScaleZ === 1;
+	}
+
+	#updateLocalMatrixIfNeeded(): void {
+		if (!this.autoUpdateMatrix) return;
+		const pos = this.position;
+		const q = this.quaternion;
+		const s = this.scale;
+		if (
+			pos.x !== this.#lastPosX ||
+			pos.y !== this.#lastPosY ||
+			pos.z !== this.#lastPosZ ||
+			q.x !== this.#lastQuatX ||
+			q.y !== this.#lastQuatY ||
+			q.z !== this.#lastQuatZ ||
+			q.w !== this.#lastQuatW ||
+			s.x !== this.#lastScaleX ||
+			s.y !== this.#lastScaleY ||
+			s.z !== this.#lastScaleZ
+		) {
+			this.updateMatrix();
+		}
+	}
+
+	updateMatrixWorld(
+		updateParents = false,
+		updateChildren = true,
+		force = false,
+	): void {
 		if (updateParents && this.parent) {
 			this.parent.updateMatrixWorld(true, false);
 		}
-		if (this.autoUpdateMatrix) this.updateMatrix();
+		this.#updateLocalMatrixIfNeeded();
 
-		if (this.matrixWorldNeedsUpdate || !this.parent) {
+		const updated = this.matrixWorldNeedsUpdate || force;
+		if (updated) {
 			if (this.parent) {
-				this.matrixWorld.mulMatrices(this.parent.matrixWorld, this.matrix);
+				if (this.autoUpdateMatrix && this.#localIsIdentity) {
+					// Common fast path: local transform is identity so world == parent world.
+					this.matrixWorld.copy(this.parent.matrixWorld);
+				} else {
+					this.matrixWorld.mulMatricesAffine(
+						this.parent.matrixWorld,
+						this.matrix,
+					);
+				}
 			} else {
 				this.matrixWorld.copy(this.matrix);
 			}
-			// Dirty flag is consumed — propagate to children so they recompute next frame.
-			for (const child of this.children) {
-				child.matrixWorldNeedsUpdate = true;
+
+			if (!updateChildren) {
+				// When not updating children immediately, mark them dirty so a later
+				// updateMatrixWorld() call recomputes their world matrices.
+				for (const child of this.children) {
+					child.matrixWorldNeedsUpdate = true;
+				}
 			}
+
 			this.matrixWorldNeedsUpdate = false;
 		}
 
 		if (updateChildren) {
 			for (const child of this.children) {
 				if (child.matrixWorldAutoUpdate) {
-					child.updateMatrixWorld(false, true);
+					child.updateMatrixWorld(false, true, updated);
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-import { LightType, Side } from "../core/Constants.ts";
+import { LightType, Shading, Side } from "../core/Constants.ts";
 import type { Node } from "../core/Node.ts";
 import type { Material } from "../materials/Material.ts";
 import { Frustum } from "../math/Frustum.ts";
@@ -13,6 +13,7 @@ const _mvp = new Matrix4();
 const _vp = new Matrix4();
 const _bsCenter = new Vector3();
 const _frustum = new Frustum();
+const _emptyUvs = new Float32Array(0);
 
 interface Vec3 {
 	x: number;
@@ -48,6 +49,7 @@ interface SceneNode {
 	_worldNormalCache?: Float32Array;
 	_worldNormalCacheKey?: Float32Array;
 	_triangleBuffer?: TriangleBuffer;
+	_drawCall?: DrawCall;
 	[k: string]: unknown;
 }
 
@@ -88,16 +90,53 @@ export class SceneTraversal {
 	#lastBsCenterZ = 0;
 	#lastBsWorldRadius = 0;
 
+	#sphereScratch = { centre: _bsCenter, radius: 0 };
+
 	#drawList = new DrawList();
+	#sceneHasUpdateMatrixWorld = false;
 
 	traverse(
 		scene: SceneLike,
 		camera: CameraLike,
 		width = 300,
 		height = 150,
+		timings?: {
+			profileTraversal?: boolean;
+			travUpdateWorldMs?: number;
+			travWalkMs?: number;
+			travProjectMs?: number;
+			travAssembleMs?: number;
+			travDrawCalls?: number;
+		},
 	): DrawList {
+		const perf = timings ? globalThis.performance : undefined;
+		const now =
+			timings && typeof perf?.now === "function"
+				? perf.now.bind(perf)
+				: Date.now;
+		const profile = !!timings?.profileTraversal;
+		let projectMs = 0;
+		let assembleMs = 0;
+
 		this.#autoUpdate = scene.autoUpdate !== false;
+		const tUpdate0 = timings ? now() : 0;
 		camera.updateMatrixWorld();
+		if (this.#autoUpdate) {
+			const sceneUpdate = (scene as unknown as { updateMatrixWorld?: unknown })
+				.updateMatrixWorld;
+			this.#sceneHasUpdateMatrixWorld = typeof sceneUpdate === "function";
+			if (typeof sceneUpdate === "function") {
+				(
+					sceneUpdate as (
+						updateParents?: boolean,
+						updateChildren?: boolean,
+					) => void
+				).call(scene, true, true);
+			}
+		} else {
+			this.#sceneHasUpdateMatrixWorld = false;
+		}
+		if (timings) timings.travUpdateWorldMs = now() - tUpdate0;
 
 		const fog = scene.fog;
 		this.#hasFog = !!fog;
@@ -112,6 +151,7 @@ export class SceneTraversal {
 
 		const drawList = this.#drawList;
 		drawList.clear();
+		const tWalk0 = timings ? now() : 0;
 		this.#walk(
 			scene as unknown as SceneNode,
 			drawList,
@@ -119,7 +159,24 @@ export class SceneTraversal {
 			_frustum,
 			width,
 			height,
+			profile
+				? {
+						now,
+						onProject: (dt: number) => {
+							projectMs += dt;
+						},
+						onAssemble: (dt: number) => {
+							assembleMs += dt;
+						},
+					}
+				: undefined,
 		);
+		if (timings) timings.travWalkMs = now() - tWalk0;
+		if (timings) timings.travDrawCalls = drawList.calls.length;
+		if (timings && profile) {
+			timings.travProjectMs = projectMs;
+			timings.travAssembleMs = assembleMs;
+		}
 
 		return drawList;
 	}
@@ -131,6 +188,13 @@ export class SceneTraversal {
 		frustum: Frustum,
 		width: number,
 		height: number,
+		profiler?:
+			| {
+					now: () => number;
+					onProject: (dt: number) => void;
+					onAssemble: (dt: number) => void;
+			  }
+			| undefined,
 	): void {
 		if (!node.visible) return;
 
@@ -139,7 +203,11 @@ export class SceneTraversal {
 			node.geometry &&
 			node.material
 		) {
-			if (this.#autoUpdate && node.updateMatrixWorld) {
+			if (
+				this.#autoUpdate &&
+				!this.#sceneHasUpdateMatrixWorld &&
+				node.updateMatrixWorld
+			) {
 				node.updateMatrixWorld(true, false);
 			}
 			if (
@@ -157,7 +225,15 @@ export class SceneTraversal {
 					const fogFarPlusRadius = this.#fogFar + this.#lastBsWorldRadius;
 					if (distSq > fogFarPlusRadius * fogFarPlusRadius) {
 						for (const child of node.children) {
-							this.#walk(child, drawList, camera, frustum, width, height);
+							this.#walk(
+								child,
+								drawList,
+								camera,
+								frustum,
+								width,
+								height,
+								profiler,
+							);
 						}
 						return;
 					}
@@ -170,9 +246,9 @@ export class SceneTraversal {
 							geometry: GeometryLike;
 							material: Material;
 						},
-						camera,
 						width,
 						height,
+						profiler,
 					);
 					drawList.add(dc);
 				}
@@ -182,7 +258,11 @@ export class SceneTraversal {
 			node.geometry &&
 			node.material
 		) {
-			if (node.updateMatrixWorld) {
+			if (
+				this.#autoUpdate &&
+				!this.#sceneHasUpdateMatrixWorld &&
+				node.updateMatrixWorld
+			) {
 				node.updateMatrixWorld(true, false);
 			}
 			buildInstancedDrawCalls(
@@ -193,16 +273,23 @@ export class SceneTraversal {
 				height,
 				drawList,
 				{ hasFog: this.#hasFog, fogFar: this.#fogFar },
-				(a, b, c, d, e, f, g, h, i) =>
-					this.#assembleTriangles(a, b, c, d, e, f, g, h, i),
-				(n) => this.#buildUvs(n as SceneNode),
+				(a, b, c, d, e, f, g, h) =>
+					this.#assembleTriangles(a, b, c, d, e, f, g, h),
+				(() => {
+					const hasTexture = !!(
+						node.material as unknown as { map?: { data?: unknown } }
+					).map?.data;
+					return hasTexture
+						? (n: unknown) => this.#buildUvs(n as SceneNode)
+						: () => _emptyUvs;
+				})(),
 			);
 		} else if (typeof node.type === "string" && node.type.endsWith("Light")) {
 			this.#collectLight(node, drawList);
 		}
 
 		for (const child of node.children) {
-			this.#walk(child, drawList, camera, frustum, width, height);
+			this.#walk(child, drawList, camera, frustum, width, height, profiler);
 		}
 	}
 
@@ -222,26 +309,38 @@ export class SceneTraversal {
 			node.geometry.computeBoundingSphere();
 		}
 		const bs = node.geometry.boundingSphere;
-		if (!bs) return false;
+		if (!bs) {
+			const me = node.matrixWorld.elements;
+			this.#lastBsCenterX = me[12];
+			this.#lastBsCenterY = me[13];
+			this.#lastBsCenterZ = me[14];
+			this.#lastBsWorldRadius = 0;
+			return false;
+		}
 
-		const worldCenter = _bsCenter
-			.copy(bs.centre)
-			.applyMatrix4(node.matrixWorld);
 		const me = node.matrixWorld.elements;
-		const sx = Math.sqrt(me[0] * me[0] + me[1] * me[1] + me[2] * me[2]);
-		const sy = Math.sqrt(me[4] * me[4] + me[5] * me[5] + me[6] * me[6]);
-		const sz = Math.sqrt(me[8] * me[8] + me[9] * me[9] + me[10] * me[10]);
-		const worldRadius = bs.radius * Math.max(sx, sy, sz);
+		const bsCenter = bs.centre;
+		let worldCenter: Vector3;
+		if (bsCenter.x === 0 && bsCenter.y === 0 && bsCenter.z === 0) {
+			_bsCenter.x = me[12];
+			_bsCenter.y = me[13];
+			_bsCenter.z = me[14];
+			worldCenter = _bsCenter;
+		} else {
+			worldCenter = _bsCenter.copy(bsCenter).applyMatrix4(node.matrixWorld);
+		}
+		const sx2 = me[0] * me[0] + me[1] * me[1] + me[2] * me[2];
+		const sy2 = me[4] * me[4] + me[5] * me[5] + me[6] * me[6];
+		const sz2 = me[8] * me[8] + me[9] * me[9] + me[10] * me[10];
+		const worldRadius = bs.radius * Math.sqrt(Math.max(sx2, sy2, sz2));
 
 		this.#lastBsCenterX = worldCenter.x;
 		this.#lastBsCenterY = worldCenter.y;
 		this.#lastBsCenterZ = worldCenter.z;
 		this.#lastBsWorldRadius = worldRadius;
 
-		return !frustum.intersectsSphere({
-			centre: worldCenter,
-			radius: worldRadius,
-		});
+		this.#sphereScratch.radius = worldRadius;
+		return !frustum.intersectsSphere(this.#sphereScratch);
 	}
 
 	#buildDrawCall(
@@ -250,18 +349,43 @@ export class SceneTraversal {
 			geometry: GeometryLike;
 			material: Material;
 		},
-		camera: { matrixWorldInverse: Matrix4; projectionMatrix: Matrix4 },
 		width: number,
 		height: number,
+		profiler?:
+			| {
+					now: () => number;
+					onProject: (dt: number) => void;
+					onAssemble: (dt: number) => void;
+			  }
+			| undefined,
 	): DrawCall {
-		const drawCall = new DrawCall(node as unknown as Node, node.material);
+		let drawCall = node._drawCall;
+		if (drawCall) {
+			drawCall.mesh = node as unknown as Node;
+			drawCall.material = node.material;
+			drawCall.centroid.x = this.#lastBsCenterX;
+			drawCall.centroid.y = this.#lastBsCenterY;
+			drawCall.centroid.z = this.#lastBsCenterZ;
+		} else {
+			drawCall = new DrawCall(
+				node as unknown as Node,
+				node.material,
+				this.#lastBsCenterX,
+				this.#lastBsCenterY,
+				this.#lastBsCenterZ,
+			);
+			node._drawCall = drawCall;
+		}
 
-		_mvp
-			.copy(camera.projectionMatrix)
-			.mul(camera.matrixWorldInverse)
-			.mul(node.matrixWorld);
+		_mvp.copy(_vp).mul(node.matrixWorld);
 
-		this.#projectVertices(node, drawCall);
+		if (profiler) {
+			const t0 = profiler.now();
+			this.#projectVertices(node, drawCall);
+			profiler.onProject(profiler.now() - t0);
+		} else {
+			this.#projectVertices(node, drawCall);
+		}
 
 		const index = node.geometry.index;
 		if (index) {
@@ -280,19 +404,41 @@ export class SceneTraversal {
 			drawCall.faceIndices = node.geometry._sequentialIndices;
 		}
 
-		const worldNormals = this.#buildWorldNormals(node);
-		const uvs = this.#buildUvs(node);
-		drawCall.triangles = this.#assembleTriangles(
-			drawCall.faceIndices,
-			drawCall.projectedVerts,
-			worldNormals,
-			uvs,
-			drawCall.worldPositions,
-			width,
-			height,
-			node.material,
-			node,
-		);
+		if (profiler) {
+			const t0 = profiler.now();
+			const worldNormals = this.#buildWorldNormals(node);
+			const hasTexture = !!(
+				node.material as unknown as { map?: { data?: unknown } }
+			).map?.data;
+			const uvs = hasTexture ? this.#buildUvs(node) : _emptyUvs;
+			drawCall.triangles = this.#assembleTriangles(
+				drawCall.faceIndices,
+				drawCall.projectedVerts,
+				worldNormals,
+				uvs,
+				width,
+				height,
+				node.material,
+				node,
+			);
+			profiler.onAssemble(profiler.now() - t0);
+		} else {
+			const worldNormals = this.#buildWorldNormals(node);
+			const hasTexture = !!(
+				node.material as unknown as { map?: { data?: unknown } }
+			).map?.data;
+			const uvs = hasTexture ? this.#buildUvs(node) : _emptyUvs;
+			drawCall.triangles = this.#assembleTriangles(
+				drawCall.faceIndices,
+				drawCall.projectedVerts,
+				worldNormals,
+				uvs,
+				width,
+				height,
+				node.material,
+				node,
+			);
+		}
 
 		return drawCall;
 	}
@@ -455,7 +601,6 @@ export class SceneTraversal {
 		verts: Float32Array,
 		worldNormals: Float32Array,
 		uvs: Float32Array,
-		worldPositions: Float32Array,
 		width: number,
 		height: number,
 		material: Material,
@@ -463,6 +608,9 @@ export class SceneTraversal {
 	): TriangleBuffer {
 		const triCount = Math.floor(indices.length / 3);
 		const side = material.side;
+		const isFlatShaded = material.shading === Shading.Flat;
+		const hasTexture = !!(material as unknown as { map?: { data?: unknown } })
+			.map?.data;
 
 		let buf = node._triangleBuffer;
 		if (!buf) {
@@ -470,6 +618,7 @@ export class SceneTraversal {
 			node._triangleBuffer = buf;
 		}
 		buf.reset();
+		buf.ensureCapacity(triCount);
 
 		const halfW = width * 0.5;
 		const halfH = height * 0.5;
@@ -480,7 +629,24 @@ export class SceneTraversal {
 		const fogLut = this.#fogLut;
 		const wnLen = worldNormals.length;
 		const uvLen = uvs.length;
-		const wpLen = worldPositions.length;
+
+		const screenX = buf.screenX;
+		const screenY = buf.screenY;
+		const ndcZ = buf.ndcZ;
+		const faceNormalX = buf.faceNormalX;
+		const faceNormalY = buf.faceNormalY;
+		const faceNormalZ = buf.faceNormalZ;
+		const vertNormalX = buf.vertNormalX;
+		const vertNormalY = buf.vertNormalY;
+		const vertNormalZ = buf.vertNormalZ;
+		const uvU = buf.uvU;
+		const uvV = buf.uvV;
+		const fogFactor = buf.fogFactor;
+		const vertexIndex = buf.vertexIndex;
+		const centroidZ = buf.centroidZ;
+
+		let outLen = 0;
+		let maxVi = 0;
 
 		for (let t = 0; t < triCount; t++) {
 			const i0 = indices[t * 3];
@@ -512,7 +678,12 @@ export class SceneTraversal {
 			const sy2 = ((1 - y2) * halfH + 0.5) | 0;
 
 			const cross = (sx1 - sx0) * (sy2 - sy0) - (sy1 - sy0) * (sx2 - sx0);
-			if (this.#isCulled(cross, side)) continue;
+			if (cross === 0) continue;
+			if (side === Side.Front) {
+				if (cross > 0) continue;
+			} else if (side === Side.Back) {
+				if (cross < 0) continue;
+			}
 
 			let ff0 = 0;
 			let ff1 = 0;
@@ -529,7 +700,7 @@ export class SceneTraversal {
 			let fnx = 0;
 			let fny = 1;
 			let fnz = 0;
-			if (wnLen > 0) {
+			if (isFlatShaded && wnLen > 0) {
 				const n0x = worldNormals[i0 * 3];
 				const n0y = worldNormals[i0 * 3 + 1];
 				const n0z = worldNormals[i0 * 3 + 2];
@@ -549,100 +720,90 @@ export class SceneTraversal {
 			}
 
 			const vn0b = i0 * 3;
-			const vn0x = wnLen < vn0b + 3 ? fnx : worldNormals[vn0b];
-			const vn0y = wnLen < vn0b + 3 ? fny : worldNormals[vn0b + 1];
-			const vn0z = wnLen < vn0b + 3 ? fnz : worldNormals[vn0b + 2];
+			const vn0x = wnLen === 0 ? fnx : worldNormals[vn0b];
+			const vn0y = wnLen === 0 ? fny : worldNormals[vn0b + 1];
+			const vn0z = wnLen === 0 ? fnz : worldNormals[vn0b + 2];
 			const vn1b = i1 * 3;
-			const vn1x = wnLen < vn1b + 3 ? fnx : worldNormals[vn1b];
-			const vn1y = wnLen < vn1b + 3 ? fny : worldNormals[vn1b + 1];
-			const vn1z = wnLen < vn1b + 3 ? fnz : worldNormals[vn1b + 2];
+			const vn1x = wnLen === 0 ? fnx : worldNormals[vn1b];
+			const vn1y = wnLen === 0 ? fny : worldNormals[vn1b + 1];
+			const vn1z = wnLen === 0 ? fnz : worldNormals[vn1b + 2];
 			const vn2b = i2 * 3;
-			const vn2x = wnLen < vn2b + 3 ? fnx : worldNormals[vn2b];
-			const vn2y = wnLen < vn2b + 3 ? fny : worldNormals[vn2b + 1];
-			const vn2z = wnLen < vn2b + 3 ? fnz : worldNormals[vn2b + 2];
+			const vn2x = wnLen === 0 ? fnx : worldNormals[vn2b];
+			const vn2y = wnLen === 0 ? fny : worldNormals[vn2b + 1];
+			const vn2z = wnLen === 0 ? fnz : worldNormals[vn2b + 2];
 
-			const uv0b = i0 * 2;
-			const uv0u = uvLen < uv0b + 2 ? 0 : uvs[uv0b];
-			const uv0v = uvLen < uv0b + 2 ? 0 : uvs[uv0b + 1];
-			const uv1b = i1 * 2;
-			const uv1u = uvLen < uv1b + 2 ? 0 : uvs[uv1b];
-			const uv1v = uvLen < uv1b + 2 ? 0 : uvs[uv1b + 1];
-			const uv2b = i2 * 2;
-			const uv2u = uvLen < uv2b + 2 ? 0 : uvs[uv2b];
-			const uv2v = uvLen < uv2b + 2 ? 0 : uvs[uv2b + 1];
+			const z0 = verts[b0 + 2];
+			const z1 = verts[b1 + 2];
+			const z2 = verts[b2 + 2];
 
-			const wp0b = i0 * 3;
-			const wp0x = wpLen < wp0b + 3 ? 0 : worldPositions[wp0b];
-			const wp0y = wpLen < wp0b + 3 ? 0 : worldPositions[wp0b + 1];
-			const wp0z = wpLen < wp0b + 3 ? 0 : worldPositions[wp0b + 2];
-			const wp1b = i1 * 3;
-			const wp1x = wpLen < wp1b + 3 ? 0 : worldPositions[wp1b];
-			const wp1y = wpLen < wp1b + 3 ? 0 : worldPositions[wp1b + 1];
-			const wp1z = wpLen < wp1b + 3 ? 0 : worldPositions[wp1b + 2];
-			const wp2b = i2 * 3;
-			const wp2x = wpLen < wp2b + 3 ? 0 : worldPositions[wp2b];
-			const wp2y = wpLen < wp2b + 3 ? 0 : worldPositions[wp2b + 1];
-			const wp2z = wpLen < wp2b + 3 ? 0 : worldPositions[wp2b + 2];
+			const o = outLen;
+			const o3 = o * 3;
+			screenX[o3] = sx0;
+			screenX[o3 + 1] = sx1;
+			screenX[o3 + 2] = sx2;
+			screenY[o3] = sy0;
+			screenY[o3 + 1] = sy1;
+			screenY[o3 + 2] = sy2;
+			ndcZ[o3] = z0;
+			ndcZ[o3 + 1] = z1;
+			ndcZ[o3 + 2] = z2;
 
-			buf.append(
-				sx0,
-				sy0,
-				sx1,
-				sy1,
-				sx2,
-				sy2,
-				verts[b0 + 2],
-				verts[b1 + 2],
-				verts[b2 + 2],
-				fnx,
-				fny,
-				fnz,
-				vn0x,
-				vn0y,
-				vn0z,
-				vn1x,
-				vn1y,
-				vn1z,
-				vn2x,
-				vn2y,
-				vn2z,
-				uv0u,
-				uv0v,
-				uv1u,
-				uv1v,
-				uv2u,
-				uv2v,
-				wp0x,
-				wp0y,
-				wp0z,
-				wp1x,
-				wp1y,
-				wp1z,
-				wp2x,
-				wp2y,
-				wp2z,
-				ff0,
-				ff1,
-				ff2,
-				i0,
-				i1,
-				i2,
-			);
+			faceNormalX[o] = fnx;
+			faceNormalY[o] = fny;
+			faceNormalZ[o] = fnz;
+
+			vertNormalX[o3] = vn0x;
+			vertNormalX[o3 + 1] = vn1x;
+			vertNormalX[o3 + 2] = vn2x;
+			vertNormalY[o3] = vn0y;
+			vertNormalY[o3 + 1] = vn1y;
+			vertNormalY[o3 + 2] = vn2y;
+			vertNormalZ[o3] = vn0z;
+			vertNormalZ[o3 + 1] = vn1z;
+			vertNormalZ[o3 + 2] = vn2z;
+
+			if (hasTexture) {
+				if (uvLen > 0) {
+					const uv0b = i0 * 2;
+					const uv1b = i1 * 2;
+					const uv2b = i2 * 2;
+					uvU[o3] = uvs[uv0b];
+					uvV[o3] = uvs[uv0b + 1];
+					uvU[o3 + 1] = uvs[uv1b];
+					uvV[o3 + 1] = uvs[uv1b + 1];
+					uvU[o3 + 2] = uvs[uv2b];
+					uvV[o3 + 2] = uvs[uv2b + 1];
+				} else {
+					uvU[o3] = 0;
+					uvV[o3] = 0;
+					uvU[o3 + 1] = 0;
+					uvV[o3 + 1] = 0;
+					uvU[o3 + 2] = 0;
+					uvV[o3 + 2] = 0;
+				}
+			}
+
+			if (hasFog) {
+				fogFactor[o3] = fogLut ? ff0 : 0;
+				fogFactor[o3 + 1] = fogLut ? ff1 : 0;
+				fogFactor[o3 + 2] = fogLut ? ff2 : 0;
+			}
+
+			vertexIndex[o3] = i0;
+			vertexIndex[o3 + 1] = i1;
+			vertexIndex[o3 + 2] = i2;
+			if (i0 > maxVi) maxVi = i0;
+			if (i1 > maxVi) maxVi = i1;
+			if (i2 > maxVi) maxVi = i2;
+
+			centroidZ[o] = (z0 + z1 + z2) * 0.3333333333333333;
+			outLen++;
 		}
 
+		buf.length = outLen;
+		buf.maxVertexIndex = maxVi;
 		buf.buildSortOrder();
 		return buf;
-	}
-
-	/**
-	 * Returns true if a triangle should be culled based on its screen-space
-	 * signed area and the material's side setting.
-	 */
-	#isCulled(cross: number, side: number): boolean {
-		if (cross === 0) return true;
-		if (side === Side.Front) return cross > 0;
-		if (side === Side.Back) return cross < 0;
-		return false;
 	}
 
 	#collectLight(light: SceneNode, drawList: DrawList): void {

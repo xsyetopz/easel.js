@@ -15,6 +15,8 @@ export class PainterSort {
 	#polygonSorter = new PolygonSorter();
 	#opaque: DrawCall[] = [];
 	#transparent: DrawCall[] = [];
+	#layerKeys: number[] = [];
+	#layerBuckets: Map<number, DrawCall[]> = new Map();
 
 	/**
 	 * Runs the full painter's algorithm sort chain:
@@ -23,11 +25,77 @@ export class PainterSort {
 	 * Transparents stay back-to-front for correct blending.
 	 */
 	sort(drawList: DrawList, cameraPosition: { x: number; y: number }): void {
-		this.#tileSorter.sort(drawList, cameraPosition);
-		this.#prioritySorter.sort(drawList);
-
 		const calls = drawList.calls;
 		const n = calls.length;
+		if (n < 2) {
+			for (const drawCall of drawList) {
+				this.#polygonSorter.sort(
+					drawCall as {
+						triangles: { length: number; buildSortOrder(): void } | undefined;
+					},
+				);
+			}
+			return;
+		}
+
+		// Fast path: when everything is fully opaque, ordering is a performance hint.
+		// The depth buffer guarantees correctness, so avoid the expensive distance sort.
+		let allOpaque = true;
+		const firstLayer = calls[0].material.layer;
+		let hasMultipleLayers = false;
+		for (let i = 0; i < n; i++) {
+			const mat = calls[i].material;
+			if (mat.opacity !== 0) {
+				allOpaque = false;
+				break;
+			}
+			if (mat.layer !== firstLayer) hasMultipleLayers = true;
+		}
+
+		if (allOpaque) {
+			if (hasMultipleLayers) {
+				const buckets = this.#layerBuckets;
+				const keys = this.#layerKeys;
+				keys.length = 0;
+
+				for (let i = 0; i < n; i++) {
+					const dc = calls[i];
+					const layer = dc.material.layer;
+					let bucket = buckets.get(layer);
+					if (!bucket) {
+						bucket = [];
+						buckets.set(layer, bucket);
+						keys.push(layer);
+					}
+					bucket.push(dc);
+				}
+
+				keys.sort((a, b) => a - b);
+				let out = 0;
+				for (const layer of keys) {
+					const bucket = buckets.get(layer);
+					if (!bucket) continue;
+					for (const dc of bucket) {
+						calls[out++] = dc;
+					}
+					bucket.length = 0;
+				}
+				calls.length = out;
+				keys.length = 0;
+			}
+
+			for (const drawCall of drawList) {
+				this.#polygonSorter.sort(
+					drawCall as {
+						triangles: { length: number; buildSortOrder(): void } | undefined;
+					},
+				);
+			}
+			return;
+		}
+
+		this.#tileSorter.sort(drawList, cameraPosition);
+		this.#prioritySorter.sort(drawList);
 		const opaque = this.#opaque;
 		const transparent = this.#transparent;
 		opaque.length = 0;
@@ -35,7 +103,7 @@ export class PainterSort {
 
 		for (let i = 0; i < n; i++) {
 			const dc = calls[i];
-			if ((dc.material?.opacity ?? 0) === 0) {
+			if (dc.material.opacity === 0) {
 				opaque.push(dc);
 			} else {
 				transparent.push(dc);
@@ -46,12 +114,9 @@ export class PainterSort {
 		const oLen = opaque.length;
 		let groupStart = 0;
 		while (groupStart < oLen) {
-			const layer = opaque[groupStart].material?.layer ?? 0;
+			const layer = opaque[groupStart].material.layer;
 			let groupEnd = groupStart + 1;
-			while (
-				groupEnd < oLen &&
-				(opaque[groupEnd].material?.layer ?? 0) === layer
-			) {
+			while (groupEnd < oLen && opaque[groupEnd].material.layer === layer) {
 				groupEnd++;
 			}
 			for (let i = groupStart, j = groupEnd - 1; i < j; i++, j--) {

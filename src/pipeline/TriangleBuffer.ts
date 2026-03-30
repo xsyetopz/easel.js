@@ -38,15 +38,6 @@ export class TriangleBuffer {
 	/** UV V coordinate for 3 vertices per triangle (stride 3). */
 	uvV: Float32Array = new Float32Array(0);
 
-	/** World-space X for 3 vertices per triangle (stride 3). */
-	worldX: Float32Array = new Float32Array(0);
-
-	/** World-space Y for 3 vertices per triangle (stride 3). */
-	worldY: Float32Array = new Float32Array(0);
-
-	/** World-space Z for 3 vertices per triangle (stride 3). */
-	worldZ: Float32Array = new Float32Array(0);
-
 	/** Per-vertex fog factor for 3 vertices per triangle (stride 3). 0 = no fog, 1 = fully fogged. */
 	fogFactor: Float32Array = new Float32Array(0);
 
@@ -59,7 +50,7 @@ export class TriangleBuffer {
 	/** Centroid Z = (z0+z1+z2)/3, used for painter sort (stride 1). */
 	centroidZ: Float32Array = new Float32Array(0);
 
-	/** Iteration index -> physical triangle index, populated by buildSortOrder/sort. */
+	/** Iteration index -> physical triangle index, populated by buildSortOrder. */
 	sortOrder: Uint32Array = new Uint32Array(0);
 
 	constructor(capacity = 64) {
@@ -81,9 +72,6 @@ export class TriangleBuffer {
 		this.uvU = new Float32Array(capacity * 3);
 		this.uvV = new Float32Array(capacity * 3);
 		this.centroidZ = new Float32Array(capacity);
-		this.worldX = new Float32Array(capacity * 3);
-		this.worldY = new Float32Array(capacity * 3);
-		this.worldZ = new Float32Array(capacity * 3);
 		this.fogFactor = new Float32Array(capacity * 3);
 		this.vertexIndex = new Int32Array(capacity * 3);
 	}
@@ -114,9 +102,6 @@ export class TriangleBuffer {
 			uvU: this.uvU,
 			uvV: this.uvV,
 			centroidZ: this.centroidZ,
-			worldX: this.worldX,
-			worldY: this.worldY,
-			worldZ: this.worldZ,
 			fogFactor: this.fogFactor,
 			vertexIndex: this.vertexIndex,
 		};
@@ -136,9 +121,6 @@ export class TriangleBuffer {
 		this.uvU.set(prev.uvU);
 		this.uvV.set(prev.uvV);
 		this.centroidZ.set(prev.centroidZ);
-		this.worldX.set(prev.worldX);
-		this.worldY.set(prev.worldY);
-		this.worldZ.set(prev.worldZ);
 		this.fogFactor.set(prev.fogFactor);
 		this.vertexIndex.set(prev.vertexIndex);
 	}
@@ -172,15 +154,6 @@ export class TriangleBuffer {
 		v1: number,
 		u2: number,
 		v2: number,
-		wx0 = 0,
-		wy0 = 0,
-		wz0 = 0,
-		wx1 = 0,
-		wy1 = 0,
-		wz1 = 0,
-		wx2 = 0,
-		wy2 = 0,
-		wz2 = 0,
 		ff0 = 0,
 		ff1 = 0,
 		ff2 = 0,
@@ -229,18 +202,6 @@ export class TriangleBuffer {
 		this.uvV[i3 + 1] = v1;
 		this.uvV[i3 + 2] = v2;
 
-		this.worldX[i3] = wx0;
-		this.worldX[i3 + 1] = wx1;
-		this.worldX[i3 + 2] = wx2;
-
-		this.worldY[i3] = wy0;
-		this.worldY[i3 + 1] = wy1;
-		this.worldY[i3 + 2] = wy2;
-
-		this.worldZ[i3] = wz0;
-		this.worldZ[i3 + 1] = wz1;
-		this.worldZ[i3 + 2] = wz2;
-
 		this.fogFactor[i3] = ff0;
 		this.fogFactor[i3 + 1] = ff1;
 		this.fogFactor[i3 + 2] = ff2;
@@ -271,14 +232,13 @@ export class TriangleBuffer {
 	/** Sort sortOrder by centroidZ descending (back-to-front painter's order). */
 	sort(): void {
 		this.buildSortOrder();
-		this.#sortCz = this.centroidZ;
-		this.sortOrder.sort(this.#comparator);
+		_sortCz = this.centroidZ;
+		this.sortOrder.sort(compareSortOrderByCentroidZ);
 	}
+}
 
-	/** Reference held during sort to avoid closure allocation. */
-	#sortCz: Float32Array = new Float32Array(0);
+let _sortCz: Float32Array = new Float32Array(0);
 
-	/** Bound comparator, allocated once. */
-	#comparator = (a: number, b: number): number =>
-		this.#sortCz[b] - this.#sortCz[a];
+function compareSortOrderByCentroidZ(a: number, b: number): number {
+	return _sortCz[b] - _sortCz[a];
 }

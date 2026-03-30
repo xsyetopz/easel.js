@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import "../_helpers/assertions.js";
-import { Matrix4 as TMatrix4, Quaternion as TQuaternion } from "three";
+import {
+	Euler as TEuler,
+	Matrix4 as TMatrix4,
+	Quaternion as TQuaternion,
+} from "three";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { Quaternion } from "@/math/Quaternion.js";
 
@@ -35,6 +39,38 @@ describe("Quaternion", () => {
 		expect(e.length).toBeCloseTo(1, 5);
 		// spot-check against known values for XYZ(0.1, 0.2, 0.3)
 		expect(e.w).toBeGreaterThan(0.9);
+	});
+
+	it("setFromEuler fast-path matches THREE for axis-only rotations", () => {
+		const angles = [0, 0.25, -0.8, Math.PI, 10];
+		for (const a of angles) {
+			const ey = new Quaternion().setFromEuler({
+				x: 0,
+				y: a,
+				z: 0,
+				order: "XYZ",
+			});
+			const ty = new TQuaternion().setFromEuler(new TEuler(0, a, 0, "XYZ"));
+			expect(ey).toMatchVector(ty, 1e-8);
+
+			const ex = new Quaternion().setFromEuler({
+				x: a,
+				y: 0,
+				z: 0,
+				order: "XYZ",
+			});
+			const tx = new TQuaternion().setFromEuler(new TEuler(a, 0, 0, "XYZ"));
+			expect(ex).toMatchVector(tx, 1e-8);
+
+			const ez = new Quaternion().setFromEuler({
+				x: 0,
+				y: 0,
+				z: a,
+				order: "XYZ",
+			});
+			const tz = new TQuaternion().setFromEuler(new TEuler(0, 0, a, "XYZ"));
+			expect(ez).toMatchVector(tz, 1e-8);
+		}
 	});
 
 	it("setFromRotationMatrix", () => {

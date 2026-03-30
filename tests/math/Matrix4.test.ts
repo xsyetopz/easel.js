@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import "../_helpers/assertions.js";
-import { Matrix4 as TMatrix4 } from "three";
+import {
+	Matrix4 as TMatrix4,
+	Quaternion as TQuaternion,
+	Vector3 as TVector3,
+} from "three";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { Quaternion } from "@/math/Quaternion.js";
 import { Vector3 } from "@/math/Vector3.js";
@@ -84,6 +88,22 @@ describe("Matrix4", () => {
 		expect(e).toMatchMatrix(t);
 	});
 
+	it("mulMatricesAffine matches mulMatrices for affine inputs", () => {
+		const posA = new Vector3(1, 2, 3);
+		const qA = new Quaternion().setFromAxisAngle({ x: 0, y: 1, z: 0 }, 0.7);
+		const sA = new Vector3(2, 1, 3);
+		const a = new Matrix4().compose(posA, qA, sA);
+
+		const posB = new Vector3(-4, 0.5, 2);
+		const qB = new Quaternion().setFromAxisAngle({ x: 1, y: 0, z: 0 }, -0.2);
+		const sB = new Vector3(1, 2, 1);
+		const b = new Matrix4().compose(posB, qB, sB);
+
+		const eAffine = new Matrix4().mulMatricesAffine(a, b);
+		const eFull = new Matrix4().mulMatrices(a, b);
+		expect(eAffine).toMatchMatrix(eFull);
+	});
+
 	it("compose / decompose round-trip", () => {
 		const pos = new Vector3(1, 2, 3);
 		const q = new Quaternion().setFromAxisAngle(
@@ -100,6 +120,29 @@ describe("Matrix4", () => {
 
 		expect(pos2).toMatchVector(pos, 1e-5);
 		expect(scale2).toMatchVector(scale, 1e-5);
+	});
+
+	it("compose matches THREE for axis-only quaternions", () => {
+		const pos = new Vector3(1.5, -2, 3);
+		const scale = new Vector3(2, 3, 4);
+		const tPos = new TVector3(pos.x, pos.y, pos.z);
+		const tScale = new TVector3(scale.x, scale.y, scale.z);
+
+		const axes = [
+			{ x: 1, y: 0, z: 0 },
+			{ x: 0, y: 1, z: 0 },
+			{ x: 0, y: 0, z: 1 },
+		];
+		const angles = [0, 0.3, -1.2, Math.PI / 2];
+		for (const axis of axes) {
+			for (const angle of angles) {
+				const q = new Quaternion().setFromAxisAngle(axis, angle);
+				const tq = new TQuaternion().setFromAxisAngle(axis, angle);
+				const e = new Matrix4().compose(pos, q, scale);
+				const t = new TMatrix4().compose(tPos, tq, tScale);
+				expect(e).toMatchMatrix(t, 1e-6);
+			}
+		}
 	});
 
 	it("clone", () => {

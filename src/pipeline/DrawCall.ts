@@ -41,12 +41,28 @@ export class DrawCall {
 	/** Stride into shadedColorData: 3 for flat, 9 for gouraud, 0 when unset. */
 	shadedColorStride = 0;
 
-	_sortIndex = 0;
+	_tileDistance = 0;
 
-	constructor(mesh: Node, material: Material) {
+	constructor(
+		mesh: Node,
+		material: Material,
+		centroidX?: number,
+		centroidY?: number,
+		centroidZ?: number,
+	) {
 		this.mesh = mesh;
 		this.material = material;
-		this.#computeCentroid();
+		if (
+			centroidX !== undefined &&
+			centroidY !== undefined &&
+			centroidZ !== undefined
+		) {
+			this.centroid.x = centroidX;
+			this.centroid.y = centroidY;
+			this.centroid.z = centroidZ;
+		} else {
+			this.#computeCentroid();
+		}
 	}
 
 	/**

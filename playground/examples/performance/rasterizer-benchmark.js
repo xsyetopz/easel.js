@@ -120,13 +120,14 @@ export function setup(canvas, params = {}) {
 	let fpsTime = 0;
 	let fps = 0;
 	const ctx = canvas.getContext("2d");
+	const timings = {};
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
 		const dt = clock.delta;
 
 		mesh.rotation.y += 0.4 * dt;
-		renderer.render(scene, camera);
+		renderer.render(scene, camera, timings);
 
 		frames++;
 		fpsTime += dt;
@@ -143,6 +144,27 @@ export function setup(canvas, params = {}) {
 				`FPS: ${fps}  Tris: ${triCount()}  Mode: ${currentMaterial}`,
 				8,
 				20,
+			);
+			const total =
+				typeof timings.totalMs === "number" ? timings.totalMs.toFixed(2) : "—";
+			const trav =
+				typeof timings.traversalMs === "number"
+					? timings.traversalMs.toFixed(2)
+					: "—";
+			const sort =
+				typeof timings.sortMs === "number" ? timings.sortMs.toFixed(2) : "—";
+			const shade =
+				typeof timings.shadeRasterMs === "number"
+					? timings.shadeRasterMs.toFixed(2)
+					: "—";
+			const upload =
+				typeof timings.uploadMs === "number"
+					? timings.uploadMs.toFixed(2)
+					: "—";
+			ctx.fillText(
+				`ms: total ${total}  trav ${trav}  sort ${sort}  shade+rast ${shade}  upload ${upload}`,
+				8,
+				40,
 			);
 		}
 	}

@@ -12,6 +12,10 @@ const TRI_PERPENDICULAR = [
 	0, 0, 5, 0, 2, 5, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
 	0,
 ];
+const TRI_FACING_POSZ = [
+	0, 0, 5, 0, 2, 5, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0,
+	0,
+];
 
 function makeDirectional(dx, dy, dz, intensity = 1) {
 	return {
@@ -27,6 +31,17 @@ function makeAmbient(intensity = 0.5) {
 		type: "ambient",
 		color: { r: 1, g: 1, b: 1 },
 		intensity,
+	};
+}
+
+function makePoint(x, y, z, intensity = 1) {
+	return {
+		type: "point",
+		position: { x, y, z },
+		color: { r: 1, g: 1, b: 1 },
+		intensity,
+		distance: 0,
+		decay: 2,
 	};
 }
 
@@ -168,5 +183,33 @@ describe("LightBaker", () => {
 		baker.bake(dc, [makeDirectional(0, 0, 1)]);
 		expect(dc.shadedColorData.length).toBeGreaterThanOrEqual(6);
 		expect(dc.shadedColorStride).toBe(3);
+	});
+
+	it("point light uses drawCall.worldPositions (not triangle-duplicated data)", () => {
+		const tb = new TriangleBuffer(1);
+		tb.append(...TRI_FACING_POSZ, 0, 0, 0, 0, 1, 2);
+		tb.buildSortOrder();
+
+		const dcNear = {
+			triangles: tb,
+			material: { shading: Shading.Flat },
+			worldPositions: new Float32Array([0, 0, 0, 0, 0, 0, 0, 0, 0]),
+			shadedColorData: new Float32Array(0),
+			shadedColorStride: 0,
+		};
+		const dcFar = {
+			triangles: tb,
+			material: { shading: Shading.Flat },
+			worldPositions: new Float32Array([0, 0, 20, 0, 0, 20, 0, 0, 20]),
+			shadedColorData: new Float32Array(0),
+			shadedColorStride: 0,
+		};
+
+		const light = makePoint(0, 0, 10);
+		baker.bake(dcNear, [light]);
+		baker.bake(dcFar, [light]);
+
+		expect(dcNear.shadedColorData[0]).toBeGreaterThan(0.9);
+		expect(dcFar.shadedColorData[0]).toBeCloseTo(0.1, 2);
 	});
 });

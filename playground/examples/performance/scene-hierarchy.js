@@ -26,6 +26,13 @@ export const controls = [
 		step: 1,
 		default: 2,
 	},
+	{
+		type: "select",
+		key: "profileTraversal",
+		label: "Traversal Profile",
+		options: ["Off", "On"],
+		default: "Off",
+	},
 ];
 
 /**
@@ -58,6 +65,7 @@ export function setup(canvas, params = {}) {
 
 	let currentDepth = params.depth ?? 8;
 	let currentBranches = params.branches ?? 2;
+	let currentProfileTraversal = params.profileTraversal ?? "Off";
 
 	/** @type {EASEL.Group} */
 	let root = new EASEL.Group();
@@ -112,6 +120,7 @@ export function setup(canvas, params = {}) {
 	let fpsTime = 0;
 	let fps = 0;
 	const ctx = canvas.getContext("2d");
+	const timings = {};
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
@@ -121,7 +130,8 @@ export function setup(canvas, params = {}) {
 			group.rotation.y += 0.5 * (level + 1) * dt;
 		}
 
-		renderer.render(scene, camera);
+		timings.profileTraversal = currentProfileTraversal === "On";
+		renderer.render(scene, camera, timings);
 
 		frames++;
 		fpsTime += dt;
@@ -139,6 +149,54 @@ export function setup(canvas, params = {}) {
 				8,
 				20,
 			);
+			const total =
+				typeof timings.totalMs === "number" ? timings.totalMs.toFixed(2) : "—";
+			const trav =
+				typeof timings.traversalMs === "number"
+					? timings.traversalMs.toFixed(2)
+					: "—";
+			const sort =
+				typeof timings.sortMs === "number" ? timings.sortMs.toFixed(2) : "—";
+			const shade =
+				typeof timings.shadeRasterMs === "number"
+					? timings.shadeRasterMs.toFixed(2)
+					: "—";
+			const upload =
+				typeof timings.uploadMs === "number"
+					? timings.uploadMs.toFixed(2)
+					: "—";
+			ctx.fillText(
+				`ms: total ${total}  trav ${trav}  sort ${sort}  shade+rast ${shade}  upload ${upload}`,
+				8,
+				40,
+			);
+			if (timings.profileTraversal) {
+				const uw =
+					typeof timings.travUpdateWorldMs === "number"
+						? timings.travUpdateWorldMs.toFixed(2)
+						: "—";
+				const walk =
+					typeof timings.travWalkMs === "number"
+						? timings.travWalkMs.toFixed(2)
+						: "—";
+				const proj =
+					typeof timings.travProjectMs === "number"
+						? timings.travProjectMs.toFixed(2)
+						: "—";
+				const asm =
+					typeof timings.travAssembleMs === "number"
+						? timings.travAssembleMs.toFixed(2)
+						: "—";
+				const dcs =
+					typeof timings.travDrawCalls === "number"
+						? timings.travDrawCalls
+						: "—";
+				ctx.fillText(
+					`trav: updateWorld ${uw}  walk ${walk}  project ${proj}  assemble ${asm}  dcs ${dcs}`,
+					8,
+					60,
+				);
+			}
 		}
 	}
 	animate();
@@ -159,6 +217,12 @@ export function setup(canvas, params = {}) {
 			) {
 				currentBranches = newParams.branches;
 				needsRebuild = true;
+			}
+			if (
+				newParams.profileTraversal !== undefined &&
+				newParams.profileTraversal !== currentProfileTraversal
+			) {
+				currentProfileTraversal = newParams.profileTraversal;
 			}
 			if (needsRebuild) {
 				rebuild(currentDepth, currentBranches);

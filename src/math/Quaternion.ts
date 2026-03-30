@@ -131,6 +131,33 @@ export class Quaternion {
 	}): this {
 		const { x, y, z, order } = euler;
 
+		// Hot-path: single-axis rotations are common in animation (e.g. yaw-only).
+		// Order does not matter when only one component is non-zero.
+		if (y !== 0 && x === 0 && z === 0) {
+			const half = y / 2;
+			this.x = 0;
+			this.y = Math.sin(half);
+			this.z = 0;
+			this.w = Math.cos(half);
+			return this;
+		}
+		if (x !== 0 && y === 0 && z === 0) {
+			const half = x / 2;
+			this.x = Math.sin(half);
+			this.y = 0;
+			this.z = 0;
+			this.w = Math.cos(half);
+			return this;
+		}
+		if (z !== 0 && x === 0 && y === 0) {
+			const half = z / 2;
+			this.x = 0;
+			this.y = 0;
+			this.z = Math.sin(half);
+			this.w = Math.cos(half);
+			return this;
+		}
+
 		const c1 = Math.cos(x / 2);
 		const c2 = Math.cos(y / 2);
 		const c3 = Math.cos(z / 2);

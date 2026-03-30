@@ -83,6 +83,7 @@ export function setup(canvas, params = {}) {
 	const height = canvas.height;
 
 	const scene = new EASEL.Scene();
+	const origin = new EASEL.Vector3(0, 0, 0);
 	const camera = new EASEL.PerspectiveCamera({
 		fov: 60,
 		aspect: width / height,
@@ -140,14 +141,14 @@ export function setup(canvas, params = {}) {
 
 		if (layout === "Grid") {
 			camera.position.set(0, 4, 12);
-			camera.lookAt(new EASEL.Vector3(0, 0, 0));
+			camera.lookAt(origin);
 		} else if (layout === "Random") {
 			camera.position.set(0, 3, 15);
-			camera.lookAt(new EASEL.Vector3(0, 0, 0));
+			camera.lookAt(origin);
 		} else {
 			// 3D Volume — camera will orbit in animate()
 			camera.position.set(0, 10, 25);
-			camera.lookAt(new EASEL.Vector3(0, 0, 0));
+			camera.lookAt(origin);
 		}
 
 		const cols = Math.ceil(Math.sqrt(count));
@@ -205,6 +206,7 @@ export function setup(canvas, params = {}) {
 	let fpsTime = 0;
 	let fps = 0;
 	const ctx = canvas.getContext("2d");
+	const timings = {};
 
 	function animate() {
 		animId = requestAnimationFrame(animate);
@@ -220,10 +222,10 @@ export function setup(canvas, params = {}) {
 			camera.position.x = Math.sin(elapsed * 0.3) * orbitRadius;
 			camera.position.z = Math.cos(elapsed * 0.3) * orbitRadius;
 			camera.position.y = 10;
-			camera.lookAt(new EASEL.Vector3(0, 0, 0));
+			camera.lookAt(origin);
 		}
 
-		renderer.render(scene, camera);
+		renderer.render(scene, camera, timings);
 
 		frames++;
 		fpsTime += dt;
@@ -240,6 +242,27 @@ export function setup(canvas, params = {}) {
 				`FPS: ${fps}  Meshes: ${currentCount}  ${currentLayout}  Fog:${currentFog}  Layers:${currentLayerMode}  Tex:${currentTextured}`,
 				8,
 				20,
+			);
+			const total =
+				typeof timings.totalMs === "number" ? timings.totalMs.toFixed(2) : "—";
+			const trav =
+				typeof timings.traversalMs === "number"
+					? timings.traversalMs.toFixed(2)
+					: "—";
+			const sort =
+				typeof timings.sortMs === "number" ? timings.sortMs.toFixed(2) : "—";
+			const shade =
+				typeof timings.shadeRasterMs === "number"
+					? timings.shadeRasterMs.toFixed(2)
+					: "—";
+			const upload =
+				typeof timings.uploadMs === "number"
+					? timings.uploadMs.toFixed(2)
+					: "—";
+			ctx.fillText(
+				`ms: total ${total}  trav ${trav}  sort ${sort}  shade+rast ${shade}  upload ${upload}`,
+				8,
+				40,
 			);
 		}
 	}
