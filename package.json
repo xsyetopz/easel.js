@@ -77,7 +77,7 @@
     "readme": "README.md",
     "devDependencies": {
         "@biomejs/biome": "^2.4.10",
-        "@mantine/code-highlight": "^8.3.18",
+        "@mantine/code-highlight": "^9.0.1",
         "@mantine/core": "^9.0.1",
         "@mantine/hooks": "^9.0.1",
         "@tabler/icons-react": "^3.41.1",
