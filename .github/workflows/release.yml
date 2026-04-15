@@ -59,6 +59,8 @@ jobs:
       - run: bun run release:check
       - name: Publish npm package with provenance
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish JSR package
         run: bun run jsr:publish
       - name: Verify npm package provenance
