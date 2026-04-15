@@ -13,9 +13,15 @@ export default {
 	build: {
 		lib: {
 			entry: "src/index.ts",
+			formats: ["es", "cjs", "umd"],
 			name: "easel",
-			fileName: (format: string, entryName: string) =>
-				`${entryName}.${format}.js`,
+			fileName: (format: string) => {
+				if (format === "cjs") {
+					return "index.cjs";
+				}
+
+				return `index.${format}.js`;
+			},
 		},
 		rollupOptions: {
 			external: [],
