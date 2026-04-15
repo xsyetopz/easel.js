@@ -57,17 +57,6 @@ jobs:
           fi
       - run: bun install --frozen-lockfile
       - run: bun run release:check
-      - name: Create tag and draft release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag "v$VERSION"
-          git push origin "v$VERSION"
-          gh release create "v$VERSION" --draft --title "v$VERSION" --notes "Release v$VERSION"
       - name: Publish npm package with provenance
         run: npm publish --provenance --access public
       - name: Publish JSR package
@@ -80,11 +69,17 @@ jobs:
           PACKAGE=$(node -p "require('./package.json').name")
           VERIFY_DIR=$(mktemp -d)
           cd "$VERIFY_DIR"
-          bun init -y >/dev/null
-          bun install "$PACKAGE@$VERSION"
-          bun audit signatures
-      - name: Publish GitHub release
+          npm init -y >/dev/null
+          npm install "$PACKAGE@$VERSION"
+          npm audit signatures
+      - name: Create tag and GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.version }}
-        run: gh release edit "v$VERSION" --draft=false --latest
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+          gh release create "v$VERSION" --title "v$VERSION" --notes "Release v$VERSION" --latest
