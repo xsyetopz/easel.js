@@ -102,9 +102,6 @@ export function setup(canvas, params = {}) {
 
 export const easelSource = `import * as EASEL from "easel";
 
-// OrthographicCamera takes an options object - no positional args.
-// Adjusting left/right/top/bottom changes the visible world area
-// without any perspective distortion.
 const camera = new EASEL.OrthographicCamera({
   left:   -size * aspect,
   right:   size * aspect,
@@ -114,7 +111,6 @@ const camera = new EASEL.OrthographicCamera({
   far: 100,
 });
 
-// After changing frustum planes, call updateProjectionMatrix():
 camera.left = -newSize * aspect;
 camera.right =  newSize * aspect;
 camera.top    =  newSize;
@@ -126,17 +122,15 @@ renderer.render(scene, camera);`;
 
 export const threeSource = `import * as THREE from "three";
 
-// THREE.OrthographicCamera takes 6 positional args (no options object).
 const camera = new THREE.OrthographicCamera(
-  -size * aspect,  // left
-   size * aspect,  // right
-   size,           // top
-  -size,           // bottom
-  0.1,             // near
-  100,             // far
+  -size * aspect,
+   size * aspect,
+   size,
+  -size,
+  0.1,
+  100,
 );
 
-// Same update pattern:
 camera.left   = -newSize * aspect;
 camera.right  =  newSize * aspect;
 camera.top    =  newSize;

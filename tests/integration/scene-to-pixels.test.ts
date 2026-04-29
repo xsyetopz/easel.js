@@ -8,18 +8,10 @@ import { PixelWriter } from "@/pipeline/PixelWriter.js";
 import { Rasterizer } from "@/pipeline/rasterizer/Rasterizer.js";
 import { SceneTraversal } from "@/pipeline/SceneTraversal.js";
 import { LightBaker } from "@/pipeline/shading/LightBaker.js";
-
-function makeCamera() {
-	const m = new Matrix4();
-	return {
-		matrixWorldInverse: m,
-		projectionMatrix: m,
-		updateMatrixWorld: () => {
-			/* no-op */
-		},
-		position: { x: 0, y: 0, z: 0 },
-	};
-}
+import {
+	makeTraversalCamera as makeCamera,
+	makeTraversalScene as makeScene,
+} from "../_helpers/scene-traversal.js";
 
 function makeMeshNode() {
 	return {
@@ -39,10 +31,6 @@ function makeMeshNode() {
 		},
 		material: { color: 0xffffff, layer: 0 },
 	};
-}
-
-function makeScene(...children) {
-	return { visible: true, children };
 }
 
 describe("scene-to-pixels integration", () => {
@@ -89,7 +77,7 @@ describe("scene-to-pixels integration", () => {
 	});
 
 	// Helpers for rasterizer integration tests.
-	// Positions produce a CCW screen triangle with identity MVP at 64×64:
+	// Positions produce a CCW screen triangle with identity MVP at 64x64:
 	//   v0 NDC=(0,0.5)   → sx=32, sy=16
 	//   v1 NDC=(-0.5,-0.5) → sx=16, sy=48
 	//   v2 NDC=(0.5,-0.5)  → sx=48, sy=48
@@ -104,7 +92,7 @@ describe("scene-to-pixels integration", () => {
 				/* no-op */
 			},
 			geometry: {
-				getAttribute: (name) => {
+				getAttribute: (name: string) => {
 					if (name === "position")
 						return {
 							array: new Float32Array([0, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0]),
@@ -123,7 +111,11 @@ describe("scene-to-pixels integration", () => {
 		};
 	}
 
-	function runPipeline(scene, camera, fb) {
+	function runPipeline(
+		scene: Parameters<SceneTraversal["traverse"]>[0],
+		camera: Parameters<SceneTraversal["traverse"]>[1],
+		fb: Framebuffer,
+	) {
 		const traversal = new SceneTraversal();
 		const lightBaker = new LightBaker();
 		const rasterizer = new Rasterizer();
@@ -131,13 +123,13 @@ describe("scene-to-pixels integration", () => {
 
 		const drawList = traversal.traverse(scene, camera, width, height);
 		for (const dc of drawList) {
-			lightBaker.bake(dc, drawList.lights);
-			rasterizer.rasterize(dc, fb, undefined);
+			lightBaker.bake(dc as unknown as never, drawList.lights);
+			rasterizer.rasterize(dc as unknown as never, fb, undefined);
 		}
 		return drawList;
 	}
 
-	function hasNonBlackPixel(fb) {
+	function hasNonBlackPixel(fb: Framebuffer) {
 		for (let y = 0; y < fb.height; y++) {
 			for (let x = 0; x < fb.width; x++) {
 				const px = fb.getPixel(x, y);
@@ -170,7 +162,7 @@ describe("scene-to-pixels integration", () => {
 		expect(hasNonBlackPixel(fb)).toBe(false);
 	});
 
-	it("clear color fills all pixels before any mesh is drawn", () => {
+	it("clear color fills all pixels before mesh draw", () => {
 		const fb = new Framebuffer(8, 8);
 		const clear = new FramebufferClear();
 		// Fill to a non-black sentinel color (r=100) then verify no mesh overwrites it
@@ -224,8 +216,8 @@ describe("scene-to-pixels integration", () => {
 
 		expect(() => {
 			for (const dc of drawList) {
-				lightBaker.bake(dc, drawList.lights);
-				rasterizer.rasterize(dc, fb, undefined);
+				lightBaker.bake(dc as unknown as never, drawList.lights);
+				rasterizer.rasterize(dc as unknown as never, fb, undefined);
 			}
 		}).not.toThrow();
 	});

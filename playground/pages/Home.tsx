@@ -121,7 +121,7 @@ const PIPELINE_STAGES = [
 export function Home() {
 	return (
 		<Container size="lg" py="md">
-			<Grid gutter="xl" align="center" mt="md">
+			<Grid gap="xl" align="center" mt="md">
 				<Grid.Col span={{ base: 12, md: 7 }}>
 					<Group gap="sm" align="center">
 						<Title order={1} size="2.5rem">
@@ -190,7 +190,7 @@ export function Home() {
 			<Title order={3} mb="md">
 				Why people land here
 			</Title>
-			<Grid gutter="xl">
+			<Grid gap="xl">
 				<Grid.Col span={{ base: 12, md: 5 }}>
 					<Text c="dimmed">
 						The strongest entry points are concrete search intents: a
@@ -254,7 +254,7 @@ export function Home() {
 			<Title order={3} mb="md">
 				Write familiar code
 			</Title>
-			<Grid gutter="xl">
+			<Grid gap="xl">
 				<Grid.Col span={{ base: 12, md: 5 }}>
 					<Text c="dimmed">
 						The API mirrors THREE.js where that improves approachability. Scene,
@@ -320,7 +320,7 @@ export function Home() {
 			<Title order={3} mb="md">
 				Coming from THREE.js?
 			</Title>
-			<Grid gutter="xl">
+			<Grid gap="xl">
 				<Grid.Col span={{ base: 12, md: 5 }}>
 					<Text fw={600} mb="sm">
 						Name mapping
@@ -370,7 +370,7 @@ export function Home() {
 			<Title order={3} mb="md">
 				Looking for EaselJS / CreateJS?
 			</Title>
-			<Grid gutter="xl">
+			<Grid gap="xl">
 				<Grid.Col span={{ base: 12, md: 7 }}>
 					<Paper p="xl" withBorder={true} radius="md">
 						<Text size="lg" fw={500} mb="sm">
@@ -416,7 +416,7 @@ export function Home() {
 			<Title order={3} mb="md">
 				Why RuneTek 3?
 			</Title>
-			<Grid gutter="xl">
+			<Grid gap="xl">
 				<Grid.Col span={{ base: 12, md: 7 }}>
 					<Paper p="xl" withBorder={true} radius="md">
 						<Text size="lg" fw={500} mb="sm">
@@ -446,7 +446,7 @@ export function Home() {
 			<Title order={3} mb="md">
 				Rendering Pipeline
 			</Title>
-			<Grid gutter="xl">
+			<Grid gap="xl">
 				<Grid.Col span={{ base: 12, md: 5 }}>
 					<Text c="dimmed">
 						Each frame flows through six stages. The painter's algorithm sorts

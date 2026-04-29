@@ -20,7 +20,7 @@ describe("Scene", () => {
 	it("fog can be assigned", () => {
 		const scene = new Scene();
 		const fog = { type: "Fog", color: undefined, near: 1, far: 100 };
-		scene.fog = fog;
+		scene.fog = fog as unknown as import("@/scenes/Fog.js").Fog;
 		expect(scene.fog).toBe(fog);
 	});
 

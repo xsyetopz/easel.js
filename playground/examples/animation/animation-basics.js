@@ -84,13 +84,12 @@ export function setup(canvas, params = {}) {
 
 export const easelSource = `import * as EASEL from "easel";
 
-// EASEL: Clock.delta is a getter, not a method.
 const clock = new EASEL.Clock();
 let elapsed = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.delta;   // seconds since last call - getter, not getDelta()
+  const dt = clock.delta;
   elapsed += dt * speed;
 
   box.rotation.y = elapsed * 1.2;
@@ -109,13 +108,12 @@ animate();`;
 
 export const threeSource = `import * as THREE from "three";
 
-// THREE: clock.getDelta() is a method call.
 const clock = new THREE.Clock();
 let elapsed = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.getDelta();   // method, not a getter
+  const dt = clock.getDelta();
   elapsed += dt * speed;
 
   box.rotation.y = elapsed * 1.2;

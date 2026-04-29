@@ -30,7 +30,7 @@ describe("FramebufferClear", () => {
 		expect(px.a).toBe(255);
 	});
 
-	it("1×1 framebuffer clear sets the single pixel correctly", () => {
+	it("1x1 framebuffer clear sets the single pixel correctly", () => {
 		const fb = new Framebuffer(1, 1);
 		const clear = new FramebufferClear();
 		clear.clear(fb, 77, 88, 99, 255);

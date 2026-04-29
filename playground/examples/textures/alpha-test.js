@@ -1,4 +1,5 @@
 import * as EASEL from "@/index.js";
+import { texturePath } from "../assets.js";
 
 export const meta = {
 	id: "alpha-test",
@@ -41,10 +42,10 @@ export function setup(canvas) {
 	scene.add(glassBox);
 
 	const loader = new EASEL.TextureLoader();
-	loader.load("textures/Brick_01.png", (texture) => {
+	loader.load(texturePath("Brick_01.png"), (texture) => {
 		brickMat.map = texture;
 	});
-	loader.load("textures/Glass_01.png", (texture) => {
+	loader.load(texturePath("Glass_01.png"), (texture) => {
 		glassMat.map = texture;
 	});
 
@@ -82,8 +83,29 @@ const glassBox = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), glassMat);
 scene.add(glassBox);
 
 const loader = new EASEL.TextureLoader();
-loader.load("textures/Glass_01.png", (texture) => {
+loader.load("/textures/Glass_01.png", (texture) => {
   glassMat.map = texture;
 });`;
 
-export const threeSource = undefined;
+export const threeSource = `import * as THREE from "three";
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+
+const renderer = new THREE.WebGLRenderer({ canvas });
+renderer.setSize(width, height);
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+const glassMat = new THREE.MeshLambertMaterial({
+  color: 0xffffff,
+  transparent: true,
+  alphaTest: 0.5,
+});
+const glassBox = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), glassMat);
+scene.add(glassBox);
+
+const loader = new THREE.TextureLoader();
+loader.load("/textures/Glass_01.png", (texture) => {
+  glassMat.map = texture;
+  glassMat.needsUpdate = true;
+});`;

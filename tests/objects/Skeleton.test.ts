@@ -4,7 +4,7 @@ import { Bone } from "@/objects/Bone.ts";
 import { Skeleton } from "@/objects/Skeleton.js";
 
 describe("Skeleton", () => {
-	function makeBone(name) {
+	function makeBone(name: string) {
 		const b = new Bone();
 		b.name = name;
 		return b;

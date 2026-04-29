@@ -17,8 +17,8 @@ import type { AppRoute } from "./routes.ts";
 const SIDEBAR_PAGES = new Set(["example", "docs", "doc"]);
 
 interface AppProps {
-	initialRoute?: AppRoute;
-	initialPayload?: InitialPayload;
+	initialRoute?: AppRoute | undefined;
+	initialPayload?: InitialPayload | undefined;
 }
 
 export function App({ initialRoute, initialPayload }: AppProps) {
@@ -85,11 +85,15 @@ export function App({ initialRoute, initialPayload }: AppProps) {
 	return (
 		<AppShell
 			header={{ height: 56 }}
-			navbar={
-				hasSidebar
-					? { width: 260, breakpoint: "sm", collapsed: { mobile: !opened } }
-					: undefined
-			}
+			{...(hasSidebar
+				? {
+						navbar: {
+							width: 260,
+							breakpoint: "sm" as const,
+							collapsed: { mobile: !opened },
+						},
+					}
+				: {})}
 			padding="md"
 		>
 			<SeoHead route={route} />

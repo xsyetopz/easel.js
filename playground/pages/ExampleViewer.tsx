@@ -14,8 +14,8 @@ import {
 
 interface ExampleViewerProps {
 	exampleId: string | null;
-	initialCatalog?: ExampleCatalogData;
-	initialExample?: ExampleRouteData;
+	initialCatalog?: ExampleCatalogData | undefined;
+	initialExample?: ExampleRouteData | undefined;
 }
 
 export function ExampleViewer({
@@ -152,6 +152,7 @@ export function ExampleViewer({
 			<CodeToggle
 				easelSource={example.easelSource}
 				threeSource={example.threeSource}
+				noThreeReason={example.noThreeReason}
 			/>
 		</Stack>
 	);

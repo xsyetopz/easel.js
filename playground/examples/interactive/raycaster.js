@@ -151,7 +151,6 @@ canvas.addEventListener("mousemove", (event) => {
 
 export const threeSource = `import * as THREE from "three";
 
-// THREE.Raycaster has the same API as EASEL.Raycaster.
 const raycaster = new THREE.Raycaster();
 
 canvas.addEventListener("mousemove", (event) => {

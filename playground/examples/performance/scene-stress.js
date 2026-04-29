@@ -343,10 +343,8 @@ const colors = [0x5577dd, 0xe07050, 0x50c080, 0xd0a030, 0xb060d0, 0x60b0d0];
 const layers = [EASEL.Layer.GROUND, EASEL.Layer.SCENERY,
                 EASEL.Layer.ENTITY, EASEL.Layer.OVERLAY];
 
-// Optional fog
 scene.fog = new EASEL.Fog({ color: 0x000000, near: 1, far: 30 });
 
-// Optional checker texture
 const size = 32;
 const data = new Uint8ClampedArray(size * size * 4);
 for (let y = 0; y < size; y++) {
@@ -359,7 +357,6 @@ for (let y = 0; y < size; y++) {
 }
 const texture = new EASEL.DataTexture(data, size, size);
 
-// Spawn meshes in a grid with mixed layers and textures
 for (let i = 0; i < 100; i++) {
   const mat = new EASEL.LambertMaterial({ color: colors[i % 6] });
   mat.layer = layers[i % 4];
@@ -370,5 +367,8 @@ for (let i = 0; i < 100; i++) {
   mesh.position.z = Math.floor(i / cols) * 1.2 - ((cols - 1) * 1.2) / 2;
   scene.add(mesh);
 }`;
+
+export const noThreeReason =
+	"This performance demo targets EASEL traversal, fog, sorting, and texture sampling cost.";
 
 export const threeSource = undefined;

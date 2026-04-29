@@ -460,13 +460,12 @@ scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
 const size = 8;
 const half = size / 2;
 
-// Individual mode: one Mesh per voxel
 const boxGeo = new EASEL.BoxGeometry(1, 1, 1);
 for (let x = 0; x < size; x++) {
   for (let y = 0; y < size; y++) {
     for (let z = 0; z < size; z++) {
       if (x > 0 && x < size-1 && y > 0 && y < size-1
-          && z > 0 && z < size-1) continue; // hollow
+          && z > 0 && z < size-1) continue;
       const color = y === size-1 ? 0x44aa44
         : y > 0 ? 0x886644 : 0x888888;
       const mesh = new EASEL.Mesh(boxGeo,
@@ -476,14 +475,9 @@ for (let x = 0; x < size; x++) {
     }
   }
 }
+`;
 
-// Merged mode: build a single Geometry with all faces
-// const geo = new EASEL.Geometry();
-// geo.setPositions(allPositions);
-// geo.setNormals(allNormals);
-// geo.setUVs(allUVs);
-// geo.setColors(allColors);
-// geo.setIndex(allIndices);
-// scene.add(new EASEL.Mesh(geo, new EASEL.LambertMaterial({ color: 0xffffff })));`;
+export const noThreeReason =
+	"This performance demo targets EASEL static chunk mesh behavior and CPU raster cost.";
 
 export const threeSource = undefined;

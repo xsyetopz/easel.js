@@ -90,13 +90,10 @@ function animate() {
   const dt = clock.delta;
   elapsed += dt;
 
-  // Rotation
   box.rotation.y = elapsed;
 
-  // Sinusoidal bounce
   box.position.y = Math.sin(elapsed * 2) * 0.5;
 
-  // Pulse scale
   const s = 1 + Math.sin(elapsed * 3) * 0.15;
   box.scale.set(s, s, s);
 
@@ -120,13 +117,10 @@ function animate() {
   const dt = clock.getDelta();
   elapsed += dt;
 
-  // Rotation
   box.rotation.y = elapsed;
 
-  // Sinusoidal bounce
   box.position.y = Math.sin(elapsed * 2) * 0.5;
 
-  // Pulse scale
   const s = 1 + Math.sin(elapsed * 3) * 0.15;
   box.scale.set(s, s, s);
 

@@ -91,28 +91,23 @@ export function setup(canvas) {
 
 export const easelSource = `import * as EASEL from "easel";
 
-// Outer group rotates; inner group scales.
-// Meshes inside innerGroup inherit BOTH transforms automatically.
 const outerGroup = new EASEL.Group();
 scene.add(outerGroup);
 
 const innerGroup = new EASEL.Group();
-outerGroup.add(innerGroup);       // child of outer
+outerGroup.add(innerGroup);
 
 const mesh = new EASEL.Mesh(geometry, material);
 mesh.position.set(2, 0, 0);
-innerGroup.add(mesh);             // child of inner → grandchild of outer
+innerGroup.add(mesh);
 
-// Per frame:
 outerGroup.rotation.y += 0.6 * dt;
 
 const s = 0.8 + 0.4 * Math.abs(Math.sin(elapsed * 1.2));
-innerGroup.scale.set(s, s, s);
-// mesh world transform = outer(rotation) * inner(scale) * mesh(position)`;
+innerGroup.scale.set(s, s, s);`;
 
 export const threeSource = `import * as THREE from "three";
 
-// Identical API - Group nesting works the same way in THREE.js.
 const outerGroup = new THREE.Group();
 scene.add(outerGroup);
 

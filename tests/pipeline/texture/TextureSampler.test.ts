@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { TextureSampler } from "@/pipeline/texture/TextureSampler.ts";
 
-function make2x2Texture(tl, tr, bl, br) {
+function make2x2Texture(
+	tl: number[],
+	tr: number[],
+	bl: number[],
+	br: number[],
+) {
 	const data = new Uint8ClampedArray(2 * 2 * 4);
-	function set(idx, [r, g, b, a]) {
+	function set(idx: number, [r, g, b, a]: number[]) {
 		data[idx * 4] = r;
 		data[idx * 4 + 1] = g;
 		data[idx * 4 + 2] = b;

@@ -86,7 +86,6 @@ export function setup(canvas, params = {}) {
 
 export const easelSource = `import * as EASEL from "easel";
 
-// EASEL: fov is in DEGREES, passed as an options object.
 const camera = new EASEL.PerspectiveCamera({
   fov: 45,
   aspect: 800 / 600,
@@ -94,7 +93,6 @@ const camera = new EASEL.PerspectiveCamera({
   far: 100,
 });
 
-// Live update:
 camera.fov = 60;
 camera.updateProjectionMatrix();
 
@@ -103,7 +101,6 @@ renderer.render(scene, camera);`;
 
 export const threeSource = `import * as THREE from "three";
 
-// THREE: fov is in DEGREES, passed as positional args.
 const camera = new THREE.PerspectiveCamera(
   45,
   800 / 600,
@@ -111,8 +108,7 @@ const camera = new THREE.PerspectiveCamera(
   100,
 );
 
-// Live update:
-camera.fov = 60;                   // degrees
+camera.fov = 60;
 camera.updateProjectionMatrix();
 
 const renderer = new THREE.WebGLRenderer({ canvas });

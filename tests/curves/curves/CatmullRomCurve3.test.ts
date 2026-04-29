@@ -20,7 +20,7 @@ const tpts = [
 // t=0 matches THREE for all curve types; t=1 for uniform only
 // (centripetal/chordal use different arc-length parameterisation near endpoints)
 describe("CatmullRomCurve3 endpoints vs THREE", () => {
-	for (const curveType of ["centripetal", "chordal", "catmullrom"]) {
+	for (const curveType of ["centripetal", "chordal", "catmullrom"] as const) {
 		it(`${curveType}: t=0 matches`, () => {
 			const easel = new CatmullRomCurve3(epts, false, curveType, 0.5);
 			const three = new THREE.CatmullRomCurve3(tpts, false, curveType, 0.5);
@@ -36,7 +36,7 @@ describe("CatmullRomCurve3 endpoints vs THREE", () => {
 });
 
 // Self-consistency tests: curve properties independent of THREE comparison
-for (const curveType of ["centripetal", "chordal", "catmullrom"]) {
+for (const curveType of ["centripetal", "chordal", "catmullrom"] as const) {
 	describe(`CatmullRomCurve3 ${curveType} (self-consistency)`, () => {
 		const easel = new CatmullRomCurve3(epts, false, curveType, 0.5);
 

@@ -154,7 +154,6 @@ const sphere = new EASEL.Mesh(
 );
 scene.add(sphere);
 
-// Ring of coloured point lights orbiting the sphere
 const colors = [0xff4444, 0x44ff44, 0x4444ff, 0xffff44, 0xff44ff, 0x44ffff];
 for (let i = 0; i < lightCount; i++) {
   const pl = new EASEL.PointLight(colors[i % 6], 1, 10, 2);
@@ -162,5 +161,8 @@ for (let i = 0; i < lightCount; i++) {
   pl.position.set(Math.cos(a) * 4, 0, Math.sin(a) * 4);
   scene.add(pl);
 }`;
+
+export const noThreeReason =
+	"This performance demo targets EASEL CPU light baking cost, not a THREE renderer feature.";
 
 export const threeSource = undefined;

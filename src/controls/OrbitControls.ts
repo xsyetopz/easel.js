@@ -5,7 +5,7 @@ import { Vector3 } from "../math/Vector3.ts";
 
 interface OrbitCamera {
 	position: Vector3;
-	matrixWorld: { elements: number[] };
+	matrixWorld: { elements: ArrayLike<number> };
 	lookAt: (target: Vector3) => void;
 	updateMatrixWorld: (force?: boolean) => void;
 }

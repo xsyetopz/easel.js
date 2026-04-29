@@ -177,7 +177,7 @@ Hoist `testZ`/`writeZ` bools from mode before loops. V8 treats as constant after
 
 | Technique                     | Detail                                                      |
 | ----------------------------- | ----------------------------------------------------------- |
-| Tile binning (32×32 or 64×64) | tile color+Z fits L1 cache; trivial reject per tile         |
+| Tile binning (32x32 or 64x64) | tile color+Z fits L1 cache; trivial reject per tile         |
 | Projected vertex cache        | don't re-transform shared verts in indexed meshes           |
 | Guard band clipping           | only clip at near plane; bbox clamping handles screen edges |
 | `OffscreenCanvas` + Worker    | rasterizer never competes with DOM/events                   |
@@ -188,8 +188,8 @@ Hoist `testZ`/`writeZ` bools from mode before loops. V8 treats as constant after
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
 | Fixed-point 16.16 edges in inner loop only | float setup → convert → int stepping. `(e0 \| e1 \| e2) <= 0` single branch                        |
 | WASM inner loop                            | hand-written WAT or compiled. Real i32, `memory.fill`, `v128` SIMD for 4px at once. 30–50% over JS |
-| Screen-door dithering for alpha            | 4×4 Bayer threshold, 1 compare, no read-modify-write blend                                         |
-| 2×2 quad processing                        | may help V8 auto-vectorize                                                                         |
+| Screen-door dithering for alpha            | 4x4 Bayer threshold, 1 compare, no read-modify-write blend                                         |
+| 2x2 quad processing                        | may help V8 auto-vectorize                                                                         |
 
 ---
 
@@ -253,24 +253,24 @@ For alpha blending when needed:
 
 ## V8-Specific Findings (Easel.js Benchmarking)
 
-> Measured on Canvas2D rasterizer, ~600×400 canvas, typical laptop, Chrome/V8.
+> Measured on Canvas2D rasterizer, ~600x400 canvas, typical laptop, Chrome/V8.
 > These findings **override** generic advice above where they conflict.
 
 ### What the generic guide gets wrong for V8
 
-| #   | Generic Advice                             | V8 Reality                                                                                                                                                                                                | Measured Impact         |
-| --- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| 1   | Pool objects, zero `new` in render loop    | V8 young-gen GC handles short-lived objects in μs. A DrawCall pool with `reset()` was **50% slower** than `new DrawCall()` at 2000 meshes. Pool's field-by-field reset defeats hidden class optimization. | -50% at 2000 meshes     |
-| 2   | `\| 0` instead of `Math.floor` in hot path | V8 compiles `Math.floor` to a single CPU instruction. `texU - ((texU \| 0) - (texU < 0 ? 1 : 0))` adds a branch per pixel.                                                                                | -20% in textured fill   |
-| 3   | Inline everything in hot path              | Replacing `MathUtils.clamp()` with inline ternaries bloated ScanlineFill past V8's inlining threshold (~460 bytecodes). The **entire fill callback** deoptimized.                                         | -20% in rasterizer      |
-| 4   | Single sort pass with composite key        | Timsort is O(n) on nearly-sorted data. Two simple comparators on frame-coherent draw calls outperforms one pass with `(layer << 24) \| (0xFFFFFF - dist)` bit manipulation.                               | -15% at 2000 draw calls |
-| 5   | Avoid `Map` in sort comparators            | `Map.get()` in comparators showed no measurable overhead at 2000 draw calls. V8 optimizes `Map` well.                                                                                                     | 0% change               |
-| 6   | —                                          | Removing `?? 0` on `Float32Array` reads is provably correct — values are never null/undefined. Eliminates dead type checks.                                                                               | +8% on deep hierarchies |
-| 7   | Cache callbacks as class fields             | Private class fields holding closures that reference other private methods (`#cb = (...args) => this.#method(...args)`) change V8's hidden class layout for the entire class. All methods on the class deoptimize — even those unrelated to the callbacks. Move closures to inline creation at the call site, only when the code path is actually taken. | -48% on all workloads |
-| 8   | Pre-allocate per-frame batching structures  | Per-frame `Map.set()` + string key construction (`geoId + ":" + matId`) for batch detection costs more than the saved DrawCall overhead. Merging vertices into one DrawCall doesn't reduce vertex projection cost — same vertex count, same matrix multiplies. Batching only helps when it eliminates draw calls entirely (e.g., InstancedMesh). | -43% at 2000 meshes |
-| 9   | PoT bitmask UV wrap replaces `Math.floor`   | `((texU * texW) \| 0 + texW) & texWm1` replaces `Math.floor(texU)` fract + float-to-texel. Unlike finding #2 (bitwise fract with branch), this is branchless and avoids the float fract entirely. Two's complement handles negative UVs correctly: `(-5) & 127 = 123`. | +10% textured fill |
-| 10  | Skip LightBaker for unlit materials          | `BasicMaterial` and `PointsMaterial` don't respond to lights. Adding `if (type === "BasicMaterial") return` before the shade loop skips O(tris × lights) computation. The Rasterizer already has an unlit path (`#fillUnlitTex`, `#fillFlat`) that ignores shading data. | +27% unlit rendering |
-| 11  | Front-to-back opaque sort for early-Z        | Reverse opaque draw calls within each layer group so nearest objects render first. Depth buffer early-Z (`if (depth > buf[idx]) continue`) rejects occluded pixels. Works when objects have different XY tile distances. **No effect on Z-stacked planes** — XY Manhattan distance gives all planes distance 0, making the reversal a no-op. | 0% overdraw, ~0% general |
+| #   | Generic Advice                             | V8 Reality                                                                                                                                                                                                                                                                                                                                               | Measured Impact          |
+| --- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| 1   | Pool objects, zero `new` in render loop    | V8 young-gen GC handles short-lived objects in μs. A DrawCall pool with `reset()` was **50% slower** than `new DrawCall()` at 2000 meshes. Pool's field-by-field reset defeats hidden class optimization.                                                                                                                                                | -50% at 2000 meshes      |
+| 2   | `\| 0` instead of `Math.floor` in hot path | V8 compiles `Math.floor` to a single CPU instruction. `texU - ((texU \| 0) - (texU < 0 ? 1 : 0))` adds a branch per pixel.                                                                                                                                                                                                                               | -20% in textured fill    |
+| 3   | Inline everything in hot path              | Replacing `MathUtils.clamp()` with inline ternaries bloated ScanlineFill past V8's inlining threshold (~460 bytecodes). The **entire fill callback** deoptimized.                                                                                                                                                                                        | -20% in rasterizer       |
+| 4   | Single sort pass with composite key        | Timsort is O(n) on nearly-sorted data. Two simple comparators on frame-coherent draw calls outperforms one pass with `(layer << 24) \| (0xFFFFFF - dist)` bit manipulation.                                                                                                                                                                              | -15% at 2000 draw calls  |
+| 5   | Avoid `Map` in sort comparators            | `Map.get()` in comparators showed no measurable overhead at 2000 draw calls. V8 optimizes `Map` well.                                                                                                                                                                                                                                                    | 0% change                |
+| 6   | —                                          | Removing `?? 0` on `Float32Array` reads is provably correct — values are never null/undefined. Eliminates dead type checks.                                                                                                                                                                                                                              | +8% on deep hierarchies  |
+| 7   | Cache callbacks as class fields            | Private class fields holding closures that reference other private methods (`#cb = (...args) => this.#method(...args)`) change V8's hidden class layout for the entire class. All methods on the class deoptimize — even those unrelated to the callbacks. Move closures to inline creation at the call site, only when the code path is actually taken. | -48% on all workloads    |
+| 8   | Pre-allocate per-frame batching structures | Per-frame `Map.set()` + string key construction (`geoId + ":" + matId`) for batch detection costs more than the saved DrawCall overhead. Merging vertices into one DrawCall doesn't reduce vertex projection cost — same vertex count, same matrix multiplies. Batching only helps when it eliminates draw calls entirely (e.g., InstancedMesh).         | -43% at 2000 meshes      |
+| 9   | PoT bitmask UV wrap replaces `Math.floor`  | `((texU * texW) \| 0 + texW) & texWm1` replaces `Math.floor(texU)` fract + float-to-texel. Unlike finding #2 (bitwise fract with branch), this is branchless and avoids the float fract entirely. Two's complement handles negative UVs correctly: `(-5) & 127 = 123`.                                                                                   | +10% textured fill       |
+| 10  | Skip LightBaker for unlit materials        | `BasicMaterial` and `PointsMaterial` don't respond to lights. Adding `if (type === "BasicMaterial") return` before the shade loop skips O(tris x lights) computation. The Rasterizer already has an unlit path (`#fillUnlitTex`, `#fillFlat`) that ignores shading data.                                                                                 | +27% unlit rendering     |
+| 11  | Front-to-back opaque sort for early-Z      | Reverse opaque draw calls within each layer group so nearest objects render first. Depth buffer early-Z (`if (depth > buf[idx]) continue`) rejects occluded pixels. Works when objects have different XY tile distances. **No effect on Z-stacked planes** — XY Manhattan distance gives all planes distance 0, making the reversal a no-op.             | 0% overdraw, ~0% general |
 
 ### Key takeaway
 
@@ -278,7 +278,7 @@ V8's JIT is aggressive. "Optimization" that changes code shape (inlining, poolin
 
 For broader V8/JIT guidance (beyond rasterizer-specific measurements), see [`references/js-v8-jit-perf.md`](./js-v8-jit-perf.md).
 
-### Benchmark baselines (canvas ~600×400)
+### Benchmark baselines (canvas ~600x400)
 
 | Workload                     | 120fps Threshold              | Bottleneck Stage                     |
 | ---------------------------- | ----------------------------- | ------------------------------------ |
@@ -298,6 +298,6 @@ For broader V8/JIT guidance (beyond rasterizer-specific measurements), see [`ref
 | ---------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **InstancedMesh pipeline support** | High   | 1352 individual cubes = 40fps (16K tris). Single merged mesh with 16K tris = 120fps. InstancedMesh eliminates per-mesh overhead without manual merging. |
 | **Static mesh batching**           | High   | Combine meshes sharing geometry+material into one draw call. Reduces overhead from O(N meshes) to O(batches).                                           |
-| **Power-of-2 texture masking**     | Medium | Textures capped at 128×128. `tx & 0x7F` for Repeat mode replaces `Math.floor` + float→int conversion.                                                   |
+| **Power-of-2 texture masking**     | Medium | Textures capped at 128x128. `tx & 0x7F` for Repeat mode replaces `Math.floor` + float→int conversion.                                                   |
 | **Point size fast paths**          | Medium | Fill is quadratic with size. Size 1–2: direct pixel write. Size >4: `Uint32Array.fill()` for scanline runs.                                             |
 | **Overdraw**                       | None   | Fundamentally fill-rate limited. No algorithmic fix — scene design only.                                                                                |

@@ -89,11 +89,9 @@ camera.position.z = 6;
 const renderer = new EASEL.Renderer({ canvas, width, height });
 scene.add(new EASEL.AmbientLight(0xffffff, 0.5));
 
-// PointsMaterial renders vertices as filled circles
 const material = new EASEL.PointsMaterial({ color: 0x66bbff, size: 3 });
 const geometry = new EASEL.SphereGeometry(2, 24, 18);
 
-// Points object (like THREE.Points)
 const points = new EASEL.Points(geometry, material);
 scene.add(points);`;
 

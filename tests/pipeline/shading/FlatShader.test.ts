@@ -3,7 +3,7 @@ import { FlatShader } from "@/pipeline/shading/FlatShader.js";
 
 const shader = new FlatShader();
 
-function makeLight(dx, dy, dz, intensity = 1) {
+function makeLight(dx: number, dy: number, dz: number, intensity = 1) {
 	return {
 		type: "directional",
 		direction: { x: dx, y: dy, z: dz },

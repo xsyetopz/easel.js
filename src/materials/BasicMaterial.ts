@@ -8,6 +8,9 @@ interface BasicMaterialOptions {
 	map?: Texture | undefined;
 	layer?: number;
 	opacity?: number;
+	transparent?: boolean;
+	depthTest?: boolean;
+	depthWrite?: boolean;
 	shading?: number;
 	side?: number;
 }

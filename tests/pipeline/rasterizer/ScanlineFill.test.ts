@@ -5,13 +5,33 @@ import { ScanlineFill } from "@/pipeline/rasterizer/ScanlineFill.js";
  * Collects per-pixel {x, y} from the per-scanline callback by iterating
  * xStart..xEnd for each scanline invocation.
  */
-function collectFill(fill, x1, y1, x2, y2, x3, y3, w = 20, h = 20) {
+function collectFill(
+	fill: import("@/pipeline/rasterizer/ScanlineFill.js").ScanlineFill,
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+	x3: number,
+	y3: number,
+	w = 20,
+	h = 20,
+) {
 	const pixels: Array<{ x: number; y: number }> = [];
-	fill.fill(x1, y1, x2, y2, x3, y3, w, h, (y, xStart, xEnd) => {
-		for (let x = xStart; x <= xEnd; x++) {
-			pixels.push({ x, y });
-		}
-	});
+	fill.fill(
+		x1,
+		y1,
+		x2,
+		y2,
+		x3,
+		y3,
+		w,
+		h,
+		(y: number, xStart: number, xEnd: number) => {
+			for (let x = xStart; x <= xEnd; x++) {
+				pixels.push({ x, y });
+			}
+		},
+	);
 	return pixels;
 }
 
@@ -19,7 +39,17 @@ function collectFill(fill, x1, y1, x2, y2, x3, y3, w = 20, h = 20) {
  * Collects per-pixel {x, y, u, v, w} by reconstructing barycentrics from
  * the scanline start values and deltas.
  */
-function collectFillBary(fill, x1, y1, x2, y2, x3, y3, w = 20, h = 20) {
+function collectFillBary(
+	fill: import("@/pipeline/rasterizer/ScanlineFill.js").ScanlineFill,
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+	x3: number,
+	y3: number,
+	w = 20,
+	h = 20,
+) {
 	const pixels: Array<{
 		x: number;
 		y: number;
@@ -36,7 +66,15 @@ function collectFillBary(fill, x1, y1, x2, y2, x3, y3, w = 20, h = 20) {
 		y3,
 		w,
 		h,
-		(y, xStart, xEnd, uStart, vStart, duDx, dvDx) => {
+		(
+			y: number,
+			xStart: number,
+			xEnd: number,
+			uStart: number,
+			vStart: number,
+			duDx: number,
+			dvDx: number,
+		) => {
 			let u = uStart;
 			let v = vStart;
 			for (let x = xStart; x <= xEnd; x++, u += duDx, v += dvDx) {
@@ -119,7 +157,7 @@ describe("ScanlineFill", () => {
 	it("CW and CCW winding of the same triangle produce identical pixel sets", () => {
 		const ccw = collectFill(fill, 0, 0, 10, 0, 5, 10);
 		const cw = collectFill(fill, 0, 0, 5, 10, 10, 0);
-		const toKey = (p) => `${p.x},${p.y}`;
+		const toKey = (p: { x: number; y: number }) => `${p.x},${p.y}`;
 		const ccwKeys = ccw.map(toKey).sort();
 		const cwKeys = cw.map(toKey).sort();
 		expect(ccwKeys).toEqual(cwKeys);

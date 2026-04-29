@@ -1,66 +1,66 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 import { PlaneGeometry } from "@/geometry/primitives/PlaneGeometry.js";
-import { compareArrays } from "../../_helpers/three-bridge.js";
+import { defined } from "../../_helpers/defined.js";
+import {
+	expectAttributeArraysClose,
+	expectIndexLengthMatches,
+	getAttributeCount,
+} from "../../_helpers/geometry.js";
 
 describe("PlaneGeometry vs THREE.PlaneGeometry", () => {
 	it("default - vertex count matches", () => {
-		expect(new PlaneGeometry().getAttribute("position").count).toBe(
-			new THREE.PlaneGeometry().getAttribute("position").count,
+		expect(getAttributeCount(new PlaneGeometry(), "position")).toBe(
+			getAttributeCount(new THREE.PlaneGeometry(), "position"),
 		);
 	});
 
 	it("default - normals match", () => {
-		const { pass, failures } = compareArrays(
-			new PlaneGeometry().getAttribute("normal").array,
-			new THREE.PlaneGeometry().getAttribute("normal").array,
-			1e-4,
+		expectAttributeArraysClose(
+			new PlaneGeometry(),
+			new THREE.PlaneGeometry(),
+			"normal",
 		);
-		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
 	it("default - uvs match", () => {
-		const { pass, failures } = compareArrays(
-			new PlaneGeometry().getAttribute("uv").array,
-			new THREE.PlaneGeometry().getAttribute("uv").array,
-			1e-4,
+		expectAttributeArraysClose(
+			new PlaneGeometry(),
+			new THREE.PlaneGeometry(),
+			"uv",
 		);
-		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
 	it("default - index count matches", () => {
-		expect(new PlaneGeometry().index.length).toBe(
-			new THREE.PlaneGeometry().getIndex().array.length,
-		);
+		expectIndexLengthMatches(new PlaneGeometry(), new THREE.PlaneGeometry());
 	});
 
 	it("custom (5,3,4,2) - vertex count matches", () => {
-		expect(new PlaneGeometry(5, 3, 4, 2).getAttribute("position").count).toBe(
-			new THREE.PlaneGeometry(5, 3, 4, 2).getAttribute("position").count,
+		expect(getAttributeCount(new PlaneGeometry(5, 3, 4, 2), "position")).toBe(
+			getAttributeCount(new THREE.PlaneGeometry(5, 3, 4, 2), "position"),
 		);
 	});
 
 	it("custom (5,3,4,2) - normals match", () => {
-		const { pass, failures } = compareArrays(
-			new PlaneGeometry(5, 3, 4, 2).getAttribute("normal").array,
-			new THREE.PlaneGeometry(5, 3, 4, 2).getAttribute("normal").array,
-			1e-4,
+		expectAttributeArraysClose(
+			new PlaneGeometry(5, 3, 4, 2),
+			new THREE.PlaneGeometry(5, 3, 4, 2),
+			"normal",
 		);
-		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
 	it("custom (5,3,4,2) - uvs match", () => {
-		const { pass, failures } = compareArrays(
-			new PlaneGeometry(5, 3, 4, 2).getAttribute("uv").array,
-			new THREE.PlaneGeometry(5, 3, 4, 2).getAttribute("uv").array,
-			1e-4,
+		expectAttributeArraysClose(
+			new PlaneGeometry(5, 3, 4, 2),
+			new THREE.PlaneGeometry(5, 3, 4, 2),
+			"uv",
 		);
-		expect(pass, failures?.join(", ")).toBe(true);
 	});
 
 	it("custom (5,3,4,2) - index count matches", () => {
-		expect(new PlaneGeometry(5, 3, 4, 2).index.length).toBe(
-			new THREE.PlaneGeometry(5, 3, 4, 2).getIndex().array.length,
+		expectIndexLengthMatches(
+			new PlaneGeometry(5, 3, 4, 2),
+			new THREE.PlaneGeometry(5, 3, 4, 2),
 		);
 	});
 });
@@ -68,8 +68,8 @@ describe("PlaneGeometry vs THREE.PlaneGeometry", () => {
 describe("PlaneGeometry winding order", () => {
 	it("face normals point +Z (CCW from +Z)", () => {
 		const geo = new PlaneGeometry(2, 2, 2, 2);
-		const pos = geo.getAttribute("position").array;
-		const idx = geo.index;
+		const pos = defined(geo.getAttribute("position")).array;
+		const idx = defined(geo.index);
 
 		for (let t = 0; t < idx.length / 3; t++) {
 			const ai = idx[t * 3];

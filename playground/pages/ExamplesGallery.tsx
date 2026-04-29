@@ -4,7 +4,7 @@ import { useExampleCatalog } from "../hooks/useExampleCatalog.ts";
 import type { ExampleCatalogData } from "../loaders/examples.ts";
 
 interface ExamplesGalleryProps {
-	initialCatalog?: ExampleCatalogData;
+	initialCatalog?: ExampleCatalogData | undefined;
 }
 
 export function ExamplesGallery({ initialCatalog }: ExamplesGalleryProps) {

@@ -40,7 +40,6 @@ describe("Raycaster", () => {
 		const obj = {
 			visible: true,
 			type: "Mesh",
-			geometry: undefined,
 			layers: rc.layers,
 			children: [],
 			matrixWorld: {
@@ -49,7 +48,10 @@ describe("Raycaster", () => {
 				]),
 			},
 		};
-		const result = rc.intersectObject(obj, false);
+		const result = rc.intersectObject(
+			obj as unknown as Parameters<typeof rc.intersectObject>[0],
+			false,
+		);
 		expect(result).toEqual([]);
 	});
 });

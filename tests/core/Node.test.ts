@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Node } from "@/core/Node.js";
+import { Node } from "../../src/core/Node.ts";
 
 describe("Node", () => {
 	class TestNode extends Node {
@@ -173,6 +173,27 @@ describe("Node", () => {
 
 	it("matrixWorldAutoUpdate defaults to true", () => {
 		expect(new Node().matrixWorldAutoUpdate).toBe(true);
+	});
+
+	it("matrixAutoUpdate aliases autoUpdateMatrix", () => {
+		const node = new Node();
+		expect(node.matrixAutoUpdate).toBe(true);
+		node.matrixAutoUpdate = false;
+		expect(node.autoUpdateMatrix).toBe(false);
+		node.autoUpdateMatrix = true;
+		expect(node.matrixAutoUpdate).toBe(true);
+	});
+
+	it("copy preserves static transform flags", () => {
+		const source = new Node();
+		source.matrixAutoUpdate = false;
+		source.matrixWorldAutoUpdate = false;
+		source.frustumCulled = false;
+		const copy = new Node().copy(source, false);
+		expect(copy.matrixAutoUpdate).toBe(false);
+		expect(copy.autoUpdateMatrix).toBe(false);
+		expect(copy.matrixWorldAutoUpdate).toBe(false);
+		expect(copy.frustumCulled).toBe(false);
 	});
 
 	it("matrixWorldAutoUpdate=false skips child in updateMatrixWorld", () => {

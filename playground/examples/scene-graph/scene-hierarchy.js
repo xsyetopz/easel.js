@@ -81,15 +81,14 @@ export function setup(canvas) {
 
 export const easelSource = `import * as EASEL from "easel";
 
-// Group acts as a pivot point. Rotate the pivot to orbit children.
 const sun = new EASEL.Mesh(new EASEL.SphereGeometry(1), new EASEL.BasicMaterial({ color: 0xffcc00 }));
 scene.add(sun);
 
 const planetPivot = new EASEL.Group();
-sun.add(planetPivot);          // pivot inherits sun's world transform
+sun.add(planetPivot);
 
 const planet = new EASEL.Mesh(new EASEL.SphereGeometry(0.4), new EASEL.LambertMaterial({ color: 0x4488cc }));
-planet.position.x = 4;         // offset from pivot center = orbital radius
+planet.position.x = 4;
 planetPivot.add(planet);
 
 const moonPivot = new EASEL.Group();
@@ -99,14 +98,12 @@ const moon = new EASEL.Mesh(new EASEL.SphereGeometry(0.15), new EASEL.LambertMat
 moon.position.x = 1;
 moonPivot.add(moon);
 
-// Rotate pivots each frame - children orbit automatically
 sun.rotation.y       += 0.1 * dt;
 planetPivot.rotation.y += 0.5 * dt;
 moonPivot.rotation.y   += 2.0 * dt;`;
 
 export const threeSource = `import * as THREE from "three";
 
-// Identical API - THREE also uses Group pivots for parent-child orbits.
 const sun = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshBasicMaterial({ color: 0xffcc00 }));
 scene.add(sun);
 

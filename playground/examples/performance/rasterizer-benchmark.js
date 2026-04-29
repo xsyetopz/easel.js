@@ -211,18 +211,15 @@ camera.position.z = 5;
 const renderer = new EASEL.Renderer({ canvas, width, height });
 scene.add(new EASEL.AmbientLight(0xffffff, 0.3));
 
-// Adjust subdivisions and material to benchmark rasterizer
 const subs = 32;
 const sphere = new EASEL.Mesh(
   new EASEL.SphereGeometry(1.5, subs, Math.floor(subs * 0.75)),
   new EASEL.LambertMaterial({ color: 0x5577dd }),
 );
 scene.add(sphere);
+`;
 
-// Material options:
-// new EASEL.LambertMaterial({ color, shading: EASEL.Shading.Flat })
-// new EASEL.BasicMaterial({ color })
-// new EASEL.ToonMaterial({ color })
-// const mat = new EASEL.BasicMaterial({ color }); mat.wireframe = true;`;
+export const noThreeReason =
+	"This benchmark targets EASEL software rasterizer internals.";
 
 export const threeSource = undefined;

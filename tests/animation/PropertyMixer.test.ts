@@ -5,7 +5,7 @@ import { Node } from "@/core/Node.js";
 
 describe("PropertyMixer", () => {
 	function makeScalarBinding() {
-		const root = new Node();
+		const root = new Node() as Node & { opacity: number };
 		// Use a plain numeric property for scalar testing
 		root.opacity = 0.5;
 		return new Binding(root, "opacity");
@@ -24,7 +24,7 @@ describe("PropertyMixer", () => {
 	});
 
 	it("accumulate + apply writes normalized value to binding for scalar", () => {
-		const root = new Node();
+		const root = new Node() as Node & { opacity: number };
 		root.opacity = 1.0;
 		const binding = new Binding(root, "opacity");
 		const mixer = new PropertyMixer(binding, 1);

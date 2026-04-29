@@ -5,11 +5,11 @@ import { DrawCall } from "@/pipeline/DrawCall.js";
 function makeMesh(x = 0, y = 0, z = 0) {
 	const m = new Matrix4();
 	m.makeTranslation(x, y, z);
-	return { matrixWorld: m, type: "Mesh" };
+	return { matrixWorld: m, type: "Mesh" } as unknown as never;
 }
 
 function makeMaterial() {
-	return { color: 0xffffff };
+	return { color: 0xffffff } as unknown as never;
 }
 
 describe("DrawCall", () => {

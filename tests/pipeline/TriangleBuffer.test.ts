@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 
 /** Helper: append one triangle with all distinct sentinel values. */
-function appendSentinel(buf) {
+function appendSentinel(
+	buf: import("@/pipeline/TriangleBuffer.js").TriangleBuffer,
+) {
 	return buf.append(
 		10,
 		20,

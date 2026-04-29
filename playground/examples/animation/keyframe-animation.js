@@ -93,13 +93,10 @@ export function setup(canvas, params = {}) {
 export const easelSource = `import * as EASEL from "easel";
 import { LoopRepeat } from "easel";
 
-// VectorTrack(property, times[], values[], itemSize)
-// times: keyframe timestamps in seconds
-// values: flat array - itemSize values per keyframe
 const posTrack = new EASEL.VectorTrack(
   "position",
   [0,   0.5,   1  ],
-  [0,0,0,  0,3,0,  0,0,0],  // y: 0 → 3 → 0
+  [0,0,0,  0,3,0,  0,0,0],
   3,
 );
 
@@ -114,15 +111,13 @@ const clip     = new EASEL.AnimationClip("bounce", 1, [posTrack, scaleTrack]);
 const animator = new EASEL.Animator(box);
 const action   = animator.clipAction(clip);
 action.setLoop(LoopRepeat, Infinity);
-action.timeScale = speed;   // speed slider maps directly to timeScale
+action.timeScale = speed;
 action.play();
 
-// Call once per frame - drives all active clips on this animator
 animator.update(dt);`;
 
 export const threeSource = `import * as THREE from "three";
 
-// THREE equivalent: VectorKeyframeTrack, AnimationMixer
 const posTrack = new THREE.VectorKeyframeTrack(
   ".position",
   [0,   0.5,   1  ],
@@ -142,5 +137,4 @@ action.setLoop(THREE.LoopRepeat, Infinity);
 action.timeScale = speed;
 action.play();
 
-// THREE uses AnimationMixer.update(), EASEL uses Animator.update()
 mixer.update(dt);`;

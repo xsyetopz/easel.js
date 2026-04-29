@@ -6,6 +6,9 @@ interface LineMaterialOptions {
 	linewidth?: number;
 	layer?: number;
 	opacity?: number;
+	transparent?: boolean;
+	depthTest?: boolean;
+	depthWrite?: boolean;
 }
 
 /** For Line, LineSegments, LineLoop. Rendered via Bresenham integer line. */

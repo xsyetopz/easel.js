@@ -4,7 +4,7 @@ import { Path } from "@/curves/Path.js";
 import { Shape } from "@/curves/Shape.ts";
 import "../_helpers/assertions.js";
 
-function makeSquare(x, y, size) {
+function makeSquare(x: number, y: number, size: number) {
 	const s = new Shape();
 	s.moveTo(x, y);
 	s.lineTo(x + size, y);
@@ -14,7 +14,7 @@ function makeSquare(x, y, size) {
 	return s;
 }
 
-function makeTHREESquare(x, y, size) {
+function makeTHREESquare(x: number, y: number, size: number) {
 	const s = new THREE.Shape();
 	s.moveTo(x, y);
 	s.lineTo(x + size, y);

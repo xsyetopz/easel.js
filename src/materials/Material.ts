@@ -5,11 +5,14 @@ let _materialId = 0;
 export interface MaterialOptions {
 	layer?: number;
 	opacity?: number;
+	transparent?: boolean;
+	depthTest?: boolean;
+	depthWrite?: boolean;
 	shading?: number;
 	side?: number;
 }
 
-/** Base material. All materials share layer, opacity, shading, and side. */
+/** Base material. All materials share layer, opacity, depth flags, shading, and side. */
 export class Material {
 	id: number = _materialId++;
 
@@ -22,9 +25,18 @@ export class Material {
 
 	/**
 	 * Discrete translucency. 0 = fully opaque, 8 = nearly transparent.
-	 * Nine steps, precomputed. Replaces both float opacity and transparent bool.
+	 * Nine steps, precomputed. Used for blending only when transparent is true.
 	 */
 	opacity = 0;
+
+	/** Enables translucent blending. Opacity only blends when this is true. */
+	transparent = false;
+
+	/** Enables depth testing against the framebuffer depth buffer. */
+	depthTest = true;
+
+	/** Enables depth writes after a passing depth test. */
+	depthWrite = true;
 
 	/** Shading model: Shading.Flat or Shading.Gouraud. */
 	shading: number = Shading.Flat;
@@ -39,6 +51,14 @@ export class Material {
 	constructor(options: MaterialOptions = {}) {
 		if (options.layer !== undefined) this.layer = options.layer;
 		if (options.opacity !== undefined) this.opacity = options.opacity;
+		if (options.transparent !== undefined)
+			this.transparent = options.transparent;
+		if (options.depthTest !== undefined) this.depthTest = options.depthTest;
+		if (options.depthWrite !== undefined) {
+			this.depthWrite = options.depthWrite;
+		} else if (options.transparent === true) {
+			this.depthWrite = false;
+		}
 		if (options.shading !== undefined) this.shading = options.shading;
 		if (options.side !== undefined) this.side = options.side;
 	}
@@ -51,6 +71,9 @@ export class Material {
 		this.name = source.name;
 		this.layer = source.layer;
 		this.opacity = source.opacity;
+		this.transparent = source.transparent;
+		this.depthTest = source.depthTest;
+		this.depthWrite = source.depthWrite;
 		this.shading = source.shading;
 		this.side = source.side;
 		this.visible = source.visible;

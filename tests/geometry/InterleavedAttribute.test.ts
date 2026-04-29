@@ -3,7 +3,12 @@ import { InterleavedAttribute } from "@/geometry/InterleavedAttribute.js";
 import { InterleavedBuffer } from "@/geometry/InterleavedBuffer.js";
 
 describe("InterleavedAttribute", () => {
-	function makeAttr(data, stride, itemSize, offset) {
+	function makeAttr(
+		data: ArrayLike<number>,
+		stride: number,
+		itemSize: number,
+		offset: number,
+	) {
 		const buf = new InterleavedBuffer(new Float32Array(data), stride);
 		return new InterleavedAttribute(buf, itemSize, offset);
 	}

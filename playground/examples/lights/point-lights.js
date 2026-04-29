@@ -145,7 +145,6 @@ const knot = new EASEL.Mesh(
 );
 scene.add(knot);
 
-// PointLight(color, intensity, distance, decay)
 const red   = new EASEL.PointLight(0xff0000, 1.5, 20, 2);
 const green = new EASEL.PointLight(0x00ff00, 1.5, 20, 2);
 const blue  = new EASEL.PointLight(0x0000ff, 1.5, 20, 2);
@@ -174,7 +173,6 @@ const knot = new THREE.Mesh(
 );
 scene.add(knot);
 
-// PointLight API is identical between THREE and EASEL
 const red   = new THREE.PointLight(0xff0000, 1.5, 20, 2);
 const green = new THREE.PointLight(0x00ff00, 1.5, 20, 2);
 const blue  = new THREE.PointLight(0x0000ff, 1.5, 20, 2);
@@ -182,7 +180,7 @@ const blue  = new THREE.PointLight(0x0000ff, 1.5, 20, 2);
 const clock = new THREE.Clock();
 let t = 0;
 function animate() {
-  t += clock.getDelta();   // THREE uses getDelta(), EASEL uses clock.delta
+  t += clock.getDelta();
   red.position.set(Math.cos(t) * 4, 2, Math.sin(t) * 4);
   green.position.set(Math.cos(t * 0.7 + 2) * 5, 1, Math.sin(t * 0.7 + 2) * 5);
   blue.position.set(Math.cos(t * 1.3 + 4) * 3, 3, Math.sin(t * 1.3 + 4) * 3);

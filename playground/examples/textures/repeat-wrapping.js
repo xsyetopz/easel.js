@@ -156,4 +156,22 @@ for (let i = 0; i < uv.array.length; i += 2) {
 const mesh = new EASEL.Mesh(plane, material);
 scene.add(mesh);`;
 
-export const threeSource = undefined;
+export const threeSource = `import * as THREE from "three";
+
+const tex = new THREE.DataTexture(data, 16, 16);
+tex.wrapS = THREE.RepeatWrapping;
+tex.wrapT = THREE.RepeatWrapping;
+tex.needsUpdate = true;
+
+const material = new THREE.MeshLambertMaterial({ color: 0xffffff });
+material.map = tex;
+
+const plane = new THREE.PlaneGeometry(4, 4);
+const uv = plane.getAttribute("uv");
+for (let i = 0; i < uv.array.length; i += 2) {
+  uv.array[i] *= 3;
+  uv.array[i+1] *= 3;
+}
+
+const mesh = new THREE.Mesh(plane, material);
+scene.add(mesh);`;

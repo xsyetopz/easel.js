@@ -24,17 +24,19 @@ export class PainterSort {
 	 * Opaques are reversed to front-to-back so early-Z rejects overdraw.
 	 * Transparents stay back-to-front for correct blending.
 	 */
-	sort(drawList: DrawList, cameraPosition: { x: number; y: number }): void {
+	sort(
+		drawList: DrawList,
+		cameraPosition: { x: number; y: number },
+		sortObjects = true,
+	): void {
 		const calls = drawList.calls;
 		const n = calls.length;
+		if (!sortObjects) {
+			this.#sortTransparentOnly(drawList, cameraPosition);
+			return;
+		}
 		if (n < 2) {
-			for (const drawCall of drawList) {
-				this.#polygonSorter.sort(
-					drawCall as {
-						triangles: { length: number; buildSortOrder(): void } | undefined;
-					},
-				);
-			}
+			this.#sortPolygons(drawList);
 			return;
 		}
 
@@ -45,7 +47,7 @@ export class PainterSort {
 		let hasMultipleLayers = false;
 		for (let i = 0; i < n; i++) {
 			const mat = calls[i].material;
-			if (mat.opacity !== 0) {
+			if (isTransparent(mat)) {
 				allOpaque = false;
 				break;
 			}
@@ -84,13 +86,7 @@ export class PainterSort {
 				keys.length = 0;
 			}
 
-			for (const drawCall of drawList) {
-				this.#polygonSorter.sort(
-					drawCall as {
-						triangles: { length: number; buildSortOrder(): void } | undefined;
-					},
-				);
-			}
+			this.#sortPolygons(drawList);
 			return;
 		}
 
@@ -103,10 +99,10 @@ export class PainterSort {
 
 		for (let i = 0; i < n; i++) {
 			const dc = calls[i];
-			if (dc.material.opacity === 0) {
-				opaque.push(dc);
-			} else {
+			if (isTransparent(dc.material)) {
 				transparent.push(dc);
+			} else {
+				opaque.push(dc);
 			}
 		}
 
@@ -133,12 +129,70 @@ export class PainterSort {
 		const tLen = transparent.length;
 		for (let i = 0; i < tLen; i++) calls.push(transparent[i]);
 
+		this.#sortPolygons(drawList);
+	}
+
+	#sortTransparentOnly(
+		drawList: DrawList,
+		cameraPosition: { x: number; y: number },
+	): void {
+		const calls = drawList.calls;
+		const n = calls.length;
+		if (n === 0) return;
+
+		const opaque = this.#opaque;
+		const transparent = this.#transparent;
+		opaque.length = 0;
+		transparent.length = 0;
+
+		const cx = cameraPosition.x;
+		const cy = cameraPosition.y;
+		for (let i = 0; i < n; i++) {
+			const dc = calls[i];
+			if (isTransparent(dc.material)) {
+				const c = dc.centroid;
+				dc._tileDistance = Math.abs(c.x - cx) + Math.abs(c.y - cy);
+				transparent.push(dc);
+			} else {
+				opaque.push(dc);
+			}
+		}
+
+		if (transparent.length === 0) {
+			this.#sortPolygons(drawList);
+			return;
+		}
+
+		transparent.sort(compareTransparentBackToFront);
+		calls.length = 0;
+		for (const dc of opaque) calls.push(dc);
+		for (const dc of transparent) calls.push(dc);
+		this.#sortPolygons(drawList);
+	}
+
+	#sortPolygons(drawList: DrawList): void {
 		for (const drawCall of drawList) {
 			this.#polygonSorter.sort(
 				drawCall as {
-					triangles: { length: number; buildSortOrder(): void } | undefined;
+					material: {
+						transparent?: boolean;
+						depthTest?: boolean;
+						depthWrite?: boolean;
+					};
+					triangles:
+						| { length: number; buildSortOrder(): void; sort(): void }
+						| undefined;
 				},
 			);
 		}
 	}
+}
+
+function isTransparent(material: { transparent?: boolean }): boolean {
+	return material.transparent === true;
+}
+
+function compareTransparentBackToFront(a: DrawCall, b: DrawCall): number {
+	const layer = a.material.layer - b.material.layer;
+	return layer || b._tileDistance - a._tileDistance;
 }

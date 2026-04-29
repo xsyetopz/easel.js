@@ -66,13 +66,11 @@ camera.position.z = 5;
 
 const renderer = new EASEL.Renderer({ canvas, width: 800, height: 600 });
 
-// Lighting
 scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
 const light = new EASEL.DirectionalLight(0xffffff, 0.8);
 light.position.set(3, 5, 4);
 scene.add(light);
 
-// Mesh = Geometry + Material
 const box = new EASEL.Mesh(
   new EASEL.BoxGeometry(1, 1, 1),
   new EASEL.LambertMaterial({ color: 0xff4444 }),
@@ -91,7 +89,7 @@ export const threeSource = `import * as THREE from "three";
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
-  45,              // degrees, not radians
+  45,
   800 / 600,
   0.1,
   100,
@@ -101,13 +99,11 @@ camera.position.z = 5;
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(800, 600);
 
-// Lighting
 scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 const light = new THREE.DirectionalLight(0xffffff, 0.8);
 light.position.set(3, 5, 4);
 scene.add(light);
 
-// Mesh = Geometry + Material
 const box = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
   new THREE.MeshLambertMaterial({ color: 0xff4444 }),

@@ -134,14 +134,12 @@ const camera = new EASEL.OrthographicCamera({
   far: 100,
 });
 
-// wireframe is a property on the material, read by the rasterizer
 const mat = new EASEL.BasicMaterial({ color: 0xe06060 });
 mat.wireframe = true;
 
 const mesh = new EASEL.Mesh(new EASEL.SphereGeometry(1.0, 12, 9), mat);
 scene.add(mesh);
-
-// Lower segment counts make the polygon structure more visible.`;
+`;
 
 export const threeSource = `import * as THREE from "three";
 

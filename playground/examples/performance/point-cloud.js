@@ -183,7 +183,6 @@ camera.position.set(0, 2, 8);
 const renderer = new EASEL.Renderer({ canvas, width, height });
 scene.add(new EASEL.AmbientLight(0xffffff, 0.5));
 
-// Random points inside a sphere (rejection sampling)
 const positions = new Float32Array(count * 3);
 const colors = new Float32Array(count * 3);
 let i = 0;
@@ -204,5 +203,8 @@ geometry.setColors(colors);
 const material = new EASEL.PointsMaterial({ size: 2 });
 const points = new EASEL.Points(geometry, material);
 scene.add(points);`;
+
+export const noThreeReason =
+	"This performance demo targets EASEL PointRasterizer throughput.";
 
 export const threeSource = undefined;

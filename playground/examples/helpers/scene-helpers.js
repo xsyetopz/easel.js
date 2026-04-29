@@ -90,7 +90,6 @@ const box = new EASEL.Mesh(
 );
 scene.add(box);
 
-// X = red, Y = green, Z = blue
 const axes = new EASEL.AxesHelper(3);
 scene.add(axes);
 
@@ -98,7 +97,6 @@ const grid = new EASEL.GridHelper(8, 8, 0x444444, 0x222222);
 grid.position.y = -1;
 scene.add(grid);
 
-// BoxHelper tracks the object's bounding box; call update() each frame
 const boxHelper = new EASEL.BoxHelper(box, 0xffff00);
 scene.add(boxHelper);
 

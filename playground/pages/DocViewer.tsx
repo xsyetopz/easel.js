@@ -20,8 +20,8 @@ import {
 
 interface DocViewerProps {
 	classId: string | null;
-	initialCatalog?: DocCatalogData;
-	initialDoc?: DocEntry;
+	initialCatalog?: DocCatalogData | undefined;
+	initialDoc?: DocEntry | undefined;
 }
 
 export function DocViewer({

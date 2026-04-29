@@ -53,6 +53,9 @@ export class TriangleBuffer {
 	/** Iteration index -> physical triangle index, populated by buildSortOrder. */
 	sortOrder: Uint32Array = new Uint32Array(0);
 
+	/** Whether sortOrder should be used for iteration. */
+	sortOrderActive = false;
+
 	constructor(capacity = 64) {
 		this.#capacity = capacity;
 		this.#allocate(capacity);
@@ -80,6 +83,7 @@ export class TriangleBuffer {
 	reset(): void {
 		this.length = 0;
 		this.maxVertexIndex = 0;
+		this.sortOrderActive = false;
 	}
 
 	/** Grow all arrays to at least the given capacity using 2x doubling. Copies existing data. */
@@ -227,6 +231,7 @@ export class TriangleBuffer {
 		for (let i = 0; i < this.length; i++) {
 			this.sortOrder[i] = i;
 		}
+		this.sortOrderActive = true;
 	}
 
 	/** Sort sortOrder by centroidZ descending (back-to-front painter's order). */

@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import { DrawList } from "@/pipeline/DrawList.js";
 import { TileDistanceSorter } from "@/pipeline/sorting/TileDistanceSorter.js";
 
-function makeDrawCall(x, y, z = 0) {
-	return { centroid: { x, y, z }, mesh: {}, material: {} };
+function makeDrawCall(x: number, y: number, z = 0) {
+	return {
+		centroid: { x, y, z },
+		mesh: {},
+		material: {},
+	} as unknown as import("@/pipeline/DrawCall.js").DrawCall;
 }
 
 describe("TileDistanceSorter", () => {

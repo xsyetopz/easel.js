@@ -12,7 +12,7 @@ import type { DocCatalogData } from "../loaders/docs.ts";
 import { routeToPath } from "../routes.ts";
 
 interface DocsLandingProps {
-	initialCatalog?: DocCatalogData;
+	initialCatalog?: DocCatalogData | undefined;
 }
 
 export function DocsLanding({ initialCatalog }: DocsLandingProps) {

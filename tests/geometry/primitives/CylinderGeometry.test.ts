@@ -1,33 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { CylinderGeometry } from "@/geometry/primitives/CylinderGeometry.js";
+import { defined } from "../../_helpers/defined.js";
+import { expectUnitNormals } from "../../_helpers/geometry.js";
 
 describe("CylinderGeometry", () => {
 	it("default - has position, normal, uv, index", () => {
 		const geo = new CylinderGeometry();
-		expect(geo.getAttribute("position")).toBeDefined();
-		expect(geo.getAttribute("normal")).toBeDefined();
-		expect(geo.getAttribute("uv")).toBeDefined();
+		expect(defined(geo.getAttribute("position"))).toBeDefined();
+		expect(defined(geo.getAttribute("normal"))).toBeDefined();
+		expect(defined(geo.getAttribute("uv"))).toBeDefined();
 		expect(geo.index).not.toBeUndefined();
 	});
 
 	it("default - vertex count > 0", () => {
 		const geo = new CylinderGeometry();
-		expect(geo.getAttribute("position").count).toBeGreaterThan(0);
+		expect(defined(geo.getAttribute("position")).count).toBeGreaterThan(0);
 	});
 
 	it("default - normals are unit length", () => {
-		const normals = new CylinderGeometry().getAttribute("normal").array;
-		for (let i = 0; i < Math.min(normals.length, 30); i += 3) {
-			const len = Math.sqrt(
-				normals[i] ** 2 + normals[i + 1] ** 2 + normals[i + 2] ** 2,
-			);
-			expect(len).toBeCloseTo(1, 4);
-		}
+		const normals = defined(
+			new CylinderGeometry().getAttribute("normal"),
+		).array;
+		expectUnitNormals(normals, 4);
 	});
 
 	it("custom (1,0.5,3,16,2) - bounding box height matches", () => {
-		const pos = new CylinderGeometry(1, 0.5, 3, 16, 2).getAttribute(
-			"position",
+		const pos = defined(
+			new CylinderGeometry(1, 0.5, 3, 16, 2).getAttribute("position"),
 		).array;
 		let minY = Number.POSITIVE_INFINITY;
 		let maxY = Number.NEGATIVE_INFINITY;
@@ -40,8 +39,8 @@ describe("CylinderGeometry", () => {
 
 	it("custom (1,0.5,3,16,2) - radii match constructor args", () => {
 		// CylinderGeometry(radiusTop=1, radiusBottom=0.5, ...)
-		const pos = new CylinderGeometry(1, 0.5, 3, 16, 2).getAttribute(
-			"position",
+		const pos = defined(
+			new CylinderGeometry(1, 0.5, 3, 16, 2).getAttribute("position"),
 		).array;
 		let maxRadiusTop = 0;
 		let maxRadiusBot = 0;
@@ -58,11 +57,11 @@ describe("CylinderGeometry", () => {
 	});
 
 	it("more segments → more vertices", () => {
-		const lo = new CylinderGeometry(1, 1, 1, 8, 1).getAttribute(
-			"position",
+		const lo = defined(
+			new CylinderGeometry(1, 1, 1, 8, 1).getAttribute("position"),
 		).count;
-		const hi = new CylinderGeometry(1, 1, 1, 16, 1).getAttribute(
-			"position",
+		const hi = defined(
+			new CylinderGeometry(1, 1, 1, 16, 1).getAttribute("position"),
 		).count;
 		expect(hi).toBeGreaterThan(lo);
 	});
@@ -81,7 +80,12 @@ describe("CylinderGeometry", () => {
  * @param {number} ci
  * @returns {{ nx: number, ny: number, nz: number }}
  */
-function faceNormal(pos, ai, bi, ci) {
+function faceNormal(
+	pos: ArrayLike<number>,
+	ai: number,
+	bi: number,
+	ci: number,
+) {
 	const ax = pos[ai * 3];
 	const ay = pos[ai * 3 + 1];
 	const az = pos[ai * 3 + 2];
@@ -107,8 +111,8 @@ function faceNormal(pos, ai, bi, ci) {
 describe("CylinderGeometry cap winding", () => {
 	it("top cap normals point +Y", () => {
 		const geo = new CylinderGeometry(1, 1, 2, 8, 1, false);
-		const pos = geo.getAttribute("position").array;
-		const idx = geo.index;
+		const pos = defined(geo.getAttribute("position")).array;
+		const idx = defined(geo.index);
 
 		// Body: 8 cols * 1 row * 2 triangles = 16 triangles = 48 indices
 		// Top cap starts at 48
@@ -122,8 +126,8 @@ describe("CylinderGeometry cap winding", () => {
 
 	it("bottom cap normals point -Y", () => {
 		const geo = new CylinderGeometry(1, 1, 2, 8, 1, false);
-		const pos = geo.getAttribute("position").array;
-		const idx = geo.index;
+		const pos = defined(geo.getAttribute("position")).array;
+		const idx = defined(geo.index);
 
 		// Body: 48 indices, top cap: 8*3=24, bottom cap starts at 72
 		const bodyIdxCount = 8 * 1 * 2 * 3;

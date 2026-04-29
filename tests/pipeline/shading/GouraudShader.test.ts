@@ -3,7 +3,7 @@ import { GouraudShader } from "@/pipeline/shading/GouraudShader.js";
 
 const shader = new GouraudShader();
 
-function makeLight(dx, dy, dz, intensity = 1) {
+function makeLight(dx: number, dy: number, dz: number, intensity = 1) {
 	return {
 		type: "directional",
 		direction: { x: dx, y: dy, z: dz },

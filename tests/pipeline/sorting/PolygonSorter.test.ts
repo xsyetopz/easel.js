@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { PolygonSorter } from "@/pipeline/sorting/PolygonSorter.ts";
-import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
+import { PolygonSorter } from "../../../src/pipeline/sorting/PolygonSorter.ts";
+import { TriangleBuffer } from "../../../src/pipeline/TriangleBuffer.ts";
+
+type TriangleArgs = Parameters<TriangleBuffer["append"]>;
 
 // sx0,sy0,sx1,sy1,sx2,sy2, z0,z1,z2, fnx,fny,fnz, vn0x,vn0y,vn0z, vn1x,vn1y,vn1z, vn2x,vn2y,vn2z, u0,v0,u1,v1,u2,v2
-function makeTri(z) {
+function makeTri(z: number): TriangleArgs {
 	return [
 		0,
 		0,
@@ -32,10 +34,10 @@ function makeTri(z) {
 		0,
 		0,
 		0,
-	];
+	] as TriangleArgs;
 }
 
-function makeDrawCall(zValues) {
+function makeDrawCall(zValues: number[]) {
 	const tb = new TriangleBuffer(zValues.length || 1);
 	for (const z of zValues) {
 		tb.append(...makeTri(z));
@@ -175,14 +177,40 @@ describe("PolygonSorter", () => {
 		);
 		tb.buildSortOrder();
 
-		const dc = { triangles: tb };
+		const dc = {
+			material: { transparent: true },
+			triangles: tb,
+		};
 		sorter.sort(dc);
 
-		// sortOrder is identity [0, 1, 2] (no Z-sort, depth buffer handles correctness)
 		expect(tb.sortOrder[0]).toBe(0);
+		expect(tb.sortOrder[1]).toBe(1);
+		expect(tb.sortOrder[2]).toBe(2);
 		// physical screenX at index 0 (first vertex of tri0) must still be 10
 		expect(tb.screenX[0]).toBe(10);
 		// physical screenX at index 3 (first vertex of tri1) must still be 20
 		expect(tb.screenX[3]).toBe(20);
+	});
+
+	it("opaque depth-buffered draw calls do not rebuild sortOrder", () => {
+		const tb = new TriangleBuffer(2);
+		for (const z of [0.9, 0.1]) {
+			tb.append(...makeTri(z));
+		}
+		tb.sortOrderActive = false;
+		const before = tb.sortOrder;
+		sorter.sort({
+			material: { transparent: false, depthTest: true, depthWrite: true },
+			triangles: tb,
+		});
+		expect(tb.sortOrderActive).toBe(false);
+		expect(tb.sortOrder).toBe(before);
+	});
+
+	it("transparent draw calls sort triangles back-to-front", () => {
+		const dc = makeDrawCall([0.1, 0.5, 0.9]);
+		sorter.sort({ material: { transparent: true }, triangles: dc.triangles });
+		expect(Array.from(dc.triangles.sortOrder)).toEqual([2, 1, 0]);
+		expect(dc.triangles.sortOrderActive).toBe(true);
 	});
 });

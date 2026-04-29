@@ -100,8 +100,6 @@ const dirLight = new EASEL.DirectionalLight(0xffffff, 1);
 dirLight.position.set(4, 6, 5);
 scene.add(dirLight);
 
-// EASEL.ToonMaterial: stepped shading - hard transitions between bands.
-// Adjust light intensity to see how bands shift.
 const colors = [0xe05050, 0x50b050, 0x5080e0, 0xe0b040];
 for (let i = 0; i < colors.length; i++) {
   const color = colors[i];
@@ -123,8 +121,6 @@ const dirLight = new THREE.DirectionalLight(0xffffff, 1);
 dirLight.position.set(4, 6, 5);
 scene.add(dirLight);
 
-// THREE.MeshToonMaterial uses a gradientMap texture to define bands.
-// Easel uses a fixed integer-step shading model.
 const colors = [0xe05050, 0x50b050, 0x5080e0, 0xe0b040];
 for (let i = 0; i < colors.length; i++) {
   const color = colors[i];

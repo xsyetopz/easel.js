@@ -63,12 +63,14 @@ interface CameraLike {
 interface SceneLike {
 	children: SceneNode[];
 	visible: boolean;
-	fog?: {
-		near: number;
-		far: number;
-		color: { r: number; g: number; b: number };
-		lut: Float32Array;
-	};
+	fog?:
+		| {
+				near: number;
+				far: number;
+				color: { r: number; g: number; b: number };
+				lut: Float32Array;
+		  }
+		| undefined;
 	autoUpdate?: boolean;
 }
 
@@ -83,7 +85,7 @@ export class SceneTraversal {
 	#hasFog = false;
 	#autoUpdate = false;
 
-	// Scratch storage set by #isFrustumCulled so #walk can reuse the
+	// Scratch storage set by `#isFrustumCulled` so `#walk` can reuse
 	// bounding sphere world center without recomputing it for fog checks.
 	#lastBsCenterX = 0;
 	#lastBsCenterY = 0;
@@ -212,7 +214,10 @@ export class SceneTraversal {
 			}
 			if (
 				!this.#isFrustumCulled(
-					node as SceneNode & { geometry: GeometryLike; matrixWorld: Matrix4 },
+					node as SceneNode & {
+						geometry: GeometryLike;
+						matrixWorld: Matrix4;
+					},
 					frustum,
 				)
 			) {
@@ -685,9 +690,7 @@ export class SceneTraversal {
 				if (cross < 0) continue;
 			}
 
-			let ff0 = 0;
-			let ff1 = 0;
-			let ff2 = 0;
+			let [ff0, ff1, ff2] = [0, 0, 0];
 			if (hasFog && fogLut) {
 				const i0f = ((w0 - fogNear) * fogLutScale) | 0;
 				const i1f = ((w1 - fogNear) * fogLutScale) | 0;
@@ -697,9 +700,7 @@ export class SceneTraversal {
 				ff2 = i2f <= 0 ? 0 : i2f >= 255 ? fogLut[255] : fogLut[i2f];
 			}
 
-			let fnx = 0;
-			let fny = 1;
-			let fnz = 0;
+			let [fnx, fny, fnz] = [0, 1, 0];
 			if (isFlatShaded && wnLen > 0) {
 				const n0x = worldNormals[i0 * 3];
 				const n0y = worldNormals[i0 * 3 + 1];
@@ -714,9 +715,7 @@ export class SceneTraversal {
 				const ay = (n0y + n1y + n2y) / 3;
 				const az = (n0z + n1z + n2z) / 3;
 				const al = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
-				fnx = ax / al;
-				fny = ay / al;
-				fnz = az / al;
+				[fnx, fny, fnz] = [ax / al, ay / al, az / al];
 			}
 
 			const vn0b = i0 * 3;
@@ -802,7 +801,6 @@ export class SceneTraversal {
 
 		buf.length = outLen;
 		buf.maxVertexIndex = maxVi;
-		buf.buildSortOrder();
 		return buf;
 	}
 
@@ -881,9 +879,7 @@ export class SceneTraversal {
 			ddy = twy - lwy;
 			ddz = twz - lwz;
 		} else {
-			ddx = -pos.x;
-			ddy = -pos.y;
-			ddz = -pos.z;
+			[ddx, ddy, ddz] = [-pos.x, -pos.y, -pos.z];
 		}
 		const len = Math.sqrt(ddx * ddx + ddy * ddy + ddz * ddz) || 1;
 		drawList.lights.push({
@@ -929,9 +925,7 @@ export class SceneTraversal {
 				wdy = me[1] * dx + me[5] * dy + me[9] * dz;
 				wdz = me[2] * dx + me[6] * dy + me[10] * dz;
 			} else {
-				wdx = dx;
-				wdy = dy;
-				wdz = dz;
+				[wdx, wdy, wdz] = [dx, dy, dz];
 			}
 		}
 		const dirLen = Math.sqrt(wdx * wdx + wdy * wdy + wdz * wdz) || 1;

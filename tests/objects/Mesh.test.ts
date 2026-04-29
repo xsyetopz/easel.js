@@ -9,8 +9,8 @@ describe("Mesh", () => {
 	});
 
 	it("stores geometry and material from constructor", () => {
-		const geo = { type: "Geometry" };
-		const mat = { type: "Material" };
+		const geo = { type: "Geometry" } as unknown as never;
+		const mat = { type: "Material" } as unknown as never;
 		const mesh = new Mesh(geo, mat);
 		expect(mesh.geometry).toBe(geo);
 		expect(mesh.material).toBe(mat);
@@ -27,8 +27,8 @@ describe("Mesh", () => {
 	});
 
 	it("clone returns a Mesh with same geometry and material", () => {
-		const geo = { type: "Geometry" };
-		const mat = { type: "Material" };
+		const geo = { type: "Geometry" } as unknown as never;
+		const mat = { type: "Material" } as unknown as never;
 		const mesh = new Mesh(geo, mat);
 		mesh.name = "myMesh";
 		const c = mesh.clone();
@@ -40,7 +40,10 @@ describe("Mesh", () => {
 	});
 
 	it("copy copies geometry, material, and Node properties", () => {
-		const src = new Mesh({ type: "Geo" }, { type: "Mat" });
+		const src = new Mesh(
+			{ type: "Geo" } as unknown as never,
+			{ type: "Mat" } as unknown as never,
+		);
 		src.name = "src";
 		const dest = new Mesh();
 		dest.copy(src);

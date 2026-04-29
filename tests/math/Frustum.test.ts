@@ -7,14 +7,6 @@ import { Matrix4 } from "@/math/Matrix4.js";
 import { Sphere } from "@/math/Sphere.js";
 import { Vector3 } from "@/math/Vector3.js";
 
-function _makeProjectionMatrix() {
-	// perspective-like projection
-	const e = new Matrix4().makePerspective
-		? new Matrix4().makePerspective(-1, 1, 1, -1, 0.1, 100)
-		: new Matrix4().makeOrthographic(-1, 1, 1, -1, 0.1, 100);
-	return e;
-}
-
 describe("Frustum", () => {
 	it("setFromProjectionMatrix + containsPoint origin", () => {
 		const tm = new TMatrix4().makePerspective(-1, 1, 1, -1, 0.1, 100);

@@ -134,7 +134,6 @@ const camera = new EASEL.OrthographicCamera({
   far: 100,
 });
 
-// Rebuild geometry when segments slider changes
 function buildGeometry(shape, segments) {
   if (shape === "Torus")
     return new EASEL.TorusGeometry(0.9, 0.35, segments, segments * 2);
@@ -145,9 +144,33 @@ function buildGeometry(shape, segments) {
   return new EASEL.SphereGeometry(1.1, segments, Math.floor(segments * 0.75));
 }
 
-// On param change: remove old meshes, rebuild with new segments, re-add.
 scene.remove(mesh);
 mesh = new EASEL.Mesh(buildGeometry(shape, segments), material);
 scene.add(mesh);`;
 
-export const threeSource = undefined;
+export const threeSource = `import * as THREE from "three";
+
+const scene = new THREE.Scene();
+const size = 5;
+const camera = new THREE.OrthographicCamera(
+  -size * aspect,
+  size * aspect,
+  size,
+  -size,
+  0.1,
+  100,
+);
+
+function buildGeometry(shape, segments) {
+  if (shape === "Torus")
+    return new THREE.TorusGeometry(0.9, 0.35, segments, segments * 2);
+  if (shape === "Cylinder")
+    return new THREE.CylinderGeometry(0.7, 0.7, 1.8, segments);
+  if (shape === "Cone")
+    return new THREE.ConeGeometry(0.9, 1.8, segments);
+  return new THREE.SphereGeometry(1.1, segments, Math.floor(segments * 0.75));
+}
+
+scene.remove(mesh);
+mesh = new THREE.Mesh(buildGeometry(shape, segments), material);
+scene.add(mesh);`;

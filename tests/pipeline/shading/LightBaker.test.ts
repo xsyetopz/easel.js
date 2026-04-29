@@ -1,23 +1,20 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { Shading } from "@/core/Constants.ts";
-import { LightBaker } from "@/pipeline/shading/LightBaker.js";
-import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
+import { Shading } from "../../../src/core/Constants.ts";
+import { LightBaker } from "../../../src/pipeline/shading/LightBaker.ts";
+import { TriangleBuffer } from "../../../src/pipeline/TriangleBuffer.ts";
+
+type TriangleArgs = Parameters<TriangleBuffer["append"]>;
 
 // sx0,sy0,sx1,sy1,sx2,sy2, z0,z1,z2, fnx,fny,fnz, vn0x,vn0y,vn0z, vn1x,vn1y,vn1z, vn2x,vn2y,vn2z, u0,v0,u1,v1,u2,v2
 const TRI_FACING_LIGHT = [
 	0, 0, 5, 0, 2, 5, 0, 0, 0, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 0, 0,
 	0, 0,
-];
+] as TriangleArgs;
 const TRI_PERPENDICULAR = [
 	0, 0, 5, 0, 2, 5, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
 	0,
-];
-const TRI_FACING_POSZ = [
-	0, 0, 5, 0, 2, 5, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0,
-	0,
-];
-
-function makeDirectional(dx, dy, dz, intensity = 1) {
+] as TriangleArgs;
+function makeDirectional(dx: number, dy: number, dz: number, intensity = 1) {
 	return {
 		type: "directional",
 		direction: { x: dx, y: dy, z: dz },
@@ -34,7 +31,7 @@ function makeAmbient(intensity = 0.5) {
 	};
 }
 
-function makePoint(x, y, z, intensity = 1) {
+function makePoint(x: number, y: number, z: number, intensity = 1) {
 	return {
 		type: "point",
 		position: { x, y, z },
@@ -45,7 +42,7 @@ function makePoint(x, y, z, intensity = 1) {
 	};
 }
 
-function makeDrawCall(shading, triangles) {
+function makeDrawCall(shading: number, triangles: TriangleArgs[]) {
 	const tb = new TriangleBuffer(triangles.length || 1);
 	for (const t of triangles) {
 		tb.append(...t);
@@ -73,7 +70,7 @@ describe("LightBaker", () => {
 		expect(dc.shadedColorData[0]).toBeGreaterThan(0.9); // r
 	});
 
-	it("gouraud shading: stride 9 with 9 values per triangle (r,g,b × 3 vertices)", () => {
+	it("gouraud shading: stride 9 with 9 values per triangle (r,g,b x 3 vertices)", () => {
 		const dc = makeDrawCall(Shading.Gouraud, [TRI_FACING_LIGHT]);
 		baker.bake(dc, [makeDirectional(0, 0, 1)]);
 		expect(dc.shadedColorStride).toBe(9);
@@ -99,7 +96,7 @@ describe("LightBaker", () => {
 		const lights = [makeDirectional(0, 0, 1)];
 		baker.bake(dc, lights);
 		baker.bake(dc, lights);
-		expect(dc.shadedColorData.length).toBeGreaterThanOrEqual(6); // 2 tris × 3
+		expect(dc.shadedColorData.length).toBeGreaterThanOrEqual(6); // 2 tris x 3
 		expect(dc.shadedColorStride).toBe(3);
 	});
 
@@ -107,15 +104,15 @@ describe("LightBaker", () => {
 		// 3 triangles at centroidZ 0.9, 0.5, 0.1 so sort reorders them: [0,1,2] → [0,1,2] (desc order already)
 		// Use centroidZ via z0=z1=z2 so centroid = z value
 		// TRI at z=0.9 has face normal (0,0,-1), z=0.5 has (1,0,0), z=0.1 has (0,1,0)
-		const triDeep = [
+		const triDeep: TriangleArgs = [
 			0, 0, 5, 0, 2, 5, 0.9, 0.9, 0.9, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
 			0, 0, 0, 0, 0, 0,
 		];
-		const triMid = [
+		const triMid: TriangleArgs = [
 			0, 0, 5, 0, 2, 5, 0.5, 0.5, 0.5, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,
 			0, 0, 0, 0,
 		];
-		const triNear = [
+		const triNear: TriangleArgs = [
 			0, 0, 5, 0, 2, 5, 0.1, 0.1, 0.1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0,
 			0, 0, 0, 0,
 		];
@@ -138,6 +135,25 @@ describe("LightBaker", () => {
 		// sortOrder[1] = physIdx 1 → face normal (1,0,0) → perpendicular → ambient only
 		expect(dc.shadedColorData[0]).toBeGreaterThan(0.9); // iter 0 r
 		expect(dc.shadedColorData[3]).toBeCloseTo(0.1, 2); // iter 1 r
+	});
+
+	it("uses physical triangle order when sortOrder is inactive", () => {
+		const tb = new TriangleBuffer(2);
+		tb.append(...TRI_FACING_LIGHT);
+		tb.append(...TRI_PERPENDICULAR);
+		expect(tb.sortOrderActive).toBe(false);
+
+		const dc = {
+			triangles: tb,
+			material: { shading: Shading.Flat },
+			shadedColorData: new Float32Array(0),
+			shadedColorStride: 0,
+		};
+		baker.bake(dc, [makeDirectional(0, 0, 1)]);
+
+		expect(Number.isFinite(dc.shadedColorData[0])).toBe(true);
+		expect(dc.shadedColorData[0]).toBeGreaterThan(0.9);
+		expect(dc.shadedColorData[3]).toBeCloseTo(0.1, 2);
 	});
 
 	it("directional + ambient lights accumulate: result higher than either alone", () => {
@@ -175,7 +191,7 @@ describe("LightBaker", () => {
 		expect(dc.shadedColorData[2]).toBeCloseTo(0.1, 2); // b
 	});
 
-	it("two triangles flat shading: shadedColorData holds 6 values (2 tris × 3)", () => {
+	it("two triangles flat shading: shadedColorData holds 6 values (2 tris x 3)", () => {
 		const dc = makeDrawCall(Shading.Flat, [
 			TRI_FACING_LIGHT,
 			TRI_PERPENDICULAR,
@@ -187,7 +203,41 @@ describe("LightBaker", () => {
 
 	it("point light uses drawCall.worldPositions (not triangle-duplicated data)", () => {
 		const tb = new TriangleBuffer(1);
-		tb.append(...TRI_FACING_POSZ, 0, 0, 0, 0, 1, 2);
+		tb.append(
+			0,
+			0,
+			5,
+			0,
+			2,
+			5,
+			0,
+			0,
+			0,
+			0,
+			0,
+			1,
+			0,
+			0,
+			1,
+			0,
+			0,
+			1,
+			0,
+			0,
+			1,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			1,
+			2,
+		);
 		tb.buildSortOrder();
 
 		const dcNear = {

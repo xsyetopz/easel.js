@@ -3,41 +3,13 @@ import { Side } from "@/core/Constants.ts";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { DrawList } from "@/pipeline/DrawList.js";
 import { SceneTraversal } from "@/pipeline/SceneTraversal.js";
-
-function makeCamera() {
-	const m = new Matrix4();
-	return {
-		matrixWorldInverse: m,
-		projectionMatrix: m,
-		updateMatrixWorld: () => {
-			/* no-op */
-		},
-	};
-}
-
-function makeMeshNode(visible = true) {
-	return {
-		type: "Mesh",
-		visible,
-		children: [],
-		matrixWorld: new Matrix4(),
-		updateMatrixWorld: () => {
-			/* no-op */
-		},
-		geometry: {
-			getAttribute: () => ({
-				array: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
-				itemSize: 3,
-			}),
-			index: undefined,
-		},
-		material: { color: 0xffffff },
-	};
-}
-
-function makeScene(...children) {
-	return { visible: true, children };
-}
+import { defined } from "../_helpers/defined.js";
+import {
+	getFirstTriangleBufferLength,
+	makeTraversalCamera as makeCamera,
+	makeTraversalMeshNode as makeMeshNode,
+	makeTraversalScene as makeScene,
+} from "../_helpers/scene-traversal.js";
 
 describe("SceneTraversal", () => {
 	const traversal = new SceneTraversal();
@@ -63,13 +35,21 @@ describe("SceneTraversal", () => {
 			},
 		};
 
-		expect(() => traversal.traverse(scene, makeCamera())).not.toThrow();
+		expect(() =>
+			traversal.traverse(
+				scene as unknown as Parameters<SceneTraversal["traverse"]>[0],
+				makeCamera(),
+			),
+		).not.toThrow();
 		expect(scene.updated).toBe(true);
 	});
 
 	it("scene with 2 visible meshes produces 2 draw calls", () => {
 		const scene = makeScene(makeMeshNode(), makeMeshNode());
-		const result = traversal.traverse(scene, makeCamera());
+		const result = traversal.traverse(
+			scene as unknown as Parameters<SceneTraversal["traverse"]>[0],
+			makeCamera(),
+		);
 		expect(result.length).toBe(2);
 	});
 
@@ -83,7 +63,10 @@ describe("SceneTraversal", () => {
 
 	it("invisible mesh is excluded", () => {
 		const scene = makeScene(makeMeshNode(true), makeMeshNode(false));
-		const result = traversal.traverse(scene, makeCamera());
+		const result = traversal.traverse(
+			scene as unknown as Parameters<SceneTraversal["traverse"]>[0],
+			makeCamera(),
+		);
 		expect(result.length).toBe(1);
 	});
 
@@ -91,7 +74,10 @@ describe("SceneTraversal", () => {
 		const inner = makeMeshNode();
 		const outer = { ...makeMeshNode(true), children: [inner] };
 		const scene = makeScene(outer);
-		const result = traversal.traverse(scene, makeCamera());
+		const result = traversal.traverse(
+			scene as unknown as Parameters<SceneTraversal["traverse"]>[0],
+			makeCamera(),
+		);
 		expect(result.length).toBe(2);
 	});
 
@@ -99,7 +85,7 @@ describe("SceneTraversal", () => {
 	// CCW triangle (v0 top, v1 bottom-left, v2 bottom-right) in NDC produces:
 	//   with width=height=100: sx0=50,sy0=25, sx1=25,sy1=75, sx2=75,sy2=75
 	//   cross = (25-50)*(75-25) - (75-25)*(75-50) = -2500 → negative → front-facing
-	function makeMeshNodeWithSide(positions, side) {
+	function makeMeshNodeWithSide(positions: ArrayLike<number>, side: number) {
 		return {
 			type: "Mesh",
 			visible: true,
@@ -109,7 +95,7 @@ describe("SceneTraversal", () => {
 				/* no-op */
 			},
 			geometry: {
-				getAttribute: (name) => {
+				getAttribute: (name: string) => {
 					if (name === "position")
 						return {
 							array: new Float32Array(positions),
@@ -137,7 +123,7 @@ describe("SceneTraversal", () => {
 		const scene = makeScene(makeMeshNodeWithSide(ccwPositions, Side.Front));
 		const result = traversal.traverse(scene, makeCamera(), 100, 100);
 		expect(result.length).toBe(1);
-		expect(result.calls[0].triangles.length).toBe(1);
+		expect(getFirstTriangleBufferLength(result)).toBe(1);
 	});
 
 	it("Side.Front: CW (back-facing) triangle is culled - triangle buffer empty", () => {
@@ -145,14 +131,14 @@ describe("SceneTraversal", () => {
 		const result = traversal.traverse(scene, makeCamera(), 100, 100);
 		// Draw call is still created (node is visible), but backface culled
 		expect(result.length).toBe(1);
-		expect(result.calls[0].triangles.length).toBe(0);
+		expect(getFirstTriangleBufferLength(result)).toBe(0);
 	});
 
 	it("Side.Back: CW (back-facing) triangle is included", () => {
 		const scene = makeScene(makeMeshNodeWithSide(cwPositions, Side.Back));
 		const result = traversal.traverse(scene, makeCamera(), 100, 100);
 		expect(result.length).toBe(1);
-		expect(result.calls[0].triangles.length).toBe(1);
+		expect(getFirstTriangleBufferLength(result)).toBe(1);
 	});
 
 	it("Side.Double: both CCW and CW triangles are included", () => {
@@ -160,8 +146,8 @@ describe("SceneTraversal", () => {
 		const sceneB = makeScene(makeMeshNodeWithSide(cwPositions, Side.Double));
 		const resultA = traversal.traverse(sceneA, makeCamera(), 100, 100);
 		const resultB = traversal.traverse(sceneB, makeCamera(), 100, 100);
-		expect(resultA.calls[0].triangles.length).toBe(1);
-		expect(resultB.calls[0].triangles.length).toBe(1);
+		expect(getFirstTriangleBufferLength(resultA)).toBe(1);
+		expect(getFirstTriangleBufferLength(resultB)).toBe(1);
 	});
 
 	// Near-plane clipping: w <= 0 causes triangle to be skipped
@@ -194,7 +180,7 @@ describe("SceneTraversal", () => {
 		const scene = makeScene(node);
 		const result = traversal.traverse(scene, makePerspCamera(), 100, 100);
 		expect(result.length).toBe(1);
-		expect(result.calls[0].triangles.length).toBe(0);
+		expect(getFirstTriangleBufferLength(result)).toBe(0);
 	});
 
 	// Light collection tests
@@ -207,10 +193,13 @@ describe("SceneTraversal", () => {
 			intensity: 0.5,
 		};
 		const scene = makeScene(light);
-		const result = traversal.traverse(scene, makeCamera());
+		const result = traversal.traverse(
+			scene as unknown as Parameters<SceneTraversal["traverse"]>[0],
+			makeCamera(),
+		);
 		expect(result.lights).toHaveLength(1);
-		expect(result.lights[0].type).toBe("ambient");
-		expect(result.lights[0].intensity).toBe(0.5);
+		expect(defined(result.lights[0])["type"]).toBe("ambient");
+		expect(defined(result.lights[0])["intensity"]).toBe(0.5);
 	});
 
 	it("DirectionalLight is collected as type 'directional' in drawList.lights", () => {
@@ -223,9 +212,12 @@ describe("SceneTraversal", () => {
 			intensity: 1,
 		};
 		const scene = makeScene(light);
-		const result = traversal.traverse(scene, makeCamera());
+		const result = traversal.traverse(
+			scene as unknown as Parameters<SceneTraversal["traverse"]>[0],
+			makeCamera(),
+		);
 		expect(result.lights).toHaveLength(1);
-		expect(result.lights[0].type).toBe("directional");
+		expect(defined(result.lights[0])["type"]).toBe("directional");
 	});
 
 	it("HemisphereLight is collected as type 'hemisphere' in drawList.lights", () => {
@@ -239,15 +231,18 @@ describe("SceneTraversal", () => {
 			intensity: 1,
 		};
 		const scene = makeScene(light);
-		const result = traversal.traverse(scene, makeCamera());
+		const result = traversal.traverse(
+			scene as unknown as Parameters<SceneTraversal["traverse"]>[0],
+			makeCamera(),
+		);
 		expect(result.lights).toHaveLength(1);
-		expect(result.lights[0].type).toBe("hemisphere");
+		expect(defined(result.lights[0])["type"]).toBe("hemisphere");
 	});
 
 	// Non-indexed geometry: sequential indices generated and cached on geometry
 	it("non-indexed geometry generates _sequentialIndices on the geometry object", () => {
 		const geometry = {
-			getAttribute: (name) => {
+			getAttribute: (name: string) => {
 				if (name === "position")
 					return {
 						array: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
@@ -270,9 +265,20 @@ describe("SceneTraversal", () => {
 		};
 		const scene = makeScene(node);
 		traversal.traverse(scene, makeCamera(), 100, 100);
-		expect(geometry._sequentialIndices).toBeInstanceOf(Uint32Array);
-		expect(geometry._sequentialIndices.length).toBe(3);
-		expect(Array.from(geometry._sequentialIndices)).toEqual([0, 1, 2]);
+		expect(
+			(geometry as unknown as { _sequentialIndices: Uint32Array })
+				._sequentialIndices,
+		).toBeInstanceOf(Uint32Array);
+		expect(
+			(geometry as unknown as { _sequentialIndices: Uint32Array })
+				._sequentialIndices.length,
+		).toBe(3);
+		expect(
+			Array.from(
+				(geometry as unknown as { _sequentialIndices: Uint32Array })
+					._sequentialIndices,
+			),
+		).toEqual([0, 1, 2]);
 	});
 
 	it("scene.autoUpdate calls updateMatrixWorld on visible meshes", () => {
@@ -283,7 +289,10 @@ describe("SceneTraversal", () => {
 		};
 		const scene = makeScene(mesh);
 		scene.autoUpdate = true;
-		traversal.traverse(scene, makeCamera());
+		traversal.traverse(
+			scene as unknown as Parameters<SceneTraversal["traverse"]>[0],
+			makeCamera(),
+		);
 		expect(called).toBe(true);
 	});
 
@@ -295,14 +304,17 @@ describe("SceneTraversal", () => {
 		};
 		const scene = makeScene(mesh);
 		scene.autoUpdate = false;
-		traversal.traverse(scene, makeCamera());
+		traversal.traverse(
+			scene as unknown as Parameters<SceneTraversal["traverse"]>[0],
+			makeCamera(),
+		);
 		expect(called).toBe(false);
 	});
 
 	// UV caching: _uvCache is built on first traversal and reused on second
 	it("second traversal reuses _uvCache - same Float32Array reference", () => {
 		const geometry = {
-			getAttribute: (name) => {
+			getAttribute: (name: string) => {
 				if (name === "position")
 					return {
 						array: new Float32Array(ccwPositions),
@@ -334,10 +346,13 @@ describe("SceneTraversal", () => {
 		};
 		const scene = makeScene(node);
 		traversal.traverse(scene, makeCamera(), 100, 100);
-		const cacheAfterFirst = geometry._uvCache;
+		const cacheAfterFirst = (geometry as unknown as { _uvCache: Float32Array })
+			._uvCache;
 		expect(cacheAfterFirst).toBeInstanceOf(Float32Array);
 
 		traversal.traverse(scene, makeCamera(), 100, 100);
-		expect(geometry._uvCache).toBe(cacheAfterFirst);
+		expect((geometry as unknown as { _uvCache: Float32Array })._uvCache).toBe(
+			cacheAfterFirst,
+		);
 	});
 });

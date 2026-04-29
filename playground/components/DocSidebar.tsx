@@ -7,7 +7,7 @@ import { routeToPath } from "../routes.ts";
 
 interface DocSidebarProps {
 	activeId: string | undefined;
-	initialCatalog?: DocCatalogData;
+	initialCatalog?: DocCatalogData | undefined;
 	onClose: () => void;
 }
 

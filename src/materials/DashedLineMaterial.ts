@@ -8,6 +8,9 @@ interface DashedLineMaterialOptions {
 	gapSize?: number;
 	layer?: number;
 	opacity?: number;
+	transparent?: boolean;
+	depthTest?: boolean;
+	depthWrite?: boolean;
 }
 
 /** Line material that renders a repeating dash pattern. */

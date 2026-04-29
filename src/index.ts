@@ -1,8 +1,8 @@
 /** Current library revision string. */
-export const REVISION = "0.4.5";
+export const REVISION = "0.5.0";
 
 if (typeof globalThis !== "undefined") {
-	if (globalThis.__EASEL__) {
+	if (globalThis.__EASEL__ && globalThis.__EASEL__ !== REVISION) {
 		console.warn("WARNING: Multiple instances of Easel.js being imported.");
 	} else {
 		globalThis.__EASEL__ = REVISION;

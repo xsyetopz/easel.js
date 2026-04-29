@@ -134,19 +134,15 @@ camera.position.y = 2;
 
 scene.add(new EASEL.AmbientLight(0xffffff, 0.15));
 
-// Directional: parallel rays, position sets direction only
 const dir = new EASEL.DirectionalLight(0xffffff, 1);
 dir.position.set(3, 5, 4);
 
-// Point: per-vertex distance attenuation (distance, decay)
 const point = new EASEL.PointLight(0xffffff, 1, 20, 2);
 point.position.set(2, 3, 2);
 
-// Spot: cone light (distance, angle, penumbra, decay)
 const spot = new EASEL.SpotLight(0xffffff, 1, 20, Math.PI / 6, 0.5, 2);
 spot.position.set(2, 4, 2);
 
-// Hemisphere: sky/ground color blend per vertex normal
 const hemi = new EASEL.HemisphereLight(0x8888ff, 0x443322, 1);`;
 
 export const threeSource = `import * as THREE from "three";

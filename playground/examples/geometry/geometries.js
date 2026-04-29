@@ -119,7 +119,6 @@ const dirLight = new EASEL.DirectionalLight(0xffffff, 0.8);
 dirLight.position.set(5, 10, 7);
 scene.add(dirLight);
 
-// LatheGeometry: Vector2[] where x=radius, y=height
 const pts = [];
 for (let i = 0; i < 10; i++) {
   pts.push(new EASEL.Vector2(Math.sin(i * 0.2) * 0.5 + 0.3, (i - 5) * 0.15));
@@ -157,7 +156,7 @@ export const threeSource = `import * as THREE from "three";
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
-  45,              // degrees, not radians
+  45,
   800 / 600,
   0.1,
   100,

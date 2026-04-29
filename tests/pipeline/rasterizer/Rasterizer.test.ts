@@ -1,143 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";
-import { Rasterizer } from "@/pipeline/rasterizer/Rasterizer.js";
 import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
-
-function makeDrawCall(opts = {}) {
-	const tb = new TriangleBuffer(1);
-	tb.append(
-		0,
-		0,
-		5,
-		0,
-		2,
-		5,
-		0,
-		0,
-		-1,
-		0,
-		0,
-		-1,
-		0,
-		0,
-		-1,
-		0,
-		0,
-		-1,
-		0,
-		0,
-		-1,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-	);
-	tb.buildSortOrder();
-	return {
-		triangles: tb,
-		material: { wireframe: false, points: false, ...opts },
-	};
-}
-
-function makeEmptyDrawCall() {
-	const tb = new TriangleBuffer(1);
-	tb.buildSortOrder();
-	return { triangles: tb, material: {} };
-}
-
-/**
- * Appends a triangle covering pixel (10,7) of a 20x20 framebuffer.
- * Screen coords (8,5),(12,5),(10,10).
- */
-function appendCenterTriangle(
-	tb: TriangleBuffer,
-	z: number,
-	u0 = 0,
-	v0 = 0,
-	u1 = 0,
-	v1 = 0,
-	u2 = 0,
-	v2 = 0,
-) {
-	tb.append(
-		8,
-		5,
-		12,
-		5,
-		10,
-		10,
-		z,
-		z,
-		z,
-		0,
-		0,
-		-1,
-		0,
-		0,
-		-1,
-		0,
-		0,
-		-1,
-		0,
-		0,
-		-1,
-		u0,
-		v0,
-		u1,
-		v1,
-		u2,
-		v2,
-	);
-}
-
-/** Counts non-black pixels in a framebuffer. */
-function countNonBlackPixels(fb: Framebuffer): number {
-	const u32 = fb.u32;
-	let count = 0;
-	for (const value of u32) {
-		if (value !== 0) count++;
-	}
-	return count;
-}
-
-/** Collects non-black pixel colors from triangle area of a 20x20 framebuffer. */
-function collectNonBlackPixels(
-	fb: Framebuffer,
-): Array<{ r: number; g: number; b: number }> {
-	const pixels: Array<{ r: number; g: number; b: number }> = [];
-	for (let y = 0; y < fb.height; y++) {
-		for (let x = 0; x < fb.width; x++) {
-			const p = fb.getPixel(x, y);
-			if (p.r !== 0 || p.g !== 0 || p.b !== 0) {
-				pixels.push({ r: p.r, g: p.g, b: p.b });
-			}
-		}
-	}
-	return pixels;
-}
+import {
+	appendCenterTriangle,
+	collectNonBlackPixels,
+	countNonBlackPixels,
+	makeEmptyRasterDrawCall,
+	makeRasterDrawCall,
+	makeRasterizerFixture,
+	type RasterDrawCall,
+} from "../../_helpers/rasterizer.js";
 
 describe("Rasterizer", () => {
 	it("writes pixels for solid material", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
-		rasterizer.rasterize(makeDrawCall(), fb, undefined);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		rasterizer.rasterize(makeRasterDrawCall(), fb, undefined);
 		expect(countNonBlackPixels(fb)).toBeGreaterThan(0);
 	});
 
 	it("writes pixels for wireframe material", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
-		rasterizer.rasterize(makeDrawCall({ wireframe: true }), fb, undefined);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		rasterizer.rasterize(
+			makeRasterDrawCall({ wireframe: true }),
+			fb,
+			undefined,
+		);
 		expect(countNonBlackPixels(fb)).toBeGreaterThan(0);
 	});
 
 	it("writes pixels for points material", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		rasterizer.rasterize(
-			makeDrawCall({ points: true, pointRadius: 1 }),
+			makeRasterDrawCall({ points: true, pointRadius: 1 }),
 			fb,
 			undefined,
 		);
@@ -145,15 +38,13 @@ describe("Rasterizer", () => {
 	});
 
 	it("does not write pixels for empty triangles array", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
-		rasterizer.rasterize(makeEmptyDrawCall(), fb, undefined);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		rasterizer.rasterize(makeEmptyRasterDrawCall(), fb, undefined);
 		expect(countNonBlackPixels(fb)).toBe(0);
 	});
 
 	it("flat shading: shadedColorData multiplies base material color", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		appendCenterTriangle(tb, -1);
 		tb.buildSortOrder();
@@ -177,8 +68,7 @@ describe("Rasterizer", () => {
 	});
 
 	it("gouraud shading: shadedColorData stride 9 produces varying pixel colors across triangle", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		appendCenterTriangle(tb, -1);
 		tb.buildSortOrder();
@@ -197,8 +87,7 @@ describe("Rasterizer", () => {
 	});
 
 	it("no shadedColorData: uses base material color directly for all pixels", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		appendCenterTriangle(tb, -1);
 		tb.buildSortOrder();
@@ -217,8 +106,7 @@ describe("Rasterizer", () => {
 	});
 
 	it("no shadedColorData and no material.color: all pixels are white (255,255,255)", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		appendCenterTriangle(tb, -1);
 		tb.buildSortOrder();
@@ -234,8 +122,7 @@ describe("Rasterizer", () => {
 	});
 
 	it("closer triangle (lower ndcZ) overwrites farther triangle at same screen position", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 
 		const tbFar = new TriangleBuffer(1);
 		appendCenterTriangle(tbFar, 0.5);
@@ -262,8 +149,7 @@ describe("Rasterizer", () => {
 	});
 
 	it("ndcZ=-1 (near plane): depth16=0 passes depth test on fresh framebuffer", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		appendCenterTriangle(tb, -1);
 		tb.buildSortOrder();
@@ -276,8 +162,7 @@ describe("Rasterizer", () => {
 	});
 
 	it("ndcZ=1 (far plane): depth16=65535 equals initial depth buffer value and passes", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		appendCenterTriangle(tb, 1);
 		tb.buildSortOrder();
@@ -289,9 +174,118 @@ describe("Rasterizer", () => {
 		expect(countNonBlackPixels(fb)).toBeGreaterThan(0);
 	});
 
+	it("depthTest=false lets a farther triangle overwrite an existing nearer pixel", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const near = new TriangleBuffer(1);
+		const far = new TriangleBuffer(1);
+		appendCenterTriangle(near, -1);
+		appendCenterTriangle(far, 1);
+		rasterizer.rasterize(
+			{ triangles: near, material: { color: { r: 1, g: 0, b: 0 } } },
+			fb,
+			undefined,
+		);
+		rasterizer.rasterize(
+			{
+				triangles: far,
+				material: { color: { r: 0, g: 0, b: 1 }, depthTest: false },
+			},
+			fb,
+			undefined,
+		);
+		const pixel = fb.getPixel(10, 7);
+		expect(pixel.b).toBe(255);
+		expect(pixel.r).toBe(0);
+	});
+
+	it("depthWrite=false leaves depth buffer open for later farther triangles", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const near = new TriangleBuffer(1);
+		const far = new TriangleBuffer(1);
+		appendCenterTriangle(near, -1);
+		appendCenterTriangle(far, 1);
+		rasterizer.rasterize(
+			{
+				triangles: near,
+				material: { color: { r: 1, g: 0, b: 0 }, depthWrite: false },
+			},
+			fb,
+			undefined,
+		);
+		rasterizer.rasterize(
+			{ triangles: far, material: { color: { r: 0, g: 0, b: 1 } } },
+			fb,
+			undefined,
+		);
+		const pixel = fb.getPixel(10, 7);
+		expect(pixel.b).toBe(255);
+		expect(pixel.r).toBe(0);
+	});
+
+	it("opacity only blends when transparent=true", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const base = new TriangleBuffer(1);
+		const overlay = new TriangleBuffer(1);
+		appendCenterTriangle(base, -1);
+		appendCenterTriangle(overlay, -1);
+		rasterizer.rasterize(
+			{ triangles: base, material: { color: { r: 1, g: 0, b: 0 } } },
+			fb,
+			undefined,
+		);
+		rasterizer.rasterize(
+			{
+				triangles: overlay,
+				material: { color: { r: 0, g: 0, b: 1 }, opacity: 4 },
+			},
+			fb,
+			undefined,
+		);
+		const pixel = fb.getPixel(10, 7);
+		expect(pixel.b).toBe(255);
+		expect(pixel.r).toBe(0);
+	});
+
+	it("transparent=true blends and does not write depth by default", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const base = new TriangleBuffer(1);
+		const transparent = new TriangleBuffer(1);
+		const far = new TriangleBuffer(1);
+		appendCenterTriangle(base, -0.5);
+		appendCenterTriangle(transparent, -1);
+		appendCenterTriangle(far, 0);
+		rasterizer.rasterize(
+			{ triangles: base, material: { color: { r: 1, g: 0, b: 0 } } },
+			fb,
+			undefined,
+		);
+		rasterizer.rasterize(
+			{
+				triangles: transparent,
+				material: {
+					color: { r: 0, g: 0, b: 1 },
+					transparent: true,
+					opacity: 4,
+					depthWrite: false,
+				},
+			},
+			fb,
+			undefined,
+		);
+		const blended = fb.getPixel(10, 7);
+		expect(blended.r).toBeGreaterThan(0);
+		expect(blended.b).toBeGreaterThan(0);
+		rasterizer.rasterize(
+			{ triangles: far, material: { color: { r: 0, g: 1, b: 0 } } },
+			fb,
+			undefined,
+		);
+		const afterFar = fb.getPixel(10, 7);
+		expect(afterFar.g).toBe(0);
+	});
+
 	it("textured triangle: pixels sampled from material.map rather than base color", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		const texData = new Uint8ClampedArray([
 			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255,
@@ -310,8 +304,7 @@ describe("Rasterizer", () => {
 	});
 
 	it("UV (0,0) at all vertices samples top-left texel (red)", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		const texData = new Uint8ClampedArray([
 			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255,
@@ -333,8 +326,7 @@ describe("Rasterizer", () => {
 	});
 
 	it("UV (1,1) at all vertices samples bottom-right texel (white)", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		const texData = new Uint8ClampedArray([
 			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255,
@@ -356,15 +348,15 @@ describe("Rasterizer", () => {
 	});
 
 	it("sortOrder controls which physical triangle is read at each iteration position", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(2);
 		// physical 0: ndcZ=-0.9 (farther), physical 1: ndcZ=-1 (closest)
 		appendCenterTriangle(tb, -0.9);
 		appendCenterTriangle(tb, -1);
 		// sortOrder[0]=1 → iteration 0 reads physIdx 1 (ndcZ=-1, closest): green
 		// sortOrder[1]=0 → iteration 1 reads physIdx 0 (ndcZ=-0.9, farther): red (blocked by depth)
-		tb.sortOrder = [1, 0];
+		tb.sortOrder = new Uint32Array([1, 0]);
+		tb.sortOrderActive = true;
 		const drawCall = {
 			triangles: tb,
 			material: { color: { r: 1, g: 1, b: 1 } },
@@ -380,13 +372,13 @@ describe("Rasterizer", () => {
 	});
 
 	it("shadedColorData[i] matches sort iteration position, not physical triangle index", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(2);
 		appendCenterTriangle(tb, -1);
 		appendCenterTriangle(tb, -0.9);
 		// iteration 0 → physIdx 1 (ndcZ=-0.9), iteration 1 → physIdx 0 (ndcZ=-1, closest)
-		tb.sortOrder = [1, 0];
+		tb.sortOrder = new Uint32Array([1, 0]);
+		tb.sortOrderActive = true;
 		const drawCall = {
 			triangles: tb,
 			material: { color: { r: 1, g: 1, b: 1 } },
@@ -402,11 +394,10 @@ describe("Rasterizer", () => {
 	});
 
 	it("drawCall with triangles=undefined does not crash and writes no pixels", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		expect(() => {
 			rasterizer.rasterize(
-				{ triangles: undefined, material: {} },
+				{ triangles: undefined, material: {} } as unknown as RasterDrawCall,
 				fb,
 				undefined,
 			);
@@ -415,21 +406,19 @@ describe("Rasterizer", () => {
 	});
 
 	it("empty drawCall with material color writes no pixels", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
-		rasterizer.rasterize(makeEmptyDrawCall(), fb, undefined);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		rasterizer.rasterize(makeEmptyRasterDrawCall(), fb, undefined);
 		expect(countNonBlackPixels(fb)).toBe(0);
 	});
 
 	it("UV repeat wrapping: UVs > 1 tile the texture instead of clamping", () => {
-		const rasterizer = new Rasterizer();
-		const fb = new Framebuffer(20, 20);
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		// 2x2 texture: red, green, blue, white
 		const texData = new Uint8ClampedArray([
 			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255,
 		]);
-		// UVs span [0,2] × [0,2] - should tile 2×2
+		// UVs span [0,2] x [0,2] - should tile 2x2
 		appendCenterTriangle(tb, -1, 0, 0, 2, 0, 1, 2);
 		tb.buildSortOrder();
 
@@ -445,7 +434,7 @@ describe("Rasterizer", () => {
 		const clampPixels = collectNonBlackPixels(fb);
 
 		// With repeat wrapping - UVs > 1 wrap, producing varied colors
-		const fb2 = new Framebuffer(20, 20);
+		const { framebuffer: fb2 } = makeRasterizerFixture();
 		rasterizer.rasterize(
 			{
 				triangles: tb,

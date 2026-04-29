@@ -369,7 +369,6 @@ scene.add(new EASEL.AmbientLight(0xffffff, 0.3));
 
 const colors = [0x5577dd, 0xe07050, 0x50c080, 0xd0a030, 0xb060d0, 0x60b0d0];
 
-// Ground
 const ground = new EASEL.Mesh(
   new EASEL.PlaneGeometry(30, 30),
   new EASEL.LambertMaterial({ color: 0x556644 }),
@@ -378,7 +377,6 @@ ground.rotation.x = -Math.PI / 2;
 ground.position.y = -0.5;
 scene.add(ground);
 
-// Cubes, spheres, cylinders, torus knots
 for (let i = 0; i < 4; i++) {
   const cube = new EASEL.Mesh(
     new EASEL.BoxGeometry(1, 1, 1),
@@ -387,8 +385,9 @@ for (let i = 0; i < 4; i++) {
   cube.position.set((i - 1.5) * 2.5, 0.5, 0);
   scene.add(cube);
 }
+`;
 
-// Optional fog
-// scene.fog = new EASEL.Fog({ color: 0x222222, near: 5, far: 30 });`;
+export const noThreeReason =
+	"This performance demo targets EASEL mixed primitive software-rendering cost.";
 
 export const threeSource = undefined;

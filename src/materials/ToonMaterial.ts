@@ -8,6 +8,9 @@ interface ToonMaterialOptions {
 	gradientMap?: Texture | undefined;
 	layer?: number;
 	opacity?: number;
+	transparent?: boolean;
+	depthTest?: boolean;
+	depthWrite?: boolean;
 	side?: number;
 }
 

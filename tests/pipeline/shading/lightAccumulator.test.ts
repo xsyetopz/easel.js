@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { accumulateLights } from "@/pipeline/shading/lightAccumulator.js";
 
 function makeDirectional(
-	dx,
-	dy,
-	dz,
+	dx: number,
+	dy: number,
+	dz: number,
 	color = { r: 1, g: 1, b: 1 },
 	intensity = 1,
 ) {
@@ -16,11 +16,18 @@ function makeDirectional(
 	};
 }
 
-function makeAmbient(intensity, color = { r: 1, g: 1, b: 1 }) {
+function makeAmbient(intensity: number, color = { r: 1, g: 1, b: 1 }) {
 	return { type: "ambient", color, intensity };
 }
 
-function makeHemisphere(dx, dy, dz, skyColor, groundColor, intensity = 1) {
+function makeHemisphere(
+	dx: number,
+	dy: number,
+	dz: number,
+	skyColor: { r: number; g: number; b: number },
+	groundColor: { r: number; g: number; b: number },
+	intensity = 1,
+) {
 	return {
 		type: "hemisphere",
 		direction: { x: dx, y: dy, z: dz },

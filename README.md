@@ -119,13 +119,13 @@ graph LR
   ST --> FC --> PS --> LB --> R --> FB
 ```
 
-- **Painter's algorithm** - back-to-front sort by tile distance, Uint16 depth buffer for residual overlap
+- **THREE-style sorting controls** - `renderer.sortObjects` defaults true; opaque depth-buffered meshes keep geometry order
 - **Flat & Gouraud shading** - per-face and per-vertex lighting, no per-pixel
 - **Affine UV mapping** - no perspective correction (visible warping on large quads)
 - **Linear fog** - per-vertex depth fog with configurable color, near, and far
 - **Integer screen coords** - `(x + 0.5) | 0` on projected vertices
 - **128x128 max texture** - nearest-neighbor, no mipmaps
-- **9-step opacity** - discrete 0-8, not continuous alpha
+- **9-step opacity** - discrete 0-8, not continuous alpha; set `transparent: true` to blend
 
 ## Migration targets
 

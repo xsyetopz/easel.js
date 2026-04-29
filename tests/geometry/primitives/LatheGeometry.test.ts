@@ -3,35 +3,39 @@ import { describe, expect, it } from "vitest";
 import { CapsuleGeometry } from "@/geometry/primitives/CapsuleGeometry.js";
 import { LatheGeometry } from "@/geometry/primitives/LatheGeometry.js";
 import { Vector2 } from "@/math/Vector2.js";
+import { defined } from "../../_helpers/defined.js";
+import { expectUnitNormals } from "../../_helpers/geometry.js";
 
 const points = [new Vector2(0, -1), new Vector2(0.5, 0), new Vector2(0, 1)];
 const threePoints = points.map((p) => new THREE.Vector2(p.x, p.y));
 
 describe("LatheGeometry vs THREE.LatheGeometry", () => {
 	it("default segments - vertex count matches", () => {
-		expect(new LatheGeometry(points).getAttribute("position").count).toBe(
-			new THREE.LatheGeometry(threePoints).getAttribute("position").count,
+		expect(
+			defined(new LatheGeometry(points).getAttribute("position")).count,
+		).toBe(
+			defined(new THREE.LatheGeometry(threePoints).getAttribute("position"))
+				.count,
 		);
 	});
 
 	it("default segments - index count matches", () => {
-		expect(new LatheGeometry(points).index.length).toBe(
-			new THREE.LatheGeometry(threePoints).getIndex().array.length,
+		expect(defined(new LatheGeometry(points).index).length).toBe(
+			defined(new THREE.LatheGeometry(threePoints).getIndex()).array.length,
 		);
 	});
 
 	it("default segments - normals are unit length", () => {
-		const normals = new LatheGeometry(points).getAttribute("normal").array;
-		for (let i = 0; i < Math.min(normals.length, 30); i += 3) {
-			const len = Math.sqrt(
-				normals[i] ** 2 + normals[i + 1] ** 2 + normals[i + 2] ** 2,
-			);
-			expect(len).toBeCloseTo(1, 3);
-		}
+		const normals = defined(
+			new LatheGeometry(points).getAttribute("normal"),
+		).array;
+		expectUnitNormals(normals, 3);
 	});
 
 	it("default segments - bounding box Y spans -1 to 1", () => {
-		const pos = new LatheGeometry(points).getAttribute("position").array;
+		const pos = defined(
+			new LatheGeometry(points).getAttribute("position"),
+		).array;
 		let minY = Number.POSITIVE_INFINITY;
 		let maxY = Number.NEGATIVE_INFINITY;
 		for (let i = 1; i < pos.length; i += 3) {
@@ -43,8 +47,11 @@ describe("LatheGeometry vs THREE.LatheGeometry", () => {
 	});
 
 	it("custom 6 segments - vertex count matches THREE", () => {
-		expect(new LatheGeometry(points, 6).getAttribute("position").count).toBe(
-			new THREE.LatheGeometry(threePoints, 6).getAttribute("position").count,
+		expect(
+			defined(new LatheGeometry(points, 6).getAttribute("position")).count,
+		).toBe(
+			defined(new THREE.LatheGeometry(threePoints, 6).getAttribute("position"))
+				.count,
 		);
 	});
 });
@@ -53,7 +60,7 @@ describe("LatheGeometry caps", () => {
 	it("generates caps when endpoints have nonzero radius", () => {
 		const pts = [new Vector2(0.5, -1), new Vector2(0.5, 1)];
 		const geo = new LatheGeometry(pts, 8);
-		const pos = geo.getAttribute("position");
+		const pos = defined(geo.getAttribute("position"));
 		// Without caps: (2) * (8+1) = 18 vertices
 		// With caps: 18 + 2*(1 center + 9 ring) = 18 + 20 = 38
 		expect(pos.array.length / pos.itemSize).toBe(38);
@@ -62,7 +69,7 @@ describe("LatheGeometry caps", () => {
 	it("cap normals point along Y axis", () => {
 		const pts = [new Vector2(0.5, -1), new Vector2(0.5, 1)];
 		const geo = new LatheGeometry(pts, 8);
-		const nrm = geo.getAttribute("normal");
+		const nrm = defined(geo.getAttribute("normal"));
 		// The bottom cap center is at vertex index 18
 		expect(nrm.array[18 * 3]).toBeCloseTo(0, 5);
 		expect(nrm.array[18 * 3 + 1]).toBeCloseTo(-1, 5);
@@ -72,7 +79,7 @@ describe("LatheGeometry caps", () => {
 	it("no caps when endpoints have zero radius", () => {
 		const pts = [new Vector2(0, -1), new Vector2(0.5, 0), new Vector2(0, 1)];
 		const geo = new LatheGeometry(pts, 8);
-		const pos = geo.getAttribute("position");
+		const pos = defined(geo.getAttribute("position"));
 		// No caps: 3 * (8+1) = 27 vertices
 		expect(pos.array.length / pos.itemSize).toBe(27);
 	});
@@ -80,7 +87,7 @@ describe("LatheGeometry caps", () => {
 	it("no caps for partial revolution", () => {
 		const pts = [new Vector2(0.5, -1), new Vector2(0.5, 1)];
 		const geo = new LatheGeometry(pts, 8, 0, Math.PI);
-		const pos = geo.getAttribute("position");
+		const pos = defined(geo.getAttribute("position"));
 		// No caps for partial revolution: 2 * (8+1) = 18
 		expect(pos.array.length / pos.itemSize).toBe(18);
 	});
@@ -101,7 +108,12 @@ describe("LatheGeometry caps", () => {
  * @param {number} ci
  * @returns {{ nx: number, ny: number, nz: number }}
  */
-function faceNormal(pos, ai, bi, ci) {
+function faceNormal(
+	pos: ArrayLike<number>,
+	ai: number,
+	bi: number,
+	ci: number,
+) {
 	const ax = pos[ai * 3];
 	const ay = pos[ai * 3 + 1];
 	const az = pos[ai * 3 + 2];
@@ -132,8 +144,8 @@ describe("LatheGeometry winding order", () => {
 			new Vector2(0.5, 1),
 		];
 		const geo = new LatheGeometry(pts, 8);
-		const pos = geo.getAttribute("position").array;
-		const idx = geo.index;
+		const pos = defined(geo.getAttribute("position")).array;
+		const idx = defined(geo.index);
 
 		for (let f = 0; f < Math.min(16, idx.length / 3); f++) {
 			const ai = idx[f * 3];
@@ -152,8 +164,8 @@ describe("LatheGeometry winding order", () => {
 	it("cap face normals point outward (along Y)", () => {
 		const pts = [new Vector2(0.5, -1), new Vector2(0.5, 1)];
 		const geo = new LatheGeometry(pts, 8);
-		const pos = geo.getAttribute("position").array;
-		const idx = geo.index;
+		const pos = defined(geo.getAttribute("position")).array;
+		const idx = defined(geo.index);
 
 		// 1 row * 8 segments * 2 tris = 16 body tris
 		const bodyIdxCount = 1 * 8 * 2 * 3;
@@ -176,8 +188,8 @@ describe("LatheGeometry winding order", () => {
 describe("CapsuleGeometry winding order", () => {
 	it("body face normals point outward", () => {
 		const geo = new CapsuleGeometry(0.5, 1, 4, 8);
-		const pos = geo.getAttribute("position").array;
-		const idx = geo.index;
+		const pos = defined(geo.getAttribute("position")).array;
+		const idx = defined(geo.index);
 
 		for (let f = 0; f < Math.min(16, idx.length / 3); f++) {
 			const ai = idx[f * 3];

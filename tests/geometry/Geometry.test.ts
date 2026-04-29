@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { Attribute } from "@/geometry/Attribute.js";
 import { Geometry } from "@/geometry/Geometry.js";
+import { defined } from "../_helpers/defined.js";
 
 describe("Geometry", () => {
 	describe("setPositions", () => {
 		it("stores position attribute with itemSize=3", () => {
 			const g = new Geometry();
 			g.setPositions(new Float32Array([1, 2, 3, 4, 5, 6]));
-			const attr = g.getAttribute("position");
+			const attr = defined(g.getAttribute("position"));
 			expect(attr).toBeDefined();
 			expect(attr.itemSize).toBe(3);
 			expect(attr.count).toBe(2);
@@ -16,7 +17,9 @@ describe("Geometry", () => {
 		it("converts plain array to Float32Array", () => {
 			const g = new Geometry();
 			g.setPositions([1, 2, 3]);
-			expect(g.getAttribute("position").array).toBeInstanceOf(Float32Array);
+			expect(defined(g.getAttribute("position")).array).toBeInstanceOf(
+				Float32Array,
+			);
 		});
 
 		it("returns this for chaining", () => {
@@ -29,7 +32,7 @@ describe("Geometry", () => {
 		it("stores normal attribute with itemSize=3", () => {
 			const g = new Geometry();
 			g.setNormals(new Float32Array([0, 1, 0]));
-			const attr = g.getAttribute("normal");
+			const attr = defined(g.getAttribute("normal"));
 			expect(attr).toBeDefined();
 			expect(attr.itemSize).toBe(3);
 		});
@@ -39,7 +42,7 @@ describe("Geometry", () => {
 		it("stores uv attribute with itemSize=2", () => {
 			const g = new Geometry();
 			g.setUVs(new Float32Array([0, 0, 1, 1]));
-			const attr = g.getAttribute("uv");
+			const attr = defined(g.getAttribute("uv"));
 			expect(attr).toBeDefined();
 			expect(attr.itemSize).toBe(2);
 			expect(attr.count).toBe(2);
@@ -50,7 +53,7 @@ describe("Geometry", () => {
 		it("stores color attribute with itemSize=3", () => {
 			const g = new Geometry();
 			g.setColors(new Float32Array([1, 0, 0, 0, 1, 0]));
-			const attr = g.getAttribute("color");
+			const attr = defined(g.getAttribute("color"));
 			expect(attr).toBeDefined();
 			expect(attr.itemSize).toBe(3);
 		});
@@ -75,7 +78,7 @@ describe("Geometry", () => {
 			const g = new Geometry();
 			g.setIndex([0, 1, 2, 3, 4, 5]);
 			expect(g.index).toBeInstanceOf(Uint16Array);
-			expect(Array.from(g.index)).toEqual([0, 1, 2, 3, 4, 5]);
+			expect(Array.from(defined(g.index))).toEqual([0, 1, 2, 3, 4, 5]);
 		});
 
 		it("converts large plain array to Uint32Array", () => {
@@ -101,7 +104,7 @@ describe("Geometry", () => {
 			const g = new Geometry();
 			const attr = new Attribute(new Float32Array([1, 2, 3]), 3);
 			g.setAttribute("custom", attr);
-			expect(g.getAttribute("custom")).toBe(attr);
+			expect(defined(g.getAttribute("custom"))).toBe(attr);
 		});
 
 		it("setAttribute returns this", () => {
@@ -131,7 +134,7 @@ describe("Geometry", () => {
 			g.setPositions(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]));
 			g.setIndex(new Uint16Array([0, 1, 2]));
 			g.computeVertexNormals();
-			const normal = g.getAttribute("normal");
+			const normal = defined(g.getAttribute("normal"));
 			expect(normal).toBeDefined();
 			// All verts should have normal pointing in +Z
 			for (let i = 0; i < 3; i++) {

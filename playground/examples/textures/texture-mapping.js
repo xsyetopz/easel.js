@@ -1,4 +1,5 @@
 import * as EASEL from "@/index.js";
+import { texturePath } from "../assets.js";
 
 export const meta = {
 	id: "texture-mapping",
@@ -36,7 +37,7 @@ export function setup(canvas) {
 
 	const loader = new EASEL.TextureLoader();
 	loader.load(
-		"textures/Brick_01.png",
+		texturePath("Brick_01.png"),
 		(texture) => {
 			material.map = texture;
 		},
@@ -87,7 +88,7 @@ const box = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), material);
 scene.add(box);
 
 const loader = new EASEL.TextureLoader();
-loader.load("textures/Brick_01.png", (texture) => {
+	loader.load("/textures/Brick_01.png", (texture) => {
   material.map = texture;
 });
 
@@ -104,7 +105,7 @@ export const threeSource = `import * as THREE from "three";
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
-  45,           // degrees, not radians
+  45,
   width / height,
   0.1,
   100,
@@ -125,7 +126,7 @@ const box = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), material);
 scene.add(box);
 
 const loader = new THREE.TextureLoader();
-loader.load("textures/Brick_01.png", (texture) => {
+	loader.load("/textures/Brick_01.png", (texture) => {
   material.map = texture;
   material.needsUpdate = true;
 });

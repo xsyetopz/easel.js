@@ -5,8 +5,8 @@ import type { AppRoute } from "./routes.ts";
 import { theme } from "./theme.ts";
 
 interface RootProps {
-	initialRoute?: AppRoute;
-	initialPayload?: InitialPayload;
+	initialRoute?: AppRoute | undefined;
+	initialPayload?: InitialPayload | undefined;
 }
 
 export function Root({ initialRoute, initialPayload }: RootProps) {

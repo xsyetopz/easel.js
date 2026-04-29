@@ -45,10 +45,10 @@ export function ExampleCard({ meta }: ExampleCardProps) {
 				event.preventDefault();
 				navigate(`examples/${meta.id}`);
 			}}
-			onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+			onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
 				e.currentTarget.style.background = "var(--mantine-color-default-hover)";
 			}}
-			onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+			onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
 				e.currentTarget.style.background = "";
 			}}
 		>

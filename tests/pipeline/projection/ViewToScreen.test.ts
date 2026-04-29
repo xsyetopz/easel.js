@@ -2,8 +2,18 @@ import { describe, expect, it } from "vitest";
 import { ViewToScreen } from "@/pipeline/projection/ViewToScreen.ts";
 
 function makeTarget() {
-	const t = { x: 0, y: 0, z: 0 };
-	t.set = (x, y, z) => {
+	const t: {
+		x: number;
+		y: number;
+		z: number;
+		set: (x: number, y: number, z: number) => typeof t;
+	} = {
+		x: 0,
+		y: 0,
+		z: 0,
+		set: undefined as unknown as (x: number, y: number, z: number) => typeof t,
+	};
+	t.set = (x: number, y: number, z: number) => {
 		t.x = x;
 		t.y = y;
 		t.z = z;

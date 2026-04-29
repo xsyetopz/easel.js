@@ -1,29 +1,11 @@
-export interface DocSummary {
-	id: string;
-	name: string;
-	category: string;
-	signature: string;
-	description: string;
-	threeEquivalent?: string | undefined;
-	divergence?: string | undefined;
-}
+import type { DocEntry, DocSummary } from "../docs/types.ts";
 
-export interface DocProperty {
-	name: string;
-	type: string;
-	description: string;
-}
-
-export interface DocMethod {
-	name: string;
-	signature: string;
-	description: string;
-}
-
-export interface DocEntry extends DocSummary {
-	properties: DocProperty[];
-	methods: DocMethod[];
-}
+export type {
+	DocEntry,
+	DocMethod,
+	DocProperty,
+	DocSummary,
+} from "../docs/types.ts";
 
 export interface DocCatalogData {
 	docCategories: string[];

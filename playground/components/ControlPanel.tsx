@@ -1,31 +1,5 @@
 import { ColorInput, Select, Slider, Stack, Text } from "@mantine/core";
-
-interface SliderControl {
-	type: "slider";
-	key: string;
-	label: string;
-	min: number;
-	max: number;
-	step: number;
-	default: number;
-}
-
-interface ColorControl {
-	type: "color";
-	key: string;
-	label: string;
-	default: string;
-}
-
-interface SelectControl {
-	type: "select";
-	key: string;
-	label: string;
-	options: string[];
-	default: string;
-}
-
-export type ControlDefinition = SliderControl | ColorControl | SelectControl;
+import type { ControlDefinition } from "../types/controls.ts";
 
 interface ControlProps {
 	control: ControlDefinition;

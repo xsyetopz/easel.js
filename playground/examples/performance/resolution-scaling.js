@@ -141,10 +141,12 @@ const mesh = new EASEL.Mesh(
 );
 scene.add(mesh);
 
-// Scale internal resolution while keeping display size constant
 const scale = 0.5;
 renderer.setSize(width * scale, height * scale);
 canvas.style.width = width + "px";
 canvas.style.height = height + "px";`;
+
+export const noThreeReason =
+	"This performance demo targets EASEL canvas resolution scaling and CPU raster cost.";
 
 export const threeSource = undefined;

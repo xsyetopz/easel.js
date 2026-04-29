@@ -53,11 +53,9 @@ describe("Color", () => {
 
 	it("toHex returns hex string", () => {
 		const e = new Color(1, 0, 0);
-		if (typeof e.toHex === "function") {
-			const hex = e.toHex();
-			expect(typeof hex).toBe("string");
-			expect(hex.toLowerCase()).toMatch(HEX_FF0000);
-		}
+		const hex = e.hexString;
+		expect(typeof hex).toBe("string");
+		expect(hex.toLowerCase()).toMatch(HEX_FF0000);
 	});
 
 	it("set method", () => {

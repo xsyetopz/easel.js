@@ -91,7 +91,6 @@ export function setup(canvas, params = {}) {
 export const easelSource = `import * as EASEL from "easel";
 
 const scene = new EASEL.Scene();
-// OrthographicCamera - no perspective distortion for a fair comparison
 const camera = new EASEL.OrthographicCamera({
   left: -size * aspect, right: size * aspect,
   top: size, bottom: -size,
@@ -105,14 +104,11 @@ scene.add(dirLight);
 
 const geo = new EASEL.SphereGeometry(1.2, 24, 16);
 
-// BasicMaterial: flat color, ignores lights
 const basic = new EASEL.Mesh(geo, new EASEL.BasicMaterial({ color: 0x4488ff }));
 basic.position.x = -3.5;
 
-// LambertMaterial: Gouraud diffuse shading
 const lambert = new EASEL.Mesh(geo, new EASEL.LambertMaterial({ color: 0x4488ff }));
 
-// ToonMaterial: stepped/cel shading
 const toon = new EASEL.Mesh(geo, new EASEL.ToonMaterial({ color: 0x4488ff }));
 toon.position.x = 3.5;`;
 
@@ -130,13 +126,10 @@ scene.add(dirLight);
 
 const geo = new THREE.SphereGeometry(1.2, 24, 16);
 
-// MeshBasicMaterial: ignores all lights
 const basic = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x4488ff }));
 basic.position.x = -3.5;
 
-// MeshLambertMaterial: diffuse only, per-vertex
 const lambert = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: 0x4488ff }));
 
-// MeshToonMaterial: quantized/stepped shading
 const toon = new THREE.Mesh(geo, new THREE.MeshToonMaterial({ color: 0x4488ff }));
 toon.position.x = 3.5;`;

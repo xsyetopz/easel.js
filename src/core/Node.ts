@@ -30,7 +30,7 @@ export class Node extends EventDispatcher {
 
 	matrix: Matrix4 = new Matrix4();
 	matrixWorld: Matrix4 = new Matrix4();
-	autoUpdateMatrix = true;
+	#matrixAutoUpdate = true;
 	matrixWorldAutoUpdate = true;
 
 	matrixWorldNeedsUpdate = true;
@@ -76,6 +76,22 @@ export class Node extends EventDispatcher {
 	set quaternion(value: Quaternion) {
 		this.#quaternion.copy(value);
 		this.#rotation.setFromQuaternion(this.#quaternion);
+	}
+
+	get matrixAutoUpdate(): boolean {
+		return this.#matrixAutoUpdate;
+	}
+
+	set matrixAutoUpdate(value: boolean) {
+		this.#matrixAutoUpdate = value;
+	}
+
+	get autoUpdateMatrix(): boolean {
+		return this.#matrixAutoUpdate;
+	}
+
+	set autoUpdateMatrix(value: boolean) {
+		this.#matrixAutoUpdate = value;
 	}
 
 	add(object: Node): this {
@@ -256,6 +272,8 @@ export class Node extends EventDispatcher {
 
 		this.matrix.copy(source.matrix);
 		this.matrixWorld.copy(source.matrixWorld);
+		this.matrixAutoUpdate = source.matrixAutoUpdate;
+		this.matrixWorldAutoUpdate = source.matrixWorldAutoUpdate;
 
 		this.visible = source.visible;
 		this.frustumCulled = source.frustumCulled;

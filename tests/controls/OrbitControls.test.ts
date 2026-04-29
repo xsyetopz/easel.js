@@ -3,35 +3,49 @@ import { PerspectiveCamera } from "@/cameras/PerspectiveCamera.js";
 import { OrbitControls } from "@/controls/OrbitControls.js";
 import { Vector3 } from "@/math/Vector3.js";
 
-/**
- * Minimal DOM element mock. Tracks registered listeners so tests can fire
- * synthetic events without a real browser.
- * @returns {{ addEventListener: Function, removeEventListener: Function, setPointerCapture: Function, releasePointerCapture: Function, style: object, _fire: (type: string, event: object) => void, _listenerCount: (type: string) => number }}
- */
-function mockElement() {
-	/** @type {Record<string, Function[]>} */
-	const listeners = {};
+type MockEvent = Event & Record<string, unknown>;
+type MockListener = (event: MockEvent) => void;
+type MockElement = EventTarget & {
+	style: CSSStyleDeclaration;
+	setPointerCapture: (id: number) => void;
+	releasePointerCapture: (id: number) => void;
+	_fire: (type: string, event: Record<string, unknown>) => void;
+	_listenerCount: (type: string) => number;
+};
+
+/** Minimal DOM element mock. Tracks registered listeners so tests can fire synthetic events without a real browser. */
+function mockElement(): MockElement {
+	const listeners: Record<string, MockListener[]> = {};
 	return {
-		addEventListener(type, fn) {
-			if (!listeners[type]) {
-				listeners[type] = [];
-			}
-			listeners[type].push(fn);
+		addEventListener(type: string, fn: EventListenerOrEventListenerObject) {
+			const listener: MockListener =
+				typeof fn === "function"
+					? (fn as MockListener)
+					: (event) => fn.handleEvent(event);
+			listeners[type] ??= [];
+			listeners[type].push(listener);
 		},
-		removeEventListener(type, fn) {
+		removeEventListener(type: string, fn: EventListenerOrEventListenerObject) {
+			const listener: MockListener =
+				typeof fn === "function"
+					? (fn as MockListener)
+					: (event) => fn.handleEvent(event);
 			if (listeners[type]) {
-				listeners[type] = listeners[type].filter((l) => l !== fn);
+				listeners[type] = listeners[type].filter((l) => l !== listener);
 			}
 		},
-		style: {},
+		dispatchEvent(event: Event) {
+			for (const fn of listeners[event.type] ?? []) fn(event as MockEvent);
+			return true;
+		},
+		style: {} as CSSStyleDeclaration,
 		setPointerCapture: vi.fn(),
 		releasePointerCapture: vi.fn(),
-		/** Fire a synthetic event to all registered listeners. */
-		_fire(type, event) {
-			for (const fn of listeners[type] ?? []) fn(event);
+		_fire(type: string, event: Record<string, unknown>) {
+			const synthetic = { ...event, type } as MockEvent;
+			for (const fn of listeners[type] ?? []) fn(synthetic);
 		},
-		/** How many handlers are registered for a given type. */
-		_listenerCount(type) {
+		_listenerCount(type: string) {
 			return (listeners[type] ?? []).length;
 		},
 	};

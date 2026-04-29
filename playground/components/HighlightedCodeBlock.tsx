@@ -33,7 +33,7 @@ export function HighlightedCodeBlock({
 				language={language}
 				withCopyButton={true}
 				styles={{
-					root: { borderRadius: "var(--mantine-radius-sm)" },
+					codeHighlight: { borderRadius: "var(--mantine-radius-sm)" },
 				}}
 			/>
 		</CodeHighlightAdapterProvider>

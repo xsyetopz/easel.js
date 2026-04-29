@@ -4,7 +4,7 @@ import { CurvePath } from "@/curves/CurvePath.js";
 import { LineCurve } from "@/curves/curves/LineCurve.js";
 import { QuadraticBezierCurve } from "@/curves/curves/QuadraticBezierCurve.js";
 import { Vector2 } from "@/math/Vector2.js";
-import "../_helpers/assertions.js";
+import { expectCurveParity } from "../_helpers/curves.js";
 
 function makeEaselPath() {
 	const path = new CurvePath();
@@ -38,17 +38,11 @@ describe("CurvePath vs THREE", () => {
 	const easel = makeEaselPath();
 	const three = makeTHREEPath();
 
-	it("getLength matches", () => {
-		expect(Math.abs(easel.getLength() - three.getLength())).toBeLessThan(1e-3);
+	expectCurveParity(easel, three, {
+		pointEpsilon: 1e-4,
+		lengthEpsilon: 1e-3,
+		pointsDivisions: false,
 	});
-
-	for (const t of [0, 0.25, 0.5, 0.75, 1.0]) {
-		it(`getPoint(${t}) matches`, () => {
-			const ep = easel.getPoint(t);
-			const tp = three.getPoint(t);
-			expect(ep).toMatchVector(tp, 1e-4);
-		});
-	}
 
 	// Easel getPoints returns divisions+1 points; THREE deduplicates segment joins.
 	it("getPoints(12) returns divisions+1 points", () => {

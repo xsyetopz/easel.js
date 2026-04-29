@@ -84,9 +84,11 @@ export class LightBaker {
 	): void {
 		const data = drawCall.shadedColorData;
 		const wp = drawCall.worldPositions;
+		const sortOrder = tb.sortOrder;
+		const useSortOrder = tb.sortOrderActive && sortOrder.length === tb.length;
 		if (needsWorldPos && wp !== undefined && wp.length > 0) {
 			for (let i = 0; i < tb.length; i++) {
-				const physIdx = tb.sortOrder[i];
+				const physIdx = useSortOrder ? sortOrder[i] : i;
 				const base = i * 3;
 				const v = physIdx * 3;
 				const vi0 = tb.vertexIndex[v];
@@ -118,7 +120,7 @@ export class LightBaker {
 		}
 
 		for (let i = 0; i < tb.length; i++) {
-			const physIdx = tb.sortOrder[i];
+			const physIdx = useSortOrder ? sortOrder[i] : i;
 			const base = i * 3;
 			const s = this.#flatShader.shade(
 				tb.faceNormalX[physIdx],
@@ -145,6 +147,8 @@ export class LightBaker {
 	): void {
 		const data = drawCall.shadedColorData;
 		const maxVi = tb.maxVertexIndex;
+		const sortOrder = tb.sortOrder;
+		const useSortOrder = tb.sortOrderActive && sortOrder.length === tb.length;
 		const cacheSize = (maxVi + 1) * 3;
 		const cache = this.#ensureCache(cacheSize);
 		const cached = this.#ensureBitmap(maxVi + 1);
@@ -153,7 +157,7 @@ export class LightBaker {
 		const wp = drawCall.worldPositions;
 		if (needsWorldPos && wp !== undefined && wp.length > 0) {
 			for (let i = 0; i < tb.length; i++) {
-				const physIdx = tb.sortOrder[i];
+				const physIdx = useSortOrder ? sortOrder[i] : i;
 				const v = physIdx * 3;
 				const base = i * 9;
 
@@ -188,7 +192,7 @@ export class LightBaker {
 		}
 
 		for (let i = 0; i < tb.length; i++) {
-			const physIdx = tb.sortOrder[i];
+			const physIdx = useSortOrder ? sortOrder[i] : i;
 			const v = physIdx * 3;
 			const base = i * 9;
 

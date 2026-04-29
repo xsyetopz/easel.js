@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { EdgeWalker } from "@/pipeline/rasterizer/EdgeWalker.js";
 
-function collect(walker, x1, y1, x2, y2) {
+function collect(
+	walker: import("@/pipeline/rasterizer/EdgeWalker.js").EdgeWalker,
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+) {
 	const pixels: Array<{ x: number; y: number }> = [];
-	walker.walk(x1, y1, x2, y2, (x, y) => pixels.push({ x, y }));
+	walker.walk(x1, y1, x2, y2, (x: number, y: number) => pixels.push({ x, y }));
 	return pixels;
 }
 

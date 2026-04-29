@@ -97,12 +97,12 @@ export function setup(canvas) {
 export const easelSource = `import * as EASEL from "easel";
 
 const positions = new Float32Array([
-   0.0,  1.5,  0.0,   // top
-  -1.0,  0.0,  1.0,   // front-left
-   1.0,  0.0,  1.0,   // front-right
-   1.0,  0.0, -1.0,   // back-right
-  -1.0,  0.0, -1.0,   // back-left
-   0.0, -1.5,  0.0,   // bottom
+   0.0,  1.5,  0.0,
+  -1.0,  0.0,  1.0,
+   1.0,  0.0,  1.0,
+   1.0,  0.0, -1.0,
+  -1.0,  0.0, -1.0,
+   0.0, -1.5,  0.0,
 ]);
 
 const indices = [

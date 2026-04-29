@@ -6,6 +6,7 @@ import { Plane } from "@/math/Plane.js";
 import { Ray } from "@/math/Ray.js";
 import { Sphere } from "@/math/Sphere.js";
 import { Vector3 } from "@/math/Vector3.js";
+import { defined } from "../_helpers/defined.js";
 
 describe("Ray", () => {
 	it("constructor defaults", () => {
@@ -42,7 +43,7 @@ describe("Ray", () => {
 		const sphere = new Sphere(new Vector3(0, 0, 0), 1);
 		const hit = ray.intersectSphere(sphere, new Vector3());
 		expect(hit).not.toBeUndefined();
-		expect(hit.z).toBeCloseTo(1);
+		expect(defined(hit).z).toBeCloseTo(1);
 	});
 
 	it("intersectSphere miss", () => {
@@ -56,7 +57,7 @@ describe("Ray", () => {
 		const plane = new Plane(new Vector3(0, 1, 0), 0);
 		const hit = ray.intersectPlane(plane, new Vector3());
 		expect(hit).not.toBeUndefined();
-		expect(hit.y).toBeCloseTo(0);
+		expect(defined(hit).y).toBeCloseTo(0);
 	});
 
 	it("intersectBox3 hit", () => {

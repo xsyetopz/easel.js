@@ -132,8 +132,6 @@ export function setup(canvas, params = {}) {
 
 export const easelSource = `import * as EASEL from "easel";
 
-// Draw a procedural pattern onto an offscreen canvas,
-// then wrap it in EASEL.CanvasTexture - no file loading required.
 
 const offscreen = document.createElement("canvas");
 offscreen.width = 64;
@@ -149,19 +147,14 @@ for (let row = 0; row < cells; row++) {
   }
 }
 
-// CanvasTexture reads the canvas pixels immediately
 const texture = new EASEL.CanvasTexture(offscreen);
 const material = new EASEL.BasicMaterial({ color: 0xffffff, map: texture });
 const box = new EASEL.Mesh(new EASEL.BoxGeometry(2.5, 2.5, 2.5), material);
 scene.add(box);
-
-// To update the texture at runtime, redraw the canvas and reassign:
-// material.map = new EASEL.CanvasTexture(offscreen);
-// material.needsUpdate = true;`;
+`;
 
 export const threeSource = `import * as THREE from "three";
 
-// THREE.CanvasTexture works the same way - same API.
 
 const offscreen = document.createElement("canvas");
 offscreen.width = 64;
@@ -181,5 +174,4 @@ const texture = new THREE.CanvasTexture(offscreen);
 const material = new THREE.MeshBasicMaterial({ map: texture });
 const box = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.5, 2.5), material);
 scene.add(box);
-
-// To update: set texture.needsUpdate = true after redrawing the canvas.`;
+`;

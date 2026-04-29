@@ -1,3 +1,5 @@
+import type { ControlDefinition } from "../types/controls.ts";
+
 export interface ExampleMeta {
 	id: string;
 	name: string;
@@ -9,20 +11,11 @@ export interface ExampleCatalogEntry {
 	meta: ExampleMeta;
 }
 
-export interface ExampleControl {
-	type: string;
-	key: string;
-	label: string;
-	default: string | number;
-	min?: number;
-	max?: number;
-	step?: number;
-	options?: string[];
-}
+export type ExampleControl = ControlDefinition;
 
 export interface ExampleModule {
 	meta: ExampleMeta;
-	controls?: ExampleControl[];
+	controls?: ExampleControl[] | undefined;
 	setup: (
 		canvas: HTMLCanvasElement,
 		params: Record<string, string | number>,
@@ -34,13 +27,15 @@ export interface ExampleModule {
 		| undefined;
 	easelSource: string;
 	threeSource?: string | undefined;
+	noThreeReason?: string | undefined;
 }
 
 export interface ExampleRouteData {
 	meta: ExampleMeta;
-	controls?: ExampleControl[];
+	controls?: ExampleControl[] | undefined;
 	easelSource: string;
 	threeSource?: string | undefined;
+	noThreeReason?: string | undefined;
 	setup: ExampleModule["setup"];
 }
 
@@ -81,6 +76,7 @@ export function buildExampleRouteData(
 		controls: exampleModule.controls,
 		easelSource: exampleModule.easelSource,
 		threeSource: exampleModule.threeSource,
+		noThreeReason: exampleModule.noThreeReason,
 		setup: exampleModule.setup,
 	};
 }

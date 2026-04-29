@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { TorusKnotGeometry } from "../../../src/geometry/primitives/TorusKnotGeometry.js";
+import { defined } from "../../_helpers/defined.js";
 
 describe("TorusKnotGeometry", () => {
 	it("generates expected vertex count", () => {
 		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
-		const pos = geo.getAttribute("position");
+		const pos = defined(geo.getAttribute("position"));
 		expect(pos.array.length / pos.itemSize).toBe((64 + 1) * (8 + 1));
 	});
 
 	it("has no NaN in positions", () => {
 		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
-		const pos = geo.getAttribute("position");
+		const pos = defined(geo.getAttribute("position"));
 		for (const val of pos.array) {
 			expect(Number.isNaN(val)).toBe(false);
 		}
@@ -18,7 +19,7 @@ describe("TorusKnotGeometry", () => {
 
 	it("has no NaN in normals", () => {
 		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
-		const nrm = geo.getAttribute("normal");
+		const nrm = defined(geo.getAttribute("normal"));
 		for (const val of nrm.array) {
 			expect(Number.isNaN(val)).toBe(false);
 		}
@@ -26,7 +27,7 @@ describe("TorusKnotGeometry", () => {
 
 	it("normals are unit length", () => {
 		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
-		const nrm = geo.getAttribute("normal");
+		const nrm = defined(geo.getAttribute("normal"));
 		for (let i = 0; i < nrm.array.length; i += 3) {
 			const len = Math.sqrt(
 				nrm.array[i] ** 2 + nrm.array[i + 1] ** 2 + nrm.array[i + 2] ** 2,
@@ -38,7 +39,7 @@ describe("TorusKnotGeometry", () => {
 	it("has index buffer", () => {
 		const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
 		expect(geo.index).toBeDefined();
-		expect(geo.index.length).toBe(64 * 8 * 6);
+		expect(defined(geo.index).length).toBe(64 * 8 * 6);
 	});
 });
 
@@ -52,8 +53,8 @@ describe("TorusKnotGeometry winding order", () => {
 		const ts = 32;
 		const rs = 6;
 		const geo = new TorusKnotGeometry(radius, tube, ts, rs, p, q);
-		const pos = geo.getAttribute("position").array;
-		const nrm = geo.getAttribute("normal").array;
+		const pos = defined(geo.getAttribute("position")).array;
+		const nrm = defined(geo.getAttribute("normal")).array;
 
 		// Recompute path centers to verify normals point outward from tube
 		let outward = 0;

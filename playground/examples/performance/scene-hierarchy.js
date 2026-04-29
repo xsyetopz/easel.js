@@ -244,8 +244,6 @@ scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
 
 const leafGeo = new EASEL.BoxGeometry(0.3, 0.3, 0.3);
 
-// Build a tree of Groups: each level adds branches with
-// scaled-down children. Leaf nodes get a Mesh.
 function buildTree(parent, level, maxDepth, branches) {
   if (level >= maxDepth) {
     parent.add(new EASEL.Mesh(leafGeo, new EASEL.LambertMaterial({ color: 0x5577dd })));
@@ -263,5 +261,8 @@ function buildTree(parent, level, maxDepth, branches) {
 const root = new EASEL.Group();
 buildTree(root, 0, 8, 2);
 scene.add(root);`;
+
+export const noThreeReason =
+	"This performance demo targets EASEL scene traversal overhead.";
 
 export const threeSource = undefined;

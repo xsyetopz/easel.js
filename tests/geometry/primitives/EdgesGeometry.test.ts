@@ -3,41 +3,44 @@ import { describe, expect, it } from "vitest";
 import { Geometry } from "@/geometry/Geometry.js";
 import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import { EdgesGeometry } from "@/geometry/primitives/EdgesGeometry.js";
+import { defined } from "../../_helpers/defined.js";
 
 describe("EdgesGeometry", () => {
 	it("produces positions attribute from a BoxGeometry", () => {
 		const box = new BoxGeometry();
 		const edges = new EdgesGeometry(box);
-		const posAttr = edges.getAttribute("position");
+		const posAttr = defined(edges.getAttribute("position"));
 		expect(posAttr).toBeDefined();
 		expect(posAttr.itemSize).toBe(3);
 	});
 
 	it("produces non-zero edge set from default BoxGeometry", () => {
 		const edges = new EdgesGeometry(new BoxGeometry());
-		// each edge = 2 verts × 3 floats = 6 floats per edge
-		const edgeCount = edges.getAttribute("position").array.length / 6;
+		// each edge = 2 verts x 3 floats = 6 floats per edge
+		const edgeCount = defined(edges.getAttribute("position")).array.length / 6;
 		expect(edgeCount).toBeGreaterThan(0);
 	});
 
 	it("custom BoxGeometry (2,3,4,2,3,4) produces more edges than default", () => {
-		const eDefault = new EdgesGeometry(new BoxGeometry()).getAttribute(
-			"position",
+		const eDefault = defined(
+			new EdgesGeometry(new BoxGeometry()).getAttribute("position"),
 		).array.length;
-		const eCustom = new EdgesGeometry(
-			new BoxGeometry(2, 3, 4, 2, 3, 4),
-		).getAttribute("position").array.length;
+		const eCustom = defined(
+			new EdgesGeometry(new BoxGeometry(2, 3, 4, 2, 3, 4)).getAttribute(
+				"position",
+			),
+		).array.length;
 		expect(eCustom).toBeGreaterThan(eDefault);
 	});
 
 	it("THREE EdgesGeometry also produces non-zero edges", () => {
 		const tEdges = new THREE.EdgesGeometry(new THREE.BoxGeometry());
-		expect(tEdges.getAttribute("position").count).toBeGreaterThan(0);
+		expect(defined(tEdges.getAttribute("position")).count).toBeGreaterThan(0);
 	});
 
 	it("returns empty positions when input has no position attribute", () => {
 		const empty = new Geometry();
 		const edges = new EdgesGeometry(empty);
-		expect(edges.getAttribute("position").array.length).toBe(0);
+		expect(defined(edges.getAttribute("position")).array.length).toBe(0);
 	});
 });

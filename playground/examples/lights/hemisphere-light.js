@@ -149,8 +149,6 @@ const camera = new EASEL.PerspectiveCamera({
 });
 camera.position.set(0, 2, 10);
 
-// HemisphereLight(skyColor, groundColor, intensity)
-// Per-vertex: top-facing normals get sky color, bottom-facing get ground color.
 const hemi = new EASEL.HemisphereLight(0x8888ff, 0x443322, 1);
 scene.add(hemi);
 
@@ -170,7 +168,6 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
 camera.position.set(0, 2, 10);
 
-// HemisphereLight API is identical between THREE and EASEL
 const hemi = new THREE.HemisphereLight(0x8888ff, 0x443322, 1);
 scene.add(hemi);
 

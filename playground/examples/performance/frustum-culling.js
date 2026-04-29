@@ -182,7 +182,6 @@ scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
 const geometry = new EASEL.BoxGeometry(0.4, 0.4, 0.4);
 geometry.computeBoundingSphere();
 
-// Spread 1000 boxes across a 3D grid
 for (let i = 0; i < 1000; i++) {
   const mesh = new EASEL.Mesh(
     geometry,
@@ -193,7 +192,9 @@ for (let i = 0; i < 1000; i++) {
   mesh.position.y = Math.floor(i / (cols * rows)) * 1.5 - offsetY;
   scene.add(mesh);
 }
+`;
 
-// Camera aimed at one corner — frustum culling skips ~70% of meshes`;
+export const noThreeReason =
+	"This performance demo targets EASEL traversal and software-renderer culling cost.";
 
 export const threeSource = undefined;

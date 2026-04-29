@@ -83,6 +83,7 @@ export function setup(canvas, params = {}) {
 				new EASEL.LambertMaterial({
 					color: PALETTE[i % PALETTE.length],
 					opacity: opacityValue,
+					transparent: opacityValue > 0,
 				}),
 			);
 			mesh.position.z = i * 0.1;
@@ -168,17 +169,20 @@ scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
 
 const geometry = new EASEL.PlaneGeometry(4, 4);
 
-// Stack translucent planes along Z axis
 for (let i = 0; i < 10; i++) {
   const mesh = new EASEL.Mesh(
     geometry,
     new EASEL.LambertMaterial({
       color: palette[i % 6],
-      opacity: 4, // 0=opaque, 8=nearly transparent
+      opacity: 4,
+      transparent: true,
     }),
   );
   mesh.position.z = i * 0.1;
   scene.add(mesh);
 }`;
+
+export const noThreeReason =
+	"This performance demo targets EASEL Canvas2D overdraw and depth behavior.";
 
 export const threeSource = undefined;

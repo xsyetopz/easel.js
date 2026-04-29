@@ -1,8 +1,12 @@
-export function nearEqual(a, b, epsilon = 1e-6) {
+export function nearEqual(a: number, b: number, epsilon = 1e-6): boolean {
 	return Math.abs(a - b) < epsilon;
 }
 
-export function compareArrays(easelArr, threeArr, epsilon = 1e-6) {
+export function compareArrays(
+	easelArr: ArrayLike<number>,
+	threeArr: ArrayLike<number>,
+	epsilon = 1e-6,
+): { pass: boolean; failures: string[] } {
 	if (easelArr.length !== threeArr.length) {
 		return {
 			pass: false,

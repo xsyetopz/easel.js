@@ -81,7 +81,6 @@ camera.position.set(4, 3, 6);
 
 const renderer = new EASEL.Renderer({ canvas, width, height });
 
-// OrbitControls: drag to rotate, scroll to zoom
 const controls = new EASEL.OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.dampingFactor = 0.12;
@@ -94,7 +93,7 @@ scene.add(sphere);
 
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();  // must call each frame for damping
+  controls.update();
   renderer.render(scene, camera);
 }
 animate();`;
@@ -110,7 +109,6 @@ camera.position.set(4, 3, 6);
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(width, height);
 
-// OrbitControls: drag to rotate, scroll to zoom
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.dampingFactor = 0.12;

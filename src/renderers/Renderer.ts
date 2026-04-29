@@ -13,6 +13,7 @@ interface RendererOptions {
 	height?: number;
 	canvas?: HTMLCanvasElement;
 	pixelRatio?: number;
+	sortObjects?: boolean;
 }
 
 interface FogLike {
@@ -24,7 +25,7 @@ interface FogLike {
 interface SceneLike {
 	children: SceneNodeLike[];
 	visible: boolean;
-	fog?: FogLike;
+	fog?: FogLike | undefined;
 	lights?: unknown;
 	background?: Color | number | undefined;
 	autoUpdate?: boolean;
@@ -81,6 +82,7 @@ export class Renderer {
 	#rasterizer: Rasterizer;
 
 	#pixelRatio = 1;
+	sortObjects = true;
 
 	#clearColor = { r: 0, g: 0, b: 0 };
 	#clear: FramebufferClear;
@@ -92,11 +94,13 @@ export class Renderer {
 			height = 150,
 			canvas = undefined,
 			pixelRatio = 1,
+			sortObjects = true,
 		} = options;
 
 		this.#width = width;
 		this.#height = height;
 		this.#pixelRatio = pixelRatio;
+		this.sortObjects = sortObjects;
 
 		if (canvas) {
 			this.#canvas = canvas;
@@ -209,7 +213,7 @@ export class Renderer {
 			const tFogCull = now();
 
 			// 4. Painter's sort
-			this.#painterSort.sort(drawList, camera.position);
+			this.#painterSort.sort(drawList, camera.position, this.sortObjects);
 
 			const tSort = now();
 
@@ -296,7 +300,7 @@ export class Renderer {
 		}
 
 		// 4. Painter's sort
-		this.#painterSort.sort(drawList, camera.position);
+		this.#painterSort.sort(drawList, camera.position, this.sortObjects);
 
 		// 5. Light baking + 6. Rasterize per draw call
 		const lights = drawList.lights;

@@ -8,6 +8,9 @@ interface PointsMaterialOptions {
 	map?: Texture | undefined;
 	layer?: number;
 	opacity?: number;
+	transparent?: boolean;
+	depthTest?: boolean;
+	depthWrite?: boolean;
 }
 
 /** Material for Points objects. Size is an integer pixel radius. */

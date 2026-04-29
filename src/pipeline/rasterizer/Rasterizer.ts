@@ -47,6 +47,9 @@ interface RasterMaterial {
 	color?: { r: number; g: number; b: number };
 	map?: MaterialMap;
 	opacity?: number;
+	transparent?: boolean;
+	depthTest?: boolean;
+	depthWrite?: boolean;
 }
 
 interface RasterDrawCall {
@@ -130,6 +133,9 @@ export class Rasterizer {
 	// 9-step opacity (0 = fully opaque, 8 = fully transparent)
 	#opacity = 0;
 	#srcWeight = 1;
+	#blend = false;
+	#depthTest = true;
+	#depthWrite = true;
 
 	// Bound callbacks - created once, reused for every triangle.
 	#cbFlat: ScanlineCallback = this.#fillFlat.bind(this);
@@ -172,12 +178,14 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
-		const opacity = this.#opacity;
+		const blend = this.#blend;
+		const depthTest = this.#depthTest;
+		const depthWrite = this.#depthWrite;
 		const srcWeight = this.#srcWeight;
 		for (let x = xStart; x <= xEnd; x++, dIdx++, ndcZ += dNdcZ) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
-			if (depth16 > dbData[dIdx]) continue;
-			if (opacity === 0) dbData[dIdx] = depth16;
+			if (depthTest && depth16 > dbData[dIdx]) continue;
+			if (depthWrite) dbData[dIdx] = depth16;
 			let r = flatR;
 			let g = flatG;
 			let b = flatB;
@@ -188,9 +196,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			if (opacity === 0) {
-				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-			} else {
+			if (blend) {
 				const dstPx = fbU32[dIdx];
 				const sw = srcWeight;
 				const dw = 1 - sw;
@@ -199,6 +205,8 @@ export class Rasterizer {
 					(((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
 					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
 					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			} else {
+				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
 			}
 			if (hasFog) fogF += dFogF;
 		}
@@ -248,7 +256,9 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
-		const opacity = this.#opacity;
+		const blend = this.#blend;
+		const depthTest = this.#depthTest;
+		const depthWrite = this.#depthWrite;
 		const srcWeight = this.#srcWeight;
 		for (
 			let x = xStart;
@@ -256,8 +266,8 @@ export class Rasterizer {
 			x++, dIdx++, ndcZ += dNdcZ, lr += dLR, lg += dLG, lb += dLB
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
-			if (depth16 > dbData[dIdx]) continue;
-			if (opacity === 0) dbData[dIdx] = depth16;
+			if (depthTest && depth16 > dbData[dIdx]) continue;
+			if (depthWrite) dbData[dIdx] = depth16;
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
 			let r = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
 			let g = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
@@ -268,9 +278,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				bl = (bl + (fogB - bl) * f + d) | 0;
 			}
-			if (opacity === 0) {
-				fbU32[dIdx] = 0xff000000 | (bl << 16) | (g << 8) | r;
-			} else {
+			if (blend) {
 				const dstPx = fbU32[dIdx];
 				const sw = srcWeight;
 				const dw = 1 - sw;
@@ -279,6 +287,8 @@ export class Rasterizer {
 					(((bl * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
 					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
 					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			} else {
+				fbU32[dIdx] = 0xff000000 | (bl << 16) | (g << 8) | r;
 			}
 			if (hasFog) fogF += dFogF;
 		}
@@ -330,7 +340,9 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
-		const opacity = this.#opacity;
+		const blend = this.#blend;
+		const depthTest = this.#depthTest;
+		const depthWrite = this.#depthWrite;
 		const srcWeight = this.#srcWeight;
 		for (
 			let x = xStart;
@@ -338,7 +350,7 @@ export class Rasterizer {
 			x++, dIdx++, ndcZ += dNdcZ, texU += dTexU, texV += dTexV
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
-			if (depth16 > dbData[dIdx]) continue;
+			if (depthTest && depth16 > dbData[dIdx]) continue;
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
 				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
@@ -347,7 +359,7 @@ export class Rasterizer {
 				: ((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0;
 			const tidx = (ty * texW + tx) << 2;
 			if (texD[tidx + 3] === 0) continue;
-			if (opacity === 0) dbData[dIdx] = depth16;
+			if (depthWrite) dbData[dIdx] = depth16;
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
 			let r: number;
 			let g: number;
@@ -367,9 +379,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			if (opacity === 0) {
-				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-			} else {
+			if (blend) {
 				const dstPx = fbU32[dIdx];
 				const sw = srcWeight;
 				const dw = 1 - sw;
@@ -378,6 +388,8 @@ export class Rasterizer {
 					(((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
 					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
 					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			} else {
+				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
 			}
 			if (hasFog) fogF += dFogF;
 		}
@@ -431,10 +443,7 @@ export class Rasterizer {
 		const wS = this.#wrapS;
 		const wT = this.#wrapT;
 		let dFogF = 0;
-		let fogF = 0;
-		let fogR = 0;
-		let fogG = 0;
-		let fogB = 0;
+		let [fogF, fogR, fogG, fogB] = [0, 0, 0, 0];
 		if (hasFog) {
 			dFogF =
 				duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
@@ -443,7 +452,9 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
-		const opacity = this.#opacity;
+		const blend = this.#blend;
+		const depthTest = this.#depthTest;
+		const depthWrite = this.#depthWrite;
 		const srcWeight = this.#srcWeight;
 		for (
 			let x = xStart;
@@ -458,7 +469,7 @@ export class Rasterizer {
 				lb += dLB
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
-			if (depth16 > dbData[dIdx]) continue;
+			if (depthTest && depth16 > dbData[dIdx]) continue;
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
 				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
@@ -467,7 +478,7 @@ export class Rasterizer {
 				: ((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0;
 			const tidx = (ty * texW + tx) << 2;
 			if (texD[tidx + 3] === 0) continue;
-			if (opacity === 0) dbData[dIdx] = depth16;
+			if (depthWrite) dbData[dIdx] = depth16;
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
 			const cr = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
 			const cg = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
@@ -495,9 +506,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			if (opacity === 0) {
-				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-			} else {
+			if (blend) {
 				const dstPx = fbU32[dIdx];
 				const sw = srcWeight;
 				const dw = 1 - sw;
@@ -506,6 +515,8 @@ export class Rasterizer {
 					(((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
 					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
 					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			} else {
+				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
 			}
 			if (hasFog) fogF += dFogF;
 		}
@@ -546,10 +557,7 @@ export class Rasterizer {
 		const wS = this.#wrapS;
 		const wT = this.#wrapT;
 		let dFogF = 0;
-		let fogF = 0;
-		let fogR = 0;
-		let fogG = 0;
-		let fogB = 0;
+		let [fogF, fogR, fogG, fogB] = [0, 0, 0, 0];
 		if (hasFog) {
 			dFogF =
 				duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
@@ -558,7 +566,9 @@ export class Rasterizer {
 			fogG = this.#fogG;
 			fogB = this.#fogB;
 		}
-		const opacity = this.#opacity;
+		const blend = this.#blend;
+		const depthTest = this.#depthTest;
+		const depthWrite = this.#depthWrite;
 		const srcWeight = this.#srcWeight;
 		for (
 			let x = xStart;
@@ -566,7 +576,7 @@ export class Rasterizer {
 			x++, dIdx++, ndcZ += dNdcZ, texU += dTexU, texV += dTexV
 		) {
 			const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
-			if (depth16 > dbData[dIdx]) continue;
+			if (depthTest && depth16 > dbData[dIdx]) continue;
 			const tx = wS
 				? (((texU * texW) | 0) + texW) & texWm1
 				: ((texU < 0 ? 0 : texU > 1 ? 1 : texU) * texWm1 + 0.5) | 0;
@@ -575,7 +585,7 @@ export class Rasterizer {
 				: ((texV < 0 ? 0 : texV > 1 ? 1 : texV) * texHm1 + 0.5) | 0;
 			const tidx = (ty * texW + tx) << 2;
 			if (texD[tidx + 3] === 0) continue;
-			if (opacity === 0) dbData[dIdx] = depth16;
+			if (depthWrite) dbData[dIdx] = depth16;
 			const d = BAYER4[((y & 3) << 2) | (x & 3)];
 			let r = ((texD[tidx] * baseR) / 255 + d) | 0;
 			let g = ((texD[tidx + 1] * baseG) / 255 + d) | 0;
@@ -586,9 +596,7 @@ export class Rasterizer {
 				g = (g + (fogG - g) * f + d) | 0;
 				b = (b + (fogB - b) * f + d) | 0;
 			}
-			if (opacity === 0) {
-				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-			} else {
+			if (blend) {
 				const dstPx = fbU32[dIdx];
 				const sw = srcWeight;
 				const dw = 1 - sw;
@@ -597,6 +605,8 @@ export class Rasterizer {
 					(((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
 					(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
 					((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			} else {
+				fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
 			}
 			if (hasFog) fogF += dFogF;
 		}
@@ -642,7 +652,11 @@ export class Rasterizer {
 		}
 
 		this.#opacity = (drawCall.material as RasterMaterial).opacity ?? 0;
-		this.#srcWeight = (8 - this.#opacity) / 8;
+		this.#blend = drawCall.material.transparent === true && this.#opacity > 0;
+		this.#srcWeight = this.#blend ? (8 - this.#opacity) / 8 : 1;
+		this.#depthTest = drawCall.material.depthTest !== false;
+		this.#depthWrite =
+			this.#depthTest && drawCall.material.depthWrite !== false;
 
 		this.#brightnessLevels = drawCall.material.map?.brightnessLevels;
 		this.#wrapS = drawCall.material.map?.wrapS ?? 0;
@@ -653,8 +667,10 @@ export class Rasterizer {
 
 		const tb = drawCall.triangles;
 		if (!tb) return;
+		const sortOrder = tb.sortOrder;
+		const useSortOrder = tb.sortOrderActive && sortOrder.length === tb.length;
 		for (let i = 0; i < tb.length; i++) {
-			const physIdx = tb.sortOrder[i];
+			const physIdx = useSortOrder ? sortOrder[i] : i;
 			this.#rasterizeTriangleFromBuffer(
 				tb,
 				physIdx,
@@ -702,9 +718,7 @@ export class Rasterizer {
 		const isGouraud = shadedColorStride === 9;
 		const base = iterIdx * shadedColorStride;
 
-		let flatR = baseR;
-		let flatG = baseG;
-		let flatB = baseB;
+		let [flatR, flatG, flatB] = [baseR, baseG, baseB];
 		if (isFlat && shadedColorData) {
 			flatR = Math.round(baseR * shadedColorData[base]);
 			flatG = Math.round(baseG * shadedColorData[base + 1]);
@@ -760,26 +774,52 @@ export class Rasterizer {
 		}
 
 		if (wireframe) {
-			const fbU32 = this.#fbU32;
-			const fbW = this.#dbWidth;
 			const packed = 0xff000000 | (flatB << 16) | (flatG << 8) | flatR;
+			const depth16 =
+				(((this.#ndcZ0 + this.#ndcZ1 + this.#ndcZ2) / 3 + 1) * 32767.5 + 0.5) |
+				0;
 			this.#wireframe.rasterize(x1, y1, x2, y2, x3, y3, (px, py) => {
-				fbU32[py * fbW + px] = packed;
+				this.#writePoint(px, py, depth16, packed);
 			});
 		} else if (points) {
-			const fbU32 = this.#fbU32;
-			const fbW = this.#dbWidth;
 			const packed = 0xff000000 | (flatB << 16) | (flatG << 8) | flatR;
-			const ptCb = (px: number, py: number): void => {
-				fbU32[py * fbW + px] = packed;
-			};
-			this.#point.rasterize(x1, y1, pointRadius, width, height, ptCb);
-			this.#point.rasterize(x2, y2, pointRadius, width, height, ptCb);
-			this.#point.rasterize(x3, y3, pointRadius, width, height, ptCb);
+			const z1 = ((this.#ndcZ0 + 1) * 32767.5 + 0.5) | 0;
+			const z2 = ((this.#ndcZ1 + 1) * 32767.5 + 0.5) | 0;
+			const z3 = ((this.#ndcZ2 + 1) * 32767.5 + 0.5) | 0;
+			this.#point.rasterize(x1, y1, pointRadius, width, height, (px, py) => {
+				this.#writePoint(px, py, z1, packed);
+			});
+			this.#point.rasterize(x2, y2, pointRadius, width, height, (px, py) => {
+				this.#writePoint(px, py, z2, packed);
+			});
+			this.#point.rasterize(x3, y3, pointRadius, width, height, (px, py) => {
+				this.#writePoint(px, py, z3, packed);
+			});
 		} else {
 			const cb = this.#selectCallback(isGouraud, isFlat, !!texture);
 			this.#scanlineFill.fill(x1, y1, x2, y2, x3, y3, width, height, cb);
 		}
+	}
+
+	#writePoint(px: number, py: number, depth16: number, packed: number): void {
+		const idx = py * this.#dbWidth + px;
+		if (this.#depthTest && depth16 > this.#dbData[idx]) return;
+		if (this.#depthWrite) this.#dbData[idx] = depth16;
+		if (!this.#blend) {
+			this.#fbU32[idx] = packed;
+			return;
+		}
+		const dstPx = this.#fbU32[idx];
+		const sw = this.#srcWeight;
+		const dw = 1 - sw;
+		const r = packed & 0xff;
+		const g = (packed >> 8) & 0xff;
+		const b = (packed >> 16) & 0xff;
+		this.#fbU32[idx] =
+			0xff000000 |
+			(((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
+			(((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
+			((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
 	}
 
 	/** Selects the pre-bound scanline callback for the current triangle's shading mode. */

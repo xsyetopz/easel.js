@@ -54,7 +54,7 @@ function run(command) {
 
 const target = process.argv[2];
 if (!target) {
-	console.error("Usage: bun run version -- 0.4.5|patch|minor|major");
+	console.error("Usage: bun run version -- 0.5.0|patch|minor|major");
 	process.exit(1);
 }
 
