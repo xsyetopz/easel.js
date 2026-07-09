@@ -1,81 +1,113 @@
-# Agents Guide - EASEL.js
+# AGENTS.md
 
-For AI coding agents (Copilot Workspace, Cursor, Claude Code, etc.).
+Guidance for AI coding agents in this repository. Closer `AGENTS.md` or explicit user instructions win.
 
-## Repository structure
+## Project shape
 
-| Directory        | Contents                                                                  |
-| ---------------- | ------------------------------------------------------------------------- |
-| `src/core/`      | EventDispatcher, Node, Scene, Clock, Raycaster, Constants                 |
-| `src/cameras/`   | Camera (orthographic only)                                                |
-| `src/math/`      | Vector2/3/4, Matrix3/4, Quaternion, Euler, Color, MathUtils               |
-| `src/geometry/`  | Geometry, Attribute, primitives/ (Box, Sphere, Cylinder, etc.)            |
-| `src/materials/` | Material base, BasicMaterial, LambertMaterial, ToonMaterial, LineMaterial |
-| `src/textures/`  | Texture, CanvasTexture, DataTexture, FramebufferTexture                   |
-| `src/objects/`   | Mesh, Group, Line, Points, Sprite, InstancedMesh, SkinnedMesh             |
-| `src/lights/`    | AmbientLight, DirectionalLight, PointLight, SpotLight, HemisphereLight    |
-| `src/animation/` | Animator, AnimationClip, Track, Binding, tracks/                          |
-| `src/curves/`    | Curve, Path, Shape, curves/                                               |
-| `src/loaders/`   | FileLoader, TextureLoader, ObjectLoader, etc.                             |
-| `src/scenes/`    | Fog                                                                       |
-| `src/helpers/`   | AxesHelper, BoxHelper, GridHelper, light helpers                          |
-| `src/renderers/` | Renderer (Canvas2D software renderer)                                     |
-| `src/pipeline/`  | Full rasterization pipeline (see below)                                   |
-| `tests/`         | Mirrors src/ structure, *.test.js files                                   |
-| `docs/`          | Design documentation                                                      |
+EASEL.js is a TypeScript Canvas2D software renderer for browser-side 3D scenes. The npm/JSR package is `@xsyetopz/easel`; current source revision is `0.6.0`; license is ISC.
 
-## Pipeline architecture
+## Source of truth
 
-The render pipeline is CPU-only, in this order:
+- `package.json` — scripts, package metadata, dependency policy, release gate.
+- `src/index.ts` — exported public API and `REVISION`.
+- `src/renderers/Renderer.ts` and `src/pipeline/` — renderer behavior and CPU rasterization contracts.
+- `www/docs/classes/` — API docs source used by `bun run docs:generate`.
+- `www/examples/` and `www/examples/registry.ts` — examples shown on the website.
+- `README.md` and `CONTRIBUTING.md` — user-facing setup and contribution flow.
 
-1. **SceneTraversal** - walks scene graph, collects visible nodes
-2. **PainterSort** - sorts draw list back-to-front (tile distance → layer → polygon centroid)
-3. **Projection** - `WorldToView` → `ViewToScreen` (with `Math.trunc()` integer snap)
-4. **Shading** - `LightBaker` applies lights, then `FlatShader` or `GouraudShader`
-5. **Rasterizer** - `ScanlineFill` with `EdgeWalker`, `AffineUVSampler`, `GouraudInterpolator`
-6. **Color** - `Hsl16` ↔ RGB via `ColorTable`, `TranslucencyTable` for opacity blending
-7. **Framebuffer** - `PixelWriter` → `Framebuffer` → `FramebufferUpload` to canvas
+Read exact files before claims or edits. Do not rely on stale generated output when the source file exists.
 
-## Class hierarchy
+## Repository map
 
-```mermaid
-graph TD
-  ED["EventDispatcher"]
-  ED --> N["Node (position, rotation, scale, children)"]
-  N --> M["Mesh (geometry + material)"]
-  N --> L["Line / LineLoop / LineSegments"]
-  N --> P["Points"]
-  N --> S["Sprite"]
-  N --> IM["InstancedMesh"]
-  N --> SM["SkinnedMesh"]
-  N --> G["Group"]
-  N --> B["Bone"]
-  N --> C["Camera"]
-  N --> LT["Light"]
-  LT --> AL["AmbientLight"]
-  LT --> DL["DirectionalLight"]
-  LT --> PL["PointLight"]
-  LT --> SL["SpotLight"]
-  LT --> HL["HemisphereLight"]
+| Path | Purpose |
+| --- | --- |
+| `src/core/` | `EventDispatcher`, `Node`, `Scene`, `Clock`, `Raycaster`, `Layers`, constants |
+| `src/cameras/` | `Camera`, `OrthographicCamera`, `PerspectiveCamera` |
+| `src/math/` | Vectors, matrices, quaternion, Euler, Color, Ray, Frustum, bounds, utilities |
+| `src/geometry/` | `Geometry`, attributes, primitive geometry builders |
+| `src/materials/` | Material base, basic/lambert/toon/line/points/dashed-line materials |
+| `src/textures/` | `Texture`, `CanvasTexture`, `DataTexture`, `FramebufferTexture`, `VideoTexture` |
+| `src/objects/` | `Mesh`, `Group`, lines, points, sprite, instancing, skinning |
+| `src/lights/` | Ambient, directional, point, spot, hemisphere lights |
+| `src/animation/` | Animator, actions, clips, tracks, bindings, mixers |
+| `src/curves/` | Curve, path, shape, 2D/3D curve primitives |
+| `src/loaders/` | File/image/texture/object/material/geometry/animation loaders |
+| `src/helpers/` | Axes, box, grid, and light helpers |
+| `src/renderers/` | Public Canvas2D `Renderer` |
+| `src/pipeline/` | Traversal, sorting, projection, shading, rasterization, depth/framebuffer, texture helpers |
+| `tests/` | `bun:test` suites mirroring `src/`, mostly `.test.ts` |
+| `benchmarks/` | CLI render benchmarks and comparison tools |
+| `www/` | Astro website, docs source, examples, styles, generated Starlight content |
+| `.github/` | Issue templates, PR template, governance, CI, release, deploy workflows |
+
+## Commands
+
+Use the cheapest command that validates the changed surface.
+
+```bash
+bun run typecheck           # package TypeScript
+bun run typecheck:tests     # tests TypeScript
+bun run typecheck:website   # website TypeScript
+bun run tests:no-any        # test-suite any guard
+bun run examples:source-parity
+bun run biome:check         # lint + format gate
+bun run test:run            # bun:test
+bun run docs:generate       # regenerate Starlight docs from www/docs/classes
+bun run www:build           # docs/examples site build
+bun run build               # package build
+bun run release:check       # full release gate
 ```
 
-## Testing patterns
+## Pipeline contract
 
-- Framework: Vitest
-- Path alias: `@/` → `src/`
-- Structure: `describe` / `it` blocks
-- Location: `tests/` mirrors `src/` (e.g., `tests/math/Vector3.test.js`)
-- Helpers: `tests/_helpers/` for shared test utilities
+The renderer is CPU-only and Canvas2D-only.
 
-## What NOT to do
+1. `SceneTraversal` walks the scene graph and emits draw calls.
+2. `FogCuller` removes fog-hidden work.
+3. `PainterSort` groups opaque and transparent calls; opaque calls can render front-to-back, transparent calls render sorted for blending.
+4. `WorldToView` and `ViewToScreen` project to screen space with integer snapping.
+5. `LightBaker`, `FlatShader`, and `GouraudShader` bake lighting before rasterization.
+6. `Rasterizer`, `ScanlineFill`, `EdgeWalker`, `AffineUVSampler`, and `GouraudInterpolator` fill pixels.
+7. `DepthBuffer` is a CPU `Uint16Array` used for renderer-managed opaque depth tests and writes.
+8. `Framebuffer`, `PixelWriter`, and `FramebufferUpload` produce Canvas2D `ImageData` output.
 
-- **No GPU/WebGL concepts** - no shader programs, no WebGL state, no GPU buffers
-- **No z-buffer** - depth is resolved by sort order, not per-pixel testing
-- **No per-pixel lighting** - all lighting is baked per-vertex or per-face before rasterization
-- **No perspective camera** - affine UV interpolation is only correct under orthographic projection
-- **No continuous alpha** - opacity is an integer 0–8, not a float
-- **No shadow maps** - no shadow system exists
-- **No PBR materials** - no MeshStandardMaterial, no MeshPhongMaterial, no roughness/metalness
-- **No environment maps** - no skybox, no reflections, the void is black
+## Renderer boundaries
 
-When adding features, ask: "Would this exist in a CPU scanline rasterizer with no z-buffer?" If no, it does not belong here.
+Do not add WebGL, GPU buffers, shader programs, shadow maps, PBR materials, environment maps, or GPU lifecycle concepts.
+
+Allowed constraints and current behavior:
+
+- `OrthographicCamera` and `PerspectiveCamera` both exist.
+- UV interpolation is affine. Perspective camera textures may warp; that is documented behavior.
+- Opaque fragments use a CPU depth buffer when material flags allow it.
+- Transparent materials still require sorted draw order and explicit layering where scenes overlap.
+- Lighting is flat or Gouraud, baked before rasterization; no per-pixel Phong/PBR lighting.
+- Texture sources clamp to 128×128 and sample nearest-neighbor.
+- `Scene.background` accepts `Color`, hex number, or screen-space `Texture`; fog color overrides it.
+- Opacity is discrete; do not introduce continuous float alpha behavior without changing tests/docs.
+
+When adding a rendering feature, ask: would it fit a CPU scanline rasterizer with Canvas2D upload and no GPU state? If not, it does not belong here.
+
+## Docs and examples
+
+- API docs live in `www/docs/classes/*.ts`; generated Markdown under `www/astro/content/docs/docs/` is rebuilt by `bun run docs:generate`.
+- Examples live in `www/examples/**/*.js` and must be registered in `www/examples/registry.ts`.
+- If public API behavior changes, update README, AGENTS, docs source, examples, and generated docs as needed in the same change.
+- Keep examples crawlable and source-adjacent; do not move them into a separate opaque demo shell.
+
+## Code style
+
+- Source is TypeScript. Website pages/components are Astro with TypeScript frontmatter and client scripts.
+- Tests use `bun:test`; paths mirror `src/` and use the `@/` alias for package source.
+- Biome owns formatting and import organization. Preserve tabs, double quotes, and local naming style.
+- Avoid inline suppressions. Fix the type, rule, or contract instead.
+- Preserve public exports, constructor shapes, option names, error messages, and documented defaults unless the user explicitly asks for an API change.
+
+## Validation reporting
+
+Final replies for code/doc edits must include:
+
+- Files changed.
+- What changed.
+- Commands run and results.
+- Anything not verified.
