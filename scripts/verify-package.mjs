@@ -1,4 +1,10 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	statSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -54,9 +60,62 @@ function packPackage(directory) {
 		],
 		{ capture: true },
 	);
-	const [packEntry] = JSON.parse(packJson);
+	const parsedPackJson = JSON.parse(packJson);
+	const packEntry = Array.isArray(parsedPackJson)
+		? parsedPackJson[0]
+		: parsedPackJson;
 
-	return packEntry;
+	if (packEntry?.filename && Array.isArray(packEntry.files)) {
+		return packEntry;
+	}
+
+	return inspectPackedTarball(directory);
+}
+
+function inspectPackedTarball(directory) {
+	const tarballNames = readdirSync(directory).filter((name) =>
+		name.endsWith(".tgz"),
+	);
+	if (tarballNames.length !== 1) {
+		throw new Error(
+			`Expected exactly one packed tarball in ${directory}, found ${tarballNames.length}`,
+		);
+	}
+
+	const filename = tarballNames[0];
+	const extractDirectory = mkdtempSync(join(tmpdir(), "easel-pack-inspect-"));
+	try {
+		run(["tar", "-xzf", join(directory, filename), "-C", extractDirectory]);
+		const packageDirectory = join(extractDirectory, "package");
+		const files = [];
+		let unpackedSize = 0;
+		collectPackedFiles(packageDirectory, "", files, (size) => {
+			unpackedSize += size;
+		});
+
+		return {
+			filename,
+			files: files.map((path) => ({ path })),
+			entryCount: files.length,
+			unpackedSize,
+		};
+	} finally {
+		rmSync(extractDirectory, { force: true, recursive: true });
+	}
+}
+
+function collectPackedFiles(directory, prefix, files, onFileSize) {
+	for (const entryName of readdirSync(directory)) {
+		const entryPath = join(directory, entryName);
+		const relativePath = prefix ? `${prefix}/${entryName}` : entryName;
+		const stat = statSync(entryPath);
+		if (stat.isDirectory()) {
+			collectPackedFiles(entryPath, relativePath, files, onFileSize);
+		} else if (stat.isFile()) {
+			files.push(relativePath);
+			onFileSize(stat.size);
+		}
+	}
 }
 
 function verifyFileList(packEntry) {
