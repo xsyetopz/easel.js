@@ -27,18 +27,26 @@ interface SceneLike {
 	visible: boolean;
 	fog?: FogLike | undefined;
 	lights?: unknown;
-	background?: Color | number | undefined;
+	background?: Color | number | TextureBackgroundLike | undefined;
 	autoUpdate?: boolean;
+}
+
+interface AutoUpdateTextureLike {
+	autoUpdate?: boolean;
+	update?: () => void;
+	needsUpdate?: boolean;
+}
+
+interface TextureBackgroundLike extends AutoUpdateTextureLike {
+	data?: { data: Uint8ClampedArray; width: number; height: number } | undefined;
+	width: number;
+	height: number;
 }
 
 interface SceneNodeLike {
 	children: SceneNodeLike[];
 	material?: {
-		map?: {
-			autoUpdate?: boolean;
-			update?: () => void;
-			needsUpdate: boolean;
-		};
+		map?: AutoUpdateTextureLike;
 	};
 }
 
@@ -156,37 +164,13 @@ export class Renderer {
 
 			// 0. Mark auto-updating CanvasTextures dirty before the pipeline runs
 			this.#refreshAutoUpdateTextures(scene as unknown as SceneNodeLike);
+			this.#refreshAutoUpdateBackground(scene);
 
 			const tTex = now();
 
 			// 1. Clear framebuffer + depth buffer
+			this.#clearSceneBackground(scene);
 			const fog = scene.fog;
-			let clearR: number;
-			let clearG: number;
-			let clearB: number;
-			if (fog) {
-				clearR = Math.round(fog.color.r * 255);
-				clearG = Math.round(fog.color.g * 255);
-				clearB = Math.round(fog.color.b * 255);
-			} else if (scene.background === undefined) {
-				clearR = this.#clearColor.r;
-				clearG = this.#clearColor.g;
-				clearB = this.#clearColor.b;
-			} else {
-				const bg = scene.background;
-				if (typeof bg === "object" && bg !== null) {
-					clearR = Math.round(bg.r * 255);
-					clearG = Math.round(bg.g * 255);
-					clearB = Math.round(bg.b * 255);
-				} else {
-					const hex = bg as number;
-					clearR = (hex >> 16) & 0xff;
-					clearG = (hex >> 8) & 0xff;
-					clearB = hex & 0xff;
-				}
-			}
-			this.#clear.clear(this.#framebuffer, clearR, clearG, clearB);
-			this.#framebuffer.depthBuffer.clear();
 
 			const tClear = now();
 
@@ -252,35 +236,11 @@ export class Renderer {
 
 		// 0. Mark auto-updating CanvasTextures dirty before the pipeline runs
 		this.#refreshAutoUpdateTextures(scene as unknown as SceneNodeLike);
+		this.#refreshAutoUpdateBackground(scene);
 
 		// 1. Clear framebuffer + depth buffer
+		this.#clearSceneBackground(scene);
 		const fog = scene.fog;
-		let clearR: number;
-		let clearG: number;
-		let clearB: number;
-		if (fog) {
-			clearR = Math.round(fog.color.r * 255);
-			clearG = Math.round(fog.color.g * 255);
-			clearB = Math.round(fog.color.b * 255);
-		} else if (scene.background === undefined) {
-			clearR = this.#clearColor.r;
-			clearG = this.#clearColor.g;
-			clearB = this.#clearColor.b;
-		} else {
-			const bg = scene.background;
-			if (typeof bg === "object" && bg !== null) {
-				clearR = Math.round(bg.r * 255);
-				clearG = Math.round(bg.g * 255);
-				clearB = Math.round(bg.b * 255);
-			} else {
-				const hex = bg as number;
-				clearR = (hex >> 16) & 0xff;
-				clearG = (hex >> 8) & 0xff;
-				clearB = hex & 0xff;
-			}
-		}
-		this.#clear.clear(this.#framebuffer, clearR, clearG, clearB);
-		this.#framebuffer.depthBuffer.clear();
 
 		// 2. Scene traversal -> DrawList
 		const drawList = this.#traversal.traverse(
@@ -320,6 +280,65 @@ export class Renderer {
 		if (this.#context) {
 			this.#upload.upload(this.#framebuffer, this.#context);
 		}
+	}
+
+	#clearSceneBackground(scene: SceneLike): void {
+		const fog = scene.fog;
+		if (fog) {
+			this.#clear.clear(
+				this.#framebuffer,
+				Math.round(fog.color.r * 255),
+				Math.round(fog.color.g * 255),
+				Math.round(fog.color.b * 255),
+			);
+			this.#framebuffer.depthBuffer.clear();
+			return;
+		}
+
+		const background = scene.background;
+		if (isTextureBackground(background)) {
+			const data = background.data;
+			if (data) {
+				this.#clear.clearTexture(this.#framebuffer, data);
+			} else {
+				this.#clear.clear(
+					this.#framebuffer,
+					this.#clearColor.r,
+					this.#clearColor.g,
+					this.#clearColor.b,
+				);
+			}
+			this.#framebuffer.depthBuffer.clear();
+			return;
+		}
+
+		if (background === undefined) {
+			this.#clear.clear(
+				this.#framebuffer,
+				this.#clearColor.r,
+				this.#clearColor.g,
+				this.#clearColor.b,
+			);
+			this.#framebuffer.depthBuffer.clear();
+			return;
+		}
+
+		if (typeof background === "object" && background !== null) {
+			this.#clear.clear(
+				this.#framebuffer,
+				Math.round(background.r * 255),
+				Math.round(background.g * 255),
+				Math.round(background.b * 255),
+			);
+		} else {
+			this.#clear.clear(
+				this.#framebuffer,
+				(background >> 16) & 0xff,
+				(background >> 8) & 0xff,
+				background & 0xff,
+			);
+		}
+		this.#framebuffer.depthBuffer.clear();
 	}
 
 	setSize(width: number, height: number): void {
@@ -367,15 +386,25 @@ export class Renderer {
 	 */
 	#refreshAutoUpdateTextures(node: SceneNodeLike): void {
 		if (node.material?.map?.autoUpdate) {
-			const map = node.material.map;
-			if (typeof map.update === "function") {
-				map.update();
-			} else {
-				map.needsUpdate = true;
-			}
+			this.#refreshAutoUpdateTexture(node.material.map);
 		}
 		for (const child of node.children) {
 			this.#refreshAutoUpdateTextures(child);
+		}
+	}
+
+	#refreshAutoUpdateBackground(scene: SceneLike): void {
+		if (!scene.fog && isTextureBackground(scene.background)) {
+			this.#refreshAutoUpdateTexture(scene.background);
+		}
+	}
+
+	#refreshAutoUpdateTexture(texture: AutoUpdateTextureLike): void {
+		if (!texture.autoUpdate) return;
+		if (typeof texture.update === "function") {
+			texture.update();
+		} else {
+			texture.needsUpdate = true;
 		}
 	}
 
@@ -385,4 +414,14 @@ export class Renderer {
 		}
 		this.#context = undefined;
 	}
+}
+
+function isTextureBackground(value: unknown): value is TextureBackgroundLike {
+	return (
+		typeof value === "object" &&
+		value !== null &&
+		"data" in value &&
+		"width" in value &&
+		"height" in value
+	);
 }

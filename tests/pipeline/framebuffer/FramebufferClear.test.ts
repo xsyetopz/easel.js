@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";
 import { FramebufferClear } from "@/pipeline/framebuffer/FramebufferClear.ts";
 
@@ -70,5 +70,22 @@ describe("FramebufferClear", () => {
 				expect(px.a).toBe(255);
 			}
 		}
+	});
+
+	it("fills framebuffer from texture pixels", () => {
+		const fb = new Framebuffer(2, 2);
+		const clear = new FramebufferClear();
+		clear.clearTexture(fb, {
+			width: 2,
+			height: 2,
+			data: new Uint8ClampedArray([
+				255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 128,
+			]),
+		});
+
+		expect(fb.getPixel(0, 0)).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+		expect(fb.getPixel(1, 0)).toEqual({ r: 0, g: 255, b: 0, a: 255 });
+		expect(fb.getPixel(0, 1)).toEqual({ r: 0, g: 0, b: 255, a: 255 });
+		expect(fb.getPixel(1, 1)).toEqual({ r: 255, g: 255, b: 0, a: 128 });
 	});
 });
