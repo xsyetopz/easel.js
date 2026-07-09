@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Track } from "@/animation/Track.js";
 import { QuaternionTrack } from "@/animation/tracks/QuaternionTrack.js";
 

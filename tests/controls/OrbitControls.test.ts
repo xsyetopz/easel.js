@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "bun:test";
 import { PerspectiveCamera } from "@/cameras/PerspectiveCamera.js";
 import { OrbitControls } from "@/controls/OrbitControls.js";
 import { Vector3 } from "@/math/Vector3.js";

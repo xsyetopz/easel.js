@@ -1,6 +1,5 @@
 import type { DepthBuffer } from "../framebuffer/DepthBuffer.ts";
 import type { TriangleBuffer } from "../TriangleBuffer.ts";
-import { PointRasterizer } from "./PointRasterizer.ts";
 import { ScanlineFill } from "./ScanlineFill.ts";
 import { WireframeRasterizer } from "./WireframeRasterizer.ts";
 
@@ -80,7 +79,6 @@ type ScanlineCallback = (
 export class Rasterizer {
 	#scanlineFill = new ScanlineFill();
 	#wireframe = new WireframeRasterizer();
-	#point = new PointRasterizer();
 
 	// Per-triangle state fields (set once per triangle, read in scanline handlers).
 	#depthBuf: DepthBuffer = undefined as unknown as DepthBuffer;
@@ -443,7 +441,10 @@ export class Rasterizer {
 		const wS = this.#wrapS;
 		const wT = this.#wrapT;
 		let dFogF = 0;
-		let [fogF, fogR, fogG, fogB] = [0, 0, 0, 0];
+		let fogF = 0;
+		let fogR = 0;
+		let fogG = 0;
+		let fogB = 0;
 		if (hasFog) {
 			dFogF =
 				duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
@@ -557,7 +558,10 @@ export class Rasterizer {
 		const wS = this.#wrapS;
 		const wT = this.#wrapT;
 		let dFogF = 0;
-		let [fogF, fogR, fogG, fogB] = [0, 0, 0, 0];
+		let fogF = 0;
+		let fogR = 0;
+		let fogG = 0;
+		let fogB = 0;
 		if (hasFog) {
 			dFogF =
 				duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
@@ -718,7 +722,9 @@ export class Rasterizer {
 		const isGouraud = shadedColorStride === 9;
 		const base = iterIdx * shadedColorStride;
 
-		let [flatR, flatG, flatB] = [baseR, baseG, baseB];
+		let flatR = baseR;
+		let flatG = baseG;
+		let flatB = baseB;
 		if (isFlat && shadedColorData) {
 			flatR = Math.round(baseR * shadedColorData[base]);
 			flatG = Math.round(baseG * shadedColorData[base + 1]);
@@ -786,18 +792,111 @@ export class Rasterizer {
 			const z1 = ((this.#ndcZ0 + 1) * 32767.5 + 0.5) | 0;
 			const z2 = ((this.#ndcZ1 + 1) * 32767.5 + 0.5) | 0;
 			const z3 = ((this.#ndcZ2 + 1) * 32767.5 + 0.5) | 0;
-			this.#point.rasterize(x1, y1, pointRadius, width, height, (px, py) => {
-				this.#writePoint(px, py, z1, packed);
-			});
-			this.#point.rasterize(x2, y2, pointRadius, width, height, (px, py) => {
-				this.#writePoint(px, py, z2, packed);
-			});
-			this.#point.rasterize(x3, y3, pointRadius, width, height, (px, py) => {
-				this.#writePoint(px, py, z3, packed);
-			});
+			this.#rasterizePoint(x1, y1, pointRadius, width, height, z1, packed);
+			this.#rasterizePoint(x2, y2, pointRadius, width, height, z2, packed);
+			this.#rasterizePoint(x3, y3, pointRadius, width, height, z3, packed);
 		} else {
 			const cb = this.#selectCallback(isGouraud, isFlat, !!texture);
 			this.#scanlineFill.fill(x1, y1, x2, y2, x3, y3, width, height, cb);
+		}
+	}
+
+	#rasterizePoint(
+		cx: number,
+		cy: number,
+		radius: number,
+		width: number,
+		height: number,
+		depth16: number,
+		packed: number,
+	): void {
+		const yMin = Math.max(0, Math.ceil(cy - radius));
+		const yMax = Math.min(height - 1, Math.floor(cy + radius));
+		const dbData = this.#dbData;
+		const dbWidth = this.#dbWidth;
+		const fbU32 = this.#fbU32;
+		const depthTest = this.#depthTest;
+		const depthWrite = this.#depthWrite;
+
+		if (!this.#blend) {
+			if (radius === 1) {
+				for (let y = yMin; y <= yMax; y++) {
+					const dy = y - cy;
+					const xMin = Math.max(0, Math.ceil(cx - 1));
+					const xMax = Math.min(width - 1, Math.floor(cx + 1));
+					for (let x = xMin; x <= xMax; x++) {
+						const dx = x - cx;
+						if (dx * dx + dy * dy > 1) continue;
+						const idx = y * dbWidth + x;
+						if (depthTest && depth16 > dbData[idx]) continue;
+						if (depthWrite) dbData[idx] = depth16;
+						fbU32[idx] = packed;
+					}
+				}
+				return;
+			}
+
+			const r2 = radius * radius;
+			for (let y = yMin; y <= yMax; y++) {
+				const dy = y - cy;
+				const halfW = Math.sqrt(r2 - dy * dy);
+				const xMin = Math.max(0, Math.ceil(cx - halfW));
+				const xMax = Math.min(width - 1, Math.floor(cx + halfW));
+				let idx = y * dbWidth + xMin;
+				for (let x = xMin; x <= xMax; x++, idx++) {
+					if (depthTest && depth16 > dbData[idx]) continue;
+					if (depthWrite) dbData[idx] = depth16;
+					fbU32[idx] = packed;
+				}
+			}
+			return;
+		}
+
+		const sw = this.#srcWeight;
+		const dw = 1 - sw;
+		const srcR = packed & 0xff;
+		const srcG = (packed >> 8) & 0xff;
+		const srcB = (packed >> 16) & 0xff;
+
+		if (radius === 1) {
+			for (let y = yMin; y <= yMax; y++) {
+				const dy = y - cy;
+				const xMin = Math.max(0, Math.ceil(cx - 1));
+				const xMax = Math.min(width - 1, Math.floor(cx + 1));
+				for (let x = xMin; x <= xMax; x++) {
+					const dx = x - cx;
+					if (dx * dx + dy * dy > 1) continue;
+					const idx = y * dbWidth + x;
+					if (depthTest && depth16 > dbData[idx]) continue;
+					if (depthWrite) dbData[idx] = depth16;
+					const dstPx = fbU32[idx];
+					fbU32[idx] =
+						0xff000000 |
+						(((srcB * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
+						(((srcG * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
+						((srcR * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+				}
+			}
+			return;
+		}
+
+		const r2 = radius * radius;
+		for (let y = yMin; y <= yMax; y++) {
+			const dy = y - cy;
+			const halfW = Math.sqrt(r2 - dy * dy);
+			const xMin = Math.max(0, Math.ceil(cx - halfW));
+			const xMax = Math.min(width - 1, Math.floor(cx + halfW));
+			let idx = y * dbWidth + xMin;
+			for (let x = xMin; x <= xMax; x++, idx++) {
+				if (depthTest && depth16 > dbData[idx]) continue;
+				if (depthWrite) dbData[idx] = depth16;
+				const dstPx = fbU32[idx];
+				fbU32[idx] =
+					0xff000000 |
+					(((srcB * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
+					(((srcG * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
+					((srcR * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+			}
 		}
 	}
 

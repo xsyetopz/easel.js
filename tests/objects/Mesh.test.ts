@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Node } from "@/core/Node.js";
 import { Mesh } from "@/objects/Mesh.js";
 

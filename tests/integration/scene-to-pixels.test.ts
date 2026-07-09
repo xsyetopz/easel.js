@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Side } from "@/core/Constants.ts";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";

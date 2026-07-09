@@ -1,6 +1,6 @@
 # Web Performance (Browser) — Measurement + Scheduling for Easel.js
 
-This is about **runtime smoothness** (frame time, jank, responsiveness), not just “bundle size”. It’s meant to guide profiling and regression prevention for Easel.js’ Canvas2D software renderer and its React playground.
+This is about **runtime smoothness** (frame time, jank, responsiveness), not just “bundle size”. It’s meant to guide profiling and regression prevention for Easel.js’ Canvas2D software renderer and its React website.
 
 ## Applies to Easel.js because…
 
@@ -78,7 +78,7 @@ Use it to break a big operation into smaller tasks, so the browser has more chan
 
 ### Move CPU work off the main thread when it competes with UI
 
-If the playground UI (React) and the renderer fight for the same main-thread budget:
+If the website UI (React) and the renderer fight for the same main-thread budget:
 
 - move heavy computation to a Worker where feasible,
 - consider `OffscreenCanvas` for texture preprocessing / pixel work (where supported),

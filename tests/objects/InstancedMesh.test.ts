@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Color } from "@/math/Color.js";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { InstancedMesh } from "@/objects/InstancedMesh.js";

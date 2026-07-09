@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import "../_helpers/assertions.js";
 import { Line3 as TLine3, Vector3 as TVector3 } from "three";
 import { Line3 } from "@/math/Line3.js";

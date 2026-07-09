@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { LambertMaterial } from "@/materials/LambertMaterial.js";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { DrawList } from "@/pipeline/DrawList.js";

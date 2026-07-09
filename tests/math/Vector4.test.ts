@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import "../_helpers/assertions.js";
 import { Vector4 } from "@/math/Vector4.js";
 

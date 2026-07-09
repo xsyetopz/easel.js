@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { InterleavedAttribute } from "@/geometry/InterleavedAttribute.js";
 import { InterleavedBuffer } from "@/geometry/InterleavedBuffer.js";
 

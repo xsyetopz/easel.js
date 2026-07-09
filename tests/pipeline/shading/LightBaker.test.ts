@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { Shading } from "../../../src/core/Constants.ts";
 import { LightBaker } from "../../../src/pipeline/shading/LightBaker.ts";
 import { TriangleBuffer } from "../../../src/pipeline/TriangleBuffer.ts";

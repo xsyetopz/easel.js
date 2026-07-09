@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
 import { CapsuleGeometry } from "@/geometry/primitives/CapsuleGeometry.js";
 import { LatheGeometry } from "@/geometry/primitives/LatheGeometry.js";
 import { Vector2 } from "@/math/Vector2.js";

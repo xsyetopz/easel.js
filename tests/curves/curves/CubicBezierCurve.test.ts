@@ -1,5 +1,5 @@
+import { describe } from "bun:test";
 import * as THREE from "three";
-import { describe } from "vitest";
 import { CubicBezierCurve } from "@/curves/curves/CubicBezierCurve.js";
 import { Vector2 } from "@/math/Vector2.js";
 import { expectCurveParity } from "../../_helpers/curves.js";

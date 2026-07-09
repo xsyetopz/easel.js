@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Node } from "../../src/core/Node.ts";
 
 describe("Node", () => {

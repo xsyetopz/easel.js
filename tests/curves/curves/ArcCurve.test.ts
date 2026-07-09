@@ -1,5 +1,5 @@
+import { describe } from "bun:test";
 import * as THREE from "three";
-import { describe } from "vitest";
 import { ArcCurve } from "@/curves/curves/ArcCurve.js";
 import { expectCurveParity } from "../../_helpers/curves.js";
 

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Raycaster } from "@/core/Raycaster.js";
 import { Vector3 } from "@/math/Vector3.js";
 

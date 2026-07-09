@@ -13,7 +13,9 @@ const _mvp = new Matrix4();
 const _vp = new Matrix4();
 const _bsCenter = new Vector3();
 const _frustum = new Frustum();
+const _emptyNormals = new Float32Array(0);
 const _emptyUvs = new Float32Array(0);
+const _emptyWorldPositions = new Float32Array(0);
 
 interface Vec3 {
 	x: number;
@@ -383,13 +385,23 @@ export class SceneTraversal {
 		}
 
 		_mvp.copy(_vp).mul(node.matrixWorld);
+		const material = node.material as Material & {
+			map?: { data?: unknown };
+			points?: boolean;
+			type?: string;
+		};
+		const isPoints = material.points === true;
+		const materialType = material.type;
+		const isUnlit =
+			materialType === "BasicMaterial" || materialType === "PointsMaterial";
+		const hasTexture = !!material.map?.data;
 
 		if (profiler) {
 			const t0 = profiler.now();
-			this.#projectVertices(node, drawCall);
+			this.#projectVertices(node, drawCall, !isUnlit);
 			profiler.onProject(profiler.now() - t0);
 		} else {
-			this.#projectVertices(node, drawCall);
+			this.#projectVertices(node, drawCall, !isUnlit);
 		}
 
 		const index = node.geometry.index;
@@ -411,27 +423,43 @@ export class SceneTraversal {
 
 		if (profiler) {
 			const t0 = profiler.now();
-			const worldNormals = this.#buildWorldNormals(node);
-			const hasTexture = !!(
-				node.material as unknown as { map?: { data?: unknown } }
-			).map?.data;
-			const uvs = hasTexture ? this.#buildUvs(node) : _emptyUvs;
-			drawCall.triangles = this.#assembleTriangles(
+			if (isPoints) {
+				drawCall.triangles = this.#assemblePoints(
+					drawCall.faceIndices,
+					drawCall.projectedVerts,
+					width,
+					height,
+					node,
+				);
+			} else {
+				const worldNormals = isUnlit
+					? _emptyNormals
+					: this.#buildWorldNormals(node);
+				const uvs = hasTexture ? this.#buildUvs(node) : _emptyUvs;
+				drawCall.triangles = this.#assembleTriangles(
+					drawCall.faceIndices,
+					drawCall.projectedVerts,
+					worldNormals,
+					uvs,
+					width,
+					height,
+					node.material,
+					node,
+				);
+			}
+			profiler.onAssemble(profiler.now() - t0);
+		} else if (isPoints) {
+			drawCall.triangles = this.#assemblePoints(
 				drawCall.faceIndices,
 				drawCall.projectedVerts,
-				worldNormals,
-				uvs,
 				width,
 				height,
-				node.material,
 				node,
 			);
-			profiler.onAssemble(profiler.now() - t0);
 		} else {
-			const worldNormals = this.#buildWorldNormals(node);
-			const hasTexture = !!(
-				node.material as unknown as { map?: { data?: unknown } }
-			).map?.data;
+			const worldNormals = isUnlit
+				? _emptyNormals
+				: this.#buildWorldNormals(node);
 			const uvs = hasTexture ? this.#buildUvs(node) : _emptyUvs;
 			drawCall.triangles = this.#assembleTriangles(
 				drawCall.faceIndices,
@@ -454,6 +482,7 @@ export class SceneTraversal {
 	#projectVertices(
 		node: SceneNode & { matrixWorld: Matrix4; geometry: GeometryLike },
 		drawCall: DrawCall,
+		writeWorldPositions: boolean,
 	): void {
 		const posAttr = node.geometry.getAttribute("position");
 		if (!posAttr) return;
@@ -470,6 +499,28 @@ export class SceneTraversal {
 		}
 		drawCall.projectedVerts = pv;
 		drawCall.vertCount = count;
+
+		if (!writeWorldPositions) {
+			drawCall.worldPositions = _emptyWorldPositions;
+			for (let i = 0; i < count; i++) {
+				const lx = arr[i * itemSize];
+				const ly = arr[i * itemSize + 1];
+				const lz = arr[i * itemSize + 2];
+
+				const px = me[0] * lx + me[4] * ly + me[8] * lz + me[12];
+				const py = me[1] * lx + me[5] * ly + me[9] * lz + me[13];
+				const pz = me[2] * lx + me[6] * ly + me[10] * lz + me[14];
+				const pw = me[3] * lx + me[7] * ly + me[11] * lz + me[15];
+				const invW = 1 / pw;
+
+				const base = i * VERT_STRIDE;
+				pv[base] = px * invW;
+				pv[base + 1] = py * invW;
+				pv[base + 2] = pz * invW;
+				pv[base + 3] = pw;
+			}
+			return;
+		}
 
 		const worldNeeded = count * 3;
 		let wp = node._worldPositions;
@@ -511,7 +562,7 @@ export class SceneTraversal {
 		node: SceneNode & { matrixWorld: Matrix4; geometry: GeometryLike },
 	): Float32Array {
 		const normAttr = node.geometry.getAttribute("normal");
-		if (!normAttr) return new Float32Array(0);
+		if (!normAttr) return _emptyNormals;
 
 		const nArr = normAttr.array;
 		const nSize = normAttr.itemSize ?? 3;
@@ -587,7 +638,7 @@ export class SceneTraversal {
 			return (geometry as GeometryLike & { _uvCache: Float32Array })._uvCache;
 
 		const uvAttr = geometry.getAttribute("uv");
-		if (!uvAttr) return new Float32Array(0);
+		if (!uvAttr) return _emptyUvs;
 
 		const arr = uvAttr.array;
 		const itemSize = uvAttr.itemSize ?? 2;
@@ -599,6 +650,125 @@ export class SceneTraversal {
 		}
 		(geometry as GeometryLike & { _uvCache: Float32Array })._uvCache = result;
 		return result;
+	}
+
+	#assemblePoints(
+		indices: ArrayLike<number>,
+		verts: Float32Array,
+		width: number,
+		height: number,
+		node: { _triangleBuffer?: TriangleBuffer; [k: string]: unknown },
+	): TriangleBuffer {
+		const pointCapacity = Math.ceil(indices.length / 3);
+		let buf = node._triangleBuffer;
+		if (!buf) {
+			buf = new TriangleBuffer(pointCapacity || 64);
+			node._triangleBuffer = buf;
+		}
+		buf.reset();
+		buf.ensureCapacity(pointCapacity);
+
+		const halfW = width * 0.5;
+		const halfH = height * 0.5;
+		const hasFog = this.#hasFog;
+		const fogNear = this.#fogNear;
+		const fogLutScale = this.#fogLutScale;
+		const fogLut = this.#fogLut;
+
+		const screenX = buf.screenX;
+		const screenY = buf.screenY;
+		const ndcZ = buf.ndcZ;
+		const faceNormalX = buf.faceNormalX;
+		const faceNormalY = buf.faceNormalY;
+		const faceNormalZ = buf.faceNormalZ;
+		const vertNormalX = buf.vertNormalX;
+		const vertNormalY = buf.vertNormalY;
+		const vertNormalZ = buf.vertNormalZ;
+		const fogFactor = buf.fogFactor;
+		const vertexIndex = buf.vertexIndex;
+		const centroidZ = buf.centroidZ;
+
+		let outPoint = 0;
+		let maxVi = 0;
+		let triZ = 0;
+		let lastSlot = 0;
+		let lastZ = 0;
+		let lastFog = 0;
+		let lastVi = 0;
+
+		let i = 0;
+		while (i < indices.length) {
+			const vi = indices[i];
+			const b = vi * VERT_STRIDE;
+			const w = verts[b + 3];
+			if (w <= 0) {
+				i++;
+				continue;
+			}
+
+			const p = outPoint % 3;
+			const tri = (outPoint / 3) | 0;
+			const slot = tri * 3 + p;
+			if (p === 0) {
+				triZ = 0;
+				faceNormalX[tri] = 0;
+				faceNormalY[tri] = 1;
+				faceNormalZ[tri] = 0;
+			}
+
+			const x = verts[b];
+			const y = verts[b + 1];
+			const z = verts[b + 2];
+			screenX[slot] = ((x + 1) * halfW + 0.5) | 0;
+			screenY[slot] = ((1 - y) * halfH + 0.5) | 0;
+			ndcZ[slot] = z;
+			vertNormalX[slot] = 0;
+			vertNormalY[slot] = 1;
+			vertNormalZ[slot] = 0;
+
+			let ff = 0;
+			if (hasFog && fogLut) {
+				const fi = ((w - fogNear) * fogLutScale) | 0;
+				ff = fi <= 0 ? 0 : fi >= 255 ? fogLut[255] : fogLut[fi];
+				fogFactor[slot] = ff;
+			}
+
+			vertexIndex[slot] = vi;
+			if (vi > maxVi) maxVi = vi;
+			triZ += z;
+			if (p === 2) centroidZ[tri] = triZ * 0.3333333333333333;
+			lastSlot = slot;
+			lastZ = z;
+			lastFog = ff;
+			lastVi = vi;
+			outPoint++;
+			i++;
+		}
+
+		if (outPoint > 0) {
+			const remainder = outPoint % 3;
+			if (remainder !== 0) {
+				const tri = ((outPoint - 1) / 3) | 0;
+				let slot = tri * 3 + remainder;
+				while (slot < tri * 3 + 3) {
+					screenX[slot] = screenX[lastSlot];
+					screenY[slot] = screenY[lastSlot];
+					ndcZ[slot] = lastZ;
+					vertNormalX[slot] = 0;
+					vertNormalY[slot] = 1;
+					vertNormalZ[slot] = 0;
+					if (hasFog) fogFactor[slot] = lastFog;
+					vertexIndex[slot] = lastVi;
+					triZ += lastZ;
+					slot++;
+				}
+				centroidZ[tri] = triZ * 0.3333333333333333;
+			}
+		}
+
+		buf.length = Math.ceil(outPoint / 3);
+		buf.maxVertexIndex = maxVi;
+		return buf;
 	}
 
 	#assembleTriangles(
@@ -690,7 +860,9 @@ export class SceneTraversal {
 				if (cross < 0) continue;
 			}
 
-			let [ff0, ff1, ff2] = [0, 0, 0];
+			let ff0 = 0;
+			let ff1 = 0;
+			let ff2 = 0;
 			if (hasFog && fogLut) {
 				const i0f = ((w0 - fogNear) * fogLutScale) | 0;
 				const i1f = ((w1 - fogNear) * fogLutScale) | 0;
@@ -700,7 +872,9 @@ export class SceneTraversal {
 				ff2 = i2f <= 0 ? 0 : i2f >= 255 ? fogLut[255] : fogLut[i2f];
 			}
 
-			let [fnx, fny, fnz] = [0, 1, 0];
+			let fnx = 0;
+			let fny = 1;
+			let fnz = 0;
 			if (isFlatShaded && wnLen > 0) {
 				const n0x = worldNormals[i0 * 3];
 				const n0y = worldNormals[i0 * 3 + 1];
@@ -715,7 +889,9 @@ export class SceneTraversal {
 				const ay = (n0y + n1y + n2y) / 3;
 				const az = (n0z + n1z + n2z) / 3;
 				const al = Math.sqrt(ax * ax + ay * ay + az * az) || 1;
-				[fnx, fny, fnz] = [ax / al, ay / al, az / al];
+				fnx = ax / al;
+				fny = ay / al;
+				fnz = az / al;
 			}
 
 			const vn0b = i0 * 3;
@@ -879,7 +1055,9 @@ export class SceneTraversal {
 			ddy = twy - lwy;
 			ddz = twz - lwz;
 		} else {
-			[ddx, ddy, ddz] = [-pos.x, -pos.y, -pos.z];
+			ddx = -pos.x;
+			ddy = -pos.y;
+			ddz = -pos.z;
 		}
 		const len = Math.sqrt(ddx * ddx + ddy * ddy + ddz * ddz) || 1;
 		drawList.lights.push({
@@ -925,7 +1103,9 @@ export class SceneTraversal {
 				wdy = me[1] * dx + me[5] * dy + me[9] * dz;
 				wdz = me[2] * dx + me[6] * dy + me[10] * dz;
 			} else {
-				[wdx, wdy, wdz] = [dx, dy, dz];
+				wdx = dx;
+				wdy = dy;
+				wdz = dz;
 			}
 		}
 		const dirLen = Math.sqrt(wdx * wdx + wdy * wdy + wdz * wdz) || 1;

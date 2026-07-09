@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { DrawList } from "../../../src/pipeline/DrawList.ts";
 import { PainterSort } from "../../../src/pipeline/PainterSort.ts";
 

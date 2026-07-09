@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { DrawList } from "@/pipeline/DrawList.js";
 import { TileDistanceSorter } from "@/pipeline/sorting/TileDistanceSorter.js";
 

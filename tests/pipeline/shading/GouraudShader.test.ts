@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { GouraudShader } from "@/pipeline/shading/GouraudShader.js";
 
 const shader = new GouraudShader();

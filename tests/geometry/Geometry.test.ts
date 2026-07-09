@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Attribute } from "@/geometry/Attribute.js";
 import { Geometry } from "@/geometry/Geometry.js";
 import { defined } from "../_helpers/defined.js";

@@ -94,7 +94,7 @@ These are not guaranteed problems; they’re high-ROI places to benchmark for de
 - `src/pipeline/TriangleBuffer.ts` + `src/pipeline/sorting/PolygonSorter.ts`: triangle iteration order is intentionally identity (depth buffer handles correctness). Any re-introduction of per-triangle sorting should be benchmarked carefully (JS comparator callbacks can be expensive).
 - `src/pipeline/SceneTraversal.ts`: heavy dispatch by `node.type` / `light.type` string checks. If traversal becomes a top hotspot, consider numeric tags and/or fewer string comparisons (bench first).
 - `src/pipeline/sorting/DrawPrioritySorter.ts` and `src/pipeline/PainterSort.ts`: repeated optional chaining/defaulting in sort loops. If these become hot, hoist defaults earlier (e.g., guarantee `material.opacity`/`material.layer` defaults on material construction).
-- `src/core/Node.ts`: `updateMatrixWorld` dominates deep-hierarchy scenes; avoid extra passes over children and avoid per-frame recomposition when `position/quaternion/scale` haven’t changed (benchmark using `playground/examples/performance/scene-hierarchy.js` and compare `timings.traversalMs`).
+- `src/core/Node.ts`: `updateMatrixWorld` dominates deep-hierarchy scenes; avoid extra passes over children and avoid per-frame recomposition when `position/quaternion/scale` haven’t changed (benchmark using `www/examples/performance/scene-hierarchy.js` and compare `timings.traversalMs`).
 - `src/pipeline/SceneTraversal.ts` + `src/pipeline/InstancedMeshBuilder.ts`: per-frame object churn (e.g. `new DrawCall()` / per-instance material objects) can show up as GC spikes; prefer caching and reusing objects in hot traversal paths.
 
 ## How to benchmark correctly (minimum)

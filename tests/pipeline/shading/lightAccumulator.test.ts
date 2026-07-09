@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { accumulateLights } from "@/pipeline/shading/lightAccumulator.js";
 
 function makeDirectional(

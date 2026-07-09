@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
 import { Path } from "@/curves/Path.js";
 import { Vector2 } from "@/math/Vector2.js";
 import "../_helpers/assertions.js";

@@ -77,8 +77,8 @@ export class PainterSort {
 				for (const layer of keys) {
 					const bucket = buckets.get(layer);
 					if (!bucket) continue;
-					for (const dc of bucket) {
-						calls[out++] = dc;
+					for (const call of bucket) {
+						calls[out++] = call;
 					}
 					bucket.length = 0;
 				}
@@ -124,10 +124,10 @@ export class PainterSort {
 		}
 
 		// Rebuild calls: opaques first, then transparents
-		calls.length = 0;
-		for (let i = 0; i < oLen; i++) calls.push(opaque[i]);
-		const tLen = transparent.length;
-		for (let i = 0; i < tLen; i++) calls.push(transparent[i]);
+		let out = 0;
+		for (const call of opaque) calls[out++] = call;
+		for (const call of transparent) calls[out++] = call;
+		calls.length = out;
 
 		this.#sortPolygons(drawList);
 	}
@@ -164,16 +164,20 @@ export class PainterSort {
 		}
 
 		transparent.sort(compareTransparentBackToFront);
-		calls.length = 0;
-		for (const dc of opaque) calls.push(dc);
-		for (const dc of transparent) calls.push(dc);
+		let out = 0;
+		for (const call of opaque) calls[out++] = call;
+		for (const call of transparent) {
+			calls[out++] = call;
+		}
+		calls.length = out;
 		this.#sortPolygons(drawList);
 	}
 
 	#sortPolygons(drawList: DrawList): void {
-		for (const drawCall of drawList) {
+		const calls = drawList.calls;
+		for (const call of calls) {
 			this.#polygonSorter.sort(
-				drawCall as {
+				call as {
 					material: {
 						transparent?: boolean;
 						depthTest?: boolean;

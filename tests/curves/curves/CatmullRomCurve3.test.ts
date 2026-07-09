@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
 import { CatmullRomCurve3 } from "@/curves/curves/CatmullRomCurve3.js";
 import { Vector3 } from "@/math/Vector3.js";
 import "../../_helpers/assertions.js";

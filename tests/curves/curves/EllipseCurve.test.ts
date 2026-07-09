@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
 import { EllipseCurve } from "@/curves/curves/EllipseCurve.js";
 import { expectCurveParity } from "../../_helpers/curves.js";
 

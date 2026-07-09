@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
 import { Geometry } from "@/geometry/Geometry.js";
 import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import { EdgesGeometry } from "@/geometry/primitives/EdgesGeometry.js";

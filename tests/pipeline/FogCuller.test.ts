@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { FogCuller } from "@/pipeline/FogCuller.js";
 import { makeDrawList } from "../_helpers/draw-calls.js";
 

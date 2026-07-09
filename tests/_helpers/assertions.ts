@@ -1,4 +1,4 @@
-import { expect } from "vitest";
+import { expect } from "bun:test";
 
 function matrixValues(
 	value: { elements?: ArrayLike<number> } | ArrayLike<number>,
@@ -9,15 +9,16 @@ function matrixValues(
 
 expect.extend({
 	toMatchVector(
-		received: Record<string, number>,
+		received: unknown,
 		expected: Record<string, number>,
 		epsilon = 1e-6,
 	) {
+		const actual = received as Record<string, number>;
 		const keys = ["x", "y", "z", "w"];
 		const mismatches: string[] = [];
 		for (const k of keys) {
 			if (k in expected) {
-				const r = received[k] ?? 0;
+				const r = actual[k] ?? 0;
 				const e = expected[k] ?? 0;
 				if (Math.abs(r - e) >= epsilon) {
 					mismatches.push(`${k}: ${r} vs ${e}`);
@@ -30,11 +31,13 @@ expect.extend({
 		};
 	},
 	toMatchMatrix(
-		received: { elements?: ArrayLike<number> } | ArrayLike<number>,
+		received: unknown,
 		expected: { elements?: ArrayLike<number> } | ArrayLike<number>,
 		epsilon = 1e-6,
 	) {
-		const re = matrixValues(received);
+		const re = matrixValues(
+			received as { elements?: ArrayLike<number> } | ArrayLike<number>,
+		);
 		const te = matrixValues(expected);
 		const mismatches: string[] = [];
 		for (let i = 0; i < re.length; i++) {

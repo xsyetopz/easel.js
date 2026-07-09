@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 
 /** Helper: append one triangle with all distinct sentinel values. */

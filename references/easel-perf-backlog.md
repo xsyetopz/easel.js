@@ -23,15 +23,15 @@ Rules:
   - Add an internal `force` flag passed down recursion, and when `updateChildren=true` skip the explicit “mark all children dirty” pass.
   - Skip `updateMatrix()` / `Matrix4.compose()` when `position/quaternion/scale` haven’t changed (cache last composed scalars on the Node).
 - How to validate:
-  - `playground/examples/performance/scene-hierarchy.js` at high depth/branches.
-  - `playground/examples/performance/scene-stress.js` at high mesh counts.
+  - `www/examples/performance/scene-hierarchy.js` at high depth/branches.
+  - `www/examples/performance/scene-stress.js` at high mesh counts.
   - Compare `timings.traversalMs` (and `timings.totalMs`) before/after.
 
 ### P0 — Add stage timing to at least one canonical perf example (DONE)
 
 - Stage: measurement/observability
 - Why: Without stable measurements, perf work is mostly guesswork and regressions are hard to catch.
-- Where: `playground/examples/performance/rasterizer-benchmark.js` (or another canonical perf example)
+- Where: `www/examples/performance/rasterizer-benchmark.js` (or another canonical perf example)
 - Proposed change:
   - Add `performance.mark/measure` for traversal/sort/shade/raster/upload.
   - Add a small on-screen HUD or console aggregation (p50/p95) behind a flag.
@@ -57,7 +57,7 @@ Rules:
   - `src/pipeline/SceneTraversal.ts` (cache `DrawCall` on node)
   - `src/pipeline/InstancedMeshBuilder.ts` (cache per-instance `DrawCall` + per-instance material/color objects)
 - How to validate:
-  - `playground/examples/performance/frustum-culling.js` at high totals (watch `traversalMs` + GC in DevTools).
+  - `www/examples/performance/frustum-culling.js` at high totals (watch `traversalMs` + GC in DevTools).
 
 ### P1 — Reduce string comparisons in traversal if it becomes a hotspot
 
@@ -68,7 +68,7 @@ Rules:
   - Introduce stable numeric tags (enums) on node/light construction and switch on numbers in traversal.
   - Keep public API (`type` strings) for compatibility; tags are internal.
 - How to validate:
-  - Profile a deep hierarchy + many lights scene (e.g. `playground/examples/performance/scene-hierarchy.js`, `multi-light.js`).
+  - Profile a deep hierarchy + many lights scene (e.g. `www/examples/performance/scene-hierarchy.js`, `multi-light.js`).
   - Accept only if traversal stage time drops measurably without regressions.
 
 ### P1 — Hoist defaulting out of hot loops by enforcing invariants at construction time

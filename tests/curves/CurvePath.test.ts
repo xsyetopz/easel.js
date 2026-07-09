@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
 import { CurvePath } from "@/curves/CurvePath.js";
 import { LineCurve } from "@/curves/curves/LineCurve.js";
 import { QuadraticBezierCurve } from "@/curves/curves/QuadraticBezierCurve.js";
@@ -53,6 +53,28 @@ describe("CurvePath vs THREE", () => {
 		const lens = easel.getCurveLengths();
 		expect(lens.length).toBe(2);
 		expect(lens[1]).toBeCloseTo(easel.getLength(), 5);
+	});
+
+	it("reuses curve length cache until path changes", () => {
+		const path = makeEaselPath();
+		const first = path.getCurveLengths();
+		const second = path.getCurveLengths();
+		expect(second).toBe(first);
+		path.add(new LineCurve(new Vector2(4, 0), new Vector2(5, 0)));
+		const third = path.getCurveLengths();
+		expect(third).not.toBe(first);
+		expect(third.length).toBe(3);
+		expect(third[2]).toBeCloseTo(path.getLength(), 5);
+	});
+
+	it("updateArcLengths invalidates cached path lengths", () => {
+		const path = makeEaselPath();
+		const first = path.getCurveLengths();
+		path.updateArcLengths();
+		const second = path.getCurveLengths();
+		expect(second).not.toBe(first);
+		expect(second.length).toBe(2);
+		expect(second[1]).toBeCloseTo(path.getLength(), 5);
 	});
 
 	describe("closePath", () => {

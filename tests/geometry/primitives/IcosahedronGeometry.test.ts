@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
 import { IcosahedronGeometry } from "@/geometry/primitives/IcosahedronGeometry.ts";
 import { defined } from "../../_helpers/defined.js";
 import { expectUnitNormals, maxVertexRadius } from "../../_helpers/geometry.js";

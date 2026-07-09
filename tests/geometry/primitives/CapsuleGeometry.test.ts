@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
 import { CapsuleGeometry } from "@/geometry/primitives/CapsuleGeometry.js";
 import { defined } from "../../_helpers/defined.js";
 import { expectUnitNormals } from "../../_helpers/geometry.js";

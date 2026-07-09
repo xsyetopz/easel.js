@@ -1,5 +1,5 @@
+import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
 import { OctahedronGeometry } from "@/geometry/primitives/OctahedronGeometry.ts";
 import { defined } from "../../_helpers/defined.js";
 import { expectUnitNormals, maxVertexRadius } from "../../_helpers/geometry.js";

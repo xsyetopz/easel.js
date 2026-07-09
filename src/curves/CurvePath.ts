@@ -7,6 +7,8 @@ export class CurvePath extends Curve {
 	override type = "CurvePath";
 	#curves: Curve[] = [];
 	#autoClose = false;
+	#cacheCurveLengths: number[] | undefined = undefined;
+	#needsUpdate = true;
 
 	get curves(): Curve[] {
 		return this.#curves;
@@ -18,11 +20,13 @@ export class CurvePath extends Curve {
 
 	set autoClose(value: boolean) {
 		this.#autoClose = value;
+		this.#invalidateCurveLengths(false);
 	}
 
 	/** Appends a curve to the path. */
 	add(curve: Curve): void {
 		this.#curves.push(curve);
+		this.#invalidateCurveLengths(false);
 	}
 
 	/** Closes the path by appending a LineCurve from the last point to the first. */
@@ -33,6 +37,18 @@ export class CurvePath extends Curve {
 		) as Vector2;
 		if (!startPoint.equals(endPoint)) {
 			this.#curves.push(new LineCurve(endPoint, startPoint));
+			this.#invalidateCurveLengths(false);
+		}
+	}
+
+	#invalidateCurveLengths(invalidateChildren: boolean): void {
+		this.#cacheCurveLengths = undefined;
+		this.#needsUpdate = true;
+		super.updateArcLengths();
+		if (invalidateChildren) {
+			for (const curve of this.#curves) {
+				curve.updateArcLengths();
+			}
 		}
 	}
 
@@ -65,14 +81,30 @@ export class CurvePath extends Curve {
 
 	/** Returns an array of cumulative arc lengths for each sub-curve. */
 	getCurveLengths(): number[] {
-		if (this.#curves.length === 0) return [0];
-		const lengths: number[] = [];
-		let sum = 0;
-		for (const curve of this.#curves) {
-			sum += curve.getLength();
-			lengths.push(sum);
+		const curves = this.#curves;
+		const curveCount = curves.length;
+		if (curveCount === 0) return [0];
+		if (
+			this.#cacheCurveLengths !== undefined &&
+			this.#cacheCurveLengths.length === curveCount &&
+			!this.#needsUpdate
+		) {
+			return this.#cacheCurveLengths;
 		}
+
+		const lengths = new Array<number>(curveCount);
+		let sum = 0;
+		for (let i = 0; i < curveCount; i++) {
+			sum += curves[i].getLength();
+			lengths[i] = sum;
+		}
+		this.#cacheCurveLengths = lengths;
+		this.#needsUpdate = false;
 		return lengths;
+	}
+
+	override updateArcLengths(): void {
+		this.#invalidateCurveLengths(true);
 	}
 
 	/** Returns an array of (divisions + 1) points evenly spaced by parameter. */
@@ -106,6 +138,7 @@ export class CurvePath extends Curve {
 		super.copy(source);
 		this.#curves = source.curves.map((c) => c.clone());
 		this.#autoClose = source.autoClose;
+		this.#invalidateCurveLengths(false);
 		return this;
 	}
 }

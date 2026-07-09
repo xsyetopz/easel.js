@@ -1,5 +1,5 @@
+import { describe, it } from "bun:test";
 import * as THREE from "three";
-import { describe, it } from "vitest";
 import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import {
 	expectAttributeArraysClose,

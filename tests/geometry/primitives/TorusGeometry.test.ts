@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { TorusGeometry } from "../../../src/geometry/primitives/TorusGeometry.js";
 import { defined } from "../../_helpers/defined.js";
 

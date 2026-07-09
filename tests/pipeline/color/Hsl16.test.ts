@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Hsl16 } from "@/pipeline/color/Hsl16.ts";
 
 describe("Hsl16", () => {

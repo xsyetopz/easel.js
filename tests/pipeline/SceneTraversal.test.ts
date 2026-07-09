@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Side } from "@/core/Constants.ts";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { DrawList } from "@/pipeline/DrawList.js";
 import { SceneTraversal } from "@/pipeline/SceneTraversal.js";
+import type { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 import { defined } from "../_helpers/defined.js";
 import {
 	getFirstTriangleBufferLength,
@@ -148,6 +149,41 @@ describe("SceneTraversal", () => {
 		const resultB = traversal.traverse(sceneB, makeCamera(), 100, 100);
 		expect(getFirstTriangleBufferLength(resultA)).toBe(1);
 		expect(getFirstTriangleBufferLength(resultB)).toBe(1);
+	});
+
+	it("Points preserve every visible vertex without triangle culling", () => {
+		const node = {
+			type: "Points",
+			visible: true,
+			children: [],
+			matrixWorld: new Matrix4(),
+			updateMatrixWorld: () => {
+				/* no-op */
+			},
+			geometry: {
+				getAttribute: (name: string) => {
+					if (name === "position") {
+						return {
+							array: new Float32Array([
+								-0.75, -0.75, 0, 0.75, -0.75, 0, -0.75, 0.75, 0, 0.75, 0.75, 0,
+							]),
+							itemSize: 3,
+						};
+					}
+					return undefined;
+				},
+				index: undefined,
+			},
+			material: { points: true, side: Side.Front, shading: 0 },
+		};
+
+		const scene = makeScene(node as unknown as ReturnType<typeof makeMeshNode>);
+		const result = traversal.traverse(scene, makeCamera(), 100, 100);
+		const triangles = defined(result.calls[0]).triangles as TriangleBuffer;
+		expect(triangles.length).toBe(2);
+		expect(Array.from(triangles.vertexIndex.slice(0, 6))).toEqual([
+			0, 1, 2, 3, 3, 3,
+		]);
 	});
 
 	// Near-plane clipping: w <= 0 causes triangle to be skipped

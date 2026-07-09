@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { CylinderGeometry } from "@/geometry/primitives/CylinderGeometry.js";
 import { defined } from "../../_helpers/defined.js";
 import { expectUnitNormals } from "../../_helpers/geometry.js";

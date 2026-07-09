@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import type { DrawCall } from "@/pipeline/DrawCall.js";
 import { DrawList } from "@/pipeline/DrawList.js";
 import { makeDrawCall } from "../_helpers/draw-calls.js";
