@@ -39,7 +39,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org
       - uses: oven-sh/setup-bun@v2.2.0
-      - name: Validate release input
+      - name: Validate release state
+        id: state
         env:
           VERSION: ${{ inputs.version }}
         run: |
@@ -65,16 +66,24 @@ jobs:
             exit 1
           fi
           if npm view "$PACKAGE_NAME@$VERSION" version >/dev/null 2>&1; then
-            echo "::error::npm version already exists: $PACKAGE_NAME@$VERSION"
-            exit 1
+            echo "npm_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "npm_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+          if bunx jsr show "$PACKAGE_NAME@$VERSION" >/dev/null 2>&1; then
+            echo "jsr_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "jsr_exists=false" >> "$GITHUB_OUTPUT"
           fi
       - run: bun install --frozen-lockfile
       - run: bun run release:check
       - name: Publish npm package with provenance
+        if: steps.state.outputs.npm_exists != 'true'
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish JSR package
+        if: steps.state.outputs.jsr_exists != 'true'
         run: bun run jsr:publish
       - name: Verify npm package provenance
         env:
@@ -82,11 +91,30 @@ jobs:
         run: |
           set -euo pipefail
           PACKAGE=$(bun -p "require('./package.json').name")
+          for attempt in {1..30}; do
+            if npm view "$PACKAGE@$VERSION" version >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "::error::npm package did not become visible: $PACKAGE@$VERSION"
+              exit 1
+            fi
+            sleep 10
+          done
           VERIFY_DIR=$(mktemp -d)
           cd "$VERIFY_DIR"
           npm init -y >/dev/null
-          npm install "$PACKAGE@$VERSION"
-          npm audit signatures
+          npm install "$PACKAGE@$VERSION" --ignore-scripts
+          for attempt in {1..12}; do
+            if npm audit signatures; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 12 ]; then
+              echo "::error::npm audit signatures failed after retries: $PACKAGE@$VERSION"
+              exit 1
+            fi
+            sleep 10
+          done
       - name: Create tag and GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
