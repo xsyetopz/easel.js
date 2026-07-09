@@ -40,14 +40,44 @@ jobs:
           test -f .github/ISSUE_TEMPLATE/docs.yml
           test -f .github/ISSUE_TEMPLATE/question.yml
           grep -q '^blank_issues_enabled: false$' .github/ISSUE_TEMPLATE/config.yml
-          if grep -R "uses:" .github/workflows | grep -Ev "@[A-Za-z0-9._/-]+"; then
-            echo "::error::Every workflow action must be versioned with @ref"
+          ruby <<'RUBY'
+          require "yaml"
+
+          unversioned = []
+          floating = []
+
+          Dir[".github/workflows/*.{yml,yaml}"].sort.each do |path|
+            stack = [YAML.load_file(path)]
+            until stack.empty?
+              node = stack.pop
+              case node
+              when Hash
+                node.each do |key, value|
+                  if key.to_s == "uses"
+                    ref = value.to_s
+                    unversioned << "#{path}: #{ref}" unless ref.match?(/@[A-Za-z0-9._\/-]+\z/)
+                    floating << "#{path}: #{ref}" if ref.match?(/@(main|master|latest|HEAD)\z/)
+                  end
+                  stack << value
+                end
+              when Array
+                node.each { |value| stack << value }
+              end
+            end
+          end
+
+          unless unversioned.empty?
+            warn "::error::Every workflow action must be versioned with @ref"
+            warn unversioned.join("\n")
             exit 1
-          fi
-          if grep -R "uses: .*@\\(main\\|master\\|latest\\|HEAD\\)$" .github/workflows; then
-            echo "::error::Floating workflow action refs are not allowed"
+          end
+
+          unless floating.empty?
+            warn "::error::Floating workflow action refs are not allowed"
+            warn floating.join("\n")
             exit 1
-          fi
+          end
+          RUBY
 
   version-check:
     name: Version check
