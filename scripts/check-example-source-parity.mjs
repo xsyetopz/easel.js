@@ -1,7 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const examplesRoot = "playground/examples";
+const examplesRoot = "www/examples";
 const jsFilePattern = /\.js$/;
 const sourcePattern =
 	/export const (easelSource|threeSource) = (`([\s\S]*?)`|undefined);/g;

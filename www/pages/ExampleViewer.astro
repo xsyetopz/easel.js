@@ -1,0 +1,172 @@
+---
+import CodeToggle from "../components/CodeToggle.astro";
+import type { ExampleCatalogData, ExampleCatalogEntry, ExampleControl, ExampleRouteData } from "../loaders/examples.ts";
+
+interface Props {
+	exampleId: string;
+	catalog: ExampleCatalogData;
+	example: ExampleRouteData | null;
+}
+
+const { exampleId, catalog, example } = Astro.props as Props;
+const exampleMeta = catalog.examples.find((entry: ExampleCatalogEntry) => entry.meta.id === exampleId)?.meta;
+const controls = example?.controls ?? [];
+const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) => [control.key, control.default]));
+---
+
+{example ? (
+	<div class="example-viewer" data-example-viewer={exampleId}>
+		<script type="application/json" data-example-params set:html={JSON.stringify(defaultParams)}></script>
+		<div class="example-viewer-header">
+			<h1>{example.meta.name}</h1>
+			{example.meta.description && <p>{example.meta.description}</p>}
+			<div class="group" style="margin-top: 0.5rem;">
+				<a href="/compare/threejs" class="site-link" style="font-size: 0.8rem;">THREE.js migration page</a>
+				<a href="/cpu-rasterizer" class="site-link" style="font-size: 0.8rem;">CPU rasterizer guide</a>
+			</div>
+		</div>
+
+		<div class="grid">
+			<div class:list={[controls.length > 0 ? "grid-col-9" : "grid-col-12"]}>
+				<div class="example-canvas-wrap">
+					<canvas data-example-canvas></canvas>
+				</div>
+			</div>
+			<div class="grid-col-3 stack stack-md" data-side-panels>
+				{controls.length > 0 && (
+					<section class="panel-card">
+						<h2>Controls</h2>
+						<div class="control-list">
+							{controls.map((control: ExampleControl) => (
+								<div class="control-field">
+									<label for={`control-${control.key}`}>{control.label}</label>
+									{control.type === "slider" && (
+										<div class="control-row">
+											<input id={`control-${control.key}`} data-control-key={control.key} type="range" min={control.min} max={control.max} step={control.step} value={control.default} />
+											<output class="control-value" data-control-output={control.key}>{control.default}</output>
+										</div>
+									)}
+									{control.type === "color" && <input id={`control-${control.key}`} data-control-key={control.key} type="color" value={control.default} />}
+									{control.type === "select" && (
+										<select id={`control-${control.key}`} data-control-key={control.key}>
+											{control.options.map((option: string) => <option value={option} selected={option === control.default}>{option}</option>)}
+										</select>
+									)}
+								</div>
+							))}
+						</div>
+					</section>
+				)}
+
+				<section class="panel-card" data-benchmark-panel hidden>
+					<h2>Benchmark</h2>
+					<p class="section-copy" style="font-size: 0.78rem; margin-bottom: 0.75rem;">Runs fixed workloads with warmup frames, repeated samples, p50/p95 FPS and frame timing, workload counters, pipeline timings, and JSON output.</p>
+					<div class="group" style="margin-bottom: 0.75rem;">
+						<button class="panel-button" type="button" data-run-benchmark>Run benchmark</button>
+						<button class="panel-button secondary" type="button" data-copy-benchmark disabled>Copy JSON</button>
+					</div>
+					<div class="alert-error" data-benchmark-error hidden></div>
+					<pre class="benchmark-output" data-benchmark-output hidden></pre>
+				</section>
+			</div>
+		</div>
+
+		<div style="margin-top: 1rem;">
+			<CodeToggle easelSource={example.easelSource} threeSource={example.threeSource} noThreeReason={example.noThreeReason} />
+		</div>
+	</div>
+	<script>
+		import { examples } from "../examples/registry";
+		import type { ExampleBenchmarkResult, ExampleInstance, ExampleModule, ExampleParams } from "../loaders/examples";
+
+		const root = document.querySelector("[data-example-viewer]");
+		if (root instanceof HTMLElement) {
+			const viewerRoot = root;
+			const exampleId = root.getAttribute("data-example-viewer");
+			const modules = examples as ExampleModule[];
+			const module = exampleId ? modules.find((entry) => entry.meta.id === exampleId) : undefined;
+			if (module) {
+				const canvasNode = viewerRoot.querySelector("[data-example-canvas]");
+				const canvas = canvasNode instanceof HTMLCanvasElement ? canvasNode : undefined;
+				const paramsNode = viewerRoot.querySelector("[data-example-params]");
+				const params: ExampleParams = paramsNode?.textContent ? JSON.parse(paramsNode.textContent) : {};
+				let instance: ExampleInstance | undefined;
+				let benchmarkResult: ExampleBenchmarkResult | null = null;
+
+				function sizeCanvas(canvasElement: HTMLCanvasElement): void {
+					const container = canvasElement.parentElement;
+					if (!container) return;
+					canvasElement.width = Math.max(300, container.clientWidth);
+					canvasElement.height = Math.max(400, container.clientHeight);
+				}
+
+				function setParam(key: string, value: string | number): void {
+					params[key] = value;
+					const output = viewerRoot.querySelector(`[data-control-output="${key}"]`);
+					if (output) output.textContent = String(value);
+					instance?.update?.(params);
+				}
+
+				if (canvas) {
+					sizeCanvas(canvas);
+					instance = module.setup(canvas, params);
+				}
+
+				for (const control of viewerRoot.querySelectorAll("[data-control-key]")) {
+					const key = control.getAttribute("data-control-key");
+					if (!key) continue;
+					control.addEventListener("input", () => {
+						if (control instanceof HTMLInputElement && control.type === "range") setParam(key, Number(control.value));
+						else if (control instanceof HTMLInputElement) setParam(key, control.value);
+						else if (control instanceof HTMLSelectElement) setParam(key, control.value);
+					});
+					control.addEventListener("change", () => {
+						if (control instanceof HTMLSelectElement) setParam(key, control.value);
+					});
+				}
+
+				const benchmarkPanel = viewerRoot.querySelector("[data-benchmark-panel]");
+				const runBenchmark = viewerRoot.querySelector("[data-run-benchmark]");
+				const copyBenchmark = viewerRoot.querySelector("[data-copy-benchmark]");
+				const benchmarkOutput = viewerRoot.querySelector("[data-benchmark-output]");
+				const benchmarkError = viewerRoot.querySelector("[data-benchmark-error]");
+				if (typeof instance?.runBenchmark === "function" && benchmarkPanel instanceof HTMLElement) {
+					benchmarkPanel.hidden = false;
+				}
+				runBenchmark?.addEventListener("click", async () => {
+					if (typeof instance?.runBenchmark !== "function") return;
+					if (runBenchmark instanceof HTMLButtonElement) {
+						runBenchmark.disabled = true;
+						runBenchmark.textContent = "Running...";
+					}
+					if (benchmarkError instanceof HTMLElement) benchmarkError.hidden = true;
+					try {
+						benchmarkResult = await instance.runBenchmark();
+						if (benchmarkOutput instanceof HTMLElement) {
+							benchmarkOutput.hidden = false;
+							benchmarkOutput.textContent = benchmarkResult.summary;
+						}
+						if (copyBenchmark instanceof HTMLButtonElement) copyBenchmark.disabled = false;
+					} catch (error) {
+						if (benchmarkError instanceof HTMLElement) {
+							benchmarkError.hidden = false;
+							benchmarkError.textContent = error instanceof Error ? error.message : String(error);
+						}
+					} finally {
+						if (runBenchmark instanceof HTMLButtonElement) {
+							runBenchmark.disabled = false;
+							runBenchmark.textContent = "Run benchmark";
+						}
+					}
+				});
+				copyBenchmark?.addEventListener("click", async () => {
+					if (!benchmarkResult) return;
+					await navigator.clipboard.writeText(JSON.stringify(benchmarkResult, null, "\t"));
+				});
+				window.addEventListener("beforeunload", () => instance?.cleanup?.());
+			}
+		}
+	</script>
+) : (
+	<p class="section-copy" style="padding: 2rem; text-align: center;">{exampleMeta ? "Loading example..." : `Example not found: ${exampleId}`}</p>
+)}

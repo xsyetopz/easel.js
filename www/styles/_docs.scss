@@ -1,0 +1,62 @@
+.doc-page {
+	color: var(--ink);
+}
+
+.doc-page h2,
+.doc-page h4 {
+	color: var(--ink);
+}
+
+.equivalent-chip {
+	background: var(--accent-soft);
+	color: var(--ts-blue-ink);
+	font-weight: 800;
+}
+
+:root[data-theme="dark"] .equivalent-chip {
+	color: var(--ink);
+}
+
+.doc-link {
+	color: var(--accent-strong);
+	font-weight: 700;
+}
+
+.doc-callout {
+	border-color: var(--line-strong);
+	border-radius: var(--radius-md);
+}
+
+.doc-callout p {
+	color: var(--muted);
+}
+
+.doc-table-wrap {
+	border: 1px solid var(--line);
+	border-radius: var(--radius-md);
+	overflow: hidden;
+}
+
+.doc-table-wrap table {
+	background: var(--surface);
+	color: var(--ink);
+}
+
+.doc-table-wrap th {
+	background: var(--surface-soft);
+	color: var(--ink);
+}
+
+.doc-table-wrap td {
+	border-color: var(--line);
+	color: var(--ink);
+}
+
+.doc-table-wrap tr:nth-child(even) td {
+	background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
+}
+
+.doc-table-wrap code {
+	background: var(--surface-soft);
+	color: var(--ink);
+}

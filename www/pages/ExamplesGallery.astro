@@ -1,0 +1,50 @@
+---
+import ExampleCard from "../components/ExampleCard.astro";
+import type { ExampleCatalogData, ExampleCatalogEntry } from "../loaders/examples.ts";
+import { routeToPath } from "../routes";
+
+interface Props {
+	catalog: ExampleCatalogData;
+}
+
+const { catalog } = Astro.props as Props;
+const examples: ExampleCatalogEntry[] = catalog.examples;
+const categories: string[] = Array.from(new Set(examples.map((example) => example.meta.category)));
+---
+
+<div class="site-shell examples-page">
+	<div class="container container-xl" style="padding-block: 4.5rem;">
+		<div class="stack" style="gap: 4rem;">
+			<section class="examples-hero">
+				<div class="stack stack-md">
+					<h1 class="hero-title hero-title-center">Examples with source beside the renderer.</h1>
+					<p class="hero-copy">
+						{examples.length} pages across {categories.length} groups. Each page keeps the code, canvas behavior, and renderer tradeoff in one place.
+					</p>
+					<div class="group">
+						<a href={routeToPath("docs")} class="hero-text-link">API docs</a>
+						<a href="https://www.npmjs.com/package/@xsyetopz/easel" class="hero-text-link" target="_blank">npm package</a>
+					</div>
+				</div>
+			</section>
+
+			{categories.map((category) => {
+				const categoryExamples: ExampleCatalogEntry[] = examples.filter((example) => example.meta.category === category);
+				return (
+					<section class="example-category">
+						<div class="example-category-header">
+							<div class="example-category-heading">
+								<h2>{catalog.categoryLabels[category] || category}</h2>
+								<p class="section-copy" style="font-size: 0.9rem;">Focused cases for one renderer path.</p>
+							</div>
+							<p class="category-count">{categoryExamples.length} pages</p>
+						</div>
+						<div class="example-grid">
+							{categoryExamples.map((example) => <ExampleCard meta={example.meta} />)}
+						</div>
+					</section>
+				);
+			})}
+		</div>
+	</div>
+</div>

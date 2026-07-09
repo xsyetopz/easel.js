@@ -1,0 +1,51 @@
+---
+import type { ExampleCatalogData, ExampleCatalogEntry } from "../loaders/examples.ts";
+import { routeToPath } from "../routes";
+
+interface Props {
+	catalog: ExampleCatalogData;
+	activeId?: string | undefined;
+}
+
+const { catalog, activeId } = Astro.props as Props;
+const examples: ExampleCatalogEntry[] = catalog.examples;
+const categories: string[] = Array.from(new Set(examples.map((example) => example.meta.category)));
+---
+
+<div class="sidebar-scroll" data-example-sidebar>
+	<input class="sidebar-filter" type="search" placeholder="Filter examples..." aria-label="Filter examples" data-sidebar-filter />
+	{categories.map((category) => (
+		<div class="sidebar-group" data-sidebar-group>
+			<div class="sidebar-group-title">{catalog.categoryLabels[category] ?? category}</div>
+			{examples.filter((example) => example.meta.category === category).map((example) => (
+				<a
+					class="doc-nav-link"
+					href={routeToPath(`examples/${example.meta.id}`)}
+					data-active={activeId === example.meta.id ? "true" : undefined}
+					data-sidebar-item={`${example.meta.name} ${example.meta.category}`.toLowerCase()}
+				>
+					{example.meta.name}
+				</a>
+			))}
+		</div>
+	))}
+</div>
+<script>
+	const sidebars = document.querySelectorAll("[data-example-sidebar]");
+	for (const sidebar of sidebars) {
+		const input = sidebar.querySelector("[data-sidebar-filter]");
+		if (!(input instanceof HTMLInputElement)) continue;
+		input.addEventListener("input", () => {
+			const query = input.value.trim().toLowerCase();
+			for (const group of sidebar.querySelectorAll("[data-sidebar-group]")) {
+				let shown = 0;
+				for (const item of group.querySelectorAll("[data-sidebar-item]")) {
+					const matches = !query || (item.getAttribute("data-sidebar-item") || "").includes(query);
+					if (item instanceof HTMLElement) item.hidden = !matches;
+					if (matches) shown++;
+				}
+				if (group instanceof HTMLElement) group.hidden = shown === 0;
+			}
+		});
+	}
+</script>

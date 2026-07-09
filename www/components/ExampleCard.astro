@@ -1,0 +1,27 @@
+---
+import FeatureCard from "./FeatureCard.astro";
+import { routeToPath } from "../routes";
+import type { ExampleMeta } from "../loaders/examples.ts";
+
+interface Props {
+	meta: ExampleMeta;
+}
+
+const { meta } = Astro.props;
+const categoryIcons: Record<string, string> = {
+	"getting-started": "fa-solid fa-cube",
+	geometry: "fa-solid fa-shapes",
+	materials: "fa-solid fa-fill-drip",
+	lights: "fa-solid fa-lightbulb",
+	camera: "fa-solid fa-camera-viewfinder",
+	"scene-graph": "fa-solid fa-diagram-project",
+	animation: "fa-solid fa-wave-sine",
+	textures: "fa-solid fa-grid-2",
+	interactive: "fa-solid fa-arrow-pointer",
+	helpers: "fa-solid fa-ruler-combined",
+	performance: "fa-solid fa-gauge-high",
+};
+const icon = categoryIcons[meta.category] ?? "fa-solid fa-cube";
+---
+
+<FeatureCard href={routeToPath(`examples/${meta.id}`)} className="example-card" icon={icon} title={meta.name} text={meta.description} />

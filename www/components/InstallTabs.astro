@@ -1,0 +1,54 @@
+---
+import CodeBlock from "./CodeBlock.astro";
+import TabsScript from "./TabsScript.astro";
+
+const installData = [
+	{
+		value: "bun",
+		label: "bun",
+		commands: [
+			{ registry: "npmjs.com", cmd: "bun install @xsyetopz/easel" },
+			{ registry: "jsr.io", cmd: "bunx jsr add @xsyetopz/easel" },
+		],
+	},
+	{
+		value: "deno",
+		label: "deno",
+		commands: [
+			{ registry: "npmjs.com", cmd: "deno add npm:@xsyetopz/easel" },
+			{ registry: "jsr.io", cmd: "deno add jsr:@xsyetopz/easel" },
+		],
+	},
+	{
+		value: "npm",
+		label: "npm",
+		commands: [
+			{ registry: "npmjs.com", cmd: "npm install @xsyetopz/easel" },
+			{ registry: "jsr.io", cmd: "npx jsr add @xsyetopz/easel" },
+		],
+	},
+	{ value: "pnpm", label: "pnpm", commands: [{ registry: "npmjs.com", cmd: "pnpm add @xsyetopz/easel" }] },
+	{ value: "yarn", label: "yarn", commands: [{ registry: "npmjs.com", cmd: "yarn add @xsyetopz/easel" }] },
+];
+---
+
+<div class="tabs" data-tabs>
+	<div class="tabs-list" role="tablist" aria-label="Package manager">
+		{installData.map((pm, index) => (
+			<button class="tabs-tab" type="button" role="tab" aria-selected={index === 0 ? "true" : "false"} data-tab-target={pm.value}>
+				{pm.label}
+			</button>
+		))}
+	</div>
+	{installData.map((pm, index) => (
+		<div class="tabs-panel stack stack-xs" role="tabpanel" data-tab-panel={pm.value} hidden={index !== 0}>
+			{pm.commands.map((entry) => (
+				<div>
+					<p class="section-copy" style="font-size: 0.78rem; margin-bottom: 0.25rem;">{entry.registry}</p>
+					<CodeBlock code={entry.cmd} language="plaintext" />
+				</div>
+			))}
+		</div>
+	))}
+</div>
+<TabsScript />

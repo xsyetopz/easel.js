@@ -1,0 +1,67 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	background: var(--bg);
+	color: var(--ink);
+	font-family: Geist, "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+	margin: 0;
+}
+
+h1,
+h2,
+h3,
+p {
+	margin-block: 0;
+}
+
+h1,
+h2,
+h3 {
+	color: var(--ink);
+	letter-spacing: -0.028em;
+	text-wrap: balance;
+}
+
+p,
+li {
+	text-wrap: pretty;
+}
+
+a {
+	color: var(--accent-strong);
+}
+
+button,
+input,
+select {
+	font: inherit;
+}
+
+pre,
+code {
+	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+[hidden] {
+	display: none !important;
+}
+
+.sr-only {
+	border: 0;
+	clip: rect(0, 0, 0, 0);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	white-space: nowrap;
+	width: 1px;
+}

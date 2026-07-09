@@ -1,0 +1,17 @@
+<script>
+	document.addEventListener("click", (event) => {
+		const target = event.target;
+		if (!(target instanceof Element)) return;
+		const tab = target.closest("[data-tab-target]");
+		if (!(tab instanceof HTMLElement)) return;
+		const root = tab.closest("[data-tabs]");
+		if (!root) return;
+		const name = tab.dataset.tabTarget;
+		for (const button of root.querySelectorAll("[data-tab-target]")) {
+			button.setAttribute("aria-selected", button === tab ? "true" : "false");
+		}
+		for (const panel of root.querySelectorAll("[data-tab-panel]")) {
+			if (panel instanceof HTMLElement) panel.hidden = panel.dataset.tabPanel !== name;
+		}
+	});
+</script>

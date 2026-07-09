@@ -1,0 +1,63 @@
+---
+import { routeToPath } from "../routes";
+import CodeBlock from "./CodeBlock.astro";
+import TabsScript from "./TabsScript.astro";
+
+const CJS_CODE = `const EASEL = require("@xsyetopz/easel");
+
+const renderer = new EASEL.Renderer({ canvas, width: 800, height: 600 });
+const scene = new EASEL.Scene();
+const camera = new EASEL.PerspectiveCamera({ fov: 45, aspect: 4 / 3 });
+camera.position.set(0, 2, 5);
+
+scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+
+const box = new EASEL.Mesh(
+  new EASEL.BoxGeometry(1, 1, 1),
+  new EASEL.LambertMaterial({ color: 0xff4444 }),
+);
+scene.add(box);
+
+renderer.render(scene, camera);`;
+
+const ESM_CODE = `import * as EASEL from "@xsyetopz/easel";
+
+const renderer = new EASEL.Renderer({ canvas, width: 800, height: 600 });
+const scene = new EASEL.Scene();
+const camera = new EASEL.PerspectiveCamera({ fov: 45, aspect: 4 / 3 });
+camera.position.set(0, 2, 5);
+
+scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+
+const box = new EASEL.Mesh(
+  new EASEL.BoxGeometry(1, 1, 1),
+  new EASEL.LambertMaterial({ color: 0xff4444 }),
+);
+scene.add(box);
+
+renderer.render(scene, camera);`;
+
+const tabs = [
+	{ value: "cjs", label: "CJS", code: CJS_CODE, language: "javascript" },
+	{ value: "esm", label: "ESM", code: ESM_CODE, language: "javascript" },
+];
+---
+
+<div class="tabs" data-tabs>
+	<div class="tabs-list" role="tablist" aria-label="Code format">
+		{tabs.map((tab, index) => (
+			<button class="tabs-tab" type="button" role="tab" aria-selected={index === 0 ? "true" : "false"} data-tab-target={tab.value}>
+				{tab.label}
+			</button>
+		))}
+	</div>
+	{tabs.map((tab, index) => (
+		<div class="tabs-panel" role="tabpanel" data-tab-panel={tab.value} hidden={index !== 0}>
+			<CodeBlock code={tab.code} language={tab.language} />
+		</div>
+	))}
+</div>
+<a href={routeToPath("examples/hello-cube")} class="site-link" style="display: inline-block; margin-top: 0.5rem; font-size: 0.8rem;">
+	See full example &rarr;
+</a>
+<TabsScript />

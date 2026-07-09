@@ -1,0 +1,116 @@
+---
+import { buildHeadMarkup, type PageMetadata } from "../seo";
+import type { AppRoute } from "../routes.ts";
+import type { ExampleCatalogData } from "../loaders/examples.ts";
+import ExampleSidebar from "./ExampleSidebar.astro";
+import NavHeader from "./NavHeader.astro";
+
+interface Props {
+	metadata: PageMetadata;
+	route: AppRoute;
+	catalog?: ExampleCatalogData | undefined;
+	activeExampleId?: string | undefined;
+}
+
+const { metadata, route, catalog, activeExampleId } = Astro.props;
+const hasSidebar = route.page === "example" && catalog !== undefined;
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/gh/rizmyabdulla/fontawesome-pro@main/releases/v7.2.0/css/fontawesome.css"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/gh/rizmyabdulla/fontawesome-pro@main/releases/v7.2.0/css/solid.css"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/gh/rizmyabdulla/fontawesome-pro@main/releases/v7.2.0/css/brands.css"
+		/>
+		<Fragment set:html={buildHeadMarkup(metadata)} />
+		<script is:inline>
+			(() => {
+				const key = "easel-theme-mode";
+				const saved = localStorage.getItem(key) || "auto";
+				const system = () => matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+				document.documentElement.dataset.themeMode = saved;
+				document.documentElement.dataset.theme = saved === "auto" ? system() : saved;
+			})();
+		</script>
+	</head>
+	<body>
+		<div class:list={["site-app", hasSidebar && "has-sidebar"]}>
+			<header class="shell-header">
+				<NavHeader />
+			</header>
+			<div class="shell-body">
+				{hasSidebar && catalog && (
+					<aside class="shell-navbar">
+						<ExampleSidebar catalog={catalog} activeId={activeExampleId} />
+					</aside>
+				)}
+				<main class="shell-main">
+					<slot />
+				</main>
+			</div>
+		</div>
+		<div class="nav-backdrop" data-nav-close></div>
+		<script>
+			type ThemeMode = "light" | "dark" | "auto";
+			const modes: ThemeMode[] = ["light", "dark", "auto"];
+			const labels: Record<ThemeMode, string> = {
+				light: "Switch to dark mode",
+				dark: "Switch to system mode",
+				auto: "Switch to light mode",
+			};
+			const icons: Record<ThemeMode, string> = {
+				light: "fa-solid fa-sun-bright",
+				dark: "fa-solid fa-moon",
+				auto: "fa-solid fa-display",
+			};
+			const key = "easel-theme-mode";
+			const systemTheme = () => matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+			function normalizeThemeMode(value: string | null): ThemeMode {
+				return modes.includes(value as ThemeMode) ? value as ThemeMode : "auto";
+			}
+			function applyTheme(mode: ThemeMode): void {
+				const resolved = mode === "auto" ? systemTheme() : mode;
+				document.documentElement.dataset.themeMode = mode;
+				document.documentElement.dataset.theme = resolved;
+				for (const button of document.querySelectorAll("[data-theme-toggle]")) {
+					button.setAttribute("aria-label", labels[mode]);
+					button.setAttribute("title", labels[mode]);
+					const icon = button.querySelector("i");
+					if (icon) icon.className = icons[mode];
+				}
+			}
+			applyTheme(normalizeThemeMode(localStorage.getItem(key)));
+			matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+				if (normalizeThemeMode(localStorage.getItem(key)) === "auto") applyTheme("auto");
+			});
+			document.addEventListener("click", (event) => {
+				const target = event.target;
+				if (!(target instanceof Element)) return;
+				if (target.closest("[data-theme-toggle]")) {
+					const current = normalizeThemeMode(localStorage.getItem(key));
+					const next = modes[(modes.indexOf(current) + 1) % modes.length] ?? "auto";
+					localStorage.setItem(key, next);
+					applyTheme(next);
+				}
+				if (target.closest("[data-nav-toggle]")) {
+					document.documentElement.dataset.navOpen = "true";
+				}
+				if (target.closest("[data-nav-close]")) {
+					delete document.documentElement.dataset.navOpen;
+				}
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,29 @@
+diff --git a/lib/createChecker.js b/lib/createChecker.js
+index 94e058e7c49b707620f2e54b3ce2efa9c500010e..641b647d83ee00d21fd4968dfe0eb15e518d57b5 100644
+--- a/lib/createChecker.js
++++ b/lib/createChecker.js
+@@ -5,7 +5,23 @@ exports.createTypeScriptInferredChecker = createTypeScriptInferredChecker;
+ const language_service_1 = require("@volar/language-service");
+ const typescript_1 = require("@volar/typescript");
+ const path = require("typesafe-path/posix");
+-const ts = require("typescript");
++function loadTypeScriptCompilerApi() {
++    const resolved = require("typescript");
++    if (resolved?.sys && resolved?.findConfigFile) {
++        return resolved;
++    }
++    try {
++        const fallback = require("typescript-compiler-api");
++        if (fallback?.sys && fallback?.findConfigFile) {
++            return fallback;
++        }
++    }
++    catch {
++        // Optional compatibility package is not installed.
++    }
++    throw new Error("@volar/kit requires the TypeScript compiler API. TypeScript 7 exports only the native API from the package root; install typescript-compiler-api@npm:typescript@^6.0.0 for Astro check compatibility.");
++}
++const ts = loadTypeScriptCompilerApi();
+ const vscode_languageserver_textdocument_1 = require("vscode-languageserver-textdocument");
+ const vscode_uri_1 = require("vscode-uri");
+ const createServiceEnvironment_1 = require("./createServiceEnvironment");

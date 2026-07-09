@@ -41,7 +41,8 @@
         "strict": true,
         "target": "ES2022",
         "types": [
-            "bun-types"
+            "bun-types",
+            "node"
         ],
         "useDefineForClassFields": true
     },

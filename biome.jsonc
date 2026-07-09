@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -44,6 +44,16 @@
 					}
 				}
 			}
+		},
+		{
+			"includes": ["www/**/*.tsx"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noReactSpecificProps": "off"
+					}
+				}
+			}
 		}
 	],
 	"formatter": {
@@ -60,7 +70,8 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
+			// Preserves recommended lint coverage after the Biome 2.5 migration; no performance-rule relaxation.
+			"preset": "recommended",
 			"complexity": {
 				"noExcessiveCognitiveComplexity": {
 					"level": "error",

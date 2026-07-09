@@ -1,0 +1,36 @@
+diff --git a/dist/check.js b/dist/check.js
+index 1d1e33896a0e55251d167132f4f5943eb48103f3..282244660dd025e5f97a79ece72d3ce1b6d707dc 100644
+--- a/dist/check.js
++++ b/dist/check.js
+@@ -50,6 +50,22 @@ const vue_js_1 = require("./core/vue.js");
+ const astro_js_1 = require("./plugins/astro.js");
+ const index_js_2 = require("./plugins/typescript/index.js");
+ const utils_js_1 = require("./utils.js");
++function loadTypeScriptCompilerApi(typescriptPath) {
++    const resolved = typescriptPath ? require(typescriptPath) : require('typescript');
++    if (resolved?.sys && resolved?.findConfigFile) {
++        return resolved;
++    }
++    try {
++        const fallback = require('typescript-compiler-api');
++        if (fallback?.sys && fallback?.findConfigFile) {
++            return fallback;
++        }
++    }
++    catch {
++        // Optional compatibility package is not installed.
++    }
++    throw new Error('Astro check requires the TypeScript compiler API. TypeScript 7 exports only the native API from the package root; install typescript-compiler-api@npm:typescript@^6.0.0 for Astro check compatibility.');
++}
+ class AstroCheck {
+     constructor(workspacePath, typescriptPath, tsconfigPath) {
+         this.workspacePath = workspacePath;
+@@ -118,7 +134,7 @@ class AstroCheck {
+         return result;
+     }
+     initialize() {
+-        this.ts = this.typescriptPath ? require(this.typescriptPath) : require('typescript');
++        this.ts = loadTypeScriptCompilerApi(this.typescriptPath);
+         const tsconfigPath = this.getTsconfig();
+         const languagePlugins = [
+             (0, index_js_1.getAstroLanguagePlugin)(),

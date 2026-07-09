@@ -1,0 +1,44 @@
+---
+import { routeToPath } from "../routes";
+
+const navLinks = [
+	{ href: routeToPath("examples"), label: "Examples" },
+	{ href: routeToPath("docs"), label: "Docs" },
+	{ href: routeToPath("compare/threejs"), label: "Compare" },
+];
+---
+
+<nav class="site-nav" aria-label="Site navigation">
+	<div class="site-nav-left">
+		<button class="nav-burger" type="button" aria-label="Open navigation" data-nav-toggle>
+			<i class="fa-solid fa-bars" aria-hidden="true"></i>
+		</button>
+		<a href={routeToPath("")} class="brand-mark">
+			<span class="brand-mark-text">easel.js</span>
+		</a>
+	</div>
+	<div class="site-nav-right">
+		<div class="site-links">
+			{navLinks.map((link) => <a href={link.href} class="site-link">{link.label}</a>)}
+			<a href="https://github.com/xsyetopz/easel.js" target="_blank" class="site-link icon-link" aria-label="GitHub repository">
+				<i class="fa-brands fa-github" aria-hidden="true"></i>
+			</a>
+		</div>
+		<button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color mode">
+			<i class="fa-solid fa-display" aria-hidden="true"></i>
+		</button>
+	</div>
+</nav>
+
+<aside class="mobile-nav" aria-label="Mobile navigation">
+	<div class="mobile-nav-header">
+		<strong>Navigation</strong>
+		<button class="mobile-nav-close" type="button" aria-label="Close navigation" data-nav-close>
+			<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+		</button>
+	</div>
+	<div class="mobile-nav-links">
+		{navLinks.map((link) => <a href={link.href} class="site-link" data-nav-close>{link.label}</a>)}
+		<a href="https://github.com/xsyetopz/easel.js" target="_blank" class="site-link" data-nav-close>GitHub</a>
+	</div>
+</aside>

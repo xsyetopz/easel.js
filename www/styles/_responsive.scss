@@ -1,0 +1,166 @@
+@media (max-width: 900px) {
+
+	.bento-card,
+	.bento-card-wide {
+		grid-column: span 6;
+	}
+
+	.constraint-accordion {
+		grid-template-columns: 1fr;
+	}
+
+	.grid-col-5,
+	.grid-col-7,
+	.grid-col-9,
+	.grid-col-3 {
+		grid-column: span 12;
+	}
+}
+
+@media (max-width: 760px) {
+	.site-links {
+		display: none;
+	}
+
+	.nav-burger {
+		display: inline-flex;
+	}
+
+	.shell-body {
+		display: block;
+	}
+
+	.shell-navbar {
+		border-bottom: 1px solid var(--line);
+		border-right: 0;
+		max-height: 18rem;
+		overflow: auto;
+	}
+
+	.has-sidebar .shell-main {
+		padding: 1rem;
+	}
+
+	.hero-section {
+		padding: clamp(3.5rem, 14vw, 5rem) 0 clamp(2.5rem, 10vw, 4rem);
+	}
+
+	.hero-title {
+		font-size: clamp(2.35rem, 10.4vw, 3.25rem);
+		letter-spacing: -0.02em;
+		line-height: 1.08;
+		max-width: min(100%, 10ch);
+		width: 100%;
+	}
+
+	.hero-copy {
+		font-size: 1rem;
+		line-height: 1.58;
+		max-width: min(100%, 22rem);
+		width: 100%;
+	}
+
+	.examples-hero {
+		overflow: hidden;
+		padding: 2.4rem 1.6rem;
+	}
+
+	.examples-hero .hero-title,
+	.examples-hero h1 {
+		font-size: clamp(2.15rem, 8.8vw, 3rem);
+		line-height: 1.08;
+		max-width: 100%;
+	}
+
+	.hero-actions {
+		width: 100%;
+	}
+
+	.hero-actions .button {
+		min-height: 2.75rem;
+	}
+
+	.bento-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.bento-card,
+	.bento-card-wide {
+		grid-column: 1;
+	}
+}
+
+@media (max-width: 520px) {
+	.site-nav {
+		padding-inline: 0.85rem;
+	}
+
+	.hero-actions {
+		align-items: stretch;
+		flex-direction: column;
+		gap: 0.7rem;
+		margin-inline: auto;
+		max-width: min(100%, 18rem);
+	}
+
+	.hero-actions .button {
+		width: 100%;
+	}
+
+	.pipeline-marquee {
+		margin-inline: auto;
+		max-width: min(100%, 18rem);
+		overflow: hidden;
+		padding: 0.75rem 0.25rem;
+	}
+
+	.pipeline-marquee div {
+		animation: none;
+		flex-wrap: wrap;
+		gap: 1.25rem;
+		justify-content: center;
+		min-width: 0;
+		transform: none;
+	}
+
+	.pipeline-marquee span:nth-child(n + 7) {
+		display: none;
+	}
+
+	.examples-hero {
+		padding: 2rem 1.35rem;
+	}
+
+	.examples-hero .hero-title,
+	.examples-hero h1 {
+		font-size: clamp(1.95rem, 8.2vw, 2.35rem);
+	}
+
+	.bento-card,
+	.site-card,
+	.example-card {
+		padding: 1.25rem;
+	}
+
+	.example-category-header {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.category-count {
+		align-self: flex-start;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
+}

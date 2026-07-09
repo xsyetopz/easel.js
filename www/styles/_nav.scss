@@ -1,0 +1,143 @@
+.site-nav {
+	align-items: center;
+	background: var(--surface);
+	display: flex;
+	gap: 1rem;
+	height: 56px;
+	justify-content: space-between;
+	padding-inline: 1.5rem;
+}
+
+.site-nav-left,
+.site-nav-right,
+.site-links {
+	align-items: center;
+	display: flex;
+	gap: 1rem;
+}
+
+.brand-mark {
+	--brand-mark-size: 1.65rem;
+	--brand-text-size: 1.18rem;
+	align-items: center;
+	color: var(--ink) !important;
+	display: inline-flex;
+	font-size: var(--brand-text-size) !important;
+	font-weight: 800 !important;
+	letter-spacing: -0.025em !important;
+	line-height: 1;
+	text-decoration: none !important;
+}
+
+.brand-mark::before {
+	align-items: end;
+	background: var(--ts-blue);
+	border-radius: 0.35rem;
+	color: #ffffff;
+	content: "JS";
+	display: inline-flex;
+	flex: 0 0 var(--brand-mark-size);
+	font-size: 0.8rem;
+	font-weight: 800;
+	height: var(--brand-mark-size);
+	justify-content: end;
+	line-height: 1;
+	margin-inline-end: 0.55rem;
+	padding: 0.22rem;
+	width: var(--brand-mark-size);
+}
+
+.brand-mark-text {
+	color: var(--ink) !important;
+	display: inline-block;
+	font-size: var(--brand-text-size) !important;
+	font-weight: 800 !important;
+	letter-spacing: -0.025em !important;
+	line-height: 1;
+}
+
+.site-link {
+	color: var(--muted);
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.site-link:hover {
+	color: var(--accent-strong);
+}
+
+.icon-link {
+	font-size: 1.05rem;
+}
+
+.nav-burger,
+.theme-toggle,
+.mobile-nav-close {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	color: var(--ink);
+	cursor: pointer;
+	display: inline-flex;
+	justify-content: center;
+	min-height: 2.25rem;
+	min-width: 2.25rem;
+	padding: 0;
+}
+
+.nav-burger {
+	display: none;
+	font-size: 1.4rem;
+}
+
+.theme-toggle {
+	border-radius: var(--radius-sm);
+	font-size: 1rem;
+}
+
+.theme-toggle:hover {
+	background: var(--surface-soft);
+}
+
+.mobile-nav {
+	background: var(--surface);
+	border-left: 1px solid var(--line);
+	bottom: 0;
+	box-shadow: none;
+	color: var(--ink);
+	padding: 1rem;
+	position: fixed;
+	right: 0;
+	top: 0;
+	transform: translateX(100%);
+	transition: transform 180ms var(--ease-out);
+	width: min(18rem, 86vw);
+	z-index: 50;
+}
+
+.mobile-nav-header {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 1rem;
+}
+
+.mobile-nav-links {
+	display: grid;
+	gap: 1rem;
+}
+
+:root[data-nav-open="true"] .mobile-nav {
+	transform: translateX(0);
+}
+
+.nav-backdrop {
+	background: rgb(0 0 0 / 0.22);
+	inset: 0;
+	position: fixed;
+	z-index: 40;
+}
+
+:root:not([data-nav-open="true"]) .nav-backdrop {
+	display: none;
+}

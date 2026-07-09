@@ -7,3 +7,10 @@ dist/
 .env.local
 src/**/*.d.ts
 src/**/*.d.ts.map
+
+# Codebase MCP
+.codebase-memory/
+.astro/
+
+# Starlight generated API docs
+www/astro/content/docs/docs/
