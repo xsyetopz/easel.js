@@ -5,71 +5,131 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  NODE_VERSION: lts/*
 
 jobs:
-  version-check:
+  governance:
+    name: Governance
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@v7.0.0
+      - name: Validate GitHub metadata
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; ARGV.each { |path| YAML.load_file(path); puts "ok #{path}" }' \
+            .github/workflows/*.yml \
+            .github/ISSUE_TEMPLATE/*.yml \
+            .github/dependabot.yml
+          test -f .github/ISSUE_TEMPLATE/bug_report.yml
+          test -f .github/ISSUE_TEMPLATE/feature_request.yml
+          test -f .github/ISSUE_TEMPLATE/docs.yml
+          test -f .github/ISSUE_TEMPLATE/question.yml
+          grep -q '^blank_issues_enabled: false$' .github/ISSUE_TEMPLATE/config.yml
+          if grep -R "uses:" .github/workflows | grep -Ev "@[A-Za-z0-9._/-]+"; then
+            echo "::error::Every workflow action must be versioned with @ref"
+            exit 1
+          fi
+          if grep -R "uses: .*@\\(main\\|master\\|latest\\|HEAD\\)$" .github/workflows; then
+            echo "::error::Floating workflow action refs are not allowed"
+            exit 1
+          fi
+
+  version-check:
+    name: Version check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: oven-sh/setup-bun@v2.2.0
       - run: bun run version:check
 
   dependencies:
+    name: Dependency policy
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@v7.0.0
+      - uses: oven-sh/setup-bun@v2.2.0
       - run: bun install --frozen-lockfile
       - run: bun run deps:check
 
   lint:
+    name: Biome
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@v7.0.0
+      - uses: oven-sh/setup-bun@v2.2.0
       - run: bun install --frozen-lockfile
       - run: bun run biome:check
 
   typecheck:
+    name: TypeScript
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.0
+      - uses: oven-sh/setup-bun@v2.2.0
+      - uses: actions/setup-node@v6.4.0
         with:
-          node-version: lts/*
+          node-version: ${{ env.NODE_VERSION }}
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
+      - run: bun run typecheck:tests
+      - run: bun run typecheck:website
 
   test:
+    name: Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.0
+      - uses: oven-sh/setup-bun@v2.2.0
+      - uses: actions/setup-node@v6.4.0
         with:
-          node-version: lts/*
+          node-version: ${{ env.NODE_VERSION }}
       - run: bun install --frozen-lockfile
+      - run: bun run tests:no-any
+      - run: bun run examples:source-parity
       - run: bun run test:run
 
-  playground:
+  www:
+    name: Website
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.0
+      - uses: oven-sh/setup-bun@v2.2.0
+      - uses: actions/setup-node@v6.4.0
         with:
-          node-version: lts/*
+          node-version: ${{ env.NODE_VERSION }}
       - run: bun install --frozen-lockfile
-      - run: bun run playground:build
+      - run: bun run www:build
 
   package:
+    name: Package
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.0
+      - uses: oven-sh/setup-bun@v2.2.0
+      - uses: actions/setup-node@v6.4.0
         with:
-          node-version: lts/*
+          node-version: ${{ env.NODE_VERSION }}
       - run: bun install --frozen-lockfile
       - run: bun run pack:verify

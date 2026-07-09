@@ -1,0 +1,36 @@
+name: Documentation issue
+description: Report missing, stale, or unclear docs.
+title: "[Docs]: "
+labels: [documentation]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page or symbol
+      description: Link the page, class, function, or example.
+      placeholder: https://easeljs.org/docs/Renderer
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing?
+      description: Be specific about the confusing wording, missing example, or incorrect detail.
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Suggested change
+      description: Proposed wording, example, or source reference.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I checked the current docs and examples site.
+          required: true
+        - label: This is documentation-only, not a feature request or bug report.
+          required: true

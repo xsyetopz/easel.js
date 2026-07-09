@@ -1,0 +1,94 @@
+name: Bug report
+description: Report a reproducible EASEL.js bug.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Keep the report focused on EASEL.js behavior and include a minimal reproduction.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Pick the closest subsystem.
+      options:
+        - Renderer / framebuffer
+        - Rasterizer / sorting
+        - Geometry
+        - Materials / lighting
+        - Textures
+        - Animation
+        - Examples / website
+        - Package / build
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: EASEL.js version, git SHA, or branch.
+      placeholder: "0.5.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Runtime
+      options:
+        - Browser
+        - Bun
+        - Node.js
+        - Deno
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Link to a repository, example route, or paste the smallest code that reproduces the issue.
+      placeholder: |
+        import * as EASEL from "@xsyetopz/easel";
+        // smallest scene that shows the bug
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead? Include screenshots or pixel/output differences when useful.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser/runtime version, OS, package manager, and canvas size if relevant.
+      placeholder: |
+        Browser: Chrome 126
+        Runtime: Bun 1.x
+        OS: macOS / Linux / Windows
+        Canvas: 800x600
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and docs.
+          required: true
+        - label: I included a minimal reproduction, not just a full app.
+          required: true
+        - label: This report fits the CPU Canvas2D renderer scope, not WebGL/GPU feature parity.
+          required: true

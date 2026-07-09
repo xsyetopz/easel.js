@@ -1,0 +1,60 @@
+name: Feature request
+description: Propose a scoped EASEL.js feature.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        EASEL.js is a CPU-only Canvas2D software renderer. Requests should fit that renderer boundary.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Renderer / framebuffer
+        - Rasterizer / sorting
+        - Geometry
+        - Materials / lighting
+        - Textures
+        - Animation
+        - Controls / interaction
+        - Examples / website
+        - Package / build
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What concrete user or renderer problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or behavior
+      description: Show the desired API shape or behavior change.
+      placeholder: |
+        const renderer = new EASEL.Renderer({ ... });
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing APIs, examples, or workarounds you tried.
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope checks
+      options:
+        - label: This would exist in a CPU scanline rasterizer with no z-buffer.
+          required: true
+        - label: This does not require WebGL state, GPU buffers, shader programs, PBR materials, environment maps, or shadow maps.
+          required: true
+        - label: I can describe how this should be tested or documented.
+          required: true

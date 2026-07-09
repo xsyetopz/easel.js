@@ -3,24 +3,39 @@ name: Deploy to Cloudflare Pages
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: cloudflare-pages-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  NODE_VERSION: lts/*
 
 jobs:
   deploy:
+    name: Deploy
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.0
+      - uses: oven-sh/setup-bun@v2.2.0
+      - uses: actions/setup-node@v6.4.0
         with:
-          node-version: lts/*
+          node-version: ${{ env.NODE_VERSION }}
       - run: bun install --frozen-lockfile
-      - run: bun run playground:build
-      - uses: cloudflare/wrangler-action@v3
+      - run: bun run www:build
+      - uses: cloudflare/wrangler-action@v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/playground --project-name=easeljs
+          command: pages deploy dist/www --project-name=easeljs
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
