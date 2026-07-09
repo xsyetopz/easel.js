@@ -39,8 +39,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org
       - uses: oven-sh/setup-bun@v2.2.0
-      - name: Install latest npm
-        run: npm install -g npm@latest
       - name: Validate release input
         env:
           VERSION: ${{ inputs.version }}
