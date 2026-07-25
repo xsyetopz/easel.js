@@ -1,16 +1,16 @@
 {
-	"extends": "./tsconfig.base.json",
-	"compilerOptions": {
-		"composite": false,
-		"emitDeclarationOnly": true,
-		"noEmit": false,
-		"removeComments": true,
-		"rootDir": "./src"
-	},
-	"include": [
-		"src"
-	],
-	"exclude": [
-		"www"
-	]
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "removeComments": true,
+    "rootDir": "./src"
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "www"
+  ]
 }

@@ -1,15 +1,15 @@
 {
-	"name": "@xsyetopz/easel",
-	"version": "0.6.0",
-	"exports": "./src/index.ts",
-	"publish": {
-		"include": [
-			"src/**/*.ts",
-			"LICENSE",
-			"README.md"
-		],
-		"exclude": [
-			"src/**/*.test.ts"
-		]
-	}
+  "name": "@xsyetopz/easel",
+  "version": "0.6.0",
+  "exports": "./src/index.ts",
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "LICENSE",
+      "README.md"
+    ],
+    "exclude": [
+      "src/**/*.test.ts"
+    ]
+  }
 }
