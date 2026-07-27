@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - name: Validate GitHub metadata
         run: |
           set -euo pipefail
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: oven-sh/setup-bun@v2.2.0
       - run: bun run version:check
 
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: oven-sh/setup-bun@v2.2.0
       - run: bun install --frozen-lockfile
       - run: bun run deps:check
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: oven-sh/setup-bun@v2.2.0
       - run: bun install --frozen-lockfile
       - run: bun run biome:check
@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: oven-sh/setup-bun@v2.2.0
       - uses: actions/setup-node@v7.0.0
         with:
@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: oven-sh/setup-bun@v2.2.0
       - uses: actions/setup-node@v7.0.0
         with:
@@ -143,7 +143,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: oven-sh/setup-bun@v2.2.0
       - uses: actions/setup-node@v7.0.0
         with:
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: oven-sh/setup-bun@v2.2.0
       - uses: actions/setup-node@v7.0.0
         with:
