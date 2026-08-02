@@ -9,6 +9,10 @@ semantic versioning.
 
 ## [0.6.1] - 2026-08-02
 
+### Changed
+
+- Changed package metadata and project docs back to the MIT license.
+
 ### Fixed
 
 - Fixed scanline clipping so triangles entirely outside the framebuffer
