@@ -225,10 +225,19 @@ jobs:
       - name: Publish npm package through OIDC trusted publishing
         run: npm publish --provenance --access public
       - name: Publish JSR package through GitHub OIDC
+        id: jsr_publish
         run: |
           set -euo pipefail
           bun run jsr:build
-          bunx jsr@0.14.3 publish
+          JSR_PUBLISH_LOG="$(mktemp)"
+          bunx jsr@0.14.3 publish 2>&1 | tee "$JSR_PUBLISH_LOG"
+          REKOR_URL="$(grep -Eo 'https://search\.sigstore\.dev/\?logIndex=[0-9]+' "$JSR_PUBLISH_LOG" | tail -n 1 || true)"
+          REKOR_LOG_INDEX="${REKOR_URL##*=}"
+          if ! [[ "$REKOR_LOG_INDEX" =~ ^[0-9]+$ ]]; then
+            echo "::error::JSR publish did not report a Rekor transparency log index"
+            exit 1
+          fi
+          echo "rekor_log_index=$REKOR_LOG_INDEX" >> "$GITHUB_OUTPUT"
       - name: Verify npm provenance and source identity
         env:
           PACKAGE: ${{ needs.validate.outputs.package }}
@@ -290,15 +299,17 @@ jobs:
           done
       - name: Verify JSR provenance
         env:
+          EXPECTED_SHA: ${{ needs.validate.outputs.candidate_sha }}
+          REKOR_LOG_INDEX: ${{ steps.jsr_publish.outputs.rekor_log_index }}
           VERSION: ${{ needs.validate.outputs.version }}
         run: |
           set -euo pipefail
           JSR_URL="https://api.jsr.io/scopes/xsyetopz/packages/easel/versions/$VERSION"
           JSR_RESPONSE="$(mktemp)"
-          VERIFIED=0
-          for attempt in {1..30}; do
-            if curl --fail --silent --show-error --location "$JSR_URL" >"$JSR_RESPONSE"; then
-              if node - "$JSR_RESPONSE" "$VERSION" <<'NODE'
+          curl --fail --silent --show-error --location \
+            --retry 12 --retry-all-errors --retry-delay 5 \
+            "$JSR_URL" >"$JSR_RESPONSE"
+          node - "$JSR_RESPONSE" "$VERSION" <<'NODE'
           const fs = require("node:fs");
           const [responsePath, expectedVersion] = process.argv.slice(2);
           const response = JSON.parse(fs.readFileSync(responsePath, "utf8"));
@@ -306,29 +317,45 @@ jobs:
             console.error(`JSR returned version ${response?.version ?? "missing"}`);
             process.exit(1);
           }
-          const rekorLogId = response?.rekorLogId;
-          if (
-            (typeof rekorLogId !== "string" && typeof rekorLogId !== "number") ||
-            String(rekorLogId).trim() === "" ||
-            (typeof rekorLogId === "number" && !Number.isFinite(rekorLogId))
-          ) {
-            console.error("JSR version has no Rekor provenance log ID");
+          NODE
+
+          if ! [[ "$REKOR_LOG_INDEX" =~ ^[0-9]+$ ]]; then
+            echo "::error::JSR publish produced an invalid Rekor transparency log index"
+            exit 1
+          fi
+          REKOR_RESPONSE="$(mktemp)"
+          curl --fail --silent --show-error --location \
+            --retry 6 --retry-all-errors --retry-delay 5 \
+            "https://rekor.sigstore.dev/api/v1/log/entries?logIndex=$REKOR_LOG_INDEX" \
+            >"$REKOR_RESPONSE"
+          node - "$REKOR_RESPONSE" "$REKOR_LOG_INDEX" "$VERSION" "$EXPECTED_SHA" <<'NODE'
+          const fs = require("node:fs");
+          const [responsePath, expectedIndex, expectedVersion, expectedSha] = process.argv.slice(2);
+          const response = JSON.parse(fs.readFileSync(responsePath, "utf8"));
+          const entries = Object.values(response);
+          const entry = entries.find(({ logIndex }) => String(logIndex) === expectedIndex);
+          if (!entry) {
+            console.error(`Rekor has no entry at log index ${expectedIndex}`);
+            process.exit(1);
+          }
+          const statement = JSON.parse(Buffer.from(entry.attestation?.data ?? "", "base64").toString("utf8"));
+          const expectedSubject = `pkg:jsr/@xsyetopz/easel@${expectedVersion}`;
+          const subjectNames = statement.subject?.map(({ name }) => name) ?? [];
+          if (!subjectNames.includes(expectedSubject)) {
+            console.error(`Rekor provenance does not include ${expectedSubject}`);
+            process.exit(1);
+          }
+          if (statement.predicateType !== "https://slsa.dev/provenance/v1") {
+            console.error(`Rekor provenance predicate is ${statement.predicateType ?? "missing"}`);
+            process.exit(1);
+          }
+          const dependencies = statement.predicate?.buildDefinition?.resolvedDependencies ?? [];
+          const source = dependencies.find(({ uri }) => uri === "git+https://github.com/xsyetopz/easel.js@refs/heads/main");
+          if (source?.digest?.gitCommit !== expectedSha) {
+            console.error(`Rekor source commit ${source?.digest?.gitCommit ?? "missing"} does not match ${expectedSha}`);
             process.exit(1);
           }
           NODE
-              then
-                VERIFIED=1
-                break
-              fi
-            fi
-            if [ "$attempt" -eq 30 ]; then
-              echo "::error::JSR metadata did not prove version and Rekor provenance"
-              cat "$JSR_RESPONSE"
-              exit 1
-            fi
-            sleep 10
-          done
-          test "$VERIFIED" -eq 1
 
   github-release:
     name: Tag and create GitHub release
