@@ -11,8 +11,7 @@ on:
 run-name: Release ${{ inputs.version }}
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: release-${{ inputs.version }}
@@ -22,92 +21,266 @@ defaults:
   run:
     shell: bash
 
-env:
-  NODE_VERSION: lts/*
-
 jobs:
-  release:
-    name: Publish
+  validate:
+    name: Validate release
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.release_state.outputs.version }}
+      package: ${{ steps.release_state.outputs.package }}
+      candidate_sha: ${{ steps.release_state.outputs.candidate_sha }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v7.0.0
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          registry-url: https://registry.npmjs.org
-      - uses: oven-sh/setup-bun@v2.2.0
-      - name: Validate release state
-        id: state
+          node-version: 24.18.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.14
+      - name: Assert release source and version
+        id: release_state
         env:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
+          if [ "$GITHUB_REPOSITORY" != "xsyetopz/easel.js" ]; then
+            echo "::error::Release is only allowed for xsyetopz/easel.js (got $GITHUB_REPOSITORY)"
+            exit 1
+          fi
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Release must run from refs/heads/main (got $GITHUB_REF)"
+            exit 1
+          fi
           if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Version must be X.Y.Z, got $VERSION"
             exit 1
           fi
-          PACKAGE_VERSION=$(bun -p "require('./package.json').version")
-          PACKAGE_NAME=$(bun -p "require('./package.json').name")
-          JSR_VERSION=$(bun -p "require('./jsr.json').version")
-          REVISION=$(bun -e "const fs=require('node:fs'); const match=fs.readFileSync('src/index.ts','utf8').match(/REVISION = \\\"([^\\\"]+)\\\"/); console.log(match?.[1] ?? '')")
+
+          git fetch --no-tags --force origin main:refs/remotes/origin/main
+          HEAD_SHA="$(git rev-parse HEAD)"
+          MAIN_SHA="$(git rev-parse refs/remotes/origin/main)"
+          if [ "$HEAD_SHA" != "$MAIN_SHA" ] || [ "$HEAD_SHA" != "$GITHUB_SHA" ]; then
+            echo "::error::Release checkout is not the current main commit"
+            echo "HEAD=$HEAD_SHA origin/main=$MAIN_SHA github.sha=$GITHUB_SHA"
+            exit 1
+          fi
+
+          PACKAGE_VERSION="$(bun -p "require('./package.json').version")"
+          PACKAGE_NAME="$(bun -p "require('./package.json').name")"
+          JSR_NAME="$(bun -p "require('./jsr.json').name")"
+          JSR_VERSION="$(bun -p "require('./jsr.json').version")"
+          REVISION="$(sed -n 's/^export const REVISION = "\([^\"]*\)";$/\1/p' src/index.ts)"
+          if [ "$PACKAGE_NAME" != "@xsyetopz/easel" ] || [ "$JSR_NAME" != "@xsyetopz/easel" ]; then
+            echo "::error::Unexpected package identity: npm=$PACKAGE_NAME jsr=$JSR_NAME"
+            exit 1
+          fi
           if [ "$PACKAGE_VERSION" != "$VERSION" ] || [ "$JSR_VERSION" != "$VERSION" ] || [ "$REVISION" != "$VERSION" ]; then
             echo "::error::Version mismatch package=$PACKAGE_VERSION jsr=$JSR_VERSION revision=$REVISION input=$VERSION"
             exit 1
           fi
-          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "::error::Tag already exists locally: v$VERSION"
+
+          if git rev-parse --verify --quiet "refs/tags/v$VERSION" >/dev/null; then
+            echo "::error::Tag already exists: v$VERSION"
             exit 1
           fi
-          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
-            echo "::error::Tag already exists remotely: v$VERSION"
+          TAG_ERROR="$(mktemp)"
+          set +e
+          git ls-remote --exit-code --refs origin "refs/tags/v$VERSION" >/dev/null 2>"$TAG_ERROR"
+          TAG_STATUS=$?
+          set -e
+          case "$TAG_STATUS" in
+            0)
+              echo "::error::Tag already exists remotely: v$VERSION"
+              exit 1
+              ;;
+            2)
+              ;;
+            *)
+              echo "::error::Unable to prove tag is absent"
+              cat "$TAG_ERROR"
+              exit 1
+              ;;
+          esac
+
+          NPM_ERROR="$(mktemp)"
+          if npm view "$PACKAGE_NAME@$VERSION" version --json >/dev/null 2>"$NPM_ERROR"; then
+            echo "::error::npm version already exists: $PACKAGE_NAME@$VERSION"
+            cat "$NPM_ERROR"
             exit 1
           fi
-          if npm view "$PACKAGE_NAME@$VERSION" version >/dev/null 2>&1; then
-            echo "npm_exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "npm_exists=false" >> "$GITHUB_OUTPUT"
+          if ! grep -Eqi 'E404|404 Not Found|No match found for version|is not in this registry' "$NPM_ERROR"; then
+            echo "::error::Unable to prove npm version is absent"
+            cat "$NPM_ERROR"
+            exit 1
           fi
-          if bunx jsr show "$PACKAGE_NAME@$VERSION" >/dev/null 2>&1; then
-            echo "jsr_exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "jsr_exists=false" >> "$GITHUB_OUTPUT"
-          fi
-      - run: bun install --frozen-lockfile
-      - run: bun run release:check
-      - name: Publish npm package with provenance
-        if: steps.state.outputs.npm_exists != 'true'
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish JSR package
-        if: steps.state.outputs.jsr_exists != 'true'
-        run: bun run jsr:publish
-      - name: Verify npm package provenance
-        env:
-          VERSION: ${{ inputs.version }}
+
+          JSR_URL="https://api.jsr.io/scopes/xsyetopz/packages/easel/versions/$VERSION"
+          JSR_RESPONSE="$(mktemp)"
+          JSR_HTTP_STATUS="$(curl --silent --show-error --location --output "$JSR_RESPONSE" --write-out '%{http_code}' "$JSR_URL")"
+          case "$JSR_HTTP_STATUS" in
+            404)
+              ;;
+            200)
+              echo "::error::JSR version already exists: $PACKAGE_NAME@$VERSION"
+              cat "$JSR_RESPONSE"
+              exit 1
+              ;;
+            *)
+              echo "::error::Unable to prove JSR version is absent (HTTP $JSR_HTTP_STATUS)"
+              cat "$JSR_RESPONSE"
+              exit 1
+              ;;
+          esac
+
+          {
+            echo "version=$VERSION"
+            echo "package=$PACKAGE_NAME"
+            echo "candidate_sha=$HEAD_SHA"
+          } >> "$GITHUB_OUTPUT"
+      - name: Assert publishing toolchain
         run: |
           set -euo pipefail
-          PACKAGE=$(bun -p "require('./package.json').name")
+          test "$(node --version)" = "v24.18.1"
+          npm --version
+          NPM_VERSION="$(npm --version)"
+          node - "$NPM_VERSION" <<'NODE'
+          const [major, minor, patch] = (process.argv[2] ?? "").split(".").map(Number);
+          if ([major, minor, patch].some((value) => Number.isNaN(value))) {
+            console.error("Unable to determine npm CLI version");
+            process.exit(1);
+          }
+          if (major < 11 || (major === 11 && minor < 5)) {
+            console.error(`npm ${major}.${minor}.${patch} is below trusted publishing minimum 11.5.1`);
+            process.exit(1);
+          }
+          NODE
+          test "$(bun --version)" = "1.3.14"
+      - name: Install dependencies and run release gate
+        run: bun run release:check
+      - name: Build and dry-run JSR package
+        run: |
+          set -euo pipefail
+          bun run jsr:build
+          bunx jsr@0.14.3 publish --dry-run
+
+  publish:
+    name: Publish packages
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24.18.1
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.14
+      - name: Assert approved release candidate
+        env:
+          CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REPOSITORY" != "xsyetopz/easel.js" ] || [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Publish job is not running on the protected release source"
+            exit 1
+          fi
+          HEAD_SHA="$(git rev-parse HEAD)"
+          if [ "$HEAD_SHA" != "$GITHUB_SHA" ] || [ "$HEAD_SHA" != "$CANDIDATE_SHA" ]; then
+            echo "::error::Publish checkout does not match validated candidate"
+            echo "HEAD=$HEAD_SHA github.sha=$GITHUB_SHA candidate=$CANDIDATE_SHA"
+            exit 1
+          fi
+          npm --version
+          NPM_VERSION="$(npm --version)"
+          node - "$NPM_VERSION" <<'NODE'
+          const [major, minor] = process.versions.node.split(".").map(Number);
+          if (major < 22 || (major === 22 && minor < 14)) {
+            console.error(`Node ${process.versions.node} is below trusted publishing minimum 22.14.0`);
+            process.exit(1);
+          }
+          const [npmMajor, npmMinor] = (process.argv[2] ?? "").split(".").map(Number);
+          if (Number.isNaN(npmMajor) || Number.isNaN(npmMinor) || npmMajor < 11 || (npmMajor === 11 && npmMinor < 5)) {
+            console.error(`npm ${process.argv[2] ?? "unknown"} is below trusted publishing minimum 11.5.1`);
+            process.exit(1);
+          }
+          NODE
+      - run: bun install --frozen-lockfile
+      - name: Publish npm package through OIDC trusted publishing
+        run: npm publish --provenance --access public
+      - name: Publish JSR package through GitHub OIDC
+        run: |
+          set -euo pipefail
+          bun run jsr:build
+          bunx jsr@0.14.3 publish
+      - name: Verify npm provenance and source identity
+        env:
+          PACKAGE: ${{ needs.validate.outputs.package }}
+          VERSION: ${{ needs.validate.outputs.version }}
+          EXPECTED_SHA: ${{ needs.validate.outputs.candidate_sha }}
+        run: |
+          set -euo pipefail
+          METADATA_FILE="$(mktemp)"
+          NPM_ERROR="$(mktemp)"
+          VERIFIED=0
           for attempt in {1..30}; do
-            if npm view "$PACKAGE@$VERSION" version >/dev/null 2>&1; then
-              break
+            if npm view "$PACKAGE@$VERSION" --json >"$METADATA_FILE" 2>"$NPM_ERROR"; then
+              if node - "$METADATA_FILE" "$VERSION" "$EXPECTED_SHA" <<'NODE'
+          const fs = require("node:fs");
+          const [metadataPath, expectedVersion, expectedSha] = process.argv.slice(2);
+          const payload = JSON.parse(fs.readFileSync(metadataPath, "utf8"));
+          const metadata = Array.isArray(payload) ? payload[0] : payload;
+          const predicateType = metadata?.dist?.attestations?.provenance?.predicateType;
+          if (metadata?.version !== expectedVersion) {
+            console.error(`npm returned version ${metadata?.version ?? "missing"}`);
+            process.exit(1);
+          }
+          if (metadata?.gitHead !== expectedSha) {
+            console.error(`npm gitHead ${metadata?.gitHead ?? "missing"} does not match ${expectedSha}`);
+            process.exit(1);
+          }
+          if (predicateType !== "https://slsa.dev/provenance/v1") {
+            console.error(`npm provenance predicate is ${predicateType ?? "missing"}`);
+            process.exit(1);
+          }
+          NODE
+              then
+                VERIFIED=1
+                break
+              fi
             fi
             if [ "$attempt" -eq 30 ]; then
-              echo "::error::npm package did not become visible: $PACKAGE@$VERSION"
+              echo "::error::npm metadata did not prove version, source identity, and provenance"
+              cat "$NPM_ERROR"
               exit 1
             fi
             sleep 10
           done
-          VERIFY_DIR=$(mktemp -d)
+          test "$VERIFIED" -eq 1
+
+          VERIFY_DIR="$(mktemp -d)"
           cd "$VERIFY_DIR"
           npm init -y >/dev/null
-          npm install "$PACKAGE@$VERSION" --ignore-scripts
+          npm install "$PACKAGE@$VERSION" --ignore-scripts --no-audit
           for attempt in {1..12}; do
             if npm audit signatures; then
-              exit 0
+              break
             fi
             if [ "$attempt" -eq 12 ]; then
               echo "::error::npm audit signatures failed after retries: $PACKAGE@$VERSION"
@@ -115,7 +288,117 @@ jobs:
             fi
             sleep 10
           done
-      - name: Create tag and GitHub release
+      - name: Verify JSR provenance
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          set -euo pipefail
+          JSR_URL="https://api.jsr.io/scopes/xsyetopz/packages/easel/versions/$VERSION"
+          JSR_RESPONSE="$(mktemp)"
+          VERIFIED=0
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error --location "$JSR_URL" >"$JSR_RESPONSE"; then
+              if node - "$JSR_RESPONSE" "$VERSION" <<'NODE'
+          const fs = require("node:fs");
+          const [responsePath, expectedVersion] = process.argv.slice(2);
+          const response = JSON.parse(fs.readFileSync(responsePath, "utf8"));
+          if (response?.version !== expectedVersion) {
+            console.error(`JSR returned version ${response?.version ?? "missing"}`);
+            process.exit(1);
+          }
+          const rekorLogId = response?.rekorLogId;
+          if (
+            (typeof rekorLogId !== "string" && typeof rekorLogId !== "number") ||
+            String(rekorLogId).trim() === "" ||
+            (typeof rekorLogId === "number" && !Number.isFinite(rekorLogId))
+          ) {
+            console.error("JSR version has no Rekor provenance log ID");
+            process.exit(1);
+          }
+          NODE
+              then
+                VERIFIED=1
+                break
+              fi
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "::error::JSR metadata did not prove version and Rekor provenance"
+              cat "$JSR_RESPONSE"
+              exit 1
+            fi
+            sleep 10
+          done
+          test "$VERIFIED" -eq 1
+
+  github-release:
+    name: Tag and create GitHub release
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Assert release candidate and tag state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REPOSITORY" != "xsyetopz/easel.js" ] || [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::GitHub release job is not running on the protected release source"
+            exit 1
+          fi
+          HEAD_SHA="$(git rev-parse HEAD)"
+          if [ "$HEAD_SHA" != "$GITHUB_SHA" ]; then
+            echo "::error::GitHub release checkout does not match the published source"
+            exit 1
+          fi
+          TAG_ERROR="$(mktemp)"
+          set +e
+          git ls-remote --exit-code --refs origin "refs/tags/v$VERSION" >/dev/null 2>"$TAG_ERROR"
+          TAG_STATUS=$?
+          set -e
+          case "$TAG_STATUS" in
+            0)
+              echo "::error::Tag already exists remotely: v$VERSION"
+              exit 1
+              ;;
+            2)
+              ;;
+            *)
+              echo "::error::Unable to prove tag is absent"
+              cat "$TAG_ERROR"
+              exit 1
+              ;;
+          esac
+          RELEASE_ERROR="$(mktemp)"
+          set +e
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/v$VERSION" >/dev/null 2>"$RELEASE_ERROR"
+          RELEASE_STATUS=$?
+          set -e
+          case "$RELEASE_STATUS" in
+            0)
+              echo "::error::GitHub release already exists: v$VERSION"
+              exit 1
+              ;;
+            1)
+              if ! grep -Eqi 'HTTP 404|Not Found' "$RELEASE_ERROR"; then
+                echo "::error::Unable to prove GitHub release is absent"
+                cat "$RELEASE_ERROR"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error::Unable to prove GitHub release is absent"
+              cat "$RELEASE_ERROR"
+              exit 1
+              ;;
+          esac
+      - name: Create immutable annotated tag and GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.version }}
@@ -123,6 +406,6 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag "v$VERSION"
+          git tag --annotate "v$VERSION" "$GITHUB_SHA" --message "Release v$VERSION"
           git push origin "v$VERSION"
-          gh release create "v$VERSION" --title "v$VERSION" --notes "Release v$VERSION" --latest
+          gh release create "v$VERSION" --verify-tag --title "v$VERSION" --notes "Release v$VERSION" --latest

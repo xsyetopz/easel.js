@@ -71,6 +71,20 @@ Keep one concern per PR. If a refactor is needed to support a feature, split it 
 - [ ] Commit messages explain intent.
 - [ ] PR description covers motivation, approach, and validation.
 
+## Releases
+
+Package releases are published only by `.github/workflows/release.yml`. Do not
+run `npm publish` or `jsr publish` locally. After the release commit is merged
+to `main`, an authorized maintainer dispatches the protected workflow with:
+
+```bash
+bun run release -- X.Y.Z
+```
+
+The workflow validates the exact `main` commit, publishes npm and JSR packages
+through GitHub OIDC, verifies registry provenance, and only then creates the Git
+tag and GitHub release.
+
 ## Architecture
 
 EASEL.js is a Canvas2D software renderer. The pipeline runs on the CPU: scene traversal, fog culling, painter/depth-aware ordering, light baking, scanline rasterization, CPU depth testing for opaque fragments, framebuffer write, and Canvas2D upload.

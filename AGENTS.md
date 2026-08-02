@@ -1,10 +1,6 @@
 # AGENTS.md
 
-Guidance for AI coding agents in this repository. Closer `AGENTS.md` or explicit user instructions win.
-
-## Project shape
-
-EASEL.js is a TypeScript Canvas2D software renderer for browser-side 3D scenes. The npm/JSR package is `@xsyetopz/easel`; current source revision is `0.6.0`; license is ISC.
+EASEL.js is a TypeScript Canvas2D software renderer for browser-side 3D scenes. The npm/JSR package is `@xsyetopz/easel`; current source revision is `0.6.1`; license is ISC.
 
 ## Source of truth
 

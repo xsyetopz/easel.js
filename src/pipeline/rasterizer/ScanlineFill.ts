@@ -1,5 +1,3 @@
-import { MathUtils } from "../../math/MathUtils.ts";
-
 type ScanlineCallback = (
 	y: number,
 	xStart: number,
@@ -303,16 +301,13 @@ export class ScanlineFill {
 		dvDx: number,
 		callback: ScanlineCallback,
 	): void {
-		const startX = MathUtils.clamp(
-			Math.ceil(MathUtils.fastMin(xLeft, xRight)),
-			0,
-			width - 1,
-		);
-		const endX = MathUtils.clamp(
-			MathUtils.fastTrunc(MathUtils.fastMax(xLeft, xRight)),
-			0,
-			width - 1,
-		);
+		const rawStart = Math.ceil(Math.min(xLeft, xRight));
+		const rawEnd = Math.trunc(Math.max(xLeft, xRight));
+
+		if (rawEnd < 0 || rawStart >= width) return;
+
+		const startX = Math.max(0, rawStart);
+		const endX = Math.min(width - 1, rawEnd);
 		if (startX > endX) return;
 
 		// Barycentric start values at (startX, y) using pre-hoisted coefficients.

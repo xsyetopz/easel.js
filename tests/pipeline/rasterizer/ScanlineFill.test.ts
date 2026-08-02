@@ -144,6 +144,18 @@ describe("ScanlineFill", () => {
 		expect(pixels.length).toBe(0);
 	});
 
+	it("rejects horizontal spans entirely outside the framebuffer", () => {
+		expect(collectFill(fill, -10, 0, -5, 0, -8, 5)).toEqual([]);
+		expect(collectFill(fill, 25, 0, 30, 0, 28, 5)).toEqual([]);
+
+		const partialLeft = collectFill(fill, -2, 0, 5, 0, -1, 5);
+		const partialRight = collectFill(fill, 15, 0, 22, 0, 19, 5);
+		expect(partialLeft.some((pixel) => pixel.x === 0)).toBe(true);
+		expect(partialLeft.some((pixel) => pixel.x > 0)).toBe(true);
+		expect(partialRight.some((pixel) => pixel.x === 19)).toBe(true);
+		expect(partialRight.some((pixel) => pixel.x < 19)).toBe(true);
+	});
+
 	it("degenerate triangle with all vertices at same point produces zero pixels", () => {
 		const pixels = collectFill(fill, 5, 5, 5, 5, 5, 5);
 		expect(pixels.length).toBe(0);

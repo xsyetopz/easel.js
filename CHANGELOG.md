@@ -6,6 +6,12 @@ This project follows [Keep a Changelog](https://keepachangelog.com/) and uses se
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-02
+
+### Fixed
+
+- Fixed scanline clipping so triangles entirely outside the framebuffer horizontally no longer collapse into persistent edge pixels.
+
 ## [0.6.0] - 2026-07-09
 
 ### Added

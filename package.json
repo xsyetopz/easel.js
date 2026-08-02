@@ -1,6 +1,6 @@
 {
   "name": "@xsyetopz/easel",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Canvas2D software renderer and CPU rasterizer with a THREE.js-style scene graph API",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -50,7 +50,6 @@
     "prepublishOnly": "bun run release:check",
     "jsr:clean": "bun run clean:declarations",
     "jsr:build": "bun run jsr:clean && tsc -p tsconfig.jsr.json",
-    "jsr:publish": "bun run jsr:build && bunx jsr publish",
     "clean:declarations": "find src \\( -name '*.d.ts' ! -name 'globals.d.ts' -o -name '*.d.ts.map' \\) | xargs rm -f",
     "typecheck:tests": "tsc -p tests/tsconfig.json --noEmit --pretty false",
     "typecheck:website": "tsc -p www/tsconfig.json --noEmit --pretty false",
@@ -121,6 +120,9 @@
   },
   "publisher": "xsyetopz",
   "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/xsyetopz/easel.js.git"

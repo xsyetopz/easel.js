@@ -15,7 +15,7 @@ EASEL.js is a TypeScript Canvas2D software renderer for browser-side 3D scenes. 
 | Item | Current value |
 | --- | --- |
 | Package | `@xsyetopz/easel` |
-| Revision | `0.6.0` |
+| Revision | `0.6.1` |
 | Source | TypeScript |
 | Runtime deps | none |
 | Output | Canvas2D `ImageData` upload |
