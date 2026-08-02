@@ -3,7 +3,7 @@
 [![CI](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
 [![JSR](https://jsr.io/badges/@xsyetopz/easel)](https://jsr.io/@xsyetopz/easel)
-[![ISC](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 EASEL.js - TypeScript-рендерер 3D-сцен для браузерного Canvas2D. Он
 предоставляет граф сцены в стиле THREE и конвейер растеризации на CPU без WebGL.
@@ -116,7 +116,7 @@ bunx skills add xsyetopz/easel.js --skill threejs-to-easeljs
 
 ```sh
 bun install
-bun run test:run
+bun test
 bun run typecheck
 bun run biome:check
 bun run www:build
@@ -132,4 +132,4 @@ bun run www:build
 
 ## Лицензия
 
-[ISC](LICENSE)
+[MIT](LICENSE)

@@ -3,7 +3,7 @@
 [![CI](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
 [![JSR](https://jsr.io/badges/@xsyetopz/easel)](https://jsr.io/@xsyetopz/easel)
-[![ISC](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 EASEL.js 是一个面向浏览器 Canvas2D 的 TypeScript 3D 渲染器。它提供 THREE
 风格的场景图，以及无需 WebGL 的 CPU 光栅化管线。
@@ -110,7 +110,7 @@ bunx skills add xsyetopz/easel.js --skill threejs-to-easeljs
 
 ```sh
 bun install
-bun run test:run
+bun test
 bun run typecheck
 bun run biome:check
 bun run www:build
@@ -127,4 +127,4 @@ bun run www:build
 
 ## 许可证
 
-[ISC](LICENSE)
+[MIT](LICENSE)

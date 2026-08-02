@@ -3,7 +3,7 @@
 [![CI](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
 [![JSR](https://jsr.io/badges/@xsyetopz/easel)](https://jsr.io/@xsyetopz/easel)
-[![ISC](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 EASEL.js ब्राउज़र के Canvas2D के लिए TypeScript में बना 3D रेंडरर है। यह THREE-शैली का सीन
 ग्राफ़ और WebGL के बिना CPU रास्टराइज़ेशन पाइपलाइन उपलब्ध कराता है।
@@ -113,7 +113,7 @@ bunx skills add xsyetopz/easel.js --skill threejs-to-easeljs
 
 ```sh
 bun install
-bun run test:run
+bun test
 bun run typecheck
 bun run biome:check
 bun run www:build
@@ -129,4 +129,4 @@ bun run www:build
 
 ## लाइसेंस
 
-[ISC](LICENSE)
+[MIT](LICENSE)

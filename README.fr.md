@@ -3,7 +3,7 @@
 [![CI](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml/badge.svg)](https://github.com/xsyetopz/easel.js/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@xsyetopz/easel)](https://www.npmjs.com/package/@xsyetopz/easel)
 [![JSR](https://jsr.io/badges/@xsyetopz/easel)](https://jsr.io/@xsyetopz/easel)
-[![ISC](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 EASEL.js est un moteur de rendu 3D en TypeScript pour Canvas2D dans le
 navigateur. Il fournit un graphe de scène de style THREE et un pipeline de
@@ -117,7 +117,7 @@ bunx skills add xsyetopz/easel.js --skill threejs-to-easeljs
 
 ```sh
 bun install
-bun run test:run
+bun test
 bun run typecheck
 bun run biome:check
 bun run www:build
@@ -134,4 +134,4 @@ structure du projet et les limites du moteur de rendu sont documentées dans
 
 ## Licence
 
-[ISC](LICENSE)
+[MIT](LICENSE)
