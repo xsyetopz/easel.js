@@ -1,8 +1,8 @@
 # Voxel worlds
 
 Read this for visible-face meshing, opaque/transparent passes, chunk streaming,
-replacement disposal, world offsets, and rebuild budgets. The complete
-mesher is kept once at the
+replacement disposal, world offsets, and rebuild budgets. The complete mesher is
+kept once at the
 [voxel-world starter mesher](../assets/templates/voxel-world-starter/src/mesher.ts);
 the excerpt below shows its public contract without duplicating that source.
 
@@ -36,12 +36,12 @@ Offset positions before bounding sphere:
 ```ts
 const attr = geometry.getAttribute("position");
 if (attr) {
-  const pos = attr.array as Float32Array;
-  for (let i = 0; i < pos.length; i += 3) {
-    pos[i] += offsetX;
-    pos[i + 2] += offsetZ;
-  }
-  geometry.computeBoundingSphere();
+    const pos = attr.array as Float32Array;
+    for (let i = 0; i < pos.length; i += 3) {
+        pos[i] += offsetX;
+        pos[i + 2] += offsetZ;
+    }
+    geometry.computeBoundingSphere();
 }
 ```
 
@@ -49,14 +49,14 @@ Face visibility rule:
 
 ```ts
 function shouldRenderFace(
-  block: number,
-  neighbor: number,
-  isTransparent: (id: number) => boolean,
+    block: number,
+    neighbor: number,
+    isTransparent: (id: number) => boolean,
 ) {
-  if (neighbor === 0) return true;
-  if (isTransparent(block) && neighbor !== block) return true;
-  if (!isTransparent(block) && isTransparent(neighbor)) return true;
-  return false;
+    if (neighbor === 0) return true;
+    if (isTransparent(block) && neighbor !== block) return true;
+    if (!isTransparent(block) && isTransparent(neighbor)) return true;
+    return false;
 }
 ```
 
@@ -82,9 +82,9 @@ Replacement recipe:
 ```ts
 const old = meshes.get(key);
 if (old) {
-  scene.remove(old);
-  old.geometry?.dispose();
-  meshes.delete(key);
+    scene.remove(old);
+    old.geometry?.dispose();
+    meshes.delete(key);
 }
 const mesh = new EASEL.Mesh(geometry, material);
 meshes.set(key, mesh);
@@ -103,18 +103,18 @@ instead of maintaining a second example copy.
 
 ```ts
 export interface BlockWorld {
-  getBlock(x: number, y: number, z: number): number;
-  isTransparent(block: number): boolean;
-  uvFor(
-    block: number,
-    face: number,
-  ): [u0: number, v0: number, u1: number, v1: number];
+    getBlock(x: number, y: number, z: number): number;
+    isTransparent(block: number): boolean;
+    uvFor(
+        block: number,
+        face: number,
+    ): [u0: number, v0: number, u1: number, v1: number];
 }
 
 export function buildSimpleVoxelChunk(
-  world: BlockWorld,
-  sizeX: number,
-  sizeY: number,
-  sizeZ: number,
+    world: BlockWorld,
+    sizeX: number,
+    sizeY: number,
+    sizeZ: number,
 ): EASEL.Geometry;
 ```

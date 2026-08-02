@@ -25,10 +25,10 @@ Clip recipe:
 
 ```ts
 const track = new EASEL.Track(
-	"Cube.rotation.y",
-	new Float32Array([0, 1]),
-	new Float32Array([0, Math.PI * 2]),
-	1,
+    "Cube.rotation.y",
+    new Float32Array([0, 1]),
+    new Float32Array([0, Math.PI * 2]),
+    1,
 );
 const clip = new EASEL.AnimationClip("spin", 1, [track]);
 const animator = new EASEL.Animator(scene);
@@ -42,8 +42,7 @@ animator.update(dt);
 ```
 
 Step animation is implemented by the `StepTrack` subclass in the complete
-voxel-rig example below; keep the override there as the complete
-implementation.
+voxel-rig example below; keep the override there as the complete implementation.
 
 Track names resolve node paths and properties. Name scene nodes explicitly
 before binding animation tracks.
@@ -81,29 +80,29 @@ const animator = new EASEL.Animator(root);
 import * as EASEL from "@xsyetopz/easel";
 
 export function createAnimatedCube() {
-	const cube = new EASEL.Mesh(
-		new EASEL.BoxGeometry(1, 1, 1),
-		new EASEL.LambertMaterial({
-			color: 0x44aaff,
-			shading: EASEL.Shading.Gouraud,
-		}),
-	);
-	cube.name = "Cube";
-	const track = new EASEL.Track(
-		"Cube.rotation.y",
-		[0, 1],
-		[0, Math.PI * 2],
-		1,
-	);
-	const clip = new EASEL.AnimationClip("spin", 1, [track]);
-	const root = new EASEL.Group();
-	root.add(cube);
-	const animator = new EASEL.Animator(root);
-	animator
-		.clipAction(clip)
-		.setLoop(EASEL.LoopRepeat, Number.POSITIVE_INFINITY)
-		.play();
-	return { root, cube, animator };
+    const cube = new EASEL.Mesh(
+        new EASEL.BoxGeometry(1, 1, 1),
+        new EASEL.LambertMaterial({
+            color: 0x44aaff,
+            shading: EASEL.Shading.Gouraud,
+        }),
+    );
+    cube.name = "Cube";
+    const track = new EASEL.Track(
+        "Cube.rotation.y",
+        [0, 1],
+        [0, Math.PI * 2],
+        1,
+    );
+    const clip = new EASEL.AnimationClip("spin", 1, [track]);
+    const root = new EASEL.Group();
+    root.add(cube);
+    const animator = new EASEL.Animator(root);
+    animator
+        .clipAction(clip)
+        .setLoop(EASEL.LoopRepeat, Number.POSITIVE_INFINITY)
+        .play();
+    return { root, cube, animator };
 }
 ```
 
@@ -113,36 +112,36 @@ export function createAnimatedCube() {
 import * as EASEL from "@xsyetopz/easel";
 
 class StepTrack extends EASEL.Track {
-	override interpolate(index: number): number[] {
-		const offset = index * this.itemSize;
-		return Array.from(this.values.subarray(offset, offset + this.itemSize));
-	}
+    override interpolate(index: number): number[] {
+        const offset = index * this.itemSize;
+        return Array.from(this.values.subarray(offset, offset + this.itemSize));
+    }
 }
 
 export function makeTwoJointModel(texture: EASEL.DataTexture) {
-	const material = new EASEL.BasicMaterial({
-		map: texture,
-		side: EASEL.Side.Front,
-	});
-	const root = new EASEL.Group();
-	root.name = "Root";
-	const arm = new EASEL.Group();
-	arm.name = "Arm";
-	arm.position.set(0.6, 0.8, 0);
-	arm.add(new EASEL.Mesh(new EASEL.BoxGeometry(0.25, 0.8, 0.25), material));
-	root.add(arm);
-	const track = new StepTrack(
-		"Arm.rotation.z",
-		[0, 0.5, 1],
-		[0.4, -0.4, 0.4],
-		1,
-	);
-	const clip = new EASEL.AnimationClip("wave", 1, [track]);
-	const animator = new EASEL.Animator(root);
-	animator
-		.clipAction(clip)
-		.setLoop(EASEL.LoopRepeat, Number.POSITIVE_INFINITY)
-		.play();
-	return { root, animator };
+    const material = new EASEL.BasicMaterial({
+        map: texture,
+        side: EASEL.Side.Front,
+    });
+    const root = new EASEL.Group();
+    root.name = "Root";
+    const arm = new EASEL.Group();
+    arm.name = "Arm";
+    arm.position.set(0.6, 0.8, 0);
+    arm.add(new EASEL.Mesh(new EASEL.BoxGeometry(0.25, 0.8, 0.25), material));
+    root.add(arm);
+    const track = new StepTrack(
+        "Arm.rotation.z",
+        [0, 0.5, 1],
+        [0.4, -0.4, 0.4],
+        1,
+    );
+    const clip = new EASEL.AnimationClip("wave", 1, [track]);
+    const animator = new EASEL.Animator(root);
+    animator
+        .clipAction(clip)
+        .setLoop(EASEL.LoopRepeat, Number.POSITIVE_INFINITY)
+        .play();
+    return { root, animator };
 }
 ```

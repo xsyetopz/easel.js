@@ -1,14 +1,14 @@
-# Web Performance (Browser) — Measurement + Scheduling for Easel.js
+# Web Performance (Browser) - Measurement + Scheduling for Easel.js
 
 This is about **runtime smoothness** (frame time, jank, responsiveness), not
-just “bundle size”. It’s meant to guide profiling and regression prevention for
+just "bundle size". It’s meant to guide profiling and regression prevention for
 Easel.js’ Canvas2D software renderer and its React website.
 
-## Applies to Easel.js because…
+## Applies to Easel.js because...
 
 - Easel rendering is CPU-bound and commonly runs on the **main thread**
   (Canvas2D + scene updates).
-- Any single “long task” can block input, animation, and painting, producing
+- Any single "long task" can block input, animation, and painting, producing
   visible jank.
 - The best optimizations are the ones you can measure and prevent from
   regressing.
@@ -18,10 +18,10 @@ Easel.js’ Canvas2D software renderer and its React website.
 - End-to-end frame time (ms/frame).
 - Pipeline stage timings:
   - traversal, sort, shading, rasterization, upload (canvas write).
-- “Long task” symptoms:
+- "Long task" symptoms:
   - frames that exceed your budget (e.g. 16.7ms @ 60fps),
   - tasks that block the main thread long enough to feel unresponsive (often
-    discussed as “long tasks” at 50ms+).
+    discussed as "long tasks" at 50ms+).
 
 If you need more than manual stage timings, the Performance APIs include entry
 types for long-running work (e.g. long tasks / long animation frames) that can
@@ -71,7 +71,7 @@ hot loop.
 - `requestAnimationFrame()` is appropriate for driving render loops.
 - If a single frame does too much work, you can split work across frames:
   - chunk big updates (e.g. building large scenes),
-  - avoid doing “everything” on the same tick as user input.
+  - avoid doing "everything" on the same tick as user input.
 
 ### Yielding pattern (when you must split a long task)
 
@@ -101,7 +101,7 @@ budget:
 - Decide a few performance budgets (e.g. `frame` p95 < 16.7ms at a chosen
   resolution/scene).
 - Capture measurements in the performance timeline and compare across changes.
-- Prefer “no regression” checks on representative workloads over microbench-only
+- Prefer "no regression" checks on representative workloads over microbench-only
   wins.
 
 ## Sources

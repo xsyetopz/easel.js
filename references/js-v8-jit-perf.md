@@ -1,11 +1,11 @@
-# JS/TS Performance on V8 (Chrome/Node) — Notes for Easel.js
+# JS/TS Performance on V8 (Chrome/Node) - Notes for Easel.js
 
 This complements `references/js-softrast-optguide.md`. That doc is
 rasterizer-specific + contains Easel-measured findings; this one captures
 **engine-level** V8/JIT patterns that tend to matter for CPU-heavy pipelines
 (like a software renderer).
 
-## Applies to Easel.js because…
+## Applies to Easel.js because...
 
 Easel.js is dominated by:
 
@@ -18,7 +18,7 @@ Easel.js is dominated by:
 
 ## V8’s optimization model (what matters)
 
-V8 runs code first via Ignition (bytecode interpreter), then promotes “hot” code
+V8 runs code first via Ignition (bytecode interpreter), then promotes "hot" code
 paths to TurboFan (optimizing compiler). If a hot path becomes unpredictable
 (types/shapes/branches), V8 either can’t optimize it well, or it deoptimizes and
 falls back to slower paths.
@@ -27,18 +27,18 @@ falls back to slower paths.
 
 ### 1) Keep types stable (especially in hot loops)
 
-- Avoid code where the same variable/property can become “sometimes int-ish,
-  sometimes float-ish, sometimes not-a-number”.
+- Avoid code where the same variable/property can become "sometimes int-ish,
+  sometimes float-ish, sometimes not-a-number".
 - Keep return types consistent (don’t return numbers in one branch and
   strings/objects in another).
 
 Practical Easel mapping:
 
-- Prefer “validate once, then run hot”:
+- Prefer "validate once, then run hot":
   - Parse/normalize inputs at loader/setup boundaries.
   - Keep render-time loops free of defensive fallbacks.
 
-### 2) Avoid type uncertainty / “defensive fallback” operators in hot loops
+### 2) Avoid type uncertainty / "defensive fallback" operators in hot loops
 
 Patterns like `arr[i] || 0` (or `value ?? 0`) add branches and can force V8 to
 keep extra type checks around. If you _know_ the data is numeric, make it
@@ -57,7 +57,7 @@ repeatedly. Code becomes slower when call sites become polymorphic/megamorphic
 
 Practical Easel mapping:
 
-- Avoid “sometimes add this property later” objects.
+- Avoid "sometimes add this property later" objects.
 - Avoid mixing multiple ad-hoc object literals for the same conceptual type when
   they don’t share the same keys/order.
 - If you need optional fields, prefer explicit defaults on construction.
@@ -71,7 +71,7 @@ Practical Easel mapping:
 Practical Easel mapping:
 
 - Geometry/triangle buffers are already SoA-style TypedArrays; keep it that way.
-- Be cautious when converting typed data into JS arrays “just for convenience”
+- Be cautious when converting typed data into JS arrays "just for convenience"
   in hot paths.
 
 ### 5) Don’t turn 1 loop into 3 loops (and 2 allocations)
@@ -98,7 +98,7 @@ Typical indirection traps:
 
 Practical Easel mapping:
 
-- If a per-triangle/per-pixel path depends on a material “mode”, prefer a small
+- If a per-triangle/per-pixel path depends on a material "mode", prefer a small
   numeric enum/bitfield chosen once per draw call, then use it in the hot loop.
 
 ### 7) Cache repeated property accesses _when it reduces work_
@@ -113,7 +113,7 @@ Practical Easel mapping:
 - Use this only in the hottest loops (triangle/pixel loops), and only when
   profiling shows benefit.
 
-## Easel.js “watch list” (code-shape + JIT risks)
+## Easel.js "watch list" (code-shape + JIT risks)
 
 These are not guaranteed problems; they’re high-ROI places to benchmark for
 deopts/regressions:

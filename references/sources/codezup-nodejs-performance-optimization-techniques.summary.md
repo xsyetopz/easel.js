@@ -1,4 +1,4 @@
-# CodezUp — “10 Essential Node.js Performance Optimization Techniques…” (Summary)
+# CodezUp - "10 Essential Node.js Performance Optimization Techniques..." (Summary)
 
 This is a **paraphrased summary** of a third-party article. It exists because
 direct fetching the URL returned `406` in our web fetcher, so we used a local
@@ -11,11 +11,11 @@ converted capture for review.
   `/Users/krystian/Downloads/10 Essential Node.js Performance Tips.md`
 - Capture date: 2026-03-30
 - Note: The local capture contains conversion artifacts and some
-  low-quality/incorrect snippets; see “Conversion artifacts” below.
+  low-quality/incorrect snippets; see "Conversion artifacts" below.
 
 ## What the article covers (high level)
 
-The article is a broad “top 10” style list of Node.js performance ideas, mostly
+The article is a broad "top 10" style list of Node.js performance ideas, mostly
 aimed at **high-traffic server apps**:
 
 - Use multiple processes/threads for CPU-bound work (clustering / worker
@@ -30,13 +30,13 @@ aimed at **high-traffic server apps**:
 
 ## What maps to Easel.js (browser/Canvas2D)
 
-Most “server scaling” topics don’t apply directly, but the underlying principles
+Most "server scaling" topics don’t apply directly, but the underlying principles
 do:
 
-- **Don’t block the main thread**: Easel’s render loop is the “event loop
-  bottleneck” in the browser. Prefer avoiding synchronous heavy work during
+- **Don’t block the main thread**: Easel’s render loop is the "event loop
+  bottleneck" in the browser. Prefer avoiding synchronous heavy work during
   interaction/animation; split big work across frames when needed.
-- **Offload CPU-bound work**: In the browser, “worker threads” maps to **Web
+- **Offload CPU-bound work**: In the browser, "worker threads" maps to **Web
   Workers**. Candidate workloads: scene preprocessing, batching/build steps,
   texture preprocessing/downsampling, potentially parts of rasterization if
   structured around transferable buffers.
@@ -55,10 +55,10 @@ authoritative:
 
 - Several code blocks are incomplete or contain obvious corruption (example:
   `constLLU test = autocannon({`).
-- Some phrasing is incorrect (“Use Helmets” vs `helmet`) and some flags/options
+- Some phrasing is incorrect ("Use Helmets" vs `helmet`) and some flags/options
   appear mangled (example: `–heapdump-tag`).
 - The fetched HTML page we could access (`/optimize-node-js-performance/`)
-  appears to be an outline/placeholder rather than the full “10 essential”
+  appears to be an outline/placeholder rather than the full "10 essential"
   content; this summary is based on the local capture instead.
 
 ## How we use this source in this repo

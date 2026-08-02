@@ -179,9 +179,9 @@ Use the narrowest checks that cover the changed boundary, then expand for an
 integration migration:
 
 ```sh
-# Target project (choose the project's package manager)
-bun run typecheck                 # or: npx tsc --noEmit
-bun run test:run                  # when tests cover the converted boundary
+# Target project
+bun run typecheck
+bun test                  # when tests cover the converted boundary
 
 # Browser smoke proof: run an actual HTMLCanvasElement scene and assert
 # renderer.domElement, one render call, and non-empty ImageData.

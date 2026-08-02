@@ -53,7 +53,7 @@ runtime. For a THREE.js migration, also load the dedicated
 
 | Need | Read | Then copy | Validate |
 | --- | --- | --- | --- |
-| Package identity, install, npm/Bun/Node, or version provenance | [getting-started](references/getting-started.md) | The import and `EASEL.REVISION` probe | Installed version; local source if registry 0.6.1 is unavailable |
+| Package identity, Bun install, or version provenance | [getting-started](references/getting-started.md) | The import and `EASEL.REVISION` probe | Installed version; local source if registry 0.6.1 is unavailable |
 | Deno-managed browser app | [Deno guide](references/deno.md) | The import-map/browser entry or [Deno template](references/templates.md) | `deno task check`, bundle, and a real browser canvas |
 | Export names, class shapes, constants, or missing API lookup | [API exports](references/api-exports.md), [API signatures](references/api-signatures.md), [API constants](references/api-constants.md) | Only declarations verified by the source | Installed `dist/*.d.ts`; state `UNKNOWN` if absent |
 | Scene graph, transforms, camera, orbit, or resize | [scene and cameras](references/scene-and-cameras.md) | The matching scene/orbit/resize recipe | Matrix update, projection aspect, and browser render |

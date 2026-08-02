@@ -29,11 +29,11 @@ Capability boundary framing:
 
 | If the task says...               | Ground to...                                                                    |
 | --------------------------------- | ------------------------------------------------------------------------------- |
-| “EASEL.js”                        | `@xsyetopz/easel` package unless the repo imports something else                |
-| “easeljs.org”                     | This package’s docs/site                                                        |
-| “EaselJS” with `createjs` imports | Different library family; inspect actual package/imports before mixing patterns |
-| “CPU/Canvas 3D”                   | `Renderer` + software rasterizer + Canvas2D upload                              |
-| “like THREE.js”                   | Use concept mapping, then confirm class names/signatures in API docs            |
+| "EASEL.js"                        | `@xsyetopz/easel` package unless the repo imports something else                |
+| "easeljs.org"                     | This package’s docs/site                                                        |
+| "EaselJS" with `createjs` imports | Different library family; inspect actual package/imports before mixing patterns |
+| "CPU/Canvas 3D"                   | `Renderer` + software rasterizer + Canvas2D upload                              |
+| "like THREE.js"                   | Use concept mapping, then confirm class names/signatures in API docs            |
 
 Preferred import style:
 
@@ -60,13 +60,10 @@ import { PerspectiveCamera, Renderer, Scene } from "@xsyetopz/easel";
 Do not infer the package manager from a filename alone; reconcile lockfiles and
 existing imports first.
 
-Package-manager commands:
+Install with Bun:
 
 ```bash
-npm install @xsyetopz/easel@0.6.1
 bun add @xsyetopz/easel@0.6.1
-pnpm add @xsyetopz/easel@0.6.1
-yarn add @xsyetopz/easel@0.6.1
 ```
 
 These commands intentionally pin the 0.6.1 API. If the selected registry has not
@@ -108,17 +105,14 @@ guess source subpaths):
 }
 ```
 
-JSR and Deno adds:
+Install from JSR with Bun:
 
 ```bash
-npx jsr add @xsyetopz/easel@0.6.1
 bunx jsr add @xsyetopz/easel@0.6.1
-deno add npm:@xsyetopz/easel@0.6.1
-deno add jsr:@xsyetopz/easel@0.6.1
 ```
 
-Browser bundler ESM uses the bare import and named-import form shown
-in the identity section above; do not add package subpaths.
+Browser bundler ESM uses the bare import and named-import form shown in the
+identity section above; do not add package subpaths.
 
 Deno import options:
 

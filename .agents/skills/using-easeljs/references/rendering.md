@@ -90,15 +90,15 @@ Recipe:
 const renderer = new EASEL.Renderer({ width, height, canvas });
 const scene = new EASEL.Scene();
 const camera = new EASEL.PerspectiveCamera({
-	fov,
-	aspect: width / height,
-	near,
-	far,
+    fov,
+    aspect: width / height,
+    near,
+    far,
 });
 scene.fog = new EASEL.Fog({
-	color: new EASEL.Color(0, 0, 0),
-	near: fogStart,
-	far: fogEnd,
+    color: new EASEL.Color(0, 0, 0),
+    near: fogStart,
+    far: fogEnd,
 });
 renderer.setClearColor(0, 0, 0);
 ```
@@ -110,10 +110,10 @@ Basic loop:
 ```ts
 let frameId = 0;
 function frame() {
-	update();
-	scene.updateMatrixWorld();
-	renderer.render(scene, camera);
-	frameId = requestAnimationFrame(frame);
+    update();
+    scene.updateMatrixWorld();
+    renderer.render(scene, camera);
+    frameId = requestAnimationFrame(frame);
 }
 frameId = requestAnimationFrame(frame);
 ```
@@ -130,11 +130,11 @@ Delta time:
 ```ts
 let last = performance.now();
 function frame(now: number) {
-	const dt = Math.min((now - last) / 1000, 0.25);
-	last = now;
-	animator.update(dt);
-	renderer.render(scene, camera);
-	requestAnimationFrame(frame);
+    const dt = Math.min((now - last) / 1000, 0.25);
+    last = now;
+    animator.update(dt);
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
 }
 ```
 
@@ -144,36 +144,36 @@ function frame(now: number) {
 import * as EASEL from "@xsyetopz/easel";
 
 export function mountBasicScene(canvas: HTMLCanvasElement): () => void {
-	const renderer = new EASEL.Renderer({ width: 320, height: 180, canvas });
-	const scene = new EASEL.Scene();
-	const camera = new EASEL.PerspectiveCamera({
-		fov: 60,
-		aspect: 320 / 180,
-		near: 0.1,
-		far: 100,
-	});
-	camera.position.set(2, 2, 4);
-	camera.lookAt(0, 0, 0);
-	const mesh = new EASEL.Mesh(
-		new EASEL.BoxGeometry(1, 1, 1),
-		new EASEL.LambertMaterial({ color: 0xff6644 }),
-	);
-	scene.add(new EASEL.AmbientLight(0xffffff, 0.35));
-	scene.add(mesh);
-	let frameId = 0;
-	function frame() {
-		mesh.rotation.y += 0.02;
-		scene.updateMatrixWorld();
-		renderer.render(scene, camera);
-		frameId = requestAnimationFrame(frame);
-	}
-	frame();
-	return () => {
-		cancelAnimationFrame(frameId);
-		mesh.geometry?.dispose();
-		mesh.material?.dispose();
-		renderer.dispose();
-	};
+    const renderer = new EASEL.Renderer({ width: 320, height: 180, canvas });
+    const scene = new EASEL.Scene();
+    const camera = new EASEL.PerspectiveCamera({
+        fov: 60,
+        aspect: 320 / 180,
+        near: 0.1,
+        far: 100,
+    });
+    camera.position.set(2, 2, 4);
+    camera.lookAt(0, 0, 0);
+    const mesh = new EASEL.Mesh(
+        new EASEL.BoxGeometry(1, 1, 1),
+        new EASEL.LambertMaterial({ color: 0xff6644 }),
+    );
+    scene.add(new EASEL.AmbientLight(0xffffff, 0.35));
+    scene.add(mesh);
+    let frameId = 0;
+    function frame() {
+        mesh.rotation.y += 0.02;
+        scene.updateMatrixWorld();
+        renderer.render(scene, camera);
+        frameId = requestAnimationFrame(frame);
+    }
+    frame();
+    return () => {
+        cancelAnimationFrame(frameId);
+        mesh.geometry?.dispose();
+        mesh.material?.dispose();
+        renderer.dispose();
+    };
 }
 ```
 
@@ -183,13 +183,13 @@ export function mountBasicScene(canvas: HTMLCanvasElement): () => void {
 import type * as EASEL from "@xsyetopz/easel";
 
 export function resizeRenderer(
-	renderer: EASEL.Renderer,
-	camera: EASEL.PerspectiveCamera,
-	width: number,
-	height: number,
+    renderer: EASEL.Renderer,
+    camera: EASEL.PerspectiveCamera,
+    width: number,
+    height: number,
 ): void {
-	renderer.setSize(width, height);
-	camera.aspect = width / height;
-	camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
 }
 ```

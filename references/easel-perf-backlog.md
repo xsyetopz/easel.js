@@ -10,12 +10,12 @@ This backlog is derived from:
 Rules:
 
 - Every item needs a benchmark scenario + acceptance criteria before merging.
-- Prefer changes that reduce work or remove dead checks over “micro-tricks” that
+- Prefer changes that reduce work or remove dead checks over "micro-tricks" that
   change code shape.
 
 ## P0 (high confidence / high ROI)
 
-### P0 — Cut matrix propagation overhead in `Node.updateMatrixWorld`
+### P0 - Cut matrix propagation overhead in `Node.updateMatrixWorld`
 
 - Stage: transforms / traversal
 - Why: `updateMatrixWorld(updateChildren=true)` used to iterate children twice
@@ -25,7 +25,7 @@ Rules:
 - Status: implemented (needs benchmark confirmation)
 - Proposed change:
   - Add an internal `force` flag passed down recursion, and when
-    `updateChildren=true` skip the explicit “mark all children dirty” pass.
+    `updateChildren=true` skip the explicit "mark all children dirty" pass.
   - Skip `updateMatrix()` / `Matrix4.compose()` when `position/quaternion/scale`
     haven’t changed (cache last composed scalars on the Node).
 - How to validate:
@@ -33,13 +33,13 @@ Rules:
   - `www/examples/performance/scene-stress.js` at high mesh counts.
   - Compare `timings.traversalMs` (and `timings.totalMs`) before/after.
 
-### P0 — Add stage timing to a performance example (DONE)
+### P0 - Add stage timing to a performance example (DONE)
 
 - Stage: measurement/observability
 - Why: Without stable measurements, perf work is mostly guesswork and
   regressions are hard to catch.
-- Where: `www/examples/performance/rasterizer-benchmark.js` (or another
-  selected performance example)
+- Where: `www/examples/performance/rasterizer-benchmark.js` (or another selected
+  performance example)
 - Proposed change:
   - Add `performance.mark/measure` for traversal/sort/shade/raster/upload.
   - Add a small on-screen HUD or console aggregation (p50/p95) behind a flag.
@@ -48,7 +48,7 @@ Rules:
   - Confirm overhead is negligible (measure disabled by default, or aggregated
     cheaply).
 
-### P0 — De-risk `TriangleBuffer` sorting comparator code-shape (NO LONGER APPLIES)
+### P0 - De-risk `TriangleBuffer` sorting comparator code-shape (NO LONGER APPLIES)
 
 - Stage: polygon sort (per draw call triangle buffer)
 - Status: Easel no longer z-sorts triangles within a draw call; `PolygonSorter`
@@ -59,7 +59,7 @@ Rules:
 
 ## P1 (needs profiling confirmation)
 
-### P1 — Remove per-frame DrawCall/material allocations in traversal
+### P1 - Remove per-frame DrawCall/material allocations in traversal
 
 - Stage: traversal / scene build
 - Why: `new DrawCall()` per visible mesh/instance per frame adds allocation + GC
@@ -72,7 +72,7 @@ Rules:
   - `www/examples/performance/frustum-culling.js` at high totals (watch
     `traversalMs` + GC in DevTools).
 
-### P1 — Reduce string comparisons in traversal if it becomes a hotspot
+### P1 - Reduce string comparisons in traversal if it becomes a hotspot
 
 - Stage: scene traversal / light collection
 - Why: repeated `node.type` / `light.type` string checks can be expensive if
@@ -88,7 +88,7 @@ Rules:
     `www/examples/performance/scene-hierarchy.js`, `multi-light.js`).
   - Accept only if traversal stage time drops measurably without regressions.
 
-### P1 — Hoist defaulting out of hot loops by enforcing invariants at construction time
+### P1 - Hoist defaulting out of hot loops by enforcing invariants at construction time
 
 - Stage: sorting + shading + rasterizer dispatch
 - Why: optional chaining and nullish coalescing are fine in cold code, but in
@@ -111,7 +111,7 @@ Rules:
 
 ## P2 (bigger refactors / higher risk)
 
-### P2 — Reduce per-draw-call object size / indirection (data locality pass)
+### P2 - Reduce per-draw-call object size / indirection (data locality pass)
 
 - Stage: overall frame time (allocation + cache behavior)
 - Why: large object graphs and scattered memory can amplify cache misses;

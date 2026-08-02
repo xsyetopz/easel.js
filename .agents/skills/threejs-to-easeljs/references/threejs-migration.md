@@ -10,15 +10,15 @@ TypeScript and browser APIs; adapt the module syntax to the target build.
 
 Use one status for every source symbol or behavior:
 
-- **Direct** — the target export and the relevant behavior are present. Verify
+- **Direct** - the target export and the relevant behavior are present. Verify
   constructor options and types before editing.
-- **Adapt** — the target has the same scene role but a different constructor,
+- **Adapt** - the target has the same scene role but a different constructor,
   data shape, lifecycle, or visual behavior. Keep the adaptation visible in the
   port and validate it.
-- **Unsupported** — the target API intentionally has no equivalent. Keep the
+- **Unsupported** - the target API intentionally has no equivalent. Keep the
   feature out of the target implementation unless a separate CPU design is
   approved.
-- **UNKNOWN** — declarations or source evidence are insufficient. Record the
+- **UNKNOWN** - declarations or source evidence are insufficient. Record the
   exact symbol and path inspected, and leave the behavior unresolved until a
   target-side design is verified.
 
@@ -90,22 +90,22 @@ function frame() {
 frame();
 ```
 
-The target renderer updates scene and camera matrices during traversal. A
-caller that disables `Scene.autoUpdate` or camera updates must update matrices
+The target renderer updates scene and camera matrices during traversal. A caller
+that disables `Scene.autoUpdate` or camera updates must update matrices
 explicitly before rendering.
 
 ## API map with constructor notes
 
 ### Renderer and canvas
 
-| THREE.js source | EASEL.js target | Notes |
-| --- | --- | --- |
-| `new WebGLRenderer({ canvas, antialias })` | `new Renderer({ canvas, width, height, pixelRatio })` | `antialias`, WebGL context attributes, and GPU output settings have no target option. |
-| `renderer.domElement` | `renderer.domElement` | The value is an `HTMLCanvasElement` when a canvas is supplied or a browser document can create one. |
-| `renderer.setSize(w, h)` | `renderer.setSize(w, h)` | Resizes the CPU framebuffer and canvas backing store. Update a perspective camera's `aspect` separately. |
-| `renderer.setPixelRatio(r)` | `renderer.setPixelRatio(r)` | Stores the target ratio; confirm the app's backing-store policy because `setSize` owns framebuffer dimensions. |
-| `renderer.setClearColor(...)` | `renderer.setClearColor(...)` | Accepts a `Color`, packed hex, or three 0–255 channels when scene background is absent. |
-| `renderer.dispose()` | `renderer.dispose()` | Releases the target's Canvas2D references. Dispose replaced scene resources separately. |
+| THREE.js source                            | EASEL.js target                                       | Notes                                                                                                          |
+| ------------------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `new WebGLRenderer({ canvas, antialias })` | `new Renderer({ canvas, width, height, pixelRatio })` | `antialias`, WebGL context attributes, and GPU output settings have no target option.                          |
+| `renderer.domElement`                      | `renderer.domElement`                                 | The value is an `HTMLCanvasElement` when a canvas is supplied or a browser document can create one.            |
+| `renderer.setSize(w, h)`                   | `renderer.setSize(w, h)`                              | Resizes the CPU framebuffer and canvas backing store. Update a perspective camera's `aspect` separately.       |
+| `renderer.setPixelRatio(r)`                | `renderer.setPixelRatio(r)`                           | Stores the target ratio; confirm the app's backing-store policy because `setSize` owns framebuffer dimensions. |
+| `renderer.setClearColor(...)`              | `renderer.setClearColor(...)`                         | Accepts a `Color`, packed hex, or three 0–255 channels when scene background is absent.                        |
+| `renderer.dispose()`                       | `renderer.dispose()`                                  | Releases the target's Canvas2D references. Dispose replaced scene resources separately.                        |
 
 ### Scene graph and transforms
 
@@ -118,8 +118,8 @@ application owns matrix updates.
 
 `Mesh`, `Line`, `LineSegments`, `LineLoop`, `Points`, `Sprite`, `InstancedMesh`,
 and `SkinnedMesh` are exported target objects. The object type alone does not
-prove a source feature is visually equivalent: inspect the target traversal
-and rasterizer for the material/object combination used by the scene.
+prove a source feature is visually equivalent: inspect the target traversal and
+rasterizer for the material/object combination used by the scene.
 
 ### Cameras
 
@@ -153,8 +153,8 @@ camera.updateProjectionMatrix();
 
 `fov` is in degrees. `near`, `far`, and `tileSize` are camera options. EASEL
 does not expose THREE.js camera helpers or a renderer-managed controls loop;
-`OrbitControls` is available as an explicit target class and must be updated
-by the application.
+`OrbitControls` is available as an explicit target class and must be updated by
+the application.
 
 ### Geometry and attributes
 
@@ -170,7 +170,9 @@ function copyGeometry(source: THREE.BufferGeometry): EASEL.Geometry {
   geometry.setPositions(Array.from(position.array as ArrayLike<number>));
 
   const normal = source.getAttribute("normal");
-  if (normal) geometry.setNormals(Array.from(normal.array as ArrayLike<number>));
+  if (normal) {
+    geometry.setNormals(Array.from(normal.array as ArrayLike<number>));
+  }
 
   const uv = source.getAttribute("uv");
   if (uv) geometry.setUVs(Array.from(uv.array as ArrayLike<number>));
@@ -180,7 +182,9 @@ function copyGeometry(source: THREE.BufferGeometry): EASEL.Geometry {
 
   if (source.index) {
     const sourceIndex = source.index.array;
-    if (sourceIndex instanceof Uint16Array || sourceIndex instanceof Uint32Array) {
+    if (
+      sourceIndex instanceof Uint16Array || sourceIndex instanceof Uint32Array
+    ) {
       geometry.setIndex(sourceIndex.slice());
     } else {
       const values = Array.from(sourceIndex as ArrayLike<number>);
@@ -209,14 +213,14 @@ sphere and preserve the index type (`Uint16Array` or `Uint32Array`) selected by
 
 ### Materials and opacity
 
-| THREE.js | EASEL.js | Target behavior |
-| --- | --- | --- |
-| `MeshBasicMaterial` | `BasicMaterial` | Color/map without lighting. |
-| `MeshLambertMaterial` | `LambertMaterial` | CPU light baking; default Gouraud shading. |
-| `MeshToonMaterial` | `ToonMaterial` | Gouraud lighting quantized into target steps; `gradientMap` is a target texture option. |
-| `LineBasicMaterial` | `LineMaterial` | Target line material; verify integer line behavior and width. |
-| `LineDashedMaterial` | `DashedLineMaterial` | Target `dashSize` and `gapSize` options. |
-| `PointsMaterial` | `PointsMaterial` | Target `size` is an integer pixel radius. |
+| THREE.js              | EASEL.js             | Target behavior                                                                         |
+| --------------------- | -------------------- | --------------------------------------------------------------------------------------- |
+| `MeshBasicMaterial`   | `BasicMaterial`      | Color/map without lighting.                                                             |
+| `MeshLambertMaterial` | `LambertMaterial`    | CPU light baking; default Gouraud shading.                                              |
+| `MeshToonMaterial`    | `ToonMaterial`       | Gouraud lighting quantized into target steps; `gradientMap` is a target texture option. |
+| `LineBasicMaterial`   | `LineMaterial`       | Target line material; verify integer line behavior and width.                           |
+| `LineDashedMaterial`  | `DashedLineMaterial` | Target `dashSize` and `gapSize` options.                                                |
+| `PointsMaterial`      | `PointsMaterial`     | Target `size` is an integer pixel radius.                                               |
 
 `Material.opacity` is a discrete inverted scale. `0` is opaque; `8` is nearly
 transparent. Blending occurs only when `transparent: true`; transparent
@@ -237,8 +241,8 @@ const material = new EASEL.BasicMaterial({
 ```
 
 The quantized value changes the blend weight. Validate overlapping transparent
-meshes in the target painter sort and set `layer`, `depthTest`, and
-`depthWrite` deliberately when the source relied on explicit ordering.
+meshes in the target painter sort and set `layer`, `depthTest`, and `depthWrite`
+deliberately when the source relied on explicit ordering.
 
 ### Textures and background
 
@@ -307,13 +311,13 @@ requestAnimationFrame(frame);
 
 Use `NumberTrack`, `VectorTrack`, `QuaternionTrack`, `ColorTrack`, or
 `BooleanTrack` according to the bound property. Track paths such as
-`"Model.position"` resolve a child by `name`; a path such as `"position"`
-binds directly on the root. Confirm names after importing a source hierarchy.
+`"Model.position"` resolve a child by `name`; a path such as `"position"` binds
+directly on the root. Confirm names after importing a source hierarchy.
 
 ### Controls and ray picking
 
-`OrbitControls` receives the camera and an event target and exposes
-`update()`, `reset()`, and `dispose()`. Call `update()` before rendering:
+`OrbitControls` receives the camera and an event target and exposes `update()`,
+`reset()`, and `dispose()`. Call `update()` before rendering:
 
 ```ts
 const controls = new EASEL.OrbitControls(camera, canvas);
@@ -338,7 +342,10 @@ const projectionMatrixInverse = new EASEL.Matrix4()
 
 const raycaster = new EASEL.Raycaster();
 raycaster.setFromCamera(
-  { x: (event.offsetX / canvas.width) * 2 - 1, y: 1 - (event.offsetY / canvas.height) * 2 },
+  {
+    x: (event.offsetX / canvas.width) * 2 - 1,
+    y: 1 - (event.offsetY / canvas.height) * 2,
+  },
   {
     type: camera.type,
     matrixWorld: camera.matrixWorld,
@@ -349,8 +356,8 @@ raycaster.setFromCamera(
 const hits = raycaster.intersectObject(scene, true);
 ```
 
-Use backing-store coordinates when CSS scales the canvas. `intersectObjects`
-and `intersectObject` sort results by ascending distance. The target raycaster
+Use backing-store coordinates when CSS scales the canvas. `intersectObjects` and
+`intersectObject` sort results by ascending distance. The target raycaster
 supports mesh triangles plus line/point threshold checks; verify object types
 and layer masks in the consuming scene.
 
@@ -370,8 +377,8 @@ sequence for a GLTF or OBJ asset is:
 5. Dispose temporary parser resources after the target graph is complete.
 
 `ObjectLoader` currently creates a basic node hierarchy from its supported JSON
-shape; inspect its declaration and parser before relying on serialized
-materials or meshes.
+shape; inspect its declaration and parser before relying on serialized materials
+or meshes.
 
 ## Review checklist
 
@@ -383,8 +390,8 @@ materials or meshes.
 - [ ] Material opacity is quantized and transparent draw order is intentional.
 - [ ] Texture dimensions, nearest sampling, affine UVs, background, and fog
       behavior are represented in the visual review.
-- [ ] Animators, controls, raycaster adapters, and event coordinate scaling
-      are tested where the source used them.
+- [ ] Animators, controls, raycaster adapters, and event coordinate scaling are
+      tested where the source used them.
 - [ ] Replaced geometries, textures, materials, controls, and renderer are
       disposed at the corresponding lifecycle boundary.
 - [ ] Typecheck, targeted tests, and a browser smoke render have evidence.
