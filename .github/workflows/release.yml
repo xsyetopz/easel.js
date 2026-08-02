@@ -438,11 +438,15 @@ jobs:
           ref: ${{ needs.validate.outputs.candidate_sha }}
       - name: Assert release candidate and tag state
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::RELEASE_TOKEN is not configured"
+            exit 1
+          fi
           if [ "$GITHUB_REPOSITORY" != "xsyetopz/easel.js" ] || [ "$GITHUB_REF" != "refs/heads/main" ]; then
             echo "::error::GitHub release job is not running on the protected release source"
             exit 1
@@ -495,7 +499,7 @@ jobs:
           esac
       - name: Create annotated tag and GitHub release
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
           VERSION: ${{ inputs.version }}
         run: |
