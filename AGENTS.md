@@ -2,18 +2,17 @@
 
 EASEL.js is a TypeScript Canvas2D software renderer for browser-side 3D scenes.
 The npm/JSR package is `@xsyetopz/easel`; current source revision is `0.6.1`;
-license is ISC.
 
 ## Source of truth
 
-- `package.json` — scripts, package metadata, dependency policy, release gate.
-- `src/index.ts` — exported public API and `REVISION`.
-- `src/renderers/Renderer.ts` and `src/pipeline/` — renderer behavior and CPU
+- `package.json` - scripts, package metadata, dependency policy, release gate.
+- `src/index.ts` - exported public API and `REVISION`.
+- `src/renderers/Renderer.ts` and `src/pipeline/` - renderer behavior and CPU
   rasterization contracts.
-- `www/docs/classes/` — API docs source used by `bun run docs:generate`.
-- `www/examples/` and `www/examples/registry.ts` — examples shown on the
+- `www/docs/classes/` - API docs source used by `bun run docs:generate`.
+- `www/examples/` and `www/examples/registry.ts` - examples shown on the
   website.
-- `README.md` and `CONTRIBUTING.md` — user-facing setup and contribution flow.
+- `README.md` and `CONTRIBUTING.md` - user-facing setup and contribution flow.
 
 Read exact files before claims or edits. Do not rely on stale generated output
 when the source file exists.
@@ -52,7 +51,7 @@ bun run typecheck:website   # website TypeScript
 bun run tests:no-any        # test-suite any guard
 bun run examples:source-parity
 bun run biome:check         # lint + format gate
-bun run test:run            # bun:test
+bun test            # bun:test
 bun run docs:generate       # regenerate Starlight docs from www/docs/classes
 bun run www:build           # docs/examples site build
 bun run build               # package build
