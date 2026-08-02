@@ -1,112 +1,63 @@
 # Contributing to EASEL.js
 
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) 22+
-- [Bun](https://bun.sh/)
+EASEL.js requires [Bun](https://bun.sh/) and Node.js 22 or later.
 
 ## Setup
 
-```bash
+```sh
 git clone https://github.com/xsyetopz/easel.js.git
 cd easel.js
 bun install
 ```
 
-## Development
+## Checks
 
-```bash
-bun run dev                 # generate docs, then run Astro dev server
-bun run test:run            # bun:test
-bun run typecheck           # package TypeScript check
-bun run typecheck:tests     # tests TypeScript check
-bun run typecheck:website   # website TypeScript check
-bun run biome:check         # Biome lint + format
-bun run www:build           # build docs/examples site
+Run the checks that cover your change. For broad changes, run the full gate:
+
+```sh
+bun run release:check
 ```
 
-## Code style
+Useful focused commands:
 
-Biome handles formatting and linting. The config enforces:
+```sh
+bun test
+bun run typecheck
+bun run typecheck:tests
+bun run typecheck:website
+bun run biome:check
+bun run www:build
+```
 
-- Tabs for indentation
-- Double quotes
-- Organized imports
+Biome handles linting. Source uses tabs, double quotes, and TypeScript. Do not
+add inline suppressions to bypass errors. Keep public APIs stable unless the
+change explicitly updates that contract.
 
-The package source is TypeScript. Website components and pages are Astro files
-with TypeScript frontmatter and typed client scripts. Prefer explicit interfaces
-at module boundaries and keep public exports stable.
+## Pull requests
 
-Mark overriding members with `override`. Do not add inline lint suppressions;
-fix the code or adjust the rule in `biome.jsonc` with a clear reason.
+Create a branch from `main` and keep the change focused. Update tests, examples,
+and documentation when public behavior changes. In the pull request, state the
+problem, the chosen fix, and the commands you ran.
 
-## Core principles
-
-- **KISS** - prefer the simplest solution that works today.
-- **YAGNI** - do not build future features until they are needed.
-- **No over-engineering** - three similar lines of code is better than a
-  premature abstraction.
-
-## Making changes
-
-1. Create a branch from `main`.
-2. Make focused changes.
-3. Run the checks that cover the touched surface. For broad changes, run:
-
-   ```bash
-   bun run biome:check
-   bun run typecheck
-   bun run typecheck:tests
-   bun run typecheck:website
-   bun run test:run
-   bun run www:build
-   ```
-
-4. Open a pull request against `main`.
-
-Keep one concern per PR. If a refactor is needed to support a feature, split it
-into a separate PR.
-
-## Pull request checklist
-
-- [ ] Relevant typecheck command passes.
-- [ ] Relevant tests pass.
-- [ ] `bun run biome:check` passes.
-- [ ] Docs, examples, and generated docs are updated when public behavior
-      changes.
-- [ ] Commit messages explain intent.
-- [ ] PR description covers motivation, approach, and validation.
+EASEL.js is a CPU-only Canvas2D renderer. WebGL state, GPU buffers, shader
+programs, PBR materials, shadow maps, and environment maps do not belong in its
+rendering pipeline. See [AGENTS.md](AGENTS.md) for repository ownership and
+renderer constraints.
 
 ## Releases
 
-Package releases are published only by `.github/workflows/release.yml`. Do not
-run `npm publish` or `jsr publish` locally. After the release commit is merged
-to `main`, an authorized maintainer dispatches the protected workflow with:
+Releases run only through `.github/workflows/release.yml`. Do not publish npm or
+JSR packages locally. After a release commit reaches `main`, an authorized
+maintainer starts the workflow with:
 
-```bash
+```sh
 bun run release -- X.Y.Z
 ```
 
-The workflow validates the exact `main` commit, publishes npm and JSR packages
-through GitHub OIDC, verifies registry provenance, and only then creates the Git
-tag and GitHub release.
+The workflow publishes through GitHub OIDC, verifies registry provenance, then
+creates the Git tag and GitHub release.
 
-## Architecture
+## Conduct and license
 
-EASEL.js is a Canvas2D software renderer. The pipeline runs on the CPU: scene
-traversal, fog culling, painter/depth-aware ordering, light baking, scanline
-rasterization, CPU depth testing for opaque fragments, framebuffer write, and
-Canvas2D upload.
-
-No WebGL, GPU buffers, shader programs, PBR materials, shadow maps, or
-environment maps belong in this renderer. See [AGENTS.md](AGENTS.md) for the
-current repository map and renderer boundaries.
-
-## Code of Conduct
-
-All contributors must follow the [Code of Conduct](CODE_OF_CONDUCT.md).
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the
-ISC License.
+Follow the [Code of Conduct](CODE_OF_CONDUCT.md). Contributions use the
+[MIT License](LICENSE).
