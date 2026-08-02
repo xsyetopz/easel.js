@@ -12,7 +12,7 @@ export interface EarcutNode {
 
 /**
  * Earcut polygon triangulator.
- * ISC-licensed port of https://github.com/mapbox/earcut
+ * MIT-licensed port of https://github.com/mapbox/earcut
  */
 export function earcut(
 	data: number[],
@@ -132,7 +132,9 @@ function filterPoints(
 	let again: boolean;
 	do {
 		again = false;
-		if (!p.steiner && (equals(p, p.next) || area(p.prev, p, p.next) === 0)) {
+		if (
+			!p.steiner && (equals(p, p.next) || area(p.prev, p, p.next) === 0)
+		) {
 			removeNode(p);
 			p = p.prev;
 			cur = p;
@@ -166,8 +168,9 @@ function earcutLinked(
 		const prev = node.prev;
 		const next = node.next;
 
-		const earValid =
-			invSize === 0 ? testEar(node) : testEarHashed(node, minX, minY, invSize);
+		const earValid = invSize === 0
+			? testEar(node)
+			: testEarHashed(node, minX, minY, invSize);
 
 		if (earValid) {
 			triangles.push(
@@ -237,8 +240,9 @@ function testEar(ear: EarcutNode): boolean {
 			p.y <= y1 &&
 			pointInTriangle(ax, ay, bx, by, cx, cy, p.x, p.y) &&
 			area(p.prev, p, p.next) >= 0
-		)
+		) {
 			return false;
+		}
 		p = p.next;
 	}
 
@@ -281,8 +285,9 @@ function testEarHashed(
 			p !== ear.next &&
 			pointInTriangle(ax, ay, bx, by, cx, cy, p.x, p.y) &&
 			area(p.prev, p, p.next) >= 0
-		)
+		) {
 			return false;
+		}
 		p = p.prevZ;
 
 		if (
@@ -290,8 +295,9 @@ function testEarHashed(
 			n !== ear.next &&
 			pointInTriangle(ax, ay, bx, by, cx, cy, n.x, n.y) &&
 			area(n.prev, n, n.next) >= 0
-		)
+		) {
 			return false;
+		}
 		n = n.nextZ;
 	}
 
@@ -301,8 +307,9 @@ function testEarHashed(
 			p !== ear.next &&
 			pointInTriangle(ax, ay, bx, by, cx, cy, p.x, p.y) &&
 			area(p.prev, p, p.next) >= 0
-		)
+		) {
 			return false;
+		}
 		p = p.prevZ;
 	}
 	while (n && n.z <= maxZ) {
@@ -311,8 +318,9 @@ function testEarHashed(
 			n !== ear.next &&
 			pointInTriangle(ax, ay, bx, by, cx, cy, n.x, n.y) &&
 			area(n.prev, n, n.next) >= 0
-		)
+		) {
 			return false;
+		}
 		n = n.nextZ;
 	}
 
@@ -467,7 +475,8 @@ function findHoleBridge(
 				locallyInside(p, hole) &&
 				(tan < tanMin ||
 					(tan === tanMin &&
-						(p.x > m.x || (p.x === m.x && sectorContainsSector(m, p)))))
+						(p.x > m.x ||
+							(p.x === m.x && sectorContainsSector(m, p)))))
 			) {
 				m = p;
 				tanMin = tan;
@@ -528,7 +537,10 @@ function sortLinked(list: EarcutNode): EarcutNode {
 
 			while (pSize > 0 || (qSize > 0 && q)) {
 				let e: EarcutNode;
-				if (pSize !== 0 && (qSize === 0 || !q || (p as EarcutNode).z <= q.z)) {
+				if (
+					pSize !== 0 &&
+					(qSize === 0 || !q || (p as EarcutNode).z <= q.z)
+				) {
 					e = p as EarcutNode;
 					p = e.nextZ;
 					pSize--;
@@ -583,7 +595,9 @@ function getLeftmost(p: EarcutNode): EarcutNode {
 	let leftmost = p;
 	let cur = p;
 	do {
-		if (cur.x < leftmost.x || (cur.x === leftmost.x && cur.y < leftmost.y)) {
+		if (
+			cur.x < leftmost.x || (cur.x === leftmost.x && cur.y < leftmost.y)
+		) {
 			leftmost = cur;
 		}
 		cur = cur.next;
@@ -674,8 +688,9 @@ function intersectsPolygon(a: EarcutNode, b: EarcutNode): boolean {
 			p.i !== b.i &&
 			p.next.i !== b.i &&
 			intersects(p, p.next, a, b)
-		)
+		) {
 			return true;
+		}
 		p = p.next;
 	} while (p !== a);
 
@@ -698,8 +713,9 @@ function middleInside(a: EarcutNode, b: EarcutNode): boolean {
 			p.y > py !== p.next.y > py &&
 			p.next.y !== p.y &&
 			px < ((p.next.x - p.x) * (py - p.y)) / (p.next.y - p.y) + p.x
-		)
+		) {
 			inside = !inside;
+		}
 		p = p.next;
 	} while (p !== a);
 
