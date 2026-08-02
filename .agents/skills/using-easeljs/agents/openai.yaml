@@ -1,0 +1,4 @@
+interface:
+  display_name: "Using EASEL.js"
+  short_description: "Build CPU-rendered Canvas2D 3D scenes"
+  default_prompt: "Use $using-easeljs to build or review an EASEL.js Canvas2D scene against the verified 0.6.1 API."

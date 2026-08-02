@@ -42,6 +42,20 @@ deno add npm:@xsyetopz/easel
 
 JSR users can install with `deno add jsr:@xsyetopz/easel` or `bunx jsr add @xsyetopz/easel`.
 
+
+### Portable agent skills
+
+The repository includes cross-tool `using-easeljs` and `threejs-to-easeljs` Agent Skills under `.agents/skills/`. Install either with Vercel's skills CLI:
+
+```bash
+bunx skills add xsyetopz/easel.js --skill using-easeljs
+bunx skills add xsyetopz/easel.js --skill threejs-to-easeljs
+bunx skills add . --skill using-easeljs
+bunx skills add . --skill threejs-to-easeljs
+```
+
+Both skills target the current 0.6.1 source/API revision; `using-easeljs` includes reference recipes and starter templates, while `threejs-to-easeljs` covers focused THREE.js translation.
+
 ## Quick start
 
 Add a canvas:

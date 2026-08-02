@@ -1,0 +1,4 @@
+interface:
+  display_name: "THREE.js to EASEL.js"
+  short_description: "Translate THREE.js scenes to EASEL.js"
+  default_prompt: "Use $threejs-to-easeljs to translate or review THREE.js code against the verified EASEL.js 0.6.1 Canvas2D API."
