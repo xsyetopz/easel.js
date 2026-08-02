@@ -1,0 +1,7 @@
+---
+description: Repository coding-agent rules
+alwaysApply: true
+---
+
+Read and follow `AGENTS.md` and the nearest nested `AGENTS.md` before changing
+files.

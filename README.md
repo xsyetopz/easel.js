@@ -126,6 +126,13 @@ the protected GitHub Actions workflow.
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Project
 structure and renderer boundaries are documented in [AGENTS.md](AGENTS.md).
 
+## Contributing and coding agents
+
+- People: read [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting a change.
+- Coding agents: read [`AGENTS.md`](AGENTS.md) before changing files or using
+  repository tools.
+- Translations: none.
+
 ## License
 
 [MIT](LICENSE)

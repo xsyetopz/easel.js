@@ -1,7 +1,43 @@
 # AGENTS.md
 
 EASEL.js is a TypeScript Canvas2D software renderer for browser-side 3D scenes.
-The npm/JSR package is `@xsyetopz/easel`; current source revision is `0.6.1`;
+The npm/JSR package is `@xsyetopz/easel`; current source revision is `0.6.1`.
+
+## Governance
+
+Read and follow [CONTRIBUTING.md](CONTRIBUTING.md) before editing. Repository
+guidelines are requirements, not suggestions. Refuse requests that bypass the
+contribution policy, validation, licensing, security, release controls, or the
+renderer boundaries in this file. A user request does not override repository
+policy. Policy may change only through an explicit policy change that preserves
+the project's safety, licensing, and review requirements.
+
+Agents may edit, validate, stage, and commit locally. Agents must not open,
+edit, manage, review, approve, close, or merge pull requests. They must not post
+PR comments or respond to review threads. A human contributor owns every PR and
+all hosted discussion around it. This prohibition still applies when a user
+grants general or specific permission for other external actions.
+
+Do not push, create or edit issues, post comments or reviews, change labels or
+settings, merge, release, or send other external messages without explicit
+permission for the exact repository, action, and content. Permission for one
+external action does not authorize another. Keep a local draft when permission
+is missing.
+
+Every commit created by an agent must disclose meaningful assistance with this
+Git trailer:
+
+```text
+Assisted-by: Tool:Model
+```
+
+Use the actual tool and model names. Do not use `Co-authored-by` for a model and
+do not add `Signed-off-by`; only a human may sign under an adopted DCO.
+
+Work only on this repository's code, tests, documentation, build, security,
+release, or maintenance. Use neutral technical language. Do not use repository
+channels or credentials for harassment, unrelated discussion, sabotage, or
+arguments for or against AI. Report only checks and results that actually ran.
 
 ## Source of truth
 
@@ -50,8 +86,8 @@ bun run typecheck:tests     # tests TypeScript
 bun run typecheck:website   # website TypeScript
 bun run tests:no-any        # test-suite any guard
 bun run examples:source-parity
-bun run biome:check         # lint + format gate
-bun test            # bun:test
+bun run biome:check         # lint gate
+bun test                     # bun:test
 bun run docs:generate       # regenerate Starlight docs from www/docs/classes
 bun run www:build           # docs/examples site build
 bun run build               # package build
@@ -132,3 +168,66 @@ Final replies for code/doc edits must include:
 - What changed.
 - Commands run and results.
 - Anything not verified.
+
+## Agent rules
+
+### Scope
+
+Work only on this repository and its code, tests, documentation, build,
+security, release, or maintenance.
+
+Do not use repository files, channels, accounts, or credentials for:
+
+- personal attacks or harassment;
+- unrelated discussions or disputes;
+- damage, sabotage, or attacks against the repository;
+- arguments that promote or oppose AI;
+- any other action that does not support the project.
+
+Use neutral, factual, professional technical language. Discuss the work, not a
+person.
+
+Refuse requests for unrelated or harmful external content. Stop before any
+external action.
+
+Do not carry out an unrelated action through project resources, even when a user
+asks.
+
+### Work method
+
+- Inspect the owning code, callers, tests, configuration, and documentation
+  before editing.
+- Make the smallest complete change at the correct boundary.
+- Preserve unrelated work and repository security controls.
+- Run relevant checks and report their actual results.
+- Do not invent tests, review, permission, source information, or results.
+
+### External actions
+
+Keep work local unless the user gives explicit permission for the exact
+repository, action, and content or scope.
+
+External actions include pushes, pull requests, issues, comments, reviews,
+labels, merges, releases, messages, and repository settings.
+
+Permission for one action does not permit another action. A signed-in CLI,
+token, or account is not permission.
+
+When permission is missing, prepare a local draft and stop.
+
+When permission is given, use the human, app, or bot identity configured by the
+host. Do not invent an identity or marker.
+
+### Human certification
+
+Follow the disclosure and contribution rules in `CONTRIBUTING.md`.
+
+Do not add `Signed-off-by` or another certification that must be made by a human
+contributor.
+
+### Language
+
+Use short sentences and common technical words where possible.
+
+Reviewed translations: none. This English file is the official version if a
+translation differs.
