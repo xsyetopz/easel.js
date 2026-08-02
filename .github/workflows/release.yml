@@ -32,6 +32,8 @@ jobs:
       version: ${{ steps.release_state.outputs.version }}
       package: ${{ steps.release_state.outputs.package }}
       candidate_sha: ${{ steps.release_state.outputs.candidate_sha }}
+      npm_exists: ${{ steps.release_state.outputs.npm_exists }}
+      jsr_exists: ${{ steps.release_state.outputs.jsr_exists }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -110,11 +112,10 @@ jobs:
 
           NPM_ERROR="$(mktemp)"
           if npm view "$PACKAGE_NAME@$VERSION" version --json >/dev/null 2>"$NPM_ERROR"; then
-            echo "::error::npm version already exists: $PACKAGE_NAME@$VERSION"
-            cat "$NPM_ERROR"
-            exit 1
-          fi
-          if ! grep -Eqi 'E404|404 Not Found|No match found for version|is not in this registry' "$NPM_ERROR"; then
+            NPM_EXISTS=true
+          elif grep -Eqi 'E404|404 Not Found|No match found for version|is not in this registry' "$NPM_ERROR"; then
+            NPM_EXISTS=false
+          else
             echo "::error::Unable to prove npm version is absent"
             cat "$NPM_ERROR"
             exit 1
@@ -125,11 +126,10 @@ jobs:
           JSR_HTTP_STATUS="$(curl --silent --show-error --location --output "$JSR_RESPONSE" --write-out '%{http_code}' "$JSR_URL")"
           case "$JSR_HTTP_STATUS" in
             404)
+              JSR_EXISTS=false
               ;;
             200)
-              echo "::error::JSR version already exists: $PACKAGE_NAME@$VERSION"
-              cat "$JSR_RESPONSE"
-              exit 1
+              JSR_EXISTS=true
               ;;
             *)
               echo "::error::Unable to prove JSR version is absent (HTTP $JSR_HTTP_STATUS)"
@@ -142,6 +142,8 @@ jobs:
             echo "version=$VERSION"
             echo "package=$PACKAGE_NAME"
             echo "candidate_sha=$HEAD_SHA"
+            echo "npm_exists=$NPM_EXISTS"
+            echo "jsr_exists=$JSR_EXISTS"
           } >> "$GITHUB_OUTPUT"
       - name: Assert publishing toolchain
         run: |
@@ -223,8 +225,10 @@ jobs:
           NODE
       - run: bun install --frozen-lockfile
       - name: Publish npm package through OIDC trusted publishing
+        if: needs.validate.outputs.npm_exists != 'true'
         run: npm publish --provenance --access public
       - name: Publish JSR package through GitHub OIDC
+        if: needs.validate.outputs.jsr_exists != 'true'
         id: jsr_publish
         run: |
           set -euo pipefail
@@ -319,27 +323,66 @@ jobs:
           }
           NODE
 
-          if ! [[ "$REKOR_LOG_INDEX" =~ ^[0-9]+$ ]]; then
+          REKOR_RESPONSE="$(mktemp)"
+          if [[ "$REKOR_LOG_INDEX" =~ ^[0-9]+$ ]]; then
+            curl --fail --silent --show-error --location \
+              --retry 6 --retry-all-errors --retry-delay 5 \
+              "https://rekor.sigstore.dev/api/v1/log/entries?logIndex=$REKOR_LOG_INDEX" \
+              >"$REKOR_RESPONSE"
+          elif [ -z "$REKOR_LOG_INDEX" ]; then
+            JSR_META="$(mktemp)"
+            curl --fail --silent --show-error --location \
+              "https://jsr.io/@xsyetopz/easel/${VERSION}_meta.json" >"$JSR_META"
+            PACKAGE_SHA256="$(sha256sum "$JSR_META" | cut -d ' ' -f 1)"
+            REKOR_UUIDS="$(mktemp)"
+            curl --fail --silent --show-error --location \
+              --header 'Content-Type: application/json' \
+              --data "{\"hash\":\"sha256:$PACKAGE_SHA256\"}" \
+              "https://rekor.sigstore.dev/api/v1/index/retrieve" >"$REKOR_UUIDS"
+            REKOR_ENTRIES="$(mktemp -d)"
+            node -e 'const fs=require("node:fs"); const ids=JSON.parse(fs.readFileSync(process.argv[1], "utf8")); if (!Array.isArray(ids) || ids.length === 0) process.exit(1); process.stdout.write(ids.join("\n"))' "$REKOR_UUIDS" |
+              while IFS= read -r rekor_uuid; do
+                curl --fail --silent --show-error --location \
+                  "https://rekor.sigstore.dev/api/v1/log/entries/$rekor_uuid" \
+                  >"$REKOR_ENTRIES/$rekor_uuid.json"
+              done
+            node - "$REKOR_ENTRIES" "$REKOR_RESPONSE" <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const [entriesDirectory, outputPath] = process.argv.slice(2);
+          const response = Object.assign(
+            {},
+            ...fs.readdirSync(entriesDirectory).map((file) =>
+              JSON.parse(fs.readFileSync(path.join(entriesDirectory, file), "utf8")),
+            ),
+          );
+          fs.writeFileSync(outputPath, JSON.stringify(response));
+          NODE
+          else
             echo "::error::JSR publish produced an invalid Rekor transparency log index"
             exit 1
           fi
-          REKOR_RESPONSE="$(mktemp)"
-          curl --fail --silent --show-error --location \
-            --retry 6 --retry-all-errors --retry-delay 5 \
-            "https://rekor.sigstore.dev/api/v1/log/entries?logIndex=$REKOR_LOG_INDEX" \
-            >"$REKOR_RESPONSE"
           node - "$REKOR_RESPONSE" "$REKOR_LOG_INDEX" "$VERSION" "$EXPECTED_SHA" <<'NODE'
           const fs = require("node:fs");
           const [responsePath, expectedIndex, expectedVersion, expectedSha] = process.argv.slice(2);
           const response = JSON.parse(fs.readFileSync(responsePath, "utf8"));
           const entries = Object.values(response);
-          const entry = entries.find(({ logIndex }) => String(logIndex) === expectedIndex);
+          const expectedSubject = `pkg:jsr/@xsyetopz/easel@${expectedVersion}`;
+          const decodeStatement = (entry) =>
+            JSON.parse(Buffer.from(entry.attestation?.data ?? "", "base64").toString("utf8"));
+          const entry = expectedIndex
+            ? entries.find(({ logIndex }) => String(logIndex) === expectedIndex)
+            : entries.find((candidate) => {
+                const candidateStatement = decodeStatement(candidate);
+                const dependencies = candidateStatement.predicate?.buildDefinition?.resolvedDependencies ?? [];
+                return candidateStatement.subject?.some(({ name }) => name === expectedSubject) &&
+                  dependencies.some(({ digest }) => digest?.gitCommit === expectedSha);
+              });
           if (!entry) {
-            console.error(`Rekor has no entry at log index ${expectedIndex}`);
+            console.error(expectedIndex ? `Rekor has no entry at log index ${expectedIndex}` : "Rekor has no entry for the JSR package digest");
             process.exit(1);
           }
-          const statement = JSON.parse(Buffer.from(entry.attestation?.data ?? "", "base64").toString("utf8"));
-          const expectedSubject = `pkg:jsr/@xsyetopz/easel@${expectedVersion}`;
+          const statement = decodeStatement(entry);
           const subjectNames = statement.subject?.map(({ name }) => name) ?? [];
           if (!subjectNames.includes(expectedSubject)) {
             console.error(`Rekor provenance does not include ${expectedSubject}`);
