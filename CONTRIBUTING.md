@@ -33,15 +33,19 @@ Biome handles formatting and linting. The config enforces:
 - Double quotes
 - Organized imports
 
-The package source is TypeScript. Website components and pages are Astro files with TypeScript frontmatter and typed client scripts. Prefer explicit interfaces at module boundaries and keep public exports stable.
+The package source is TypeScript. Website components and pages are Astro files
+with TypeScript frontmatter and typed client scripts. Prefer explicit interfaces
+at module boundaries and keep public exports stable.
 
-Mark overriding members with `override`. Do not add inline lint suppressions; fix the code or adjust the rule in `biome.jsonc` with a clear reason.
+Mark overriding members with `override`. Do not add inline lint suppressions;
+fix the code or adjust the rule in `biome.jsonc` with a clear reason.
 
 ## Core principles
 
 - **KISS** - prefer the simplest solution that works today.
 - **YAGNI** - do not build future features until they are needed.
-- **No over-engineering** - three similar lines of code is better than a premature abstraction.
+- **No over-engineering** - three similar lines of code is better than a
+  premature abstraction.
 
 ## Making changes
 
@@ -60,14 +64,16 @@ Mark overriding members with `override`. Do not add inline lint suppressions; fi
 
 4. Open a pull request against `main`.
 
-Keep one concern per PR. If a refactor is needed to support a feature, split it into a separate PR.
+Keep one concern per PR. If a refactor is needed to support a feature, split it
+into a separate PR.
 
 ## Pull request checklist
 
 - [ ] Relevant typecheck command passes.
 - [ ] Relevant tests pass.
 - [ ] `bun run biome:check` passes.
-- [ ] Docs, examples, and generated docs are updated when public behavior changes.
+- [ ] Docs, examples, and generated docs are updated when public behavior
+      changes.
 - [ ] Commit messages explain intent.
 - [ ] PR description covers motivation, approach, and validation.
 
@@ -87,9 +93,14 @@ tag and GitHub release.
 
 ## Architecture
 
-EASEL.js is a Canvas2D software renderer. The pipeline runs on the CPU: scene traversal, fog culling, painter/depth-aware ordering, light baking, scanline rasterization, CPU depth testing for opaque fragments, framebuffer write, and Canvas2D upload.
+EASEL.js is a Canvas2D software renderer. The pipeline runs on the CPU: scene
+traversal, fog culling, painter/depth-aware ordering, light baking, scanline
+rasterization, CPU depth testing for opaque fragments, framebuffer write, and
+Canvas2D upload.
 
-No WebGL, GPU buffers, shader programs, PBR materials, shadow maps, or environment maps belong in this renderer. See [AGENTS.md](AGENTS.md) for the current repository map and renderer boundaries.
+No WebGL, GPU buffers, shader programs, PBR materials, shadow maps, or
+environment maps belong in this renderer. See [AGENTS.md](AGENTS.md) for the
+current repository map and renderer boundaries.
 
 ## Code of Conduct
 
@@ -97,4 +108,5 @@ All contributors must follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the ISC License.
+By contributing, you agree that your contributions will be licensed under the
+ISC License.

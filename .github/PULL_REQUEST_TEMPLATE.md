@@ -5,7 +5,8 @@
 ## Renderer boundary
 
 - [ ] Fits the CPU-only Canvas2D renderer model.
-- [ ] Does not add WebGL state, GPU buffers, shader programs, z-buffer behavior, PBR materials, environment maps, or shadow maps.
+- [ ] Does not add WebGL state, GPU buffers, shader programs, z-buffer behavior,
+      PBR materials, environment maps, or shadow maps.
 - [ ] Preserves public API shape unless the change is explicitly breaking.
 
 ## Validation
