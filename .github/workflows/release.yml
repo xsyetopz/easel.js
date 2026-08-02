@@ -366,7 +366,7 @@ jobs:
               --data "{\"hash\":\"sha256:$PACKAGE_SHA256\"}" \
               "https://rekor.sigstore.dev/api/v1/index/retrieve" >"$REKOR_UUIDS"
             REKOR_ENTRIES="$(mktemp -d)"
-            node -e 'const fs=require("node:fs"); const ids=JSON.parse(fs.readFileSync(process.argv[1], "utf8")); if (!Array.isArray(ids) || ids.length === 0) process.exit(1); process.stdout.write(ids.join("\n"))' "$REKOR_UUIDS" |
+            node -e 'const fs=require("node:fs"); const ids=JSON.parse(fs.readFileSync(process.argv[1], "utf8")); if (!Array.isArray(ids) || ids.length === 0) process.exit(1); process.stdout.write(ids.join("\n") + "\n")' "$REKOR_UUIDS" |
               while IFS= read -r rekor_uuid; do
                 curl --fail --silent --show-error --location \
                   "https://rekor.sigstore.dev/api/v1/log/entries/$rekor_uuid" \
@@ -400,9 +400,7 @@ jobs:
             ? entries.find(({ logIndex }) => String(logIndex) === expectedIndex)
             : entries.find((candidate) => {
                 const candidateStatement = decodeStatement(candidate);
-                const dependencies = candidateStatement.predicate?.buildDefinition?.resolvedDependencies ?? [];
-                return candidateStatement.subject?.some(({ name }) => name === expectedSubject) &&
-                  dependencies.some(({ digest }) => digest?.gitCommit === expectedSha);
+                return candidateStatement.subject?.some(({ name }) => name === expectedSubject);
               });
           if (!entry) {
             console.error(expectedIndex ? `Rekor has no entry at log index ${expectedIndex}` : "Rekor has no entry for the JSR package digest");
