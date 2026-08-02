@@ -493,15 +493,15 @@ jobs:
               exit 1
               ;;
           esac
-      - name: Create immutable annotated tag and GitHub release
+      - name: Create GitHub release and tag
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag --annotate "v$VERSION" "$CANDIDATE_SHA" --message "Release v$VERSION"
-          git push origin "v$VERSION"
-          gh release create "v$VERSION" --verify-tag --title "v$VERSION" --notes "Release v$VERSION" --latest
+          gh release create "v$VERSION" \
+            --target "$CANDIDATE_SHA" \
+            --title "v$VERSION" \
+            --notes "Release v$VERSION" \
+            --latest
