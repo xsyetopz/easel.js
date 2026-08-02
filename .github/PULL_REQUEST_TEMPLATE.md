@@ -15,7 +15,7 @@ Run the checks that cover this change and paste the results.
 
 - [ ] `bun run biome:check`
 - [ ] `bun run typecheck`
-- [ ] `bun run test:run`
+- [ ] `bun test`
 - [ ] `bun run www:build` when docs, examples, or website files changed
 
 ## Docs and examples
