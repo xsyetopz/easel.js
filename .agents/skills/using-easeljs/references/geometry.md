@@ -58,7 +58,8 @@ Public methods:
 - `computeBoundingSphere()`
 - `dispose()`
 
-For a complete manual triangle function, use the [manual geometry example](#complete-example-manual-triangle-mesh) below.
+For a complete manual triangle function, use the
+[manual geometry example](#complete-example-manual-triangle-mesh) below.
 
 Voxel face recipe:
 

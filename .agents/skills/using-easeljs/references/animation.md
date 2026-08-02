@@ -25,10 +25,10 @@ Clip recipe:
 
 ```ts
 const track = new EASEL.Track(
-    "Cube.rotation.y",
-    new Float32Array([0, 1]),
-    new Float32Array([0, Math.PI * 2]),
-    1,
+	"Cube.rotation.y",
+	new Float32Array([0, 1]),
+	new Float32Array([0, Math.PI * 2]),
+	1,
 );
 const clip = new EASEL.AnimationClip("spin", 1, [track]);
 const animator = new EASEL.Animator(scene);

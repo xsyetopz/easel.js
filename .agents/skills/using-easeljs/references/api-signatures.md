@@ -1,10 +1,10 @@
 # API signatures
 
-Generated from `@xsyetopz/easel@0.6.1` declaration files. Use the contents
-for exact constructor, property, and method shapes; do not infer omitted
-options. Search this file by class heading or source path before writing a
-non-trivial call. The [API exports](api-exports.md) index maps public names to
-package paths, and [API constants](api-constants.md) contains literal values.
+Generated from `@xsyetopz/easel@0.6.1` declaration files. Use the contents for
+exact constructor, property, and method shapes; do not infer omitted options.
+Search this file by class heading or source path before writing a non-trivial
+call. The [API exports](api-exports.md) index maps public names to package
+paths, and [API constants](api-constants.md) contains literal values.
 
 ## Contents
 

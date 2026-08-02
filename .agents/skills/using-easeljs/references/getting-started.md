@@ -1,7 +1,7 @@
 # Getting started
 
-Use this guide when adding `@xsyetopz/easel`, identifying EASEL.js, or
-checking the package/version before writing a scene. The bundled baseline is
+Use this guide when adding `@xsyetopz/easel`, identifying EASEL.js, or checking
+the package/version before writing a scene. The bundled baseline is
 `@xsyetopz/easel@0.6.1`; preserve the installed project version when one is
 already present.
 
@@ -41,7 +41,8 @@ Preferred import style:
 import * as EASEL from "@xsyetopz/easel";
 ```
 
-Named imports are also valid when the symbol appears in the [API exports](api-exports.md) index:
+Named imports are also valid when the symbol appears in the
+[API exports](api-exports.md) index:
 
 ```ts
 import { PerspectiveCamera, Renderer, Scene } from "@xsyetopz/easel";
@@ -68,8 +69,8 @@ pnpm add @xsyetopz/easel@0.6.1
 yarn add @xsyetopz/easel@0.6.1
 ```
 
-These commands intentionally pin the 0.6.1 API. If the selected registry has
-not published 0.6.1 yet, validate against the local easel.js source rather than
+These commands intentionally pin the 0.6.1 API. If the selected registry has not
+published 0.6.1 yet, validate against the local easel.js source rather than
 silently installing an older release. For Deno, use the [Deno guide](deno.md).
 
 Minimal runtime requirements:
@@ -116,8 +117,8 @@ deno add npm:@xsyetopz/easel@0.6.1
 deno add jsr:@xsyetopz/easel@0.6.1
 ```
 
-Browser bundler ESM uses the canonical bare import and named-import form
-shown in the identity section above; do not add package subpaths.
+Browser bundler ESM uses the canonical bare import and named-import form shown
+in the identity section above; do not add package subpaths.
 
 Deno import options:
 
@@ -175,12 +176,12 @@ When exact currentness matters, inspect local
 `node_modules/@xsyetopz/easel/package.json` first, then package registry
 metadata.
 
-The bundled references and templates intentionally target the 0.6.1 API. At
-the observation date, npm and JSR had not published 0.6.1, so the
-version-pinned install commands and templates require that release to be
-published before they can resolve remotely. Do not silently downgrade the API
-baseline; in an easel.js checkout, validate against local `package.json`,
-`src/index.ts`, and declaration output instead.
+The bundled references and templates intentionally target the 0.6.1 API. At the
+observation date, npm and JSR had not published 0.6.1, so the version-pinned
+install commands and templates require that release to be published before they
+can resolve remotely. Do not silently downgrade the API baseline; in an easel.js
+checkout, validate against local `package.json`, `src/index.ts`, and declaration
+output instead.
 
 Relevant release deltas reflected here:
 
