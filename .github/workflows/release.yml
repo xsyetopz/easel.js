@@ -111,8 +111,30 @@ jobs:
           esac
 
           NPM_ERROR="$(mktemp)"
-          if npm view "$PACKAGE_NAME@$VERSION" version --json >/dev/null 2>"$NPM_ERROR"; then
+          NPM_METADATA="$(mktemp)"
+          RELEASE_SHA="$HEAD_SHA"
+          if npm view "$PACKAGE_NAME@$VERSION" --json >"$NPM_METADATA" 2>"$NPM_ERROR"; then
             NPM_EXISTS=true
+            RELEASE_SHA="$(node - "$NPM_METADATA" "$VERSION" <<'NODE'
+          const fs = require("node:fs");
+          const [metadataPath, expectedVersion] = process.argv.slice(2);
+          const payload = JSON.parse(fs.readFileSync(metadataPath, "utf8"));
+          const metadata = Array.isArray(payload) ? payload[0] : payload;
+          if (metadata?.version !== expectedVersion) process.exit(1);
+          if (metadata?.dist?.attestations?.provenance?.predicateType !== "https://slsa.dev/provenance/v1") process.exit(1);
+          if (!/^[0-9a-f]{40}$/.test(metadata?.gitHead ?? "")) process.exit(1);
+          process.stdout.write(metadata.gitHead);
+          NODE
+            )"
+            if ! git merge-base --is-ancestor "$RELEASE_SHA" "$HEAD_SHA"; then
+              echo "::error::Published npm source $RELEASE_SHA is not an ancestor of current main $HEAD_SHA"
+              exit 1
+            fi
+            PUBLISHED_VERSION="$(git show "$RELEASE_SHA:package.json" | node -e 'let value=""; process.stdin.on("data", chunk => value += chunk); process.stdin.on("end", () => process.stdout.write(JSON.parse(value).version))')"
+            if [ "$PUBLISHED_VERSION" != "$VERSION" ]; then
+              echo "::error::Published npm source has package version $PUBLISHED_VERSION, expected $VERSION"
+              exit 1
+            fi
           elif grep -Eqi 'E404|404 Not Found|No match found for version|is not in this registry' "$NPM_ERROR"; then
             NPM_EXISTS=false
           else
@@ -137,11 +159,15 @@ jobs:
               exit 1
               ;;
           esac
+          if [ "$JSR_EXISTS" = true ] && [ "$NPM_EXISTS" = false ]; then
+            echo "::error::JSR exists without npm; unable to derive a shared release source"
+            exit 1
+          fi
 
           {
             echo "version=$VERSION"
             echo "package=$PACKAGE_NAME"
-            echo "candidate_sha=$HEAD_SHA"
+            echo "candidate_sha=$RELEASE_SHA"
             echo "npm_exists=$NPM_EXISTS"
             echo "jsr_exists=$JSR_EXISTS"
           } >> "$GITHUB_OUTPUT"
@@ -185,7 +211,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ github.sha }}
+          ref: ${{ needs.validate.outputs.candidate_sha }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.18.1
@@ -204,9 +230,9 @@ jobs:
             exit 1
           fi
           HEAD_SHA="$(git rev-parse HEAD)"
-          if [ "$HEAD_SHA" != "$GITHUB_SHA" ] || [ "$HEAD_SHA" != "$CANDIDATE_SHA" ]; then
+          if [ "$HEAD_SHA" != "$CANDIDATE_SHA" ]; then
             echo "::error::Publish checkout does not match validated candidate"
-            echo "HEAD=$HEAD_SHA github.sha=$GITHUB_SHA candidate=$CANDIDATE_SHA"
+            echo "HEAD=$HEAD_SHA candidate=$CANDIDATE_SHA"
             exit 1
           fi
           npm --version
@@ -402,7 +428,7 @@ jobs:
 
   github-release:
     name: Tag and create GitHub release
-    needs: publish
+    needs: [validate, publish]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -411,10 +437,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ github.sha }}
+          ref: ${{ needs.validate.outputs.candidate_sha }}
       - name: Assert release candidate and tag state
         env:
           GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
@@ -423,7 +450,7 @@ jobs:
             exit 1
           fi
           HEAD_SHA="$(git rev-parse HEAD)"
-          if [ "$HEAD_SHA" != "$GITHUB_SHA" ]; then
+          if [ "$HEAD_SHA" != "$CANDIDATE_SHA" ]; then
             echo "::error::GitHub release checkout does not match the published source"
             exit 1
           fi
@@ -471,11 +498,12 @@ jobs:
       - name: Create immutable annotated tag and GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag --annotate "v$VERSION" "$GITHUB_SHA" --message "Release v$VERSION"
+          git tag --annotate "v$VERSION" "$CANDIDATE_SHA" --message "Release v$VERSION"
           git push origin "v$VERSION"
           gh release create "v$VERSION" --verify-tag --title "v$VERSION" --notes "Release v$VERSION" --latest
