@@ -74,13 +74,13 @@ Patterns:
 - Tile picking uses custom DDA raycast through voxel grids when grid cell and
   face normal are required.
 
-Use the canonical CSS-to-backing-store scaling recipe above for both object and
+Use the CSS-to-backing-store scaling recipe above for both object and
 voxel input. DDA picking is preferred for voxel tile targeting because it
 returns grid cell and face normal directly.
 
 ## Complete voxel DDA implementation
 
-This standalone implementation is the canonical full recipe for grid picking. It
+This standalone implementation covers the full grid-picking path. It
 imports only public root types and can be copied into a browser scene.
 
 ```ts

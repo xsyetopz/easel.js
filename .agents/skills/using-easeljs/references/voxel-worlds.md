@@ -1,7 +1,7 @@
 # Voxel worlds
 
 Read this for visible-face meshing, opaque/transparent passes, chunk streaming,
-replacement disposal, world offsets, and rebuild budgets. The full copyable
+replacement disposal, world offsets, and rebuild budgets. The complete
 mesher is kept once at the
 [voxel-world starter mesher](../assets/templates/voxel-world-starter/src/mesher.ts);
 the excerpt below shows its public contract without duplicating that source.
@@ -10,7 +10,7 @@ the excerpt below shows its public contract without duplicating that source.
 
 - [Voxel geometry and face visibility](#voxel-geometry-and-face-visibility)
 - [Chunk streaming and replacement](#chunk-streaming-and-replacement)
-- [Canonical mesher contract](#canonical-mesher-contract)
+- [Mesher contract](#mesher-contract)
 
 ## Voxel geometry and face visibility
 
@@ -91,7 +91,7 @@ meshes.set(key, mesh);
 scene.add(mesh);
 ```
 
-## Canonical mesher contract
+## Mesher contract
 
 The voxel-world starter exports `BlockWorld` and
 `buildSimpleVoxelChunk(world, sizeX, sizeY, sizeZ): EASEL.Geometry`. It emits

@@ -20,7 +20,6 @@ deterministic canvas pixels without WebGL.
 | Item         | Current value               |
 | ------------ | --------------------------- |
 | Package      | `@xsyetopz/easel`           |
-| Revision     | `0.6.1`                     |
 | Source       | TypeScript                  |
 | Runtime deps | none                        |
 | Output       | Canvas2D `ImageData` upload |
@@ -225,7 +224,7 @@ bun run dev
 The CLI suite reports FPS, warmup-adjusted samples, p50/p95 frame timing,
 pipeline stage timing, runtime metadata, and JSON output. The browser suite is
 in the examples site under Performance → Render Benchmark Suite and exposes the
-same methodology with copyable JSON results.
+same methodology and emits JSON results.
 
 ## Contributing
 

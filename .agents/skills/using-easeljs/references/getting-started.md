@@ -117,7 +117,7 @@ deno add npm:@xsyetopz/easel@0.6.1
 deno add jsr:@xsyetopz/easel@0.6.1
 ```
 
-Browser bundler ESM uses the canonical bare import and named-import form shown
+Browser bundler ESM uses the bare import and named-import form shown
 in the identity section above; do not add package subpaths.
 
 Deno import options:

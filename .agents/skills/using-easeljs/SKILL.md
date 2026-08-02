@@ -64,7 +64,7 @@ runtime. For a THREE.js migration, also load the dedicated
 | Texture sources, canvas pixels, or atlases | [textures guide](references/textures.md) | `DataTexture`/atlas recipe | `needsUpdate`, compact dimensions, nearest-neighbor assumptions |
 | Clips, tracks, animator, or grouped voxel rigs | [animation guide](references/animation.md) | Named-node or step-track example | `Animator.update(dt)` and track paths |
 | Pointer coordinates, `Raycaster`, or voxel DDA | [picking guide](references/picking.md) | DOM scaling or complete DDA implementation | Backing-store pixels, camera adapter, max distance |
-| Voxel meshing, chunk streaming, or replacement | [voxel worlds](references/voxel-worlds.md) | Canonical mesher from [template assets](references/templates.md) | Face visibility, rebuild cap, disposal, bounds |
+| Voxel meshing, chunk streaming, or replacement | [voxel worlds](references/voxel-worlds.md) | Mesher from [template assets](references/templates.md) | Face visibility, rebuild cap, disposal, bounds |
 | Lines, points, sprites, or wire overlays | [primitives guide](references/primitives.md) | Matching primitive recipe | Public object/material declarations |
 | Loaders, image assets, or serialization | [loaders and serialization](references/loaders-and-serialization.md) | Typed loader or manual image recipe | Exact `.d.ts` callback/promise shape |
 | CPU budgets, profiling, rebuilds, and lifecycle | [performance and lifecycle](references/performance-and-lifecycle.md) | Structural timing and cleanup recipe | Timing fields, low internal resolution, disposal |

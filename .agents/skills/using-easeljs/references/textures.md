@@ -63,7 +63,7 @@ Pattern:
 - Set `texture.needsUpdate = true` after data changes.
 
 Use typed-array copying for predictable CPU performance; the complete canvas and
-checkerboard functions below are the canonical copyable recipes.
+checkerboard functions below are complete examples.
 
 ## Complete example: canvas pixels as a data texture
 

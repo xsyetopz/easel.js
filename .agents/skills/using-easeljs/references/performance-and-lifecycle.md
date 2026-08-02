@@ -8,7 +8,7 @@ renderer-owned resources.
 - [CPU rasterizer constraints](#cpu-rasterizer-constraints)
 - [Performance checklist](#performance-checklist)
 - [Lifecycle and disposal](#lifecycle-and-disposal)
-- [Canonical structural profiler](#canonical-structural-profiler)
+- [Structural profiler](#structural-profiler)
 
 ## CPU rasterizer constraints
 
@@ -58,7 +58,7 @@ CPU rasterizer performance checklist:
 - Split static and dynamic scene branches.
 - Keep transparent geometry limited and ordered.
 - Use fog and render distance to reduce far geometry.
-- Profile with the canonical structural timing object in the section below.
+- Profile with the structural timing object in the section below.
 - Dispose replaced geometries.
 
 Voxel strategy:
@@ -114,7 +114,7 @@ Material sharing:
 - share atlas materials across many meshes
 - dispose shared materials only after all meshes using them have been removed
 
-## Canonical structural profiler
+## Structural profiler
 
 `RenderTimings` is an internal renderer type rather than a root package export;
 pass a structural object to the third `render` argument. Inspect returned timing

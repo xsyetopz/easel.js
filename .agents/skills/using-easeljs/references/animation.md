@@ -42,7 +42,7 @@ animator.update(dt);
 ```
 
 Step animation is implemented by the `StepTrack` subclass in the complete
-voxel-rig example below; keep the override there as the canonical copyable
+voxel-rig example below; keep the override there as the complete
 implementation.
 
 Track names resolve node paths and properties. Name scene nodes explicitly

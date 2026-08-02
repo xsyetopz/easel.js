@@ -43,34 +43,22 @@ function bumpVersion(version, target) {
 
 const target = process.argv[2];
 if (!target) {
-	console.error("Usage: bun run version -- 0.5.0|patch|minor|major");
+	console.error("Usage: bun run version -- X.Y.Z|patch|minor|major");
 	process.exit(1);
 }
 
 const packageJson = readJson("package.json");
 const jsrJson = readJson("jsr.json");
 const indexSource = readFileSync("src/index.ts", "utf8");
-const readmeSource = readFileSync("README.md", "utf8");
-const agentsSource = readFileSync("AGENTS.md", "utf8");
 const revisionMatch = indexSource.match(/export const REVISION = "([^"]+)";/u);
 const revisionVersion = revisionMatch?.[1];
-const readmeRevisionMatch = readmeSource.match(
-	/^\| Revision \| `(?<version>[^`]+)` \|$/mu,
-);
-const readmeRevision = readmeRevisionMatch?.groups?.version;
-const agentsRevisionMatch = agentsSource.match(
-	/current source revision is `(?<version>\d+\.\d+\.\d+)`;/u,
-);
-const agentsRevision = agentsRevisionMatch?.groups?.version;
 
 if (
 	packageJson.version !== jsrJson.version ||
-	packageJson.version !== revisionVersion ||
-	packageJson.version !== readmeRevision ||
-	packageJson.version !== agentsRevision
+	packageJson.version !== revisionVersion
 ) {
 	console.error(
-		`Version mismatch: package.json=${packageJson.version} jsr.json=${jsrJson.version} REVISION=${revisionVersion} README=${readmeRevision} AGENTS=${agentsRevision}`,
+		`Version mismatch: package.json=${packageJson.version} jsr.json=${jsrJson.version} REVISION=${revisionVersion}`,
 	);
 	process.exit(1);
 }
@@ -86,20 +74,6 @@ writeFileSync(
 	indexSource.replace(
 		/export const REVISION = "[^"]+";/u,
 		`export const REVISION = "${nextVersion}";`,
-	),
-);
-writeFileSync(
-	"README.md",
-	readmeSource.replace(
-		/^\| Revision \| `[^`]+` \|$/mu,
-		`| Revision | \`${nextVersion}\` |`,
-	),
-);
-writeFileSync(
-	"AGENTS.md",
-	agentsSource.replace(
-		/current source revision is `\d+\.\d+\.\d+`;/u,
-		`current source revision is \`${nextVersion}\`;`,
 	),
 );
 console.log(`Version set to ${nextVersion}`);

@@ -1,4 +1,4 @@
-# Easel.js Performance Backlog (Actionable + Benchmark-First)
+# Easel.js Performance Backlog
 
 This backlog is derived from:
 
@@ -33,13 +33,13 @@ Rules:
   - `www/examples/performance/scene-stress.js` at high mesh counts.
   - Compare `timings.traversalMs` (and `timings.totalMs`) before/after.
 
-### P0 — Add stage timing to at least one canonical perf example (DONE)
+### P0 — Add stage timing to a performance example (DONE)
 
 - Stage: measurement/observability
 - Why: Without stable measurements, perf work is mostly guesswork and
   regressions are hard to catch.
 - Where: `www/examples/performance/rasterizer-benchmark.js` (or another
-  canonical perf example)
+  selected performance example)
 - Proposed change:
   - Add `performance.mark/measure` for traversal/sort/shade/raster/upload.
   - Add a small on-screen HUD or console aggregation (p50/p95) behind a flag.

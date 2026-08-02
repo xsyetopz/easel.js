@@ -9,25 +9,13 @@ function readJson(path) {
 const packageVersion = readJson("package.json").version;
 const jsrVersion = readJson("jsr.json").version;
 const indexSource = readFileSync("src/index.ts", "utf8");
-const readmeSource = readFileSync("README.md", "utf8");
-const agentsSource = readFileSync("AGENTS.md", "utf8");
 const revisionMatch = indexSource.match(/export const REVISION = "([^"]+)";/u);
 const revisionVersion = revisionMatch?.[1];
-const readmeRevisionMatch = readmeSource.match(
-	/^\| Revision \| `(?<version>[^`]+)` \|$/mu,
-);
-const readmeRevision = readmeRevisionMatch?.groups?.version;
-const agentsRevisionMatch = agentsSource.match(
-	/current source revision is `(?<version>\d+\.\d+\.\d+)`;/u,
-);
-const agentsRevision = agentsRevisionMatch?.groups?.version;
 
 const versions = [
 	["package.json", packageVersion],
 	["jsr.json", jsrVersion],
 	["src/index.ts REVISION", revisionVersion],
-	["README.md Status Revision", readmeRevision],
-	["AGENTS.md source revision", agentsRevision],
 ];
 
 for (const [source, version] of versions) {
@@ -37,14 +25,9 @@ for (const [source, version] of versions) {
 	}
 }
 
-if (
-	packageVersion !== jsrVersion ||
-	packageVersion !== revisionVersion ||
-	packageVersion !== readmeRevision ||
-	packageVersion !== agentsRevision
-) {
+if (packageVersion !== jsrVersion || packageVersion !== revisionVersion) {
 	console.error(
-		`Version mismatch: package.json=${packageVersion} jsr.json=${jsrVersion} REVISION=${revisionVersion} README=${readmeRevision} AGENTS=${agentsRevision}`,
+		`Version mismatch: package.json=${packageVersion} jsr.json=${jsrVersion} REVISION=${revisionVersion}`,
 	);
 	process.exit(1);
 }

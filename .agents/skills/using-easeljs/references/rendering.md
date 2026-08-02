@@ -51,7 +51,7 @@ Canvas sizing model:
 - `setSize` resizes framebuffer and canvas backing store.
 - CPU work scales with internal pixel count, not CSS size.
 
-For profiling, use the single canonical structural timing recipe in the
+For profiling, use the structural timing recipe in the
 [performance and lifecycle guide](performance-and-lifecycle.md). `RenderTimings`
 is an internal renderer type rather than a root package export; pass a
 structural object to the third `render` argument instead.
