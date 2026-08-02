@@ -90,7 +90,11 @@ export function setup(canvas, params = {}) {
 	);
 
 	let mesh = new EASEL.Mesh(
-		new EASEL.SphereGeometry(1.5, currentSubs, Math.floor(currentSubs * 0.75)),
+		new EASEL.SphereGeometry(
+			1.5,
+			currentSubs,
+			Math.floor(currentSubs * 0.75),
+		),
 		createMaterial(currentMaterial),
 	);
 	scene.add(mesh);
@@ -145,22 +149,21 @@ export function setup(canvas, params = {}) {
 				8,
 				20,
 			);
-			const total =
-				typeof timings.totalMs === "number" ? timings.totalMs.toFixed(2) : "—";
-			const trav =
-				typeof timings.traversalMs === "number"
-					? timings.traversalMs.toFixed(2)
-					: "—";
-			const sort =
-				typeof timings.sortMs === "number" ? timings.sortMs.toFixed(2) : "—";
-			const shade =
-				typeof timings.shadeRasterMs === "number"
-					? timings.shadeRasterMs.toFixed(2)
-					: "—";
-			const upload =
-				typeof timings.uploadMs === "number"
-					? timings.uploadMs.toFixed(2)
-					: "—";
+			const total = typeof timings.totalMs === "number"
+				? timings.totalMs.toFixed(2)
+				: "-";
+			const trav = typeof timings.traversalMs === "number"
+				? timings.traversalMs.toFixed(2)
+				: "-";
+			const sort = typeof timings.sortMs === "number"
+				? timings.sortMs.toFixed(2)
+				: "-";
+			const shade = typeof timings.shadeRasterMs === "number"
+				? timings.shadeRasterMs.toFixed(2)
+				: "-";
+			const upload = typeof timings.uploadMs === "number"
+				? timings.uploadMs.toFixed(2)
+				: "-";
 			ctx.fillText(
 				`ms: total ${total}  trav ${trav}  sort ${sort}  shade+rast ${shade}  upload ${upload}`,
 				8,

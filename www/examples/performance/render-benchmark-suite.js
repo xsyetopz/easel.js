@@ -105,7 +105,11 @@ export function setup(canvas, params = {}) {
 				20,
 			);
 			ctx.fillText(
-				`ms: total ${formatMs(timings.totalMs)}  trav ${formatMs(timings.traversalMs)}  sort ${formatMs(timings.sortMs)}  shade+rast ${formatMs(timings.shadeRasterMs)}  upload ${formatMs(timings.uploadMs)}`,
+				`ms: total ${formatMs(timings.totalMs)}  trav ${
+					formatMs(timings.traversalMs)
+				}  sort ${formatMs(timings.sortMs)}  shade+rast ${
+					formatMs(timings.shadeRasterMs)
+				}  upload ${formatMs(timings.uploadMs)}`,
 				8,
 				40,
 			);
@@ -172,8 +176,10 @@ function createBrowserWorkloads(canvas) {
 
 function createWorkloadByName(canvas, name) {
 	return (
-		createBrowserWorkloads(canvas).find((workload) => workload.name === name) ??
-		createMeshGridWorkload(canvas)
+		createBrowserWorkloads(canvas).find((workload) =>
+			workload.name === name
+		) ??
+			createMeshGridWorkload(canvas)
 	);
 }
 
@@ -223,7 +229,7 @@ function formatVisualCount(value) {
 }
 
 function formatMs(value) {
-	return typeof value === "number" ? value.toFixed(2) : "—";
+	return typeof value === "number" ? value.toFixed(2) : "-";
 }
 
 function createMeshGridWorkload(canvas) {
@@ -253,10 +259,18 @@ function createMeshGridWorkload(canvas) {
 			const geometry = new EASEL.BoxGeometry(0.72, 0.72, 0.72);
 			geometry.computeBoundingSphere();
 			const materials = [
-				0x6c8cff, 0xe0694f, 0x4fc078, 0xd1a33a, 0xa66bd6, 0x4db9d8,
+				0x6c8cff,
+				0xe0694f,
+				0x4fc078,
+				0xd1a33a,
+				0xa66bd6,
+				0x4db9d8,
 			].map(
 				(color) =>
-					new EASEL.LambertMaterial({ color, shading: EASEL.Shading.Gouraud }),
+					new EASEL.LambertMaterial({
+						color,
+						shading: EASEL.Shading.Gouraud,
+					}),
 			);
 			const side = 20;
 			for (let z = 0; z < side; z++) {
@@ -383,7 +397,12 @@ function createTransparentOverdrawWorkload(canvas) {
 			const geometry = new EASEL.PlaneGeometry(6.2, 3.5);
 			geometry.computeBoundingSphere();
 			const colors = [
-				0x4f7cff, 0xff674f, 0x53c878, 0xffcc4f, 0xb06cff, 0x4fd7ff,
+				0x4f7cff,
+				0xff674f,
+				0x53c878,
+				0xffcc4f,
+				0xb06cff,
+				0x4fd7ff,
 			];
 			const root = new EASEL.Group();
 			scene.add(root);
@@ -557,7 +576,10 @@ function createHierarchyWorkload(canvas) {
 			geometry.computeBoundingSphere();
 			const materials = [0x80a0ff, 0xff8f70, 0x76d68e, 0xe4c15f].map(
 				(color) =>
-					new EASEL.LambertMaterial({ color, shading: EASEL.Shading.Flat }),
+					new EASEL.LambertMaterial({
+						color,
+						shading: EASEL.Shading.Flat,
+					}),
 			);
 			const root = new EASEL.Group();
 			scene.add(root);
@@ -586,7 +608,9 @@ function createHierarchyWorkload(canvas) {
 					);
 				}
 			}
-			for (let i = 0; i < 4; i++) addBranch(root, 3, i, (i - 1.5) * 1.8, 0);
+			for (let i = 0; i < 4; i++) {
+				addBranch(root, 3, i, (i - 1.5) * 1.8, 0);
+			}
 			return {
 				camera,
 				renderer,

@@ -70,7 +70,7 @@ describe("FlatShader", () => {
 			direction: { x: 0, y: 1, z: 0 },
 			intensity: 1.0,
 		};
-		// normal (0,1,0) · direction (0,1,0) = 1 → blend = 0.5 + 0.5*1 = 1.0 → pure sky
+		// normal (0,1,0) - direction (0,1,0) = 1 → blend = 0.5 + 0.5*1 = 1.0 → pure sky
 		// contribution = (0 + (1 - 0) * 1.0) * 1.0 = 1.0; plus scene ambient 0.1 → clamped to 1.0
 		const result = shader.shade(0, 1, 0, [hemiLight], 0.1);
 		expect(result.r).toBeCloseTo(1.0, 2);

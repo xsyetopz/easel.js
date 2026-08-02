@@ -100,7 +100,7 @@ export class Node extends EventDispatcher {
 		object.parent?.remove(object);
 		object.parent = this;
 		this.children.push(object);
-		// Parent transform now applies — world matrix must be recomputed.
+		// Parent transform now applies -  world matrix must be recomputed.
 		object.matrixWorldNeedsUpdate = true;
 
 		return this;
@@ -134,8 +134,9 @@ export class Node extends EventDispatcher {
 	lookAt(target: Vector3 | number, y?: number, z?: number): this {
 		this.updateMatrixWorld(true, false);
 
-		const targetVector =
-			target instanceof Vector3 ? target : new Vector3(target, y, z);
+		const targetVector = target instanceof Vector3
+			? target
+			: new Vector3(target, y, z);
 
 		_position.setFromMatrixPosition(this.matrixWorld);
 
@@ -160,7 +161,7 @@ export class Node extends EventDispatcher {
 
 	updateMatrix(): void {
 		this.matrix.compose(this.position, this.quaternion, this.scale);
-		// Local matrix changed — world matrix is now stale.
+		// Local matrix changed -  world matrix is now stale.
 		this.matrixWorldNeedsUpdate = true;
 		this.#syncLocalCache();
 	}
@@ -179,8 +180,7 @@ export class Node extends EventDispatcher {
 		this.#lastScaleX = s.x;
 		this.#lastScaleY = s.y;
 		this.#lastScaleZ = s.z;
-		this.#localIsIdentity =
-			this.#lastPosX === 0 &&
+		this.#localIsIdentity = this.#lastPosX === 0 &&
 			this.#lastPosY === 0 &&
 			this.#lastPosZ === 0 &&
 			this.#lastQuatX === 0 &&

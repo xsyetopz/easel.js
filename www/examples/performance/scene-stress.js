@@ -64,7 +64,9 @@ function createCheckerTexture() {
 	for (let y = 0; y < size; y++) {
 		for (let x = 0; x < size; x++) {
 			const i = (y * size + x) * 4;
-			const v = (Math.floor(x / 4) + Math.floor(y / 4)) % 2 === 0 ? 220 : 60;
+			const v = (Math.floor(x / 4) + Math.floor(y / 4)) % 2 === 0
+				? 220
+				: 60;
 			data[i] = v;
 			data[i + 1] = v;
 			data[i + 2] = v;
@@ -134,7 +136,11 @@ export function setup(canvas, params = {}) {
 		meshes = [];
 
 		if (fogToggle === "On") {
-			scene.fog = new EASEL.Fog({ color: 0x000000, near: 1, far: fogFar });
+			scene.fog = new EASEL.Fog({
+				color: 0x000000,
+				near: 1,
+				far: fogFar,
+			});
 		} else {
 			scene.fog = undefined;
 		}
@@ -146,7 +152,7 @@ export function setup(canvas, params = {}) {
 			camera.position.set(0, 3, 15);
 			camera.lookAt(origin);
 		} else {
-			// 3D Volume — camera will orbit in animate()
+			// 3D Volume -  camera will orbit in animate()
 			camera.position.set(0, 10, 25);
 			camera.lookAt(origin);
 		}
@@ -243,22 +249,21 @@ export function setup(canvas, params = {}) {
 				8,
 				20,
 			);
-			const total =
-				typeof timings.totalMs === "number" ? timings.totalMs.toFixed(2) : "—";
-			const trav =
-				typeof timings.traversalMs === "number"
-					? timings.traversalMs.toFixed(2)
-					: "—";
-			const sort =
-				typeof timings.sortMs === "number" ? timings.sortMs.toFixed(2) : "—";
-			const shade =
-				typeof timings.shadeRasterMs === "number"
-					? timings.shadeRasterMs.toFixed(2)
-					: "—";
-			const upload =
-				typeof timings.uploadMs === "number"
-					? timings.uploadMs.toFixed(2)
-					: "—";
+			const total = typeof timings.totalMs === "number"
+				? timings.totalMs.toFixed(2)
+				: "-";
+			const trav = typeof timings.traversalMs === "number"
+				? timings.traversalMs.toFixed(2)
+				: "-";
+			const sort = typeof timings.sortMs === "number"
+				? timings.sortMs.toFixed(2)
+				: "-";
+			const shade = typeof timings.shadeRasterMs === "number"
+				? timings.shadeRasterMs.toFixed(2)
+				: "-";
+			const upload = typeof timings.uploadMs === "number"
+				? timings.uploadMs.toFixed(2)
+				: "-";
 			ctx.fillText(
 				`ms: total ${total}  trav ${trav}  sort ${sort}  shade+rast ${shade}  upload ${upload}`,
 				8,
@@ -276,7 +281,10 @@ export function setup(canvas, params = {}) {
 		update(newParams) {
 			let rebuild = false;
 
-			if (newParams.count !== undefined && newParams.count !== currentCount) {
+			if (
+				newParams.count !== undefined &&
+				newParams.count !== currentCount
+			) {
 				currentCount = /** @type {number} */ (newParams.count);
 				rebuild = true;
 			}

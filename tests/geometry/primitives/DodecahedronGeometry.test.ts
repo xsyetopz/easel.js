@@ -9,7 +9,8 @@ describe("DodecahedronGeometry vs THREE.DodecahedronGeometry", () => {
 		expect(
 			defined(new DodecahedronGeometry().getAttribute("position")).count,
 		).toBe(
-			defined(new THREE.DodecahedronGeometry().getAttribute("position")).count,
+			defined(new THREE.DodecahedronGeometry().getAttribute("position"))
+				.count,
 		);
 	});
 
@@ -37,9 +38,12 @@ describe("DodecahedronGeometry vs THREE.DodecahedronGeometry", () => {
 
 	it("detail=1 - vertex count matches THREE", () => {
 		expect(
-			defined(new DodecahedronGeometry(1, 1).getAttribute("position")).count,
+			defined(new DodecahedronGeometry(1, 1).getAttribute("position"))
+				.count,
 		).toBe(
-			defined(new THREE.DodecahedronGeometry(1, 1).getAttribute("position"))
+			defined(
+				new THREE.DodecahedronGeometry(1, 1).getAttribute("position"),
+			)
 				.count,
 		);
 	});
@@ -91,9 +95,10 @@ describe("DodecahedronGeometry winding order", () => {
 			const my = (ay + by + cy) / 3;
 			const mz = (az + bz + cz) / 3;
 
-			// Outward if face normal · centroid > 0 (origin is at center)
+			// Outward if face normal - centroid > 0 (origin is at center)
 			const dot = nx * mx + ny * my + nz * mz;
-			expect(dot, `triangle ${t} face normal points inward`).toBeGreaterThan(0);
+			expect(dot, `triangle ${t} face normal points inward`)
+				.toBeGreaterThan(0);
 		}
 	});
 });

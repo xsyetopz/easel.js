@@ -130,7 +130,11 @@ export function setup(canvas, params = {}) {
 					}),
 				);
 				const angle = (i / 8) * Math.PI * 2;
-				cyl.position.set(Math.cos(angle) * 5, 0.75, Math.sin(angle) * 5);
+				cyl.position.set(
+					Math.cos(angle) * 5,
+					0.75,
+					Math.sin(angle) * 5,
+				);
 				scene.add(cyl);
 				meshes.push(cyl);
 			}
@@ -150,7 +154,10 @@ export function setup(canvas, params = {}) {
 			for (let i = 0; i < 20; i++) {
 				const mat = new EASEL.LambertMaterial({ color: 0xffffff });
 				mat.map = checkerTex;
-				const cube = new EASEL.Mesh(new EASEL.BoxGeometry(0.6, 0.6, 0.6), mat);
+				const cube = new EASEL.Mesh(
+					new EASEL.BoxGeometry(0.6, 0.6, 0.6),
+					mat,
+				);
 				cube.position.set(
 					(Math.random() - 0.5) * 12,
 					0.3 + Math.random() * 2,
@@ -169,7 +176,10 @@ export function setup(canvas, params = {}) {
 
 			const wireMat = new EASEL.BasicMaterial({ color: 0x44aaff });
 			wireMat.wireframe = true;
-			const wireCube = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), wireMat);
+			const wireCube = new EASEL.Mesh(
+				new EASEL.BoxGeometry(2, 2, 2),
+				wireMat,
+			);
 			wireCube.position.set(6, 1, 0);
 			scene.add(wireCube);
 			meshes.push(wireCube);
@@ -308,22 +318,21 @@ export function setup(canvas, params = {}) {
 				8,
 				20,
 			);
-			const total =
-				typeof timings.totalMs === "number" ? timings.totalMs.toFixed(2) : "—";
-			const trav =
-				typeof timings.traversalMs === "number"
-					? timings.traversalMs.toFixed(2)
-					: "—";
-			const sort =
-				typeof timings.sortMs === "number" ? timings.sortMs.toFixed(2) : "—";
-			const shade =
-				typeof timings.shadeRasterMs === "number"
-					? timings.shadeRasterMs.toFixed(2)
-					: "—";
-			const upload =
-				typeof timings.uploadMs === "number"
-					? timings.uploadMs.toFixed(2)
-					: "—";
+			const total = typeof timings.totalMs === "number"
+				? timings.totalMs.toFixed(2)
+				: "-";
+			const trav = typeof timings.traversalMs === "number"
+				? timings.traversalMs.toFixed(2)
+				: "-";
+			const sort = typeof timings.sortMs === "number"
+				? timings.sortMs.toFixed(2)
+				: "-";
+			const shade = typeof timings.shadeRasterMs === "number"
+				? timings.shadeRasterMs.toFixed(2)
+				: "-";
+			const upload = typeof timings.uploadMs === "number"
+				? timings.uploadMs.toFixed(2)
+				: "-";
 			ctx.fillText(
 				`ms: total ${total}  trav ${trav}  sort ${sort}  shade+rast ${shade}  upload ${upload}`,
 				8,
@@ -343,7 +352,8 @@ export function setup(canvas, params = {}) {
 				newParams.complexity !== undefined &&
 				newParams.complexity !== currentComplexity
 			) {
-				currentComplexity = /** @type {number} */ (newParams.complexity);
+				currentComplexity =
+					/** @type {number} */ (newParams.complexity);
 				needsRebuild = true;
 			}
 			if (newParams.fog !== undefined && newParams.fog !== currentFog) {

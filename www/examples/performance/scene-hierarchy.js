@@ -149,48 +149,42 @@ export function setup(canvas, params = {}) {
 				8,
 				20,
 			);
-			const total =
-				typeof timings.totalMs === "number" ? timings.totalMs.toFixed(2) : "—";
-			const trav =
-				typeof timings.traversalMs === "number"
-					? timings.traversalMs.toFixed(2)
-					: "—";
-			const sort =
-				typeof timings.sortMs === "number" ? timings.sortMs.toFixed(2) : "—";
-			const shade =
-				typeof timings.shadeRasterMs === "number"
-					? timings.shadeRasterMs.toFixed(2)
-					: "—";
-			const upload =
-				typeof timings.uploadMs === "number"
-					? timings.uploadMs.toFixed(2)
-					: "—";
+			const total = typeof timings.totalMs === "number"
+				? timings.totalMs.toFixed(2)
+				: "-";
+			const trav = typeof timings.traversalMs === "number"
+				? timings.traversalMs.toFixed(2)
+				: "-";
+			const sort = typeof timings.sortMs === "number"
+				? timings.sortMs.toFixed(2)
+				: "-";
+			const shade = typeof timings.shadeRasterMs === "number"
+				? timings.shadeRasterMs.toFixed(2)
+				: "-";
+			const upload = typeof timings.uploadMs === "number"
+				? timings.uploadMs.toFixed(2)
+				: "-";
 			ctx.fillText(
 				`ms: total ${total}  trav ${trav}  sort ${sort}  shade+rast ${shade}  upload ${upload}`,
 				8,
 				40,
 			);
 			if (timings.profileTraversal) {
-				const uw =
-					typeof timings.travUpdateWorldMs === "number"
-						? timings.travUpdateWorldMs.toFixed(2)
-						: "—";
-				const walk =
-					typeof timings.travWalkMs === "number"
-						? timings.travWalkMs.toFixed(2)
-						: "—";
-				const proj =
-					typeof timings.travProjectMs === "number"
-						? timings.travProjectMs.toFixed(2)
-						: "—";
-				const asm =
-					typeof timings.travAssembleMs === "number"
-						? timings.travAssembleMs.toFixed(2)
-						: "—";
-				const dcs =
-					typeof timings.travDrawCalls === "number"
-						? timings.travDrawCalls
-						: "—";
+				const uw = typeof timings.travUpdateWorldMs === "number"
+					? timings.travUpdateWorldMs.toFixed(2)
+					: "-";
+				const walk = typeof timings.travWalkMs === "number"
+					? timings.travWalkMs.toFixed(2)
+					: "-";
+				const proj = typeof timings.travProjectMs === "number"
+					? timings.travProjectMs.toFixed(2)
+					: "-";
+				const asm = typeof timings.travAssembleMs === "number"
+					? timings.travAssembleMs.toFixed(2)
+					: "-";
+				const dcs = typeof timings.travDrawCalls === "number"
+					? timings.travDrawCalls
+					: "-";
 				ctx.fillText(
 					`trav: updateWorld ${uw}  walk ${walk}  project ${proj}  assemble ${asm}  dcs ${dcs}`,
 					8,
@@ -207,7 +201,10 @@ export function setup(canvas, params = {}) {
 		},
 		update(newParams) {
 			let needsRebuild = false;
-			if (newParams.depth !== undefined && newParams.depth !== currentDepth) {
+			if (
+				newParams.depth !== undefined &&
+				newParams.depth !== currentDepth
+			) {
 				currentDepth = newParams.depth;
 				needsRebuild = true;
 			}

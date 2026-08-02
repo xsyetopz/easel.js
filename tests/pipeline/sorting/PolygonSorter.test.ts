@@ -53,7 +53,7 @@ describe("PolygonSorter", () => {
 		// centroidZ: tri0=0.1(near), tri1=0.5(mid), tri2=0.9(far)
 		const dc = makeDrawCall([0.1, 0.5, 0.9]);
 		sorter.sort(dc);
-		// Identity order — no Z-sort, depth buffer handles per-pixel correctness
+		// Identity order -  no Z-sort, depth buffer handles per-pixel correctness
 		expect(dc.triangles.sortOrder[0]).toBe(0);
 		expect(dc.triangles.sortOrder[1]).toBe(1);
 		expect(dc.triangles.sortOrder[2]).toBe(2);
@@ -209,7 +209,10 @@ describe("PolygonSorter", () => {
 
 	it("transparent draw calls sort triangles back-to-front", () => {
 		const dc = makeDrawCall([0.1, 0.5, 0.9]);
-		sorter.sort({ material: { transparent: true }, triangles: dc.triangles });
+		sorter.sort({
+			material: { transparent: true },
+			triangles: dc.triangles,
+		});
 		expect(Array.from(dc.triangles.sortOrder)).toEqual([2, 1, 0]);
 		expect(dc.triangles.sortOrderActive).toBe(true);
 	});
