@@ -123,15 +123,14 @@ export function setup(canvas, params = {}) {
 }
 
 export const easelSource = `import * as EASEL from "easel";
-import { LoopRepeat } from "easel";
 
 const animator = new EASEL.Animator(box);
 
 const bounceAction = animator.clipAction(bounceClip);
-bounceAction.setLoop(LoopRepeat, Infinity);
+bounceAction.setLoop(EASEL.LoopRepeat, Infinity);
 
 const spinAction = animator.clipAction(spinClip);
-spinAction.setLoop(LoopRepeat, Infinity);
+spinAction.setLoop(EASEL.LoopRepeat, Infinity);
 
 bounceAction.play();
 

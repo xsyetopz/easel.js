@@ -91,7 +91,6 @@ export function setup(canvas, params = {}) {
 }
 
 export const easelSource = `import * as EASEL from "easel";
-import { LoopRepeat } from "easel";
 
 const posTrack = new EASEL.VectorTrack(
   "position",
@@ -110,7 +109,7 @@ const scaleTrack = new EASEL.VectorTrack(
 const clip     = new EASEL.AnimationClip("bounce", 1, [posTrack, scaleTrack]);
 const animator = new EASEL.Animator(box);
 const action   = animator.clipAction(clip);
-action.setLoop(LoopRepeat, Infinity);
+action.setLoop(EASEL.LoopRepeat, Infinity);
 action.timeScale = speed;
 action.play();
 
