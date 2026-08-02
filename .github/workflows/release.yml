@@ -493,15 +493,24 @@ jobs:
               exit 1
               ;;
           esac
-      - name: Create GitHub release and tag
+      - name: Create annotated tag and GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
+          TAG_OBJECT_SHA="$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/tags" \
+            --field "tag=v$VERSION" \
+            --field "message=Release v$VERSION" \
+            --field "object=$CANDIDATE_SHA" \
+            --field "type=commit" \
+            --jq '.sha')"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            --field "ref=refs/tags/v$VERSION" \
+            --field "sha=$TAG_OBJECT_SHA" >/dev/null
           gh release create "v$VERSION" \
-            --target "$CANDIDATE_SHA" \
+            --verify-tag \
             --title "v$VERSION" \
             --notes "Release v$VERSION" \
             --latest
