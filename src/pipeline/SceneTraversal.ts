@@ -15,6 +15,7 @@ const _bsCenter = new Vector3();
 const _frustum = new Frustum();
 const _emptyNormals = new Float32Array(0);
 const _emptyUvs = new Float32Array(0);
+const _emptyVertexColors = new Float32Array(0);
 const _emptyWorldPositions = new Float32Array(0);
 
 interface Vec3 {
@@ -24,7 +25,7 @@ interface Vec3 {
 }
 
 interface AttributeLike {
-	array: Float32Array;
+	array: ArrayLike<number>;
 	itemSize?: number;
 }
 
@@ -402,6 +403,18 @@ export class SceneTraversal {
 			profiler.onProject(profiler.now() - t0);
 		} else {
 			this.#projectVertices(node, drawCall, !isUnlit);
+		}
+
+		const colorAttr = node.geometry.getAttribute("color");
+		if (
+			colorAttr?.itemSize === 3 &&
+			colorAttr.array.length === drawCall.vertCount * 3
+		) {
+			drawCall.vertexColorData = colorAttr.array;
+			drawCall.vertexColorItemSize = 3;
+		} else {
+			drawCall.vertexColorData = _emptyVertexColors;
+			drawCall.vertexColorItemSize = 0;
 		}
 
 		const index = node.geometry.index;

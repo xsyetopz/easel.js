@@ -47,6 +47,7 @@ describe("Rasterizer", () => {
 		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
 		const tb = new TriangleBuffer(1);
 		appendCenterTriangle(tb, -1);
+		tb.vertexIndex.set([0, 1, 2]);
 		tb.buildSortOrder();
 		const drawCall = {
 			triangles: tb,
@@ -103,6 +104,308 @@ describe("Rasterizer", () => {
 			expect(p.g).toBe(0);
 			expect(p.b).toBe(0);
 		}
+	});
+
+	it("uniform vertex color multiplies the material on the flat path", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const tb = new TriangleBuffer(1);
+		appendCenterTriangle(tb, -1);
+		tb.vertexIndex.set([0, 1, 2]);
+		tb.buildSortOrder();
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: { color: { r: 0.5, g: 0.5, b: 1 } },
+				vertexColorData: new Float32Array([1, 0.5, 0.5, 1, 0.5, 0.5, 1, 0.5, 0.5]),
+				vertexColorItemSize: 3,
+			},
+			fb,
+			undefined,
+		);
+		const pixels = collectNonBlackPixels(fb);
+		expect(pixels.length).toBeGreaterThan(0);
+		for (const p of pixels) {
+			expect(p.r).toBe(128);
+			expect(p.g).toBe(64);
+			expect(p.b).toBe(128);
+		}
+	});
+
+	it("mixed vertex colors interpolate only the affected triangle", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const tb = new TriangleBuffer(1);
+		appendCenterTriangle(tb, -1);
+		tb.vertexIndex.set([0, 1, 2]);
+		tb.buildSortOrder();
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: { color: { r: 1, g: 1, b: 1 } },
+				vertexColorData: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+				vertexColorItemSize: 3,
+			},
+			fb,
+			undefined,
+		);
+		const pixels = collectNonBlackPixels(fb);
+		const unique = new Set(pixels.map((p) => `${p.r},${p.g},${p.b}`));
+		expect(pixels.length).toBeGreaterThan(0);
+		expect(unique.size).toBeGreaterThan(1);
+	});
+
+	it("mixed vertex colors tint textured pixels component-wise", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const tb = new TriangleBuffer(1);
+		appendCenterTriangle(tb, -1, 0, 0, 1, 0, 0, 1);
+		tb.vertexIndex.set([0, 1, 2]);
+		tb.buildSortOrder();
+		const whiteTexture = new Uint8ClampedArray([
+			255, 255, 255, 255,
+			255, 255, 255, 255,
+			255, 255, 255, 255,
+			255, 255, 255, 255,
+		]);
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: {
+					map: { data: { data: whiteTexture, width: 2, height: 2 } },
+				},
+				vertexColorData: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+				vertexColorItemSize: 3,
+			},
+			fb,
+			undefined,
+		);
+		const pixels = collectNonBlackPixels(fb);
+		const unique = new Set(pixels.map((p) => `${p.r},${p.g},${p.b}`));
+		expect(pixels.length).toBeGreaterThan(0);
+		expect(unique.size).toBeGreaterThan(1);
+	});
+
+	it("uniform vertex color tints flat-lit texture channels", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const tb = new TriangleBuffer(1);
+		appendCenterTriangle(tb, -1, 0, 0, 1, 0, 0, 1);
+		tb.vertexIndex.set([0, 1, 2]);
+		tb.buildSortOrder();
+		const whiteTexture = new Uint8ClampedArray(16).fill(255);
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: {
+					color: { r: 1, g: 1, b: 1 },
+					map: { data: { data: whiteTexture, width: 2, height: 2 } },
+				},
+				shadedColorData: new Float32Array([1, 1, 1]),
+				shadedColorStride: 3,
+				vertexColorData: new Float32Array([1, 0, 0, 1, 0, 0, 1, 0, 0]),
+				vertexColorItemSize: 3,
+			},
+			fb,
+			undefined,
+		);
+		for (const p of collectNonBlackPixels(fb)) {
+			expect(p.r).toBe(255);
+			expect(p.g).toBe(0);
+			expect(p.b).toBe(0);
+		}
+	});
+
+	it("uniform vertex color tints gouraud-lit texture channels", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const tb = new TriangleBuffer(1);
+		appendCenterTriangle(tb, -1, 0, 0, 1, 0, 0, 1);
+		tb.vertexIndex.set([0, 1, 2]);
+		tb.buildSortOrder();
+		const whiteTexture = new Uint8ClampedArray(16).fill(255);
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: {
+					color: { r: 1, g: 1, b: 1 },
+					map: { data: { data: whiteTexture, width: 2, height: 2 } },
+				},
+				shadedColorData: new Float32Array([
+					1, 1, 1,
+					1, 1, 1,
+					1, 1, 1,
+				]),
+				shadedColorStride: 9,
+				vertexColorData: new Float32Array([1, 0, 0, 1, 0, 0, 1, 0, 0]),
+				vertexColorItemSize: 3,
+			},
+			fb,
+			undefined,
+		);
+		for (const p of collectNonBlackPixels(fb)) {
+			expect(p.r).toBe(255);
+			expect(p.g).toBe(0);
+			expect(p.b).toBe(0);
+		}
+	});
+
+	it("uniform vertex tint is applied after brightness-level texture selection", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const tb = new TriangleBuffer(1);
+		appendCenterTriangle(tb, -1, 0, 0, 1, 0, 0, 1);
+		tb.vertexIndex.set([0, 1, 2]);
+		tb.buildSortOrder();
+		const whiteTexture = new Uint8ClampedArray(16).fill(255);
+		const brightnessLevels = Array.from(
+			{ length: 4 },
+			() => new Uint8ClampedArray(16).fill(255),
+		);
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: {
+					color: { r: 1, g: 1, b: 1 },
+					map: {
+						data: { data: whiteTexture, width: 2, height: 2 },
+						brightnessLevels,
+					},
+				},
+				shadedColorData: new Float32Array([1, 1, 1]),
+				shadedColorStride: 3,
+				vertexColorData: new Float32Array([1, 0, 0, 1, 0, 0, 1, 0, 0]),
+				vertexColorItemSize: 3,
+			},
+			fb,
+			undefined,
+		);
+		for (const p of collectNonBlackPixels(fb)) {
+			expect(p.r).toBe(255);
+			expect(p.g).toBe(0);
+			expect(p.b).toBe(0);
+		}
+	});
+
+	it("mixed vertex tint keeps brightness levels and applies sampled RGB per channel", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const tb = new TriangleBuffer(1);
+		appendCenterTriangle(tb, -1, 0, 0, 1, 0, 0, 1);
+		tb.vertexIndex.set([0, 1, 2]);
+		tb.buildSortOrder();
+		const redTexture = new Uint8ClampedArray([
+			255, 0, 0, 255,
+			255, 0, 0, 255,
+			255, 0, 0, 255,
+			255, 0, 0, 255,
+		]);
+		const greenLevels = Array.from(
+			{ length: 4 },
+			() =>
+				new Uint8ClampedArray([
+					0, 255, 0, 255,
+					0, 255, 0, 255,
+					0, 255, 0, 255,
+					0, 255, 0, 255,
+				]),
+		);
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: {
+					color: { r: 1, g: 1, b: 1 },
+					map: {
+						data: { data: redTexture, width: 2, height: 2 },
+						brightnessLevels: greenLevels,
+					},
+				},
+				shadedColorData: new Float32Array([
+					1, 1, 1,
+					1, 1, 1,
+					1, 1, 1,
+				]),
+				shadedColorStride: 9,
+				vertexColorData: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+				vertexColorItemSize: 3,
+			},
+			fb,
+			undefined,
+		);
+		const pixels = collectNonBlackPixels(fb);
+		expect(pixels.some((p) => p.g > 0)).toBe(true);
+		expect(pixels.every((p) => p.r === 0)).toBe(true);
+	});
+
+	it("mixed textured tint preserves colored baked lighting", () => {
+		const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+		const tb = new TriangleBuffer(1);
+		appendCenterTriangle(tb, -1, 0, 0, 1, 0, 0, 1);
+		tb.vertexIndex.set([0, 1, 2]);
+		tb.buildSortOrder();
+		const whiteTexture = new Uint8ClampedArray(16).fill(255);
+		rasterizer.rasterize(
+			{
+				triangles: tb,
+				material: {
+					color: { r: 1, g: 1, b: 1 },
+					map: { data: { data: whiteTexture, width: 2, height: 2 } },
+				},
+				shadedColorData: new Float32Array([
+					1, 0.5, 0.25,
+					0.25, 1, 0.5,
+					0.5, 0.25, 1,
+				]),
+				shadedColorStride: 9,
+				vertexColorData: new Float32Array([
+					1, 0.5, 0.25,
+					0.25, 1, 0.5,
+					0.5, 0.25, 1,
+				]),
+				vertexColorItemSize: 3,
+			},
+			fb,
+			undefined,
+		);
+		const pixels = collectNonBlackPixels(fb);
+		expect(pixels.some((p) => p.r !== p.g || p.g !== p.b)).toBe(true);
+	});
+
+	it("uniform and near-uniform textured colors preserve colored-light parity", () => {
+		const makeCall = (vertexColorData: Float32Array) => {
+			const triangles = new TriangleBuffer(1);
+			appendCenterTriangle(triangles, -1, 0, 0, 1, 0, 0, 1);
+			triangles.vertexIndex.set([0, 1, 2]);
+			triangles.buildSortOrder();
+			return {
+				triangles,
+				material: {
+					color: { r: 1, g: 1, b: 1 },
+					map: {
+						data: {
+							data: new Uint8ClampedArray(16).fill(255),
+							width: 2,
+							height: 2,
+						},
+					},
+				},
+				shadedColorData: new Float32Array([
+					1, 0, 0,
+					1, 0, 0,
+					1, 0, 0,
+				]),
+				shadedColorStride: 9,
+				vertexColorData,
+				vertexColorItemSize: 3,
+			};
+		};
+		const uniformFb = makeRasterizerFixture().framebuffer;
+		const nearUniformFb = makeRasterizerFixture().framebuffer;
+		const rasterizer = makeRasterizerFixture().rasterizer;
+		rasterizer.rasterize(
+			makeCall(new Float32Array([1, 1, 1, 1, 1, 1, 1, 1, 1])),
+			uniformFb,
+			undefined,
+		);
+		rasterizer.rasterize(
+			makeCall(new Float32Array([1, 1, 1, 1, 1, 1, 1, 1, 0.999])),
+			nearUniformFb,
+			undefined,
+		);
+		expect(Array.from(uniformFb.u32)).toEqual(Array.from(nearUniformFb.u32));
 	});
 
 	it("no shadedColorData and no material.color: all pixels are white (255,255,255)", () => {
@@ -344,6 +647,68 @@ describe("Rasterizer", () => {
 			expect(p.r).toBe(255);
 			expect(p.g).toBe(255);
 			expect(p.b).toBe(255);
+		}
+	});
+
+	it("all textured paths use normalized texel-cell thresholds", () => {
+		const texture = {
+			data: new Uint8ClampedArray([
+				1,
+				0,
+				0,
+				255,
+				2,
+				0,
+				0,
+				255,
+				3,
+				0,
+				0,
+				255,
+				4,
+				0,
+				0,
+				255,
+			]),
+			width: 4,
+			height: 1,
+		};
+		const samples = [
+			[0.249999, 1],
+			[0.25, 2],
+			[0.499999, 2],
+			[0.5, 3],
+			[0.999999, 4],
+		] as const;
+		const modes: Array<{
+			shadedColorData?: Float32Array;
+			shadedColorStride?: number;
+		}> = [
+			{},
+			{ shadedColorData: new Float32Array([1, 1, 1]), shadedColorStride: 3 },
+			{
+				shadedColorData: new Float32Array(9).fill(1),
+				shadedColorStride: 9,
+			},
+		];
+
+		for (const mode of modes) {
+			for (const [u, expectedRed] of samples) {
+				const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+				const tb = new TriangleBuffer(1);
+				appendCenterTriangle(tb, -1, u, 0, u, 0, u, 0);
+				tb.buildSortOrder();
+				const drawCall: RasterDrawCall = {
+					triangles: tb,
+					material: { map: { data: texture } },
+				};
+				if (mode.shadedColorData && mode.shadedColorStride !== undefined) {
+					drawCall.shadedColorData = mode.shadedColorData;
+					drawCall.shadedColorStride = mode.shadedColorStride;
+				}
+				rasterizer.rasterize(drawCall, fb, undefined);
+				expect(fb.getPixel(10, 7).r).toBe(expectedRed);
+			}
 		}
 	});
 

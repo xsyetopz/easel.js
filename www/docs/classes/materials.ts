@@ -88,7 +88,7 @@ export const materialDocs = [
 		signature:
 			"new BasicMaterial({ color?, map?, layer?, opacity?, transparent?, depthTest?, depthWrite?, shading?, side? })",
 		description:
-			"Solid color or textured material with no lighting. Defaults to Shading.Flat.",
+			"Solid color or textured material with no lighting. Geometry RGB color attributes are consumed automatically and multiplied by color; uniform faces stay on the flat path while mixed faces interpolate. Defaults to Shading.Flat.",
 		properties: [
 			{
 				name: "color",
@@ -99,7 +99,7 @@ export const materialDocs = [
 				name: "map",
 				type: "Texture|undefined",
 				description:
-					"Optional texture map. When set, overrides color per-pixel.",
+					"Optional texture map. Sampled RGB multiplies the material and geometry vertex colors.",
 			},
 		],
 		methods: [],
@@ -112,8 +112,8 @@ export const materialDocs = [
 		category: "Materials",
 		signature:
 			"new LambertMaterial({ color?, map?, layer?, opacity?, transparent?, depthTest?, depthWrite?, shading?, side? })",
-		description:
-			"Diffuse lighting material. Receives contributions from all scene lights. Defaults to Shading.Gouraud (per-vertex, interpolated across faces).",
+			description:
+			"Diffuse lighting material. Receives contributions from all scene lights and multiplies them by any geometry RGB color attribute. Defaults to Shading.Gouraud (per-vertex, interpolated across faces).",
 		properties: [
 			{
 				name: "color",

@@ -128,7 +128,10 @@ Allowed constraints and current behavior:
   where scenes overlap.
 - Lighting is flat or Gouraud, baked before rasterization; no per-pixel
   Phong/PBR lighting.
-- Texture sources clamp to 128×128 and sample nearest-neighbor.
+- Geometry RGB color attributes multiply material, texture, instance, and
+  baked-light colors; uniform-color faces retain the flat raster path.
+- Texture sources clamp to 128×128 and sample normalized texel cells with
+  nearest-neighbor lookup. Atlas UVs should target texel centers.
 - `Scene.background` accepts `Color`, hex number, or screen-space `Texture`; fog
   color overrides it.
 - Opacity is discrete; do not introduce continuous float alpha behavior without

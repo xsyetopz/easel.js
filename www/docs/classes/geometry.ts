@@ -7,7 +7,7 @@ export const geometryDocs = [
 		category: "Geometry",
 		signature: "new Geometry()",
 		description:
-			"Vertex data store. Holds named attributes (position, normal, uv, color) plus an optional triangle index. Per-vertex color is first-class alongside positions and UVs.",
+			"Vertex data store. Holds named attributes (position, normal, uv, color) plus an optional triangle index. RGB color attributes are consumed automatically by BasicMaterial and LambertMaterial; material RGB multiplies vertex RGB and mixed colors interpolate per triangle.",
 		properties: [
 			{
 				name: "id",
@@ -57,7 +57,7 @@ export const geometryDocs = [
 				name: "setColors",
 				signature: "setColors(array: Float32Array | number[]): this",
 				description:
-					"Sets the per-vertex color attribute from a flat RGB array (0–1 range).",
+					"Sets the RGB per-vertex color attribute from a flat array in the 0–1 range. BasicMaterial and LambertMaterial consume it automatically; alpha remains material-wide.",
 			},
 			{
 				name: "setIndex",

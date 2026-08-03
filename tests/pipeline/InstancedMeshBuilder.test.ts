@@ -2,8 +2,11 @@ import { describe, expect, it } from "bun:test";
 import { LambertMaterial } from "@/materials/LambertMaterial.js";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { DrawList } from "@/pipeline/DrawList.js";
+import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";
 import { buildInstancedDrawCalls } from "@/pipeline/InstancedMeshBuilder.js";
+import { Rasterizer } from "@/pipeline/rasterizer/Rasterizer.js";
 import type { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
+import { appendCenterTriangle } from "../_helpers/rasterizer.js";
 
 function makeCamera() {
 	const m = new Matrix4();
@@ -30,6 +33,12 @@ describe("InstancedMeshBuilder", () => {
 					if (name === "normal") {
 						return {
 							array: new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1]),
+							itemSize: 3,
+						};
+					}
+					if (name === "color") {
+						return {
+							array: new Float32Array([1, 0.5, 0, 1, 0.5, 0, 1, 0.5, 0]),
 							itemSize: 3,
 						};
 					}
@@ -79,6 +88,19 @@ describe("InstancedMeshBuilder", () => {
 		expect(col1.r).toBeCloseTo(0.5);
 		expect(col1.g).toBeCloseTo(0.25);
 		expect(col1.b).toBeCloseTo(0.75);
+		expect(dc1.vertexColorData).toBeInstanceOf(Float32Array);
+		expect(dc1.vertexColorItemSize).toBe(3);
+
+		const triangles = dc1.triangles as TriangleBuffer;
+		appendCenterTriangle(triangles, -1);
+		triangles.vertexIndex.set([0, 1, 2]);
+		triangles.buildSortOrder();
+		const framebuffer = new Framebuffer(20, 20);
+		new Rasterizer().rasterize(dc1 as never, framebuffer, undefined);
+		const pixel = framebuffer.getPixel(10, 7);
+		expect(pixel.r).toBe(128);
+		expect(pixel.g).toBe(32);
+		expect(pixel.b).toBe(0);
 
 		// Mutate instanceColor to ensure the cached color object is updated, not replaced.
 		(node.instanceColor as Float32Array)[0] = 0.2;

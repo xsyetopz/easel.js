@@ -4,10 +4,27 @@ import { TextureClamp } from "@/pipeline/texture/TextureClamp.ts";
 describe("TextureClamp", () => {
 	const clamp = new TextureClamp();
 
-	it("UV (0.5, 0.5) maps to center texel of 10x10 texture", () => {
+	it("UV (0.5, 0.5) maps to the center texel cell of a 10x10 texture", () => {
 		const { x, y } = clamp.clamp(0.5, 0.5, 10, 10);
-		expect(x).toBe(4);
-		expect(y).toBe(4);
+		expect(x).toBe(5);
+		expect(y).toBe(5);
+	});
+
+	it("uses texel-cell thresholds for a 4x4 texture", () => {
+		const samples = [
+			[0, 0],
+			[0.249999, 0],
+			[0.25, 1],
+			[0.499999, 1],
+			[0.5, 2],
+			[0.999999, 3],
+			[1, 3],
+		] as const;
+		for (const [u, expected] of samples) {
+			const { x, y } = clamp.clamp(u, u, 4, 4);
+			expect(x).toBe(expected);
+			expect(y).toBe(expected);
+		}
 	});
 
 	it("UV (0, 0) maps to (0, 0)", () => {

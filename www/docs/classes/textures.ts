@@ -7,7 +7,7 @@ export const textureDocs = [
 		category: "Textures",
 		signature: "new Texture(image?)",
 		description:
-			"Image-backed texture clamped to a 128x128 maximum. Set needsUpdate = true after assigning an image to trigger nearest-neighbor downsampling and pixel caching.",
+			"Image-backed texture clamped to a 128x128 maximum. Set needsUpdate = true after assigning an image to trigger nearest-neighbor downsampling and pixel caching. Runtime sampling maps each UV to min(size - 1, floor(clamp(uv, 0, 1) * size)).",
 		properties: [
 			{
 				name: "id",
@@ -56,7 +56,7 @@ export const textureDocs = [
 		],
 		threeEquivalent: "THREE.Texture",
 		divergence:
-			"Hard 128x128 cap - larger images are nearest-neighbor downsampled on needsUpdate. No GPU upload; pixel data lives in a plain ImageData.",
+			"Hard 128x128 cap - larger images are nearest-neighbor downsampled on needsUpdate. No GPU upload; pixel data lives in a plain ImageData. For atlas rectangles [x, x + w) × [y, y + h) in a W × H atlas, use texel-center UV endpoints (x + 0.5) / W and (x + w - 0.5) / W (and equivalent V coordinates); preserve face orientation by assigning each endpoint to its original corner and swapping the low/high endpoint for reversed U or V faces.",
 	},
 	{
 		id: "CanvasTexture",

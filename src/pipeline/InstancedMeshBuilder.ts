@@ -11,6 +11,7 @@ const _instLocal = new Matrix4();
 const _instWorld = new Matrix4();
 const _instMVP = new Matrix4();
 const _bsCenter = new Vector3();
+const _emptyVertexColors = new Float32Array(0);
 
 const VERT_STRIDE = 4;
 
@@ -43,7 +44,7 @@ interface GeometryLike {
 }
 
 interface AttributeLike {
-	array: Float32Array;
+	array: ArrayLike<number>;
 	itemSize?: number;
 }
 
@@ -120,6 +121,12 @@ export function buildInstancedDrawCalls(
 	const posArr = posAttr.array;
 	const posItemSize = posAttr.itemSize ?? 3;
 	const vertCount = posArr.length / posItemSize;
+	const colorAttr = geometry.getAttribute("color");
+	const vertexColorData =
+		colorAttr?.itemSize === 3 && colorAttr.array.length === vertCount * 3
+			? colorAttr.array
+			: _emptyVertexColors;
+	const vertexColorItemSize = vertexColorData.length > 0 ? 3 : 0;
 
 	const normAttr = geometry.getAttribute("normal");
 	const nArr = normAttr?.array;
@@ -372,6 +379,8 @@ export function buildInstancedDrawCalls(
 		drawCall.vertCount = vertCount;
 		drawCall.faceIndices = faceIndices as number[] | Uint16Array | Uint32Array;
 		drawCall.worldPositions = wp;
+		drawCall.vertexColorData = vertexColorData;
+		drawCall.vertexColorItemSize = vertexColorItemSize;
 		drawCall.triangles = triangles;
 		drawList.add(drawCall);
 	}

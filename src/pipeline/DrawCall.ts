@@ -38,6 +38,15 @@ export class DrawCall {
 	 */
 	shadedColorData: Float32Array = new Float32Array(0);
 
+	/**
+	 * Raw geometry RGB vertex colors. The array is shared with the geometry and
+	 * is never copied into the draw call or triangle buffer.
+	 */
+	vertexColorData: ArrayLike<number> = [];
+
+	/** Number of values between successive geometry vertex colors (3 for RGB). */
+	vertexColorItemSize = 0;
+
 	/** Stride into shadedColorData: 3 for flat, 9 for gouraud, 0 when unset. */
 	shadedColorStride = 0;
 

@@ -10,7 +10,10 @@ interface TextureData {
 export class TextureSampler {
 	#clamp = new TextureClamp();
 
-	/** Samples a texture at UV coordinates using nearest-neighbour lookup. */
+	/**
+	 * Samples a texture at UV coordinates using nearest-neighbour lookup.
+	 * Clamp-to-edge coordinates map to min(size - 1, floor(clamp(uv) * size)).
+	 */
 	sample(
 		texture: TextureData,
 		u: number,

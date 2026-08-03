@@ -90,7 +90,10 @@ frame();
 - Canvas2D output through `ImageData`; no WebGL or WebGPU.
 - Flat and Gouraud lighting calculated on the CPU.
 - Affine UV interpolation. Perspective textures can warp.
-- Image textures clamp to 128×128 and use nearest-neighbor sampling.
+- Image textures clamp to 128×128 and use normalized texel-cell
+  nearest-neighbor sampling; atlas UVs should target texel centers.
+- Geometry RGB color attributes multiply material, texture, instance, and
+  baked-light colors. Uniform-color faces retain the flat raster path.
 - Transparent objects depend on sorted draw order.
 - Opacity uses fixed steps rather than continuous alpha.
 

@@ -62,6 +62,54 @@ describe("SceneTraversal", () => {
 		expect(second).toBe(first);
 	});
 
+	it("attaches a matching geometry color attribute without copying it", () => {
+		const colors = new Float32Array([
+			1, 0, 0,
+			1, 0, 0,
+			1, 0, 0,
+		]);
+		const attrs = new Map([
+			[
+				"position",
+				{
+					array: new Float32Array([0, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0]),
+					itemSize: 3,
+				},
+			],
+			["color", { array: colors, itemSize: 3 }],
+		]);
+		const node = {
+			type: "Mesh",
+			visible: true,
+			children: [],
+			matrixWorld: new Matrix4(),
+			updateMatrixWorld: () => {
+				/* no-op */
+			},
+			geometry: {
+				getAttribute: (name: string) => attrs.get(name),
+				index: { array: new Uint16Array([0, 1, 2]) },
+			},
+			material: { side: Side.Double, shading: 0 },
+		};
+		const result = traversal.traverse(makeScene(node), makeCamera(), 100, 100);
+		const drawCall = defined(result.calls[0]);
+		expect(drawCall.vertexColorData).toBe(colors);
+		expect(drawCall.vertexColorItemSize).toBe(3);
+
+		attrs.set("color", { array: new Float32Array(12), itemSize: 4 });
+		const reusedResult = traversal.traverse(
+			makeScene(node),
+			makeCamera(),
+			100,
+			100,
+		);
+		const reusedDrawCall = defined(reusedResult.calls[0]);
+		expect(reusedDrawCall).toBe(drawCall);
+		expect(reusedDrawCall.vertexColorData.length).toBe(0);
+		expect(reusedDrawCall.vertexColorItemSize).toBe(0);
+	});
+
 	it("invisible mesh is excluded", () => {
 		const scene = makeScene(makeMeshNode(true), makeMeshNode(false));
 		const result = traversal.traverse(

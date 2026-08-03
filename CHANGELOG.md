@@ -7,6 +7,16 @@ semantic versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- Standardized clamped nearest-neighbor texture lookup to normalized texel
+  cells and documented texel-center atlas UVs.
+
+### Fixed
+
+- Made `Geometry.setColors()` RGB attributes render automatically with basic,
+  lit, textured, and instanced meshes without splitting geometry by color.
+
 ## [0.6.1] - 2026-08-02
 
 ### Changed

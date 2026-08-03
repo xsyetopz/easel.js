@@ -65,4 +65,18 @@ describe("TextureSampler", () => {
 		expect(px).toHaveProperty("b");
 		expect(px).toHaveProperty("a");
 	});
+
+	it("uses texel-cell thresholds instead of size-minus-one thresholds", () => {
+		const data = new Uint8ClampedArray(4 * 4);
+		for (let x = 0; x < 4; x++) {
+			data[x * 4] = x + 1;
+			data[x * 4 + 3] = 255;
+		}
+		const texture = { data, width: 4, height: 1 };
+		expect(sampler.sample(texture, 0.249999, 0).r).toBe(1);
+		expect(sampler.sample(texture, 0.25, 0).r).toBe(2);
+		expect(sampler.sample(texture, 0.499999, 0).r).toBe(2);
+		expect(sampler.sample(texture, 0.5, 0).r).toBe(3);
+		expect(sampler.sample(texture, 0.999999, 0).r).toBe(4);
+	});
 });
