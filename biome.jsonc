@@ -73,7 +73,6 @@
 				"noSolidDestructuredProps": "error",
 				"noUndeclaredDependencies": "error",
 				"noUndeclaredVariables": "error",
-				"noUnresolvedImports": "error",
 				"noUnusedInstantiation": "error",
 				"noVueSetupPropsReactivityLoss": "error",
 				"useImportExtensions": "warn",
