@@ -1,0 +1,2410 @@
+{
+	"schemaVersion": 1,
+	"generatedFrom": {
+		"easel": {
+			"surface": "easel",
+			"version": "0.6.1",
+			"manifest": "api-compat/generated/manifests/easel-0.6.1.json"
+		},
+		"three": {
+			"surface": "three-addons",
+			"version": "0.185.1",
+			"manifest": "api-compat/generated/manifests/three-addons-0.185.1.json"
+		}
+	},
+	"comparisons": [
+		{
+			"source": {
+				"id": "easel:AffineUVSampler",
+				"name": "AffineUVSampler",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AmbientLight",
+				"name": "AmbientLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AnimationAction",
+				"name": "AnimationAction",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AnimationClip",
+				"name": "AnimationClip",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AnimationLoader",
+				"name": "AnimationLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AnimationUtils",
+				"name": "AnimationUtils",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Animator",
+				"name": "Animator",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ArcCurve",
+				"name": "ArcCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Attribute",
+				"name": "Attribute",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AxesHelper",
+				"name": "AxesHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:BasicMaterial",
+				"name": "BasicMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Binding",
+				"name": "Binding",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Bone",
+				"name": "Bone",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:BooleanTrack",
+				"name": "BooleanTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Box2",
+				"name": "Box2",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Box3",
+				"name": "Box3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:BoxGeometry",
+				"name": "BoxGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:BoxHelper",
+				"name": "BoxHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CanvasTexture",
+				"name": "CanvasTexture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CapsuleGeometry",
+				"name": "CapsuleGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CatmullRomCurve3",
+				"name": "CatmullRomCurve3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Clock",
+				"name": "Clock",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Color",
+				"name": "Color",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ColorTable",
+				"name": "ColorTable",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ColorTrack",
+				"name": "ColorTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ConeGeometry",
+				"name": "ConeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CubicBezierCurve",
+				"name": "CubicBezierCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CubicBezierCurve3",
+				"name": "CubicBezierCurve3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Curve",
+				"name": "Curve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CurvePath",
+				"name": "CurvePath",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CylinderGeometry",
+				"name": "CylinderGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Cylindrical",
+				"name": "Cylindrical",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DashedLineMaterial",
+				"name": "DashedLineMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DataTexture",
+				"name": "DataTexture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DataTextureLoader",
+				"name": "DataTextureLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DefaultLoadingManager",
+				"name": "DefaultLoadingManager",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DepthBuffer",
+				"name": "DepthBuffer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DirectionalLight",
+				"name": "DirectionalLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DirectionalLightHelper",
+				"name": "DirectionalLightHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DodecahedronGeometry",
+				"name": "DodecahedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DrawCall",
+				"name": "DrawCall",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DrawList",
+				"name": "DrawList",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DrawPrioritySorter",
+				"name": "DrawPrioritySorter",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:earcut",
+				"name": "earcut",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:EdgesGeometry",
+				"name": "EdgesGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:EdgeWalker",
+				"name": "EdgeWalker",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:EllipseCurve",
+				"name": "EllipseCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Euler",
+				"name": "Euler",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:EventDispatcher",
+				"name": "EventDispatcher",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ExtrudeGeometry",
+				"name": "ExtrudeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FileLoader",
+				"name": "FileLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FlatShader",
+				"name": "FlatShader",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Fog",
+				"name": "Fog",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FogCuller",
+				"name": "FogCuller",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Framebuffer",
+				"name": "Framebuffer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FramebufferClear",
+				"name": "FramebufferClear",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FramebufferTexture",
+				"name": "FramebufferTexture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FramebufferUpload",
+				"name": "FramebufferUpload",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Frustum",
+				"name": "Frustum",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Geometry",
+				"name": "Geometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:GeometryLoader",
+				"name": "GeometryLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:GouraudInterpolator",
+				"name": "GouraudInterpolator",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:GouraudShader",
+				"name": "GouraudShader",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:GridHelper",
+				"name": "GridHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Group",
+				"name": "Group",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:HemisphereLight",
+				"name": "HemisphereLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Hsl16",
+				"name": "Hsl16",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:IcosahedronGeometry",
+				"name": "IcosahedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ImageBitmapLoader",
+				"name": "ImageBitmapLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ImageLoader",
+				"name": "ImageLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:InstancedMesh",
+				"name": "InstancedMesh",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:InterleavedAttribute",
+				"name": "InterleavedAttribute",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:InterleavedBuffer",
+				"name": "InterleavedBuffer",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LambertMaterial",
+				"name": "LambertMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LatheGeometry",
+				"name": "LatheGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Layer",
+				"name": "Layer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Layers",
+				"name": "Layers",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Light",
+				"name": "Light",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LightBaker",
+				"name": "LightBaker",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LightType",
+				"name": "LightType",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Line",
+				"name": "Line",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Line3",
+				"name": "Line3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LineCurve",
+				"name": "LineCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LineCurve3",
+				"name": "LineCurve3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LineLoop",
+				"name": "LineLoop",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LineMaterial",
+				"name": "LineMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": [],
+			"target": {
+				"id": "three-addons:LineMaterial",
+				"name": "LineMaterial",
+				"surface": "three-addons"
+			},
+			"structural": {
+				"exportName": {
+					"source": "LineMaterial",
+					"target": "LineMaterial",
+					"changed": false
+				},
+				"kind": {
+					"source": "class",
+					"target": "class",
+					"changed": false
+				},
+				"type": {
+					"changed": false
+				},
+				"deprecated": {
+					"changed": false
+				},
+				"inheritance": {
+					"changed": true,
+					"extends": {
+						"added": [
+							"ShaderMaterial"
+						],
+						"removed": [
+							"Material"
+						]
+					},
+					"implements": {
+						"added": [],
+						"removed": []
+					}
+				},
+				"typeParameters": {
+					"added": [],
+					"removed": [],
+					"changed": []
+				},
+				"constructors": {
+					"matched": 0,
+					"added": [],
+					"removed": [],
+					"changed": [
+						{
+							"source": {
+								"parameters": [
+									{
+										"name": "options",
+										"type": "LineMaterialOptions",
+										"optional": true,
+										"rest": false,
+										"default": "{}"
+									}
+								]
+							},
+							"target": {
+								"parameters": [
+									{
+										"name": "parameters",
+										"type": "Object",
+										"optional": true,
+										"rest": false
+									}
+								]
+							},
+							"sourceOverload": 0,
+							"targetOverload": 0,
+							"delta": {
+								"parameters": {
+									"added": [],
+									"removed": [],
+									"changed": [
+										{
+											"index": 0,
+											"source": {
+												"name": "options",
+												"type": "LineMaterialOptions",
+												"optional": true,
+												"rest": false,
+												"default": "{}"
+											},
+											"target": {
+												"name": "parameters",
+												"type": "Object",
+												"optional": true,
+												"rest": false
+											},
+											"changes": [
+												"name",
+												"type",
+												"default"
+											]
+										}
+									]
+								},
+								"defaults": [
+									{
+										"index": 0,
+										"source": "{}"
+									}
+								],
+								"returnType": {
+									"changed": false
+								},
+								"typeParameters": {
+									"added": [],
+									"removed": [],
+									"changed": []
+								}
+							}
+						}
+					]
+				},
+				"members": {
+					"matched": 0,
+					"changed": [],
+					"missingInTarget": [
+						"instance:clone:method",
+						"instance:color:property",
+						"instance:copy:method",
+						"instance:linewidth:property",
+						"instance:type:property"
+					],
+					"extraInTarget": [
+						"instance:alphaToCoverage:accessor",
+						"instance:color:accessor",
+						"instance:dashed:accessor",
+						"instance:dashOffset:accessor",
+						"instance:dashScale:accessor",
+						"instance:dashSize:accessor",
+						"instance:gapSize:accessor",
+						"instance:isLineMaterial:property",
+						"instance:linewidth:accessor",
+						"instance:needsUpdate:property",
+						"instance:opacity:accessor",
+						"instance:resolution:accessor",
+						"instance:worldUnits:accessor"
+					]
+				},
+				"callSignatures": {
+					"matched": 0,
+					"added": [],
+					"removed": [],
+					"changed": []
+				}
+			}
+		},
+		{
+			"source": {
+				"id": "easel:LineSegments",
+				"name": "LineSegments",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Loader",
+				"name": "Loader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LoadingManager",
+				"name": "LoadingManager",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LoopOnce",
+				"name": "LoopOnce",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LoopPingPong",
+				"name": "LoopPingPong",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LoopRepeat",
+				"name": "LoopRepeat",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Material",
+				"name": "Material",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:MaterialLoader",
+				"name": "MaterialLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:MathUtils",
+				"name": "MathUtils",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Matrix3",
+				"name": "Matrix3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Matrix4",
+				"name": "Matrix4",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Mesh",
+				"name": "Mesh",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Node",
+				"name": "Node",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:NumberTrack",
+				"name": "NumberTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ObjectLoader",
+				"name": "ObjectLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:OctahedronGeometry",
+				"name": "OctahedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:OrbitControls",
+				"name": "OrbitControls",
+				"surface": "easel"
+			},
+			"status": "adapted",
+			"notes": [
+				"update() returns a boolean indicating whether the camera moved."
+			],
+			"target": {
+				"id": "three-addons:OrbitControls",
+				"name": "OrbitControls",
+				"surface": "three-addons"
+			},
+			"structural": {
+				"exportName": {
+					"source": "OrbitControls",
+					"target": "OrbitControls",
+					"changed": false
+				},
+				"kind": {
+					"source": "class",
+					"target": "class",
+					"changed": false
+				},
+				"type": {
+					"changed": false
+				},
+				"deprecated": {
+					"changed": false
+				},
+				"inheritance": {
+					"changed": true,
+					"extends": {
+						"added": [
+							"Controls"
+						],
+						"removed": [
+							"EventDispatcher"
+						]
+					},
+					"implements": {
+						"added": [],
+						"removed": []
+					}
+				},
+				"typeParameters": {
+					"added": [],
+					"removed": [],
+					"changed": []
+				},
+				"constructors": {
+					"matched": 0,
+					"added": [],
+					"removed": [],
+					"changed": [
+						{
+							"source": {
+								"parameters": [
+									{
+										"name": "camera",
+										"type": "OrbitCamera",
+										"optional": false,
+										"rest": false
+									},
+									{
+										"name": "domElement",
+										"type": "OrbitDomElement",
+										"optional": false,
+										"rest": false
+									}
+								]
+							},
+							"target": {
+								"parameters": [
+									{
+										"name": "object",
+										"type": "Object3D",
+										"optional": false,
+										"rest": false
+									},
+									{
+										"name": "domElement",
+										"type": "?HTMLElement",
+										"optional": true,
+										"rest": false,
+										"default": "null"
+									}
+								]
+							},
+							"sourceOverload": 0,
+							"targetOverload": 0,
+							"delta": {
+								"parameters": {
+									"added": [],
+									"removed": [],
+									"changed": [
+										{
+											"index": 0,
+											"source": {
+												"name": "camera",
+												"type": "OrbitCamera",
+												"optional": false,
+												"rest": false
+											},
+											"target": {
+												"name": "object",
+												"type": "Object3D",
+												"optional": false,
+												"rest": false
+											},
+											"changes": [
+												"name",
+												"type"
+											]
+										},
+										{
+											"index": 1,
+											"source": {
+												"name": "domElement",
+												"type": "OrbitDomElement",
+												"optional": false,
+												"rest": false
+											},
+											"target": {
+												"name": "domElement",
+												"type": "?HTMLElement",
+												"optional": true,
+												"rest": false,
+												"default": "null"
+											},
+											"changes": [
+												"type",
+												"optional",
+												"default"
+											]
+										}
+									]
+								},
+								"defaults": [
+									{
+										"index": 1,
+										"target": "null"
+									}
+								],
+								"returnType": {
+									"changed": false
+								},
+								"typeParameters": {
+									"added": [],
+									"removed": [],
+									"changed": []
+								}
+							}
+						}
+					]
+				},
+				"members": {
+					"matched": 19,
+					"changed": [
+						{
+							"key": "instance:autoRotate:property",
+							"source": {
+								"name": "autoRotate",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "autoRotate",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "boolean",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:autoRotateSpeed:property",
+							"source": {
+								"name": "autoRotateSpeed",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "autoRotateSpeed",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "number",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:dampingFactor:property",
+							"source": {
+								"name": "dampingFactor",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "dampingFactor",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "number",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:dispose:method",
+							"source": {
+								"name": "dispose",
+								"kind": "method",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"signatures": [
+									{
+										"parameters": [],
+										"returnType": "void"
+									}
+								],
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "dispose",
+								"kind": "method",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"signatures": [
+									{
+										"parameters": []
+									}
+								],
+								"declarationCount": 1
+							},
+							"signatureChanges": [
+								{
+									"source": {
+										"parameters": [],
+										"returnType": "void"
+									},
+									"target": {
+										"parameters": []
+									},
+									"sourceOverload": 0,
+									"targetOverload": 0,
+									"delta": {
+										"parameters": {
+											"added": [],
+											"removed": [],
+											"changed": []
+										},
+										"defaults": [],
+										"returnType": {
+											"changed": true,
+											"source": "void"
+										},
+										"typeParameters": {
+											"added": [],
+											"removed": [],
+											"changed": []
+										}
+									}
+								}
+							]
+						},
+						{
+							"key": "instance:enableDamping:property",
+							"source": {
+								"name": "enableDamping",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "enableDamping",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "boolean",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:enablePan:property",
+							"source": {
+								"name": "enablePan",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "enablePan",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "boolean",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:enableRotate:property",
+							"source": {
+								"name": "enableRotate",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "enableRotate",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "boolean",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:enableZoom:property",
+							"source": {
+								"name": "enableZoom",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "enableZoom",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "boolean",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:minDistance:property",
+							"source": {
+								"name": "minDistance",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "minDistance",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "number",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:minPolarAngle:property",
+							"source": {
+								"name": "minPolarAngle",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "minPolarAngle",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "number",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:panSpeed:property",
+							"source": {
+								"name": "panSpeed",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "panSpeed",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "number",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:reset:method",
+							"source": {
+								"name": "reset",
+								"kind": "method",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"signatures": [
+									{
+										"parameters": [],
+										"returnType": "void"
+									}
+								],
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "reset",
+								"kind": "method",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"signatures": [
+									{
+										"parameters": []
+									}
+								],
+								"declarationCount": 1
+							},
+							"signatureChanges": [
+								{
+									"source": {
+										"parameters": [],
+										"returnType": "void"
+									},
+									"target": {
+										"parameters": []
+									},
+									"sourceOverload": 0,
+									"targetOverload": 0,
+									"delta": {
+										"parameters": {
+											"added": [],
+											"removed": [],
+											"changed": []
+										},
+										"defaults": [],
+										"returnType": {
+											"changed": true,
+											"source": "void"
+										},
+										"typeParameters": {
+											"added": [],
+											"removed": [],
+											"changed": []
+										}
+									}
+								}
+							]
+						},
+						{
+							"key": "instance:rotateSpeed:property",
+							"source": {
+								"name": "rotateSpeed",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "rotateSpeed",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "number",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:screenSpacePanning:property",
+							"source": {
+								"name": "screenSpacePanning",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "screenSpacePanning",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "boolean",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						},
+						{
+							"key": "instance:update:method",
+							"source": {
+								"name": "update",
+								"kind": "method",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"signatures": [
+									{
+										"parameters": [],
+										"returnType": "boolean"
+									}
+								],
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "update",
+								"kind": "method",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"signatures": [
+									{
+										"parameters": [
+											{
+												"name": "deltaTime",
+												"type": "unknown",
+												"optional": true,
+												"rest": false,
+												"default": "null"
+											}
+										]
+									}
+								],
+								"declarationCount": 1
+							},
+							"signatureChanges": [
+								{
+									"source": {
+										"parameters": [],
+										"returnType": "boolean"
+									},
+									"target": {
+										"parameters": [
+											{
+												"name": "deltaTime",
+												"type": "unknown",
+												"optional": true,
+												"rest": false,
+												"default": "null"
+											}
+										]
+									},
+									"sourceOverload": 0,
+									"targetOverload": 0,
+									"delta": {
+										"parameters": {
+											"added": [
+												{
+													"name": "deltaTime",
+													"type": "unknown",
+													"optional": true,
+													"rest": false,
+													"default": "null"
+												}
+											],
+											"removed": [],
+											"changed": []
+										},
+										"defaults": [],
+										"returnType": {
+											"changed": true,
+											"source": "boolean"
+										},
+										"typeParameters": {
+											"added": [],
+											"removed": [],
+											"changed": []
+										}
+									}
+								}
+							]
+						},
+						{
+							"key": "instance:zoomSpeed:property",
+							"source": {
+								"name": "zoomSpeed",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "unknown",
+								"declarationCount": 1
+							},
+							"target": {
+								"name": "zoomSpeed",
+								"kind": "property",
+								"scope": "instance",
+								"optional": false,
+								"readonly": false,
+								"static": false,
+								"type": "number",
+								"declarationCount": 1
+							},
+							"signatureChanges": []
+						}
+					],
+					"missingInTarget": [
+						"instance:camera:property",
+						"instance:domElement:property",
+						"instance:enabled:property"
+					],
+					"extraInTarget": [
+						"instance:connect:method",
+						"instance:cursor:property",
+						"instance:cursorStyle:accessor",
+						"instance:disconnect:method",
+						"instance:dollyIn:method",
+						"instance:dollyOut:method",
+						"instance:getAzimuthalAngle:method",
+						"instance:getDistance:method",
+						"instance:getPolarAngle:method",
+						"instance:keyPanSpeed:property",
+						"instance:keyRotateSpeed:property",
+						"instance:keys:property",
+						"instance:listenToKeyEvents:method",
+						"instance:maxAzimuthAngle:property",
+						"instance:maxTargetRadius:property",
+						"instance:maxZoom:property",
+						"instance:minAzimuthAngle:property",
+						"instance:minTargetRadius:property",
+						"instance:minZoom:property",
+						"instance:mouseButtons:property",
+						"instance:pan:method",
+						"instance:position0:property",
+						"instance:rotateLeft:method",
+						"instance:rotateUp:method",
+						"instance:saveState:method",
+						"instance:state:property",
+						"instance:stopListenToKeyEvents:method",
+						"instance:target0:property",
+						"instance:touches:property",
+						"instance:zoom0:property",
+						"instance:zoomToCursor:property"
+					]
+				},
+				"callSignatures": {
+					"matched": 0,
+					"added": [],
+					"removed": [],
+					"changed": []
+				}
+			}
+		},
+		{
+			"source": {
+				"id": "easel:OrthographicCamera",
+				"name": "OrthographicCamera",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PainterSort",
+				"name": "PainterSort",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Path",
+				"name": "Path",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PerspectiveCamera",
+				"name": "PerspectiveCamera",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PixelWriter",
+				"name": "PixelWriter",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Plane",
+				"name": "Plane",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PlaneGeometry",
+				"name": "PlaneGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PointLight",
+				"name": "PointLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PointLightHelper",
+				"name": "PointLightHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PointRasterizer",
+				"name": "PointRasterizer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Points",
+				"name": "Points",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PointsMaterial",
+				"name": "PointsMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PolygonSorter",
+				"name": "PolygonSorter",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PolyhedronGeometry",
+				"name": "PolyhedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PropertyMixer",
+				"name": "PropertyMixer",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:QuadraticBezierCurve",
+				"name": "QuadraticBezierCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:QuadraticBezierCurve3",
+				"name": "QuadraticBezierCurve3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Quaternion",
+				"name": "Quaternion",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:QuaternionTrack",
+				"name": "QuaternionTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Rasterizer",
+				"name": "Rasterizer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Ray",
+				"name": "Ray",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Raycaster",
+				"name": "Raycaster",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Renderer",
+				"name": "Renderer",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:REVISION",
+				"name": "REVISION",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:RingGeometry",
+				"name": "RingGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ScanlineFill",
+				"name": "ScanlineFill",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Scene",
+				"name": "Scene",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SceneTraversal",
+				"name": "SceneTraversal",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Shading",
+				"name": "Shading",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Shape",
+				"name": "Shape",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ShapeGeometry",
+				"name": "ShapeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ShapePath",
+				"name": "ShapePath",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Side",
+				"name": "Side",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Skeleton",
+				"name": "Skeleton",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SkinnedMesh",
+				"name": "SkinnedMesh",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Sphere",
+				"name": "Sphere",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SphereGeometry",
+				"name": "SphereGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Spherical",
+				"name": "Spherical",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SplineCurve",
+				"name": "SplineCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SpotLight",
+				"name": "SpotLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SpotLightHelper",
+				"name": "SpotLightHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Sprite",
+				"name": "Sprite",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TetrahedronGeometry",
+				"name": "TetrahedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Texture",
+				"name": "Texture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TextureClamp",
+				"name": "TextureClamp",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TextureLoader",
+				"name": "TextureLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TextureSampler",
+				"name": "TextureSampler",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TileDistanceSorter",
+				"name": "TileDistanceSorter",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ToonMaterial",
+				"name": "ToonMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TorusGeometry",
+				"name": "TorusGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TorusKnotGeometry",
+				"name": "TorusKnotGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Track",
+				"name": "Track",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TranslucencyTable",
+				"name": "TranslucencyTable",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Triangle",
+				"name": "Triangle",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TubeGeometry",
+				"name": "TubeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Vector2",
+				"name": "Vector2",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Vector3",
+				"name": "Vector3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Vector4",
+				"name": "Vector4",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:VectorTrack",
+				"name": "VectorTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:VideoTexture",
+				"name": "VideoTexture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ViewToScreen",
+				"name": "ViewToScreen",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:WireframeGeometry",
+				"name": "WireframeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:WireframeRasterizer",
+				"name": "WireframeRasterizer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:WorldToView",
+				"name": "WorldToView",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Wrapping",
+				"name": "Wrapping",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		}
+	],
+	"summary": {
+		"sourceSymbols": 168,
+		"targetSymbols": 325,
+		"exactNameMatches": 2,
+		"renamedMatches": 0,
+		"added": 323,
+		"removed": 166,
+		"changed": 2
+	}
+}

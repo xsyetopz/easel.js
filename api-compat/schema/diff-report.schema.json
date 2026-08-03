@@ -1,0 +1,505 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://easeljs.org/schemas/diff-report.schema.json",
+  "title": "Normalized API compatibility diff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedFrom", "comparisons", "summary"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedFrom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["easel", "three"],
+      "properties": {
+        "easel": { "$ref": "#/$defs/ref" },
+        "three": { "$ref": "#/$defs/ref" }
+      }
+    },
+    "comparisons": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/record" }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceSymbols",
+        "targetSymbols",
+        "exactNameMatches",
+        "renamedMatches",
+        "added",
+        "removed",
+        "changed"
+      ],
+      "properties": {
+        "sourceSymbols": { "type": "integer", "minimum": 0 },
+        "targetSymbols": { "type": "integer", "minimum": 0 },
+        "exactNameMatches": { "type": "integer", "minimum": 0 },
+        "renamedMatches": { "type": "integer", "minimum": 0 },
+        "added": { "type": "integer", "minimum": 0 },
+        "removed": { "type": "integer", "minimum": 0 },
+        "changed": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "surface": {
+      "enum": [
+        "easel",
+        "three-core",
+        "three-addons",
+        "three-webgpu",
+        "three-tsl"
+      ]
+    },
+    "kind": {
+      "enum": [
+        "class",
+        "interface",
+        "enum",
+        "function",
+        "variable",
+        "constant",
+        "type",
+        "namespace",
+        "unknown"
+      ]
+    },
+    "status": {
+      "enum": [
+        "exact",
+        "shape-compatible",
+        "adapted",
+        "partial",
+        "conceptual",
+        "unsupported",
+        "easel-only",
+        "unknown"
+      ]
+    },
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface", "version", "manifest"],
+      "properties": {
+        "surface": { "$ref": "#/$defs/surface" },
+        "version": { "type": "string", "minLength": 1 },
+        "manifest": { "type": "string", "minLength": 1 }
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "optional", "rest"],
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "optional": { "type": "boolean" },
+        "rest": { "type": "boolean" },
+        "default": { "type": "string" }
+      }
+    },
+    "typeParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "constraint": { "type": "string" },
+        "default": { "type": "string" }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parameters"],
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/parameter" }
+        },
+        "returnType": { "type": "string" },
+        "typeParameters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/typeParameter" }
+        }
+      }
+    },
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "scope", "optional", "readonly", "static"],
+      "properties": {
+        "name": { "type": "string" },
+        "kind": {
+          "enum": [
+            "property",
+            "accessor",
+            "method",
+            "constructor",
+            "call",
+            "index"
+          ]
+        },
+        "scope": { "enum": ["instance", "static", "type"] },
+        "optional": { "type": "boolean" },
+        "readonly": { "type": "boolean" },
+        "static": { "type": "boolean" },
+        "type": { "type": "string" },
+        "access": { "enum": ["get", "set", "get-set"] },
+        "signatures": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/signature" }
+        },
+        "declarationCount": { "type": "integer", "minimum": 1 },
+        "deprecated": { "type": "string" }
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "exportKind",
+        "extends",
+        "implements",
+        "typeParameters",
+        "constructors",
+        "signatures",
+        "members"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "kind": { "$ref": "#/$defs/kind" },
+        "exportKind": { "enum": ["named", "default", "namespace"] },
+        "module": { "type": "string" },
+        "extends": { "type": "array", "items": { "type": "string" } },
+        "implements": { "type": "array", "items": { "type": "string" } },
+        "typeParameters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/typeParameter" }
+        },
+        "constructors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/signature" }
+        },
+        "signatures": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/signature" }
+        },
+        "members": { "type": "array", "items": { "$ref": "#/$defs/member" } },
+        "type": { "type": "string" },
+        "deprecated": { "type": "string" },
+        "description": { "type": "string" },
+        "source": { "type": "string" }
+      }
+    },
+    "parameterChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index", "source", "target", "changes"],
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "source": { "$ref": "#/$defs/parameter" },
+        "target": { "$ref": "#/$defs/parameter" },
+        "changes": {
+          "type": "array",
+          "items": { "enum": ["name", "type", "optional", "rest", "default"] }
+        }
+      }
+    },
+    "typeParameterChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index", "source", "target", "changes"],
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "source": { "$ref": "#/$defs/typeParameter" },
+        "target": { "$ref": "#/$defs/typeParameter" },
+        "changes": {
+          "type": "array",
+          "items": { "enum": ["name", "constraint", "default"] }
+        }
+      }
+    },
+    "defaultChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index"],
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "source": { "type": "string" },
+        "target": { "type": "string" }
+      }
+    },
+    "signatureDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parameters", "defaults", "returnType", "typeParameters"],
+      "properties": {
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["added", "removed", "changed"],
+          "properties": {
+            "added": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/parameter" }
+            },
+            "removed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/parameter" }
+            },
+            "changed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/parameterChange" }
+            }
+          }
+        },
+        "defaults": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/defaultChange" }
+        },
+        "returnType": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["changed"],
+          "properties": {
+            "source": { "type": "string" },
+            "target": { "type": "string" },
+            "changed": { "type": "boolean" }
+          }
+        },
+        "typeParameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["added", "removed", "changed"],
+          "properties": {
+            "added": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/typeParameter" }
+            },
+            "removed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/typeParameter" }
+            },
+            "changed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/typeParameterChange" }
+            }
+          }
+        }
+      }
+    },
+    "signatureChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["delta"],
+      "properties": {
+        "source": { "$ref": "#/$defs/signature" },
+        "target": { "$ref": "#/$defs/signature" },
+        "sourceOverload": { "type": "integer", "minimum": 0 },
+        "targetOverload": { "type": "integer", "minimum": 0 },
+        "delta": { "$ref": "#/$defs/signatureDelta" }
+      }
+    },
+    "memberChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "source", "target", "signatureChanges"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "source": { "$ref": "#/$defs/member" },
+        "target": { "$ref": "#/$defs/member" },
+        "signatureChanges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/signatureChange" }
+        }
+      }
+    },
+    "changes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exportName",
+        "kind",
+        "type",
+        "deprecated",
+        "inheritance",
+        "typeParameters",
+        "constructors",
+        "members",
+        "callSignatures"
+      ],
+      "properties": {
+        "exportName": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "target", "changed"],
+          "properties": {
+            "source": { "type": "string" },
+            "target": { "type": "string" },
+            "changed": { "type": "boolean" }
+          }
+        },
+        "kind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "target", "changed"],
+          "properties": {
+            "source": { "$ref": "#/$defs/kind" },
+            "target": { "$ref": "#/$defs/kind" },
+            "changed": { "type": "boolean" }
+          }
+        },
+        "type": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["changed"],
+          "properties": {
+            "source": { "type": "string" },
+            "target": { "type": "string" },
+            "changed": { "type": "boolean" }
+          }
+        },
+        "deprecated": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["changed"],
+          "properties": {
+            "source": { "type": "string" },
+            "target": { "type": "string" },
+            "changed": { "type": "boolean" }
+          }
+        },
+        "inheritance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["changed", "extends", "implements"],
+          "properties": {
+            "changed": { "type": "boolean" },
+            "extends": { "$ref": "#/$defs/nameDelta" },
+            "implements": { "$ref": "#/$defs/nameDelta" }
+          }
+        },
+        "typeParameters": { "$ref": "#/$defs/typeParametersDelta" },
+        "constructors": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["matched", "added", "removed", "changed"],
+          "properties": {
+            "matched": { "type": "integer", "minimum": 0 },
+            "added": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/signature" }
+            },
+            "removed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/signature" }
+            },
+            "changed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/signatureChange" }
+            }
+          }
+        },
+        "members": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "matched",
+            "changed",
+            "missingInTarget",
+            "extraInTarget"
+          ],
+          "properties": {
+            "matched": { "type": "integer", "minimum": 0 },
+            "changed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/memberChange" }
+            },
+            "missingInTarget": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "extraInTarget": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "callSignatures": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["matched", "added", "removed", "changed"],
+          "properties": {
+            "matched": { "type": "integer", "minimum": 0 },
+            "added": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/signature" }
+            },
+            "removed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/signature" }
+            },
+            "changed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/signatureChange" }
+            }
+          }
+        }
+      }
+    },
+    "nameDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added", "removed"],
+      "properties": {
+        "added": { "type": "array", "items": { "type": "string" } },
+        "removed": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "typeParametersDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added", "removed", "changed"],
+      "properties": {
+        "added": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/typeParameter" }
+        },
+        "removed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/typeParameter" }
+        },
+        "changed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/typeParameterChange" }
+        }
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "surface"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "surface": { "$ref": "#/$defs/surface" }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "status", "notes"],
+      "properties": {
+        "source": { "$ref": "#/$defs/sourceRef" },
+        "target": { "$ref": "#/$defs/sourceRef" },
+        "status": { "$ref": "#/$defs/status" },
+        "notes": { "type": "array", "items": { "type": "string" } },
+        "structural": { "$ref": "#/$defs/changes" }
+      }
+    }
+  }
+}

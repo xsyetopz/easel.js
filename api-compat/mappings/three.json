@@ -1,0 +1,1049 @@
+{
+  "schemaVersion": 1,
+  "mappings": [
+    {
+      "source": "easel:AffineUVSampler",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:AmbientLight",
+      "target": "three-core:AmbientLight",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:AnimationAction",
+      "target": "three-core:AnimationAction",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:AnimationClip",
+      "target": "three-core:AnimationClip",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:AnimationLoader",
+      "target": "three-core:AnimationLoader",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:AnimationUtils",
+      "target": "three-core:AnimationUtils",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Animator",
+      "target": "three-core:AnimationMixer",
+      "status": "adapted",
+      "notes": ["Constructor takes the root node directly rather than a scene."]
+    },
+    {
+      "source": "easel:ArcCurve",
+      "target": "three-core:ArcCurve",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Attribute",
+      "target": "three-core:BufferAttribute",
+      "status": "adapted",
+      "notes": ["No GPU buffer - data is read directly by the CPU rasterizer."]
+    },
+    {
+      "source": "easel:AxesHelper",
+      "target": "three-core:AxesHelper",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:BasicMaterial",
+      "target": "three-core:MeshBasicMaterial",
+      "status": "adapted",
+      "notes": ["Accepts hex number, CSS string, or Color instance for color."]
+    },
+    {
+      "source": "easel:Binding",
+      "target": "three-core:PropertyBinding",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Bone",
+      "target": "three-core:Bone",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:BooleanTrack",
+      "target": "three-core:BooleanKeyframeTrack",
+      "status": "adapted",
+      "notes": ["Step interpolation only."]
+    },
+    {
+      "source": "easel:Box2",
+      "target": "three-core:Box2",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Box3",
+      "target": "three-core:Box3",
+      "status": "adapted",
+      "notes": [
+        "Uses British spelling: centre/getCentre instead of center/getCenter."
+      ]
+    },
+    {
+      "source": "easel:BoxGeometry",
+      "target": "three-core:BoxGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:BoxHelper",
+      "target": "three-core:BoxHelper",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:CanvasTexture",
+      "target": "three-core:CanvasTexture",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:CapsuleGeometry",
+      "target": "three-core:CapsuleGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:CatmullRomCurve3",
+      "target": "three-core:CatmullRomCurve3",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Clock",
+      "target": "three-core:Clock",
+      "status": "adapted",
+      "notes": [
+        "getDelta() is a getter (clock.delta) rather than a method call. getElapsedTime() is likewise clock.elapsedTime."
+      ]
+    },
+    {
+      "source": "easel:Color",
+      "target": "three-core:Color",
+      "status": "adapted",
+      "notes": [
+        "No color name strings or texture sRGB conversion. Static helpers toRGB and fromHsl16 have no THREE equivalent."
+      ]
+    },
+    {
+      "source": "easel:ColorTable",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:ColorTrack",
+      "target": "three-core:ColorKeyframeTrack",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:ConeGeometry",
+      "target": "three-core:ConeGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:CubicBezierCurve",
+      "target": "three-core:CubicBezierCurve",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:CubicBezierCurve3",
+      "target": "three-core:CubicBezierCurve3",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Curve",
+      "target": "three-core:Curve",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:CurvePath",
+      "target": "three-core:CurvePath",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:CylinderGeometry",
+      "target": "three-core:CylinderGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Cylindrical",
+      "target": "three-core:Cylindrical",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:DashedLineMaterial",
+      "target": "three-core:LineDashedMaterial",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:DataTexture",
+      "target": "three-core:DataTexture",
+      "status": "adapted",
+      "notes": [
+        "CPU renderer reads pixel data directly each frame. No GPU upload step, so changes to the underlying array are reflected immediately without needsUpdate."
+      ]
+    },
+    {
+      "source": "easel:DataTextureLoader",
+      "target": "three-core:DataTextureLoader",
+      "status": "adapted",
+      "notes": [
+        "parse() is abstract - subclasses must return { data, width, height }."
+      ]
+    },
+    {
+      "source": "easel:DefaultLoadingManager",
+      "target": "three-webgpu:DefaultLoadingManager",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:DepthBuffer",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:DirectionalLight",
+      "target": "three-core:DirectionalLight",
+      "status": "adapted",
+      "notes": [
+        "No shadow support. Target is optional - falls back to deriving direction from position when unset."
+      ]
+    },
+    {
+      "source": "easel:DirectionalLightHelper",
+      "target": "three-core:DirectionalLightHelper",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:DodecahedronGeometry",
+      "target": "three-core:DodecahedronGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:DrawCall",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:DrawList",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:DrawPrioritySorter",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:earcut",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:EdgesGeometry",
+      "target": "three-core:EdgesGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:EdgeWalker",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:EllipseCurve",
+      "target": "three-core:EllipseCurve",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Euler",
+      "target": "three-core:Euler",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:EventDispatcher",
+      "target": "three-core:EventDispatcher",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:ExtrudeGeometry",
+      "target": "three-core:ExtrudeGeometry",
+      "status": "adapted",
+      "notes": ["Bevel is not yet supported."]
+    },
+    {
+      "source": "easel:FileLoader",
+      "target": "three-core:FileLoader",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:FlatShader",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Fog",
+      "target": "three-core:Fog",
+      "status": "adapted",
+      "notes": [
+        "Constructor takes an options object { color, near, far }, not positional parameters."
+      ]
+    },
+    {
+      "source": "easel:FogCuller",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Framebuffer",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:FramebufferClear",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:FramebufferTexture",
+      "target": "three-core:FramebufferTexture",
+      "status": "adapted",
+      "notes": [
+        "CPU-side capture via ImageData, not a GPU framebuffer object. Requires an explicit capture() call."
+      ]
+    },
+    {
+      "source": "easel:FramebufferUpload",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Frustum",
+      "target": "three-core:Frustum",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Geometry",
+      "target": "three-core:BufferGeometry",
+      "status": "adapted",
+      "notes": [
+        "No GPU buffers exist. setPositions/setNormals/setUVs/setColors are convenience wrappers over setAttribute."
+      ]
+    },
+    {
+      "source": "easel:GeometryLoader",
+      "target": "three-core:BufferGeometryLoader",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:GouraudInterpolator",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:GouraudShader",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:GridHelper",
+      "target": "three-core:GridHelper",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Group",
+      "target": "three-core:Group",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:HemisphereLight",
+      "target": "three-core:HemisphereLight",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Hsl16",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:IcosahedronGeometry",
+      "target": "three-core:IcosahedronGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:ImageBitmapLoader",
+      "target": "three-core:ImageBitmapLoader",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:ImageLoader",
+      "target": "three-core:ImageLoader",
+      "status": "adapted",
+      "notes": [
+        "crossOrigin defaults to empty string. Only set on the image when truthy, unlike THREE which always sets 'anonymous'."
+      ]
+    },
+    {
+      "source": "easel:InstancedMesh",
+      "target": "three-core:InstancedMesh",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:InterleavedAttribute",
+      "target": "three-core:InterleavedBufferAttribute",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:InterleavedBuffer",
+      "target": "three-core:InterleavedBuffer",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LambertMaterial",
+      "target": "three-core:MeshLambertMaterial",
+      "status": "adapted",
+      "notes": [
+        "Gouraud shading is per-vertex on the CPU - no fragment-shader interpolation."
+      ]
+    },
+    {
+      "source": "easel:LatheGeometry",
+      "target": "three-core:LatheGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Layer",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Layers",
+      "target": "three-core:Layers",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Light",
+      "target": "three-core:Light",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LightBaker",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:LightType",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Line",
+      "target": "three-core:Line",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Line3",
+      "target": "three-core:Line3",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LineCurve",
+      "target": "three-core:LineCurve",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LineCurve3",
+      "target": "three-core:LineCurve3",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LineLoop",
+      "target": "three-core:LineLoop",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LineMaterial",
+      "target": "three-core:LineBasicMaterial",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LineSegments",
+      "target": "three-core:LineSegments",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Loader",
+      "target": "three-core:Loader",
+      "status": "adapted",
+      "notes": [
+        "crossOrigin defaults to empty string, not 'anonymous'. load() is abstract."
+      ]
+    },
+    {
+      "source": "easel:LoadingManager",
+      "target": "three-core:LoadingManager",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LoopOnce",
+      "target": "three-webgpu:LoopOnce",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LoopPingPong",
+      "target": "three-webgpu:LoopPingPong",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:LoopRepeat",
+      "target": "three-webgpu:LoopRepeat",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Material",
+      "target": "three-core:Material",
+      "status": "adapted",
+      "notes": [
+        "opacity is a 0–8 integer (nine discrete steps), not a 0–1 float. layer has no THREE equivalent."
+      ]
+    },
+    {
+      "source": "easel:MaterialLoader",
+      "target": "three-core:MaterialLoader",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:MathUtils",
+      "target": "three-core:MathUtils",
+      "status": "adapted",
+      "notes": [
+        "Not a class - a plain object. Includes RuneTek-specific helpers: tileDistance, packHsl16, unpackHsl16, fastAtan2. No generateUUID or lerp."
+      ]
+    },
+    {
+      "source": "easel:Matrix3",
+      "target": "three-core:Matrix3",
+      "status": "adapted",
+      "notes": [
+        "multiply() is named mul(). Supports compose/decompose for 2D transforms."
+      ]
+    },
+    {
+      "source": "easel:Matrix4",
+      "target": "three-core:Matrix4",
+      "status": "adapted",
+      "notes": [
+        "multiply() is named mul(). makePerspective takes fov in radians (not degrees) and has a different parameter order than THREE."
+      ]
+    },
+    {
+      "source": "easel:Mesh",
+      "target": "three-core:Mesh",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Node",
+      "target": "three-core:Object3D",
+      "status": "adapted",
+      "notes": [
+        "No layers.enable/disable helpers - assign the Layers bitmask directly."
+      ]
+    },
+    {
+      "source": "easel:NumberTrack",
+      "target": "three-core:NumberKeyframeTrack",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:ObjectLoader",
+      "target": "three-core:ObjectLoader",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:OctahedronGeometry",
+      "target": "three-core:OctahedronGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:OrbitControls",
+      "target": "three-addons:OrbitControls",
+      "status": "adapted",
+      "notes": [
+        "update() returns a boolean indicating whether the camera moved."
+      ]
+    },
+    {
+      "source": "easel:OrthographicCamera",
+      "target": "three-core:OrthographicCamera",
+      "status": "adapted",
+      "notes": [
+        "Constructor takes a single options object. tileSize has no THREE equivalent."
+      ]
+    },
+    {
+      "source": "easel:PainterSort",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Path",
+      "target": "three-core:Path",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:PerspectiveCamera",
+      "target": "three-core:PerspectiveCamera",
+      "status": "adapted",
+      "notes": [
+        "Constructor takes a single options object, not positional parameters."
+      ]
+    },
+    {
+      "source": "easel:PixelWriter",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Plane",
+      "target": "three-core:Plane",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:PlaneGeometry",
+      "target": "three-core:PlaneGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:PointLight",
+      "target": "three-core:PointLight",
+      "status": "adapted",
+      "notes": ["No shadow support."]
+    },
+    {
+      "source": "easel:PointLightHelper",
+      "target": "three-core:PointLightHelper",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:PointRasterizer",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Points",
+      "target": "three-core:Points",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:PointsMaterial",
+      "target": "three-core:PointsMaterial",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:PolygonSorter",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:PolyhedronGeometry",
+      "target": "three-core:PolyhedronGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:PropertyMixer",
+      "target": "three-core:PropertyMixer",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:QuadraticBezierCurve",
+      "target": "three-core:QuadraticBezierCurve",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:QuadraticBezierCurve3",
+      "target": "three-core:QuadraticBezierCurve3",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Quaternion",
+      "target": "three-core:Quaternion",
+      "status": "adapted",
+      "notes": [
+        "premul() instead of premultiply(). No slerp instance method - slerp is handled by QuaternionTrack."
+      ]
+    },
+    {
+      "source": "easel:QuaternionTrack",
+      "target": "three-core:QuaternionKeyframeTrack",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Rasterizer",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Ray",
+      "target": "three-core:Ray",
+      "status": "adapted",
+      "notes": [
+        "intersectBox3/intersectsBox3 instead of intersectBox/intersectsBox."
+      ]
+    },
+    {
+      "source": "easel:Raycaster",
+      "target": "three-core:Raycaster",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Renderer",
+      "target": "three-core:WebGLRenderer",
+      "status": "adapted",
+      "notes": [
+        "Canvas2D software renderer, not WebGL. Constructor takes an options object. Depth testing is CPU-side and texture backgrounds belong on Scene.background."
+      ]
+    },
+    {
+      "source": "easel:REVISION",
+      "target": "three-webgpu:REVISION",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:RingGeometry",
+      "target": "three-core:RingGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:ScanlineFill",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Scene",
+      "target": "three-core:Scene",
+      "status": "adapted",
+      "notes": [
+        "No environment maps. Texture backgrounds are nearest-neighbour screen fills, not skyboxes or reflections. When fog is set, its color overrides background."
+      ]
+    },
+    {
+      "source": "easel:SceneTraversal",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Shading",
+      "status": "easel-only",
+      "notes": [
+        "THREE.FlatShading is not exported by the pinned three.js release.",
+        "Legacy equivalent list: FlatShading / THREE.SmoothShading.",
+        "Shading.Gouraud instead of THREE.SmoothShading. No per-pixel (Phong) shading."
+      ]
+    },
+    {
+      "source": "easel:Shape",
+      "target": "three-core:Shape",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:ShapeGeometry",
+      "target": "three-core:ShapeGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:ShapePath",
+      "target": "three-core:ShapePath",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Side",
+      "target": "three-core:FrontSide",
+      "status": "adapted",
+      "notes": [
+        "Legacy equivalent list: FrontSide / THREE.BackSide / THREE.DoubleSide.",
+        "Frozen enum object instead of individual constants. Side.Double instead of THREE.DoubleSide."
+      ]
+    },
+    {
+      "source": "easel:Skeleton",
+      "target": "three-core:Skeleton",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:SkinnedMesh",
+      "target": "three-core:SkinnedMesh",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Sphere",
+      "target": "three-core:Sphere",
+      "status": "adapted",
+      "notes": ["Uses British spelling: centre instead of center."]
+    },
+    {
+      "source": "easel:SphereGeometry",
+      "target": "three-core:SphereGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Spherical",
+      "target": "three-core:Spherical",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:SplineCurve",
+      "target": "three-core:SplineCurve",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:SpotLight",
+      "target": "three-core:SpotLight",
+      "status": "adapted",
+      "notes": [
+        "No shadow support. Target is optional - falls back to the direction property when unset."
+      ]
+    },
+    {
+      "source": "easel:SpotLightHelper",
+      "target": "three-core:SpotLightHelper",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Sprite",
+      "target": "three-core:Sprite",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:TetrahedronGeometry",
+      "target": "three-core:TetrahedronGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Texture",
+      "target": "three-core:Texture",
+      "status": "adapted",
+      "notes": [
+        "Hard 128x128 cap - larger images are nearest-neighbor downsampled on needsUpdate. No GPU upload; pixel data lives in a plain ImageData. For atlas rectangles [x, x + w) × [y, y + h) in a W × H atlas, use texel-center UV endpoints (x + 0.5) / W and (x + w - 0.5) / W (and equivalent V coordinates); preserve face orientation by assigning each endpoint to its original corner and swapping the low/high endpoint for reversed U or V faces."
+      ]
+    },
+    {
+      "source": "easel:TextureClamp",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:TextureLoader",
+      "target": "three-core:TextureLoader",
+      "status": "adapted",
+      "notes": [
+        "Uses ImageBitmapLoader (fetch + createImageBitmap), not HTMLImageElement. This avoids canvas taint from CORS."
+      ]
+    },
+    {
+      "source": "easel:TextureSampler",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:TileDistanceSorter",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:ToonMaterial",
+      "target": "three-core:MeshToonMaterial",
+      "status": "adapted",
+      "notes": [
+        "Shading is always Gouraud (Flat is not supported). Color quantisation is HSL16, not a generic ramp."
+      ]
+    },
+    {
+      "source": "easel:TorusGeometry",
+      "target": "three-core:TorusGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:TorusKnotGeometry",
+      "target": "three-core:TorusKnotGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Track",
+      "target": "three-core:KeyframeTrack",
+      "status": "adapted",
+      "notes": [
+        "All tracks are keyframe-based. No separate NumberKeyframeTrack/VectorKeyframeTrack subclasses."
+      ]
+    },
+    {
+      "source": "easel:TranslucencyTable",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Triangle",
+      "target": "three-core:Triangle",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:TubeGeometry",
+      "target": "three-core:TubeGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:Vector2",
+      "target": "three-core:Vector2",
+      "status": "adapted",
+      "notes": ["mulScalar instead of multiplyScalar."]
+    },
+    {
+      "source": "easel:Vector3",
+      "target": "three-core:Vector3",
+      "status": "adapted",
+      "notes": [
+        "x, y, z are private fields accessed via getters/setters. mul() is multiplyScalar with one argument when passed a scalar."
+      ]
+    },
+    {
+      "source": "easel:Vector4",
+      "target": "three-core:Vector4",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:VectorTrack",
+      "target": "three-core:VectorKeyframeTrack",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:VideoTexture",
+      "target": "three-core:VideoTexture",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:ViewToScreen",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:WireframeGeometry",
+      "target": "three-core:WireframeGeometry",
+      "status": "unknown",
+      "notes": []
+    },
+    {
+      "source": "easel:WireframeRasterizer",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:WorldToView",
+      "status": "easel-only",
+      "notes": []
+    },
+    {
+      "source": "easel:Wrapping",
+      "target": "three-core:ClampToEdgeWrapping",
+      "status": "adapted",
+      "notes": [
+        "Legacy equivalent list: ClampToEdgeWrapping / THREE.RepeatWrapping.",
+        "Frozen enum object instead of individual constants."
+      ]
+    }
+  ]
+}

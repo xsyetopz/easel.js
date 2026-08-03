@@ -1,0 +1,1538 @@
+{
+	"schemaVersion": 1,
+	"generatedFrom": {
+		"easel": {
+			"surface": "easel",
+			"version": "0.6.1",
+			"manifest": "api-compat/generated/manifests/easel-0.6.1.json"
+		},
+		"three": {
+			"surface": "three-tsl",
+			"version": "0.185.1",
+			"manifest": "api-compat/generated/manifests/three-tsl-0.185.1.json"
+		}
+	},
+	"comparisons": [
+		{
+			"source": {
+				"id": "easel:AffineUVSampler",
+				"name": "AffineUVSampler",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AmbientLight",
+				"name": "AmbientLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AnimationAction",
+				"name": "AnimationAction",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AnimationClip",
+				"name": "AnimationClip",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AnimationLoader",
+				"name": "AnimationLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AnimationUtils",
+				"name": "AnimationUtils",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Animator",
+				"name": "Animator",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ArcCurve",
+				"name": "ArcCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Attribute",
+				"name": "Attribute",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:AxesHelper",
+				"name": "AxesHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:BasicMaterial",
+				"name": "BasicMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Binding",
+				"name": "Binding",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Bone",
+				"name": "Bone",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:BooleanTrack",
+				"name": "BooleanTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Box2",
+				"name": "Box2",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Box3",
+				"name": "Box3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:BoxGeometry",
+				"name": "BoxGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:BoxHelper",
+				"name": "BoxHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CanvasTexture",
+				"name": "CanvasTexture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CapsuleGeometry",
+				"name": "CapsuleGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CatmullRomCurve3",
+				"name": "CatmullRomCurve3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Clock",
+				"name": "Clock",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Color",
+				"name": "Color",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ColorTable",
+				"name": "ColorTable",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ColorTrack",
+				"name": "ColorTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ConeGeometry",
+				"name": "ConeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CubicBezierCurve",
+				"name": "CubicBezierCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CubicBezierCurve3",
+				"name": "CubicBezierCurve3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Curve",
+				"name": "Curve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CurvePath",
+				"name": "CurvePath",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:CylinderGeometry",
+				"name": "CylinderGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Cylindrical",
+				"name": "Cylindrical",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DashedLineMaterial",
+				"name": "DashedLineMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DataTexture",
+				"name": "DataTexture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DataTextureLoader",
+				"name": "DataTextureLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DefaultLoadingManager",
+				"name": "DefaultLoadingManager",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DepthBuffer",
+				"name": "DepthBuffer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DirectionalLight",
+				"name": "DirectionalLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DirectionalLightHelper",
+				"name": "DirectionalLightHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DodecahedronGeometry",
+				"name": "DodecahedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DrawCall",
+				"name": "DrawCall",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DrawList",
+				"name": "DrawList",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:DrawPrioritySorter",
+				"name": "DrawPrioritySorter",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:earcut",
+				"name": "earcut",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:EdgesGeometry",
+				"name": "EdgesGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:EdgeWalker",
+				"name": "EdgeWalker",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:EllipseCurve",
+				"name": "EllipseCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Euler",
+				"name": "Euler",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:EventDispatcher",
+				"name": "EventDispatcher",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ExtrudeGeometry",
+				"name": "ExtrudeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FileLoader",
+				"name": "FileLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FlatShader",
+				"name": "FlatShader",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Fog",
+				"name": "Fog",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FogCuller",
+				"name": "FogCuller",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Framebuffer",
+				"name": "Framebuffer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FramebufferClear",
+				"name": "FramebufferClear",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FramebufferTexture",
+				"name": "FramebufferTexture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:FramebufferUpload",
+				"name": "FramebufferUpload",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Frustum",
+				"name": "Frustum",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Geometry",
+				"name": "Geometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:GeometryLoader",
+				"name": "GeometryLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:GouraudInterpolator",
+				"name": "GouraudInterpolator",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:GouraudShader",
+				"name": "GouraudShader",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:GridHelper",
+				"name": "GridHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Group",
+				"name": "Group",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:HemisphereLight",
+				"name": "HemisphereLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Hsl16",
+				"name": "Hsl16",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:IcosahedronGeometry",
+				"name": "IcosahedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ImageBitmapLoader",
+				"name": "ImageBitmapLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ImageLoader",
+				"name": "ImageLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:InstancedMesh",
+				"name": "InstancedMesh",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:InterleavedAttribute",
+				"name": "InterleavedAttribute",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:InterleavedBuffer",
+				"name": "InterleavedBuffer",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LambertMaterial",
+				"name": "LambertMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LatheGeometry",
+				"name": "LatheGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Layer",
+				"name": "Layer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Layers",
+				"name": "Layers",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Light",
+				"name": "Light",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LightBaker",
+				"name": "LightBaker",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LightType",
+				"name": "LightType",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Line",
+				"name": "Line",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Line3",
+				"name": "Line3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LineCurve",
+				"name": "LineCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LineCurve3",
+				"name": "LineCurve3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LineLoop",
+				"name": "LineLoop",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LineMaterial",
+				"name": "LineMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LineSegments",
+				"name": "LineSegments",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Loader",
+				"name": "Loader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LoadingManager",
+				"name": "LoadingManager",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LoopOnce",
+				"name": "LoopOnce",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LoopPingPong",
+				"name": "LoopPingPong",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:LoopRepeat",
+				"name": "LoopRepeat",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Material",
+				"name": "Material",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:MaterialLoader",
+				"name": "MaterialLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:MathUtils",
+				"name": "MathUtils",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Matrix3",
+				"name": "Matrix3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Matrix4",
+				"name": "Matrix4",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Mesh",
+				"name": "Mesh",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Node",
+				"name": "Node",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:NumberTrack",
+				"name": "NumberTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ObjectLoader",
+				"name": "ObjectLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:OctahedronGeometry",
+				"name": "OctahedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:OrbitControls",
+				"name": "OrbitControls",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:OrthographicCamera",
+				"name": "OrthographicCamera",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PainterSort",
+				"name": "PainterSort",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Path",
+				"name": "Path",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PerspectiveCamera",
+				"name": "PerspectiveCamera",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PixelWriter",
+				"name": "PixelWriter",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Plane",
+				"name": "Plane",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PlaneGeometry",
+				"name": "PlaneGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PointLight",
+				"name": "PointLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PointLightHelper",
+				"name": "PointLightHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PointRasterizer",
+				"name": "PointRasterizer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Points",
+				"name": "Points",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PointsMaterial",
+				"name": "PointsMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PolygonSorter",
+				"name": "PolygonSorter",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PolyhedronGeometry",
+				"name": "PolyhedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:PropertyMixer",
+				"name": "PropertyMixer",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:QuadraticBezierCurve",
+				"name": "QuadraticBezierCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:QuadraticBezierCurve3",
+				"name": "QuadraticBezierCurve3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Quaternion",
+				"name": "Quaternion",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:QuaternionTrack",
+				"name": "QuaternionTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Rasterizer",
+				"name": "Rasterizer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Ray",
+				"name": "Ray",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Raycaster",
+				"name": "Raycaster",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Renderer",
+				"name": "Renderer",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:REVISION",
+				"name": "REVISION",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:RingGeometry",
+				"name": "RingGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ScanlineFill",
+				"name": "ScanlineFill",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Scene",
+				"name": "Scene",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SceneTraversal",
+				"name": "SceneTraversal",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Shading",
+				"name": "Shading",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Shape",
+				"name": "Shape",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ShapeGeometry",
+				"name": "ShapeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ShapePath",
+				"name": "ShapePath",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Side",
+				"name": "Side",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Skeleton",
+				"name": "Skeleton",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SkinnedMesh",
+				"name": "SkinnedMesh",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Sphere",
+				"name": "Sphere",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SphereGeometry",
+				"name": "SphereGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Spherical",
+				"name": "Spherical",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SplineCurve",
+				"name": "SplineCurve",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SpotLight",
+				"name": "SpotLight",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:SpotLightHelper",
+				"name": "SpotLightHelper",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Sprite",
+				"name": "Sprite",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TetrahedronGeometry",
+				"name": "TetrahedronGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Texture",
+				"name": "Texture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TextureClamp",
+				"name": "TextureClamp",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TextureLoader",
+				"name": "TextureLoader",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TextureSampler",
+				"name": "TextureSampler",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TileDistanceSorter",
+				"name": "TileDistanceSorter",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ToonMaterial",
+				"name": "ToonMaterial",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TorusGeometry",
+				"name": "TorusGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TorusKnotGeometry",
+				"name": "TorusKnotGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Track",
+				"name": "Track",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TranslucencyTable",
+				"name": "TranslucencyTable",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Triangle",
+				"name": "Triangle",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:TubeGeometry",
+				"name": "TubeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Vector2",
+				"name": "Vector2",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Vector3",
+				"name": "Vector3",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Vector4",
+				"name": "Vector4",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:VectorTrack",
+				"name": "VectorTrack",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:VideoTexture",
+				"name": "VideoTexture",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:ViewToScreen",
+				"name": "ViewToScreen",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:WireframeGeometry",
+				"name": "WireframeGeometry",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:WireframeRasterizer",
+				"name": "WireframeRasterizer",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:WorldToView",
+				"name": "WorldToView",
+				"surface": "easel"
+			},
+			"status": "easel-only",
+			"notes": []
+		},
+		{
+			"source": {
+				"id": "easel:Wrapping",
+				"name": "Wrapping",
+				"surface": "easel"
+			},
+			"status": "unknown",
+			"notes": []
+		}
+	],
+	"summary": {
+		"sourceSymbols": 168,
+		"targetSymbols": 638,
+		"exactNameMatches": 0,
+		"renamedMatches": 0,
+		"added": 638,
+		"removed": 168,
+		"changed": 0
+	}
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://easeljs.org/schemas/compatibility-mapping.schema.json",
+  "title": "Curated EASEL/three.js API mapping",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "mappings"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "status", "notes"],
+        "properties": {
+          "source": { "type": "string", "pattern": "^easel:[^:]+$" },
+          "target": {
+            "type": "string",
+            "pattern": "^three-(core|addons|webgpu|tsl):[^:]+$"
+          },
+          "status": {
+            "enum": [
+              "exact",
+              "shape-compatible",
+              "adapted",
+              "partial",
+              "conceptual",
+              "unsupported",
+              "easel-only",
+              "unknown"
+            ]
+          },
+          "notes": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

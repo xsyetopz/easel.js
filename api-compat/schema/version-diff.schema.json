@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://easeljs.org/schemas/version-diff.schema.json",
+  "title": "Normalized same-surface API version diff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedFrom", "symbols", "summary"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedFrom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "target"],
+      "properties": {
+        "source": { "$ref": "#/$defs/versionRef" },
+        "target": { "$ref": "#/$defs/versionRef" }
+      }
+    },
+    "symbols": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added", "removed", "changed"],
+      "properties": {
+        "added": {
+          "type": "array",
+          "items": {
+            "$ref": "https://easeljs.org/schemas/diff-report.schema.json#/$defs/symbol"
+          }
+        },
+        "removed": {
+          "type": "array",
+          "items": {
+            "$ref": "https://easeljs.org/schemas/diff-report.schema.json#/$defs/symbol"
+          }
+        },
+        "changed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/changedSymbol" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceSymbols",
+        "targetSymbols",
+        "added",
+        "removed",
+        "changed"
+      ],
+      "properties": {
+        "sourceSymbols": { "type": "integer", "minimum": 0 },
+        "targetSymbols": { "type": "integer", "minimum": 0 },
+        "added": { "type": "integer", "minimum": 0 },
+        "removed": { "type": "integer", "minimum": 0 },
+        "changed": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "versionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface", "package", "version", "manifest"],
+      "properties": {
+        "surface": {
+          "enum": [
+            "easel",
+            "three-core",
+            "three-addons",
+            "three-webgpu",
+            "three-tsl"
+          ]
+        },
+        "package": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "manifest": { "type": "string", "minLength": 1 }
+      }
+    },
+    "changedSymbol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "target", "structural"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "source": {
+          "$ref": "https://easeljs.org/schemas/diff-report.schema.json#/$defs/symbol"
+        },
+        "target": {
+          "$ref": "https://easeljs.org/schemas/diff-report.schema.json#/$defs/symbol"
+        },
+        "structural": {
+          "$ref": "https://easeljs.org/schemas/diff-report.schema.json#/$defs/changes"
+        }
+      }
+    }
+  }
+}
