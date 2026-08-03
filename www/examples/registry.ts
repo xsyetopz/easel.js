@@ -50,68 +50,68 @@ import * as repeatWrapping from "./textures/repeat-wrapping.js";
 import * as textureMapping from "./textures/texture-mapping.js";
 
 export const categoryLabels = {
-	"getting-started": "Getting Started",
-	geometry: "Geometry",
-	materials: "Materials",
-	lights: "Lights",
-	camera: "Camera",
-	"scene-graph": "Scene Graph",
-	animation: "Animation",
-	textures: "Textures",
-	interactive: "Interactive",
-	helpers: "Helpers",
-	performance: "Performance",
+  "getting-started": "Getting Started",
+  geometry: "Geometry",
+  materials: "Materials",
+  lights: "Lights",
+  camera: "Camera",
+  "scene-graph": "Scene Graph",
+  animation: "Animation",
+  textures: "Textures",
+  interactive: "Interactive",
+  helpers: "Helpers",
+  performance: "Performance",
 };
 
 export const examples = [
-	// Getting Started
-	helloCube,
-	helloAnimation,
-	orbitControls,
-	// Geometry
-	geometries,
-	geometryParameters,
-	wireframe,
-	customGeometry,
-	// Materials
-	materialTypes,
-	toonShading,
-	flatVsGouraud,
-	pointsMaterial,
-	// Lights
-	lightTypes,
-	hemisphereLight,
-	pointLights,
-	// Camera
-	orthographicCamera,
-	perspectiveCamera,
-	// Scene Graph
-	sceneHierarchy,
-	groupTransforms,
-	// Animation
-	animationBasics,
-	keyframeAnimation,
-	animationBlending,
-	// Textures
-	alphaTest,
-	canvasTexture,
-	textureMapping,
-	repeatWrapping,
-	// Interactive
-	raycaster,
-	clickEvents,
-	// Helpers
-	sceneHelpers,
-	// Performance
-	renderBenchmarkSuite,
-	sceneStress,
-	rasterizerBenchmark,
-	frustumCulling,
-	multiLight,
-	pointCloud,
-	overdraw,
-	perfSceneHierarchy,
-	resolutionScaling,
-	voxelChunk,
-	mixedScene,
+  // Getting Started
+  helloCube,
+  helloAnimation,
+  orbitControls,
+  // Geometry
+  geometries,
+  geometryParameters,
+  wireframe,
+  customGeometry,
+  // Materials
+  materialTypes,
+  toonShading,
+  flatVsGouraud,
+  pointsMaterial,
+  // Lights
+  lightTypes,
+  hemisphereLight,
+  pointLights,
+  // Camera
+  orthographicCamera,
+  perspectiveCamera,
+  // Scene Graph
+  sceneHierarchy,
+  groupTransforms,
+  // Animation
+  animationBasics,
+  keyframeAnimation,
+  animationBlending,
+  // Textures
+  alphaTest,
+  canvasTexture,
+  textureMapping,
+  repeatWrapping,
+  // Interactive
+  raycaster,
+  clickEvents,
+  // Helpers
+  sceneHelpers,
+  // Performance
+  renderBenchmarkSuite,
+  sceneStress,
+  rasterizerBenchmark,
+  frustumCulling,
+  multiLight,
+  pointCloud,
+  overdraw,
+  perfSceneHierarchy,
+  resolutionScaling,
+  voxelChunk,
+  mixedScene,
 ];

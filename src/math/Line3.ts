@@ -4,91 +4,91 @@ import { Vector3 } from "./Vector3.ts";
 
 /** Finite line segment between two 3D points. */
 export class Line3 {
-	#start: Vector3 = new Vector3();
-	#end: Vector3 = new Vector3();
+  #start: Vector3 = new Vector3();
+  #end: Vector3 = new Vector3();
 
-	constructor(start: Vector3 = new Vector3(), end: Vector3 = new Vector3()) {
-		this.#start = start.clone();
-		this.#end = end.clone();
-	}
+  constructor(start: Vector3 = new Vector3(), end: Vector3 = new Vector3()) {
+    this.#start = start.clone();
+    this.#end = end.clone();
+  }
 
-	get start(): Vector3 {
-		return this.#start;
-	}
+  get start(): Vector3 {
+    return this.#start;
+  }
 
-	set start(value: Vector3) {
-		this.#start.copy(value);
-	}
+  set start(value: Vector3) {
+    this.#start.copy(value);
+  }
 
-	get end(): Vector3 {
-		return this.#end;
-	}
+  get end(): Vector3 {
+    return this.#end;
+  }
 
-	set end(value: Vector3) {
-		this.#end.copy(value);
-	}
+  set end(value: Vector3) {
+    this.#end.copy(value);
+  }
 
-	get delta(): Vector3 {
-		return this.#end.clone().sub(this.#start);
-	}
+  get delta(): Vector3 {
+    return this.#end.clone().sub(this.#start);
+  }
 
-	get length(): number {
-		return this.#start.distanceTo(this.#end);
-	}
+  get length(): number {
+    return this.#start.distanceTo(this.#end);
+  }
 
-	get lengthSq(): number {
-		return this.#start.distanceSqTo(this.#end);
-	}
+  get lengthSq(): number {
+    return this.#start.distanceSqTo(this.#end);
+  }
 
-	applyMatrix4(m: Matrix4): Line3 {
-		this.#start.applyMatrix4(m);
-		this.#end.applyMatrix4(m);
-		return this;
-	}
+  applyMatrix4(m: Matrix4): Line3 {
+    this.#start.applyMatrix4(m);
+    this.#end.applyMatrix4(m);
+    return this;
+  }
 
-	at(t: number, target: Vector3 = new Vector3()): Vector3 {
-		return target.copy(this.delta).mulScalar(t).add(this.#start);
-	}
+  at(t: number, target: Vector3 = new Vector3()): Vector3 {
+    return target.copy(this.delta).mulScalar(t).add(this.#start);
+  }
 
-	clone(): Line3 {
-		return new Line3(this.#start, this.#end);
-	}
+  clone(): Line3 {
+    return new Line3(this.#start, this.#end);
+  }
 
-	closestPointToPoint(
-		point: Vector3,
-		clampToLine = true,
-		target: Vector3 = new Vector3(),
-	): Vector3 {
-		const t = this.closestPointToPointParameter(point, clampToLine);
-		return this.at(t, target);
-	}
+  closestPointToPoint(
+    point: Vector3,
+    clampToLine = true,
+    target: Vector3 = new Vector3(),
+  ): Vector3 {
+    const t = this.closestPointToPointParameter(point, clampToLine);
+    return this.at(t, target);
+  }
 
-	closestPointToPointParameter(point: Vector3, clampToLine = true): number {
-		const startPoint = point.clone().sub(this.#start);
-		const dir = this.delta;
-		const dirLengthSq = dir.lengthSq;
-		if (dirLengthSq === 0) return 0;
-		const t = startPoint.dot(dir) / dirLengthSq;
-		return clampToLine ? MathUtils.clamp(t, 0, 1) : t;
-	}
+  closestPointToPointParameter(point: Vector3, clampToLine = true): number {
+    const startPoint = point.clone().sub(this.#start);
+    const dir = this.delta;
+    const dirLengthSq = dir.lengthSq;
+    if (dirLengthSq === 0) return 0;
+    const t = startPoint.dot(dir) / dirLengthSq;
+    return clampToLine ? MathUtils.clamp(t, 0, 1) : t;
+  }
 
-	copy(line: Line3): Line3 {
-		this.#start.copy(line.start);
-		this.#end.copy(line.end);
-		return this;
-	}
+  copy(line: Line3): Line3 {
+    this.#start.copy(line.start);
+    this.#end.copy(line.end);
+    return this;
+  }
 
-	equals(line: Line3): boolean {
-		return this.#start.equals(line.start) && this.#end.equals(line.end);
-	}
+  equals(line: Line3): boolean {
+    return this.#start.equals(line.start) && this.#end.equals(line.end);
+  }
 
-	getCenter(target: Vector3 = new Vector3()): Vector3 {
-		return target.copy(this.#start).add(this.#end).mulScalar(0.5);
-	}
+  getCenter(target: Vector3 = new Vector3()): Vector3 {
+    return target.copy(this.#start).add(this.#end).mulScalar(0.5);
+  }
 
-	set(start: Vector3, end: Vector3): Line3 {
-		this.#start.copy(start);
-		this.#end.copy(end);
-		return this;
-	}
+  set(start: Vector3, end: Vector3): Line3 {
+    this.#start.copy(start);
+    this.#end.copy(end);
+    return this;
+  }
 }

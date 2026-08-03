@@ -4,15 +4,15 @@ import type { Texture } from "../textures/Texture.ts";
 import { Material } from "./Material.ts";
 
 interface LambertMaterialOptions {
-	color?: Color | number | string;
-	map?: Texture | undefined;
-	layer?: number;
-	opacity?: number;
-	transparent?: boolean;
-	depthTest?: boolean;
-	depthWrite?: boolean;
-	shading?: number;
-	side?: number;
+  color?: Color | number | string;
+  map?: Texture | undefined;
+  layer?: number;
+  opacity?: number;
+  transparent?: boolean;
+  depthTest?: boolean;
+  depthWrite?: boolean;
+  shading?: number;
+  side?: number;
 }
 
 /**
@@ -20,30 +20,30 @@ interface LambertMaterialOptions {
  * per-vertex lighting interpolated across faces.
  */
 export class LambertMaterial extends Material {
-	override type = "LambertMaterial";
+  override type = "LambertMaterial";
 
-	color: Color;
+  color: Color;
 
-	map: Texture | undefined = undefined;
+  map: Texture | undefined = undefined;
 
-	constructor(options: LambertMaterialOptions = {}) {
-		super(options);
-		this.shading = options.shading ?? Shading.Gouraud;
-		this.color =
-			options.color instanceof Color
-				? options.color
-				: new Color(options.color ?? 0xffffff);
-		if (options.map !== undefined) this.map = options.map;
-	}
+  constructor(options: LambertMaterialOptions = {}) {
+    super(options);
+    this.shading = options.shading ?? Shading.Gouraud;
+    this.color =
+      options.color instanceof Color
+        ? options.color
+        : new Color(options.color ?? 0xffffff);
+    if (options.map !== undefined) this.map = options.map;
+  }
 
-	override clone(): LambertMaterial {
-		return new LambertMaterial().copy(this);
-	}
+  override clone(): LambertMaterial {
+    return new LambertMaterial().copy(this);
+  }
 
-	override copy(source: LambertMaterial): this {
-		super.copy(source);
-		this.color.copy(source.color);
-		this.map = source.map;
-		return this;
-	}
+  override copy(source: LambertMaterial): this {
+    super.copy(source);
+    this.color.copy(source.color);
+    this.map = source.map;
+    return this;
+  }
 }

@@ -4,29 +4,29 @@ import type { Material } from "../materials/Material.ts";
 
 /** Polyline rendered as connected line segments. */
 export class Line extends Node {
-	override type = "Line";
+  override type = "Line";
 
-	geometry: Geometry | undefined;
+  geometry: Geometry | undefined;
 
-	material: Material | undefined;
+  material: Material | undefined;
 
-	constructor(
-		geometry: Geometry | undefined = undefined,
-		material: Material | undefined = undefined,
-	) {
-		super();
-		this.geometry = geometry;
-		this.material = material;
-	}
+  constructor(
+    geometry: Geometry | undefined = void 0,
+    material: Material | undefined = void 0,
+  ) {
+    super();
+    this.geometry = geometry;
+    this.material = material;
+  }
 
-	override clone(): Line {
-		return new Line(this.geometry, this.material).copy(this);
-	}
+  override clone(): Line {
+    return new Line(this.geometry, this.material).copy(this);
+  }
 
-	override copy(source: Line, recursive = true): this {
-		super.copy(source, recursive);
-		this.geometry = source.geometry;
-		this.material = source.material;
-		return this;
-	}
+  override copy(source: Line, recursive = true): this {
+    super.copy(source, recursive);
+    this.geometry = source.geometry;
+    this.material = source.material;
+    return this;
+  }
 }

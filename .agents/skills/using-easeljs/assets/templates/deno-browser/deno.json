@@ -1,75 +1,64 @@
 {
-	"compilerOptions": {
-		"checkJs": true,
-		"erasableSyntaxOnly": true,
-		"exactOptionalPropertyTypes": true,
-		"lib": [
-			"dom",
-			"dom.iterable",
-			"es2022"
-		],
-		"noFallthroughCasesInSwitch": true,
-		"noImplicitReturns": true,
-		"noPropertyAccessFromIndexSignature": true,
-		"noUncheckedIndexedAccess": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true
-	},
-	"imports": {
-		"@xsyetopz/easel": "jsr:@xsyetopz/easel@0.6.1"
-	},
-	"exclude": [],
-	"lint": {
-		"include": [
-			"./extensions/*",
-			"./src/*",
-			"./tests/*",
-			"./types/*"
-		],
-		"exclude": [],
-		"rules": {
-			"tags": [
-				"recommended"
-			],
-			"include": [
-				"ban-untagged-todo",
-				"camelcase",
-				"default-param-last",
-				"eqeqeq",
-				"explicit-function-return-type",
-				"explicit-module-boundary-types",
-				"guard-for-in",
-				"no-await-in-loop",
-				"no-const-assign",
-				"no-eval",
-				"no-external-import",
-				"no-implicit-declare-namespace-export",
-				"no-inferrable-types",
-				"no-non-null-asserted-optional-chain",
-				"no-non-null-assertion",
-				"no-self-compare",
-				"no-sparse-arrays",
-				"no-sync-fn-in-async-fn",
-				"no-throw-literal",
-				"no-top-level-await",
-				"no-undef",
-				"prefer-ascii",
-				"triple-slash-reference",
-				"verbatim-module-syntax"
-			]
-		}
-	},
-	"fmt": {
-		"exclude": [],
-		"useTabs": true,
-		"semiColons": true,
-		"proseWrap": "preserve",
-		"quoteProps": "asNeeded"
-	},
-	"tasks": {
-		"check": "deno check src/main.ts",
-		"build": "deno bundle src/main.ts --output dist/main.js",
-		"dev": "deno task build && deno run --allow-net --allow-read jsr:@std/http/file-server ."
-	},
-	"license": "MIT"
+  "compilerOptions": {
+    "checkJs": true,
+    "erasableSyntaxOnly": true,
+    "exactOptionalPropertyTypes": true,
+    "lib": ["dom", "dom.iterable", "es2022"],
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "imports": {
+    "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.6.1"
+  },
+  "exclude": [],
+  "lint": {
+    "include": ["./extensions/*", "./src/*", "./tests/*", "./types/*"],
+    "exclude": [],
+    "rules": {
+      "tags": ["recommended"],
+      "include": [
+        "ban-untagged-todo",
+        "camelcase",
+        "default-param-last",
+        "eqeqeq",
+        "explicit-function-return-type",
+        "explicit-module-boundary-types",
+        "guard-for-in",
+        "no-await-in-loop",
+        "no-const-assign",
+        "no-eval",
+        "no-external-import",
+        "no-implicit-declare-namespace-export",
+        "no-inferrable-types",
+        "no-non-null-asserted-optional-chain",
+        "no-non-null-assertion",
+        "no-self-compare",
+        "no-sparse-arrays",
+        "no-sync-fn-in-async-fn",
+        "no-throw-literal",
+        "no-top-level-await",
+        "no-undef",
+        "prefer-ascii",
+        "triple-slash-reference",
+        "verbatim-module-syntax"
+      ]
+    }
+  },
+  "fmt": {
+    "exclude": [],
+    "useTabs": true,
+    "semiColons": true,
+    "proseWrap": "preserve",
+    "quoteProps": "asNeeded"
+  },
+  "tasks": {
+    "check": "deno check src/main.ts",
+    "build": "deno bundle src/main.ts --output dist/main.js",
+    "dev": "deno task build && deno run --allow-net --allow-read jsr:@std/http/file-server ."
+  },
+  "license": "MIT"
 }

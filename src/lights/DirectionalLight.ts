@@ -9,18 +9,18 @@ import { Light } from "./Light.ts";
  * No shadow support.
  */
 export class DirectionalLight extends Light {
-	override type = "DirectionalLight";
+  override type = "DirectionalLight";
 
-	lightType: number = LightType.Directional;
+  lightType: number = LightType.Directional;
 
-	/**
-	 * Optional target node. When set, overrides position-based direction.
-	 * Direction becomes normalize(target.matrixWorld position - this.matrixWorld position).
-	 */
-	target: Node | undefined = undefined;
+  /**
+   * Optional target node. When set, overrides position-based direction.
+   * Direction becomes normalize(target.matrixWorld position - this.matrixWorld position).
+   */
+  target: Node | undefined = undefined;
 
-	constructor(color: number | string = 0xffffff, intensity = 1) {
-		super(color, intensity);
-		this.position.set(0, 1, 0);
-	}
+  constructor(color: number | string = 0xffffff, intensity = 1) {
+    super(color, intensity);
+    this.position.set(0, 1, 0);
+  }
 }

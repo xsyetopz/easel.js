@@ -2,19 +2,19 @@
 export const REVISION = "0.6.1";
 
 if (typeof globalThis !== "undefined") {
-	if (globalThis.__EASEL__ && globalThis.__EASEL__ !== REVISION) {
-		console.warn("WARNING: Multiple instances of Easel.js being imported.");
-	} else {
-		globalThis.__EASEL__ = REVISION;
-	}
+  if (globalThis.__EASEL__ && globalThis.__EASEL__ !== REVISION) {
+    console.warn("WARNING: Multiple instances of Easel.js being imported.");
+  } else {
+    globalThis.__EASEL__ = REVISION;
+  }
 }
 
 // animation
 export {
-	AnimationAction,
-	LoopOnce,
-	LoopPingPong,
-	LoopRepeat,
+  AnimationAction,
+  LoopOnce,
+  LoopPingPong,
+  LoopRepeat,
 } from "./animation/AnimationAction.ts";
 export { AnimationClip } from "./animation/AnimationClip.ts";
 export { AnimationUtils } from "./animation/AnimationUtils.ts";
@@ -104,8 +104,8 @@ export { ImageBitmapLoader } from "./loaders/ImageBitmapLoader.ts";
 export { ImageLoader } from "./loaders/ImageLoader.ts";
 export { Loader } from "./loaders/Loader.ts";
 export {
-	DefaultLoadingManager,
-	LoadingManager,
+  DefaultLoadingManager,
+  LoadingManager,
 } from "./loaders/LoadingManager.ts";
 export { MaterialLoader } from "./loaders/MaterialLoader.ts";
 export { ObjectLoader } from "./loaders/ObjectLoader.ts";

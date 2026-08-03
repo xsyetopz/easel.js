@@ -1,17 +1,17 @@
 {
-	"name": "vite-vanilla-ts-using-easeljs",
-	"version": "0.1.0",
-	"private": true,
-	"type": "module",
-	"scripts": {
-		"dev": "vite",
-		"typecheck": "tsc --noEmit"
-	},
-	"dependencies": {
-		"@xsyetopz/easel": "0.6.1"
-	},
-	"devDependencies": {
-		"typescript": "7.0.2",
-		"vite": "^8.2.0"
-	}
+  "name": "vite-vanilla-ts-using-easeljs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@xsyetopz/easel": "0.6.1"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vite": "^8.2.0"
+  }
 }

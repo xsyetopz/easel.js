@@ -1,56 +1,56 @@
 import * as EASEL from "@/index.js";
 
 export const meta = {
-	id: "hello-cube",
-	name: "Hello Cube",
-	category: "getting-started",
-	description: "Minimal scene: one box, one light, one camera.",
+  id: "hello-cube",
+  name: "Hello Cube",
+  category: "getting-started",
+  description: "Minimal scene: one box, one light, one camera.",
 };
 
 export const controls = [];
 
 export function setup(canvas) {
-	const width = canvas.width;
-	const height = canvas.height;
+  const width = canvas.width;
+  const height = canvas.height;
 
-	const scene = new EASEL.Scene();
-	const camera = new EASEL.PerspectiveCamera({
-		fov: 45,
-		aspect: width / height,
-		near: 0.1,
-		far: 100,
-	});
-	camera.position.z = 5;
+  const scene = new EASEL.Scene();
+  const camera = new EASEL.PerspectiveCamera({
+    fov: 45,
+    aspect: width / height,
+    near: 0.1,
+    far: 100,
+  });
+  camera.position.z = 5;
 
-	const renderer = new EASEL.Renderer({ canvas, width, height });
+  const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
-	const light = new EASEL.DirectionalLight(0xffffff, 0.8);
-	light.position.set(3, 5, 4);
-	scene.add(light);
+  scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+  const light = new EASEL.DirectionalLight(0xffffff, 0.8);
+  light.position.set(3, 5, 4);
+  scene.add(light);
 
-	const box = new EASEL.Mesh(
-		new EASEL.BoxGeometry(1, 1, 1),
-		new EASEL.LambertMaterial({ color: 0xff4444 }),
-	);
-	scene.add(box);
+  const box = new EASEL.Mesh(
+    new EASEL.BoxGeometry(1, 1, 1),
+    new EASEL.LambertMaterial({ color: 0xff4444 }),
+  );
+  scene.add(box);
 
-	const clock = new EASEL.Clock();
-	let animId;
+  const clock = new EASEL.Clock();
+  let animId;
 
-	function animate() {
-		animId = requestAnimationFrame(animate);
-		const dt = clock.delta;
-		box.rotation.y += 0.8 * dt;
-		renderer.render(scene, camera);
-	}
-	animate();
+  function animate() {
+    animId = requestAnimationFrame(animate);
+    const dt = clock.delta;
+    box.rotation.y += 0.8 * dt;
+    renderer.render(scene, camera);
+  }
+  animate();
 
-	return {
-		cleanup() {
-			if (animId !== undefined) cancelAnimationFrame(animId);
-		},
-	};
+  return {
+    cleanup() {
+      if (animId !== undefined) cancelAnimationFrame(animId);
+    },
+  };
 }
 
 export const easelSource = `import * as EASEL from "easel";

@@ -1,74 +1,74 @@
 import * as EASEL from "@/index.js";
 
 export const meta = {
-	id: "orbit-controls",
-	name: "Orbit Controls",
-	category: "getting-started",
-	description: "Click and drag to orbit, scroll to zoom.",
+  id: "orbit-controls",
+  name: "Orbit Controls",
+  category: "getting-started",
+  description: "Click and drag to orbit, scroll to zoom.",
 };
 
 export const controls = [];
 
 export function setup(canvas) {
-	const width = canvas.width;
-	const height = canvas.height;
+  const width = canvas.width;
+  const height = canvas.height;
 
-	const scene = new EASEL.Scene();
-	const camera = new EASEL.PerspectiveCamera({
-		fov: 45,
-		aspect: width / height,
-		near: 0.1,
-		far: 100,
-	});
-	camera.position.set(4, 3, 6);
+  const scene = new EASEL.Scene();
+  const camera = new EASEL.PerspectiveCamera({
+    fov: 45,
+    aspect: width / height,
+    near: 0.1,
+    far: 100,
+  });
+  camera.position.set(4, 3, 6);
 
-	const renderer = new EASEL.Renderer({ canvas, width, height });
-	const orbitControls = new EASEL.OrbitControls(camera, canvas);
-	orbitControls.enableDamping = true;
-	orbitControls.dampingFactor = 0.12;
+  const renderer = new EASEL.Renderer({ canvas, width, height });
+  const orbitControls = new EASEL.OrbitControls(camera, canvas);
+  orbitControls.enableDamping = true;
+  orbitControls.dampingFactor = 0.12;
 
-	scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
-	const light = new EASEL.DirectionalLight(0xffffff, 0.8);
-	light.position.set(5, 8, 5);
-	scene.add(light);
+  scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
+  const light = new EASEL.DirectionalLight(0xffffff, 0.8);
+  light.position.set(5, 8, 5);
+  scene.add(light);
 
-	const sphere = new EASEL.Mesh(
-		new EASEL.SphereGeometry(1, 20, 14),
-		new EASEL.LambertMaterial({ color: 0x44aa88 }),
-	);
-	scene.add(sphere);
+  const sphere = new EASEL.Mesh(
+    new EASEL.SphereGeometry(1, 20, 14),
+    new EASEL.LambertMaterial({ color: 0x44aa88 }),
+  );
+  scene.add(sphere);
 
-	const box = new EASEL.Mesh(
-		new EASEL.BoxGeometry(0.8, 0.8, 0.8),
-		new EASEL.LambertMaterial({ color: 0xaa4488 }),
-	);
-	box.position.set(2.5, 0, 0);
-	scene.add(box);
+  const box = new EASEL.Mesh(
+    new EASEL.BoxGeometry(0.8, 0.8, 0.8),
+    new EASEL.LambertMaterial({ color: 0xaa4488 }),
+  );
+  box.position.set(2.5, 0, 0);
+  scene.add(box);
 
-	const cone = new EASEL.Mesh(
-		new EASEL.ConeGeometry(0.6, 1.2, 12),
-		new EASEL.LambertMaterial({ color: 0x4488aa }),
-	);
-	cone.position.set(-2.5, 0, 0);
-	scene.add(cone);
+  const cone = new EASEL.Mesh(
+    new EASEL.ConeGeometry(0.6, 1.2, 12),
+    new EASEL.LambertMaterial({ color: 0x4488aa }),
+  );
+  cone.position.set(-2.5, 0, 0);
+  scene.add(cone);
 
-	const clock = new EASEL.Clock();
-	let animId;
+  const clock = new EASEL.Clock();
+  let animId;
 
-	function animate() {
-		animId = requestAnimationFrame(animate);
-		clock.delta;
-		orbitControls.update();
-		renderer.render(scene, camera);
-	}
-	animate();
+  function animate() {
+    animId = requestAnimationFrame(animate);
+    void clock.delta;
+    orbitControls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
 
-	return {
-		cleanup() {
-			if (animId !== undefined) cancelAnimationFrame(animId);
-			orbitControls.dispose();
-		},
-	};
+  return {
+    cleanup() {
+      if (animId !== undefined) cancelAnimationFrame(animId);
+      orbitControls.dispose();
+    },
+  };
 }
 
 export const easelSource = `import * as EASEL from "easel";

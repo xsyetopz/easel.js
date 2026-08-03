@@ -7,23 +7,10 @@
     "declarationMap": false,
     "noEmit": true,
     "paths": {
-      "@/*": [
-        "../src/*"
-      ]
+      "@/*": ["../src/*"]
     },
-    "types": [
-      "bun-types"
-    ]
+    "types": ["bun-types"]
   },
-  "exclude": [
-    "../node_modules",
-    "../dist",
-    "astro/content.config.ts"
-  ],
-  "include": [
-    "**/*.ts",
-    "**/*.js",
-    "**/*.d.ts",
-    "../src/globals.d.ts"
-  ]
+  "exclude": ["../node_modules", "../dist", "astro/content.config.ts"],
+  "include": ["**/*.ts", "**/*.js", "**/*.d.ts", "../src/globals.d.ts"]
 }

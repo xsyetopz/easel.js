@@ -2,66 +2,66 @@ import * as EASEL from "@/index.js";
 import { texturePath } from "../assets.js";
 
 export const meta = {
-	id: "texture-mapping",
-	name: "Texture Mapping",
-	category: "textures",
-	description: "UV mapping on a box using TextureLoader with LambertMaterial.",
+  id: "texture-mapping",
+  name: "Texture Mapping",
+  category: "textures",
+  description: "UV mapping on a box using TextureLoader with LambertMaterial.",
 };
 
 export const controls = [];
 
 export function setup(canvas) {
-	const width = canvas.width;
-	const height = canvas.height;
+  const width = canvas.width;
+  const height = canvas.height;
 
-	const scene = new EASEL.Scene();
-	const camera = new EASEL.PerspectiveCamera({
-		fov: 45,
-		aspect: width / height,
-		near: 0.1,
-		far: 100,
-	});
-	camera.position.set(0, 1, 5);
-	camera.lookAt(new EASEL.Vector3(0, 0, 0));
+  const scene = new EASEL.Scene();
+  const camera = new EASEL.PerspectiveCamera({
+    fov: 45,
+    aspect: width / height,
+    near: 0.1,
+    far: 100,
+  });
+  camera.position.set(0, 1, 5);
+  camera.lookAt(new EASEL.Vector3(0, 0, 0));
 
-	const renderer = new EASEL.Renderer({ canvas, width, height });
+  const renderer = new EASEL.Renderer({ canvas, width, height });
 
-	scene.add(new EASEL.AmbientLight(0xffffff, 0.5));
-	const light = new EASEL.DirectionalLight(0xffffff, 0.8);
-	light.position.set(4, 6, 5);
-	scene.add(light);
+  scene.add(new EASEL.AmbientLight(0xffffff, 0.5));
+  const light = new EASEL.DirectionalLight(0xffffff, 0.8);
+  light.position.set(4, 6, 5);
+  scene.add(light);
 
-	const material = new EASEL.LambertMaterial({ color: 0xffffff });
-	const box = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), material);
-	scene.add(box);
+  const material = new EASEL.LambertMaterial({ color: 0xffffff });
+  const box = new EASEL.Mesh(new EASEL.BoxGeometry(2, 2, 2), material);
+  scene.add(box);
 
-	const loader = new EASEL.TextureLoader();
-	loader.load(
-		texturePath("Brick_01.png"),
-		(texture) => {
-			material.map = texture;
-		},
-		undefined,
-		(err) => console.error("Texture load failed:", err),
-	);
+  const loader = new EASEL.TextureLoader();
+  loader.load(
+    texturePath("Brick_01.png"),
+    (texture) => {
+      material.map = texture;
+    },
+    undefined,
+    (err) => console.error("Texture load failed:", err),
+  );
 
-	const clock = new EASEL.Clock();
-	let animId;
+  const clock = new EASEL.Clock();
+  let animId;
 
-	function animate() {
-		animId = requestAnimationFrame(animate);
-		const dt = clock.delta;
-		box.rotation.x += 0.3 * dt;
-		box.rotation.y += 0.5 * dt;
-		renderer.render(scene, camera);
-	}
-	animate();
+  function animate() {
+    animId = requestAnimationFrame(animate);
+    const dt = clock.delta;
+    box.rotation.x += 0.3 * dt;
+    box.rotation.y += 0.5 * dt;
+    renderer.render(scene, camera);
+  }
+  animate();
 
-	return {
-		cleanup() {
-			if (animId !== undefined) cancelAnimationFrame(animId);
-		},
-	};
+  return {
+    cleanup() {
+      if (animId !== undefined) cancelAnimationFrame(animId);
+    },
+  };
 }
 
 export const easelSource = `import * as EASEL from "easel";

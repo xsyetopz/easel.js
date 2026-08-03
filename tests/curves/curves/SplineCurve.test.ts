@@ -5,20 +5,20 @@ import { Vector2 } from "@/math/Vector2.js";
 import { expectCurveParity } from "../../_helpers/curves.js";
 
 describe("SplineCurve vs THREE", () => {
-	const epts = [
-		new Vector2(0, 0),
-		new Vector2(1, 1),
-		new Vector2(2, -1),
-		new Vector2(3, 0),
-	];
-	const tpts = [
-		new THREE.Vector2(0, 0),
-		new THREE.Vector2(1, 1),
-		new THREE.Vector2(2, -1),
-		new THREE.Vector2(3, 0),
-	];
-	const easel = new SplineCurve(epts);
-	const three = new THREE.SplineCurve(tpts);
+  const epts = [
+    new Vector2(0, 0),
+    new Vector2(1, 1),
+    new Vector2(2, -1),
+    new Vector2(3, 0),
+  ];
+  const tpts = [
+    new THREE.Vector2(0, 0),
+    new THREE.Vector2(1, 1),
+    new THREE.Vector2(2, -1),
+    new THREE.Vector2(3, 0),
+  ];
+  const easel = new SplineCurve(epts);
+  const three = new THREE.SplineCurve(tpts);
 
-	expectCurveParity(easel, three, { lengthEpsilon: 1e-3 });
+  expectCurveParity(easel, three, { lengthEpsilon: 1e-3 });
 });

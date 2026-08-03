@@ -7,10 +7,6 @@
     "removeComments": true,
     "rootDir": "./src"
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "www"
-  ]
+  "include": ["src"],
+  "exclude": ["www"]
 }
