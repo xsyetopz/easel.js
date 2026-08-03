@@ -27,7 +27,13 @@ bun run typecheck:tests
 bun run typecheck:website
 bun run biome:check
 bun run www:build
+bun run api:check
 ```
+
+Public API or documentation changes must update the reviewed mapping in
+`api-compat/mappings/three.json` and regenerate compatibility artifacts with
+`bun run api:generate`. Use `bun run api:probe-latest` only for an explicit,
+networked comparison against current registry releases.
 
 Biome handles linting. Source uses tabs, double quotes, and TypeScript. Do not
 add inline suppressions to bypass errors. Keep public APIs stable unless the
