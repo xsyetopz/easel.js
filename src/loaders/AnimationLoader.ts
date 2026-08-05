@@ -1,20 +1,14 @@
-import { AnimationClip } from "../animation/AnimationClip.ts";
+import {
+  type AnimationClip,
+  type AnimationClipJSON,
+  animationClipFromJson,
+} from "../animation/AnimationClip.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 
-interface ClipDefinition {
-  name?: string;
-  duration?: number;
-  tracks?: Array<{
-    type: string;
-    name: string;
-    times: number[];
-    values: number[];
-  }>;
-}
-
-/** Loads a JSON array of animation clip definitions. */
+/** Loads a JSON array of canonical animation clip definitions. */
 export class AnimationLoader extends Loader {
+  /** Loads the resource at `url` through the configured loading manager. */
   override load(
     url: string,
     onLoad?: (clips: AnimationClip[]) => void,
@@ -22,32 +16,20 @@ export class AnimationLoader extends Loader {
     onError?: (err: unknown) => void,
   ): void {
     const fileLoader = new FileLoader(this.manager);
-    fileLoader.setPath(this.path);
-    fileLoader.setResponseType("json");
-    fileLoader.setRequestHeader(this.requestHeader);
-
+    fileLoader.cache = this.cache;
+    fileLoader.path = this.path;
+    fileLoader.responseType = "json";
+    fileLoader.requestHeader = this.requestHeader;
     fileLoader.load(
       url,
-      (json) => {
-        onLoad?.(this.parse(json as ClipDefinition[]));
-      },
+      (json) => onLoad?.(this.parse(json as AnimationClipJSON[])),
       onProgress,
       onError,
     );
   }
 
-  parse(json: ClipDefinition[]): AnimationClip[] {
-    const clips: AnimationClip[] = [];
-
-    for (const clipDef of json) {
-      const clip = new AnimationClip(
-        clipDef.name ?? "",
-        clipDef.duration ?? -1,
-        (clipDef.tracks ?? []) as never[],
-      );
-      clips.push(clip);
-    }
-
-    return clips;
+  /** Parses serialized input into the corresponding EASEL value. */
+  parse(json: AnimationClipJSON[]): AnimationClip[] {
+    return json.map(animationClipFromJson);
   }
 }

@@ -28,12 +28,12 @@ aimed at **high-traffic server apps**:
 - Use profiling/monitoring/APM tools to find real bottlenecks.
 - Apply basic operational practices (error handling, logging, load balancing).
 
-## What maps to Easel.js (browser/Canvas2D)
+## What maps to EASEL.js (browser/Canvas2D)
 
 Most "server scaling" topics don’t apply directly, but the underlying principles
 do:
 
-- **Don’t block the main thread**: Easel’s render loop is the "event loop
+- **Don’t block the main thread**: EASEL’s render loop is the "event loop
   bottleneck" in the browser. Prefer avoiding synchronous heavy work during
   interaction/animation; split big work across frames when needed.
 - **Offload CPU-bound work**: In the browser, "worker threads" maps to **Web

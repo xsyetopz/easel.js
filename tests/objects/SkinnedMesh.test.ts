@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { BindMode } from "@/core/Constants.ts";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { Bone } from "@/objects/Bone.ts";
 import { Mesh } from "@/objects/Mesh.js";
@@ -14,8 +15,8 @@ describe("SkinnedMesh", () => {
     expect(new SkinnedMesh()).toBeInstanceOf(Mesh);
   });
 
-  it("bindMode defaults to 'attached'", () => {
-    expect(new SkinnedMesh().bindMode).toBe("attached");
+  it("bindMode defaults to BindMode.Attached", () => {
+    expect(new SkinnedMesh().bindMode).toBe(BindMode.Attached);
   });
 
   it("bind stores skeleton reference", () => {
@@ -42,10 +43,10 @@ describe("SkinnedMesh", () => {
     const bone = new Bone();
     const sk = new Skeleton([bone]);
     src.bind(sk);
-    src.bindMode = "detached";
+    src.bindMode = BindMode.Detached;
     const dest = new SkinnedMesh();
     dest.copy(src);
-    expect(dest.bindMode).toBe("detached");
+    expect(dest.bindMode).toBe(BindMode.Detached);
     expect(dest.skeleton).toBe(sk);
   });
 

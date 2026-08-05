@@ -63,13 +63,13 @@ export function setup(canvas) {
   );
   outerGroup.add(center);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let elapsed = 0;
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     elapsed += dt;
 
     outerGroup.rotation.y += 0.6 * dt;
@@ -77,6 +77,8 @@ export function setup(canvas) {
     // Pulse the inner group scale so transform inheritance is obvious
     const s = 0.8 + 0.4 * Math.abs(Math.sin(elapsed * 1.2));
     innerGroup.scale.set(s, s, s);
+
+    renderer.prepare(scene, camera);
 
     renderer.render(scene, camera);
   }

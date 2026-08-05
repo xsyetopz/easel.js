@@ -71,7 +71,7 @@ export const landingPages: LandingPageContent[] = [
     ctas: [
       { label: "Open the Examples", href: "/examples/hello-cube" },
       {
-        label: "See THREE.js Mapping",
+        label: "Compare with THREE.js",
         href: "/compare/threejs",
         variant: "light",
       },
@@ -86,8 +86,8 @@ export const landingPages: LandingPageContent[] = [
     intro:
       "If you know THREE.js, EASEL.js keeps familiar names and paired source examples. The main shift is architectural: no GPU, no shader programs, and a renderer built around CPU depth tests, sorted transparency, and scanline fill.",
     keywords: [
-      "three.js alternative",
-      "three.js canvas renderer",
+      "THREE.js alternative",
+      "THREE.js canvas renderer",
       "software renderer for the browser",
       "cpu renderer javascript",
     ],
@@ -95,12 +95,12 @@ export const landingPages: LandingPageContent[] = [
       {
         title: "What stays familiar",
         body: [
-          "The docs already map many classes to their THREE equivalents, and examples expose both EASEL.js and THREE.js source so migration cost is visible instead of hand-waved.",
+          "The docs expose EASEL.js classes directly, and examples expose both EASEL.js and THREE.js source so migration cost is visible instead of hand-waved.",
         ],
         bullets: [
           "Scene graph parity where it helps",
           "Comparable geometry, lighting, animation, and math primitives",
-          "Migration-oriented docs with divergence notes",
+          "Migration-oriented docs with implementation notes",
         ],
       },
       {
@@ -128,7 +128,7 @@ export const landingPages: LandingPageContent[] = [
     slug: "canvas-software-renderer",
     title: "Canvas2D Software Renderer for the Browser",
     description:
-      "EASEL.js is a browser-side Canvas2D software renderer with a CPU rasterization pipeline, a THREE.js-compatible mental model, and examples covering lighting, materials, textures, and performance.",
+      "EASEL.js is a browser-side Canvas2D software renderer with a CPU rasterization pipeline, a THREE.js-style mental model, and examples covering lighting, materials, textures, and performance.",
     eyebrow: "Category",
     intro:
       "EASEL.js targets Canvas2D software rendering: explicit control over a browser rasterizer instead of WebGL abstractions.",

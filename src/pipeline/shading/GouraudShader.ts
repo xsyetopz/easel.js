@@ -16,10 +16,10 @@ export class GouraudShader {
     ny: number,
     nz: number,
     lights: Record<string, unknown>[],
-    ambientIntensity = 0.1,
-    wx = 0,
-    wy = 0,
-    wz = 0,
+    ambientIntensity: number = 0.1,
+    wx: number = 0,
+    wy: number = 0,
+    wz: number = 0,
   ): RGB {
     return accumulateLights(
       nx,

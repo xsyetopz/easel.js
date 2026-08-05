@@ -1,7 +1,8 @@
-import { MathUtils } from "./MathUtils.ts";
+import { safeAsin } from "./MathUtils.ts";
 import { Matrix4 } from "./Matrix4.ts";
 import { Quaternion } from "./Quaternion.ts";
 
+/** Supported Euler rotation orders. */
 export type EulerOrder = "XYZ" | "YXZ" | "ZXY" | "ZYX" | "YZX" | "XZY";
 
 type Axis = "x" | "y" | "z";
@@ -20,56 +21,151 @@ interface RotationOrderConfig {
   unlocked: { a: AxisFn; b: AxisFn };
 }
 
+const GIMBAL_LOCK_THRESHOLD = 0.9999999;
+
+const ROTATION_ORDER_CONFIG: Record<EulerOrder, RotationOrderConfig> = {
+  XYZ: {
+    primary: "y",
+    asinVal: (m) => m["m13"],
+    lockVal: (m) => m["m13"],
+    locked: {
+      a: { axis: "x", n: (m) => m["m32"], d: (m) => m["m22"] },
+      b: { axis: "z", n: (m) => -m["m12"], d: (m) => m["m11"] },
+    },
+    unlocked: {
+      a: { axis: "x", n: (m) => -m["m23"], d: (m) => m["m33"] },
+      b: { axis: "z", n: (m) => -m["m12"], d: (m) => m["m11"] },
+    },
+  },
+  YXZ: {
+    primary: "x",
+    asinVal: (m) => -m["m23"],
+    lockVal: (m) => m["m23"],
+    locked: {
+      a: { axis: "y", n: (m) => -m["m31"], d: (m) => m["m11"] },
+      b: { axis: "z", n: (m) => m["m21"], d: (m) => m["m22"] },
+    },
+    unlocked: {
+      a: { axis: "y", n: (m) => m["m13"], d: (m) => m["m33"] },
+      b: { axis: "z", n: (m) => m["m21"], d: (m) => m["m22"] },
+    },
+  },
+  ZXY: {
+    primary: "x",
+    asinVal: (m) => m["m32"],
+    lockVal: (m) => m["m32"],
+    locked: {
+      a: { axis: "z", n: (m) => m["m21"], d: (m) => m["m11"] },
+      b: { axis: "y", n: (m) => -m["m31"], d: (m) => m["m33"] },
+    },
+    unlocked: {
+      a: { axis: "y", n: (m) => -m["m31"], d: (m) => m["m33"] },
+      b: { axis: "z", n: (m) => -m["m12"], d: (m) => m["m22"] },
+    },
+  },
+  ZYX: {
+    primary: "y",
+    asinVal: (m) => -m["m31"],
+    lockVal: (m) => m["m31"],
+    locked: {
+      a: { axis: "z", n: (m) => -m["m12"], d: (m) => m["m22"] },
+      b: { axis: "x", n: (m) => m["m32"], d: (m) => m["m33"] },
+    },
+    unlocked: {
+      a: { axis: "x", n: (m) => m["m32"], d: (m) => m["m33"] },
+      b: { axis: "z", n: (m) => m["m21"], d: (m) => m["m11"] },
+    },
+  },
+  YZX: {
+    primary: "z",
+    asinVal: (m) => m["m21"],
+    lockVal: (m) => m["m21"],
+    locked: {
+      a: { axis: "y", n: (m) => m["m13"], d: (m) => m["m33"] },
+      b: { axis: "x", n: (m) => -m["m23"], d: (m) => m["m22"] },
+    },
+    unlocked: {
+      a: { axis: "x", n: (m) => -m["m23"], d: (m) => m["m22"] },
+      b: { axis: "y", n: (m) => -m["m31"], d: (m) => m["m11"] },
+    },
+  },
+  XZY: {
+    primary: "z",
+    asinVal: (m) => -m["m12"],
+    lockVal: (m) => m["m12"],
+    locked: {
+      a: { axis: "x", n: (m) => m["m32"], d: (m) => m["m22"] },
+      b: { axis: "y", n: (m) => m["m13"], d: (m) => m["m11"] },
+    },
+    unlocked: {
+      a: { axis: "x", n: (m) => m["m32"], d: (m) => m["m22"] },
+      b: { axis: "y", n: (m) => m["m13"], d: (m) => m["m11"] },
+    },
+  },
+};
+
 const _m = new Matrix4();
 
 /** Euler angles with configurable rotation order. */
 export class Euler {
-  static #GIMBAL_LOCK_THRESHOLD = 0.9999999;
-
   #x = 0;
   #y = 0;
   #z = 0;
   #order: EulerOrder = "XYZ";
   #onChangeCallback: (() => void) | undefined = undefined;
 
-  constructor(x = 0, y = 0, z = 0, order: EulerOrder = "XYZ") {
+  /** Constructs Euler angles in the requested rotation order. */
+  constructor(
+    x: number = 0,
+    y: number = 0,
+    z: number = 0,
+    order: EulerOrder = "XYZ",
+  ) {
     this.#x = x;
     this.#y = y;
     this.#z = z;
     this.#order = order;
   }
 
+  /** Cartesian x component. */
   get x(): number {
     return this.#x;
   }
 
+  /** Replaces the Cartesian x component. */
   set x(value: number) {
     this.#x = value;
     this.#onChange();
   }
 
+  /** Vertical Cartesian component. */
   get y(): number {
     return this.#y;
   }
 
+  /** Replaces the Cartesian y component. */
   set y(value: number) {
     this.#y = value;
     this.#onChange();
   }
 
+  /** Cartesian z component. */
   get z(): number {
     return this.#z;
   }
 
+  /** Replaces the Cartesian z component. */
   set z(value: number) {
     this.#z = value;
     this.#onChange();
   }
 
+  /** Euler rotation order applied to the x, y, and z angles. */
   get order(): EulerOrder {
     return this.#order;
   }
 
+  /** Replaces the Euler rotation order and invokes the change callback. */
   set order(value: EulerOrder) {
     this.#order = value;
     this.#onChange();
@@ -79,10 +175,12 @@ export class Euler {
     if (this.#onChangeCallback) this.#onChangeCallback();
   }
 
+  /** Returns a new instance with the same component values. */
   clone(): Euler {
     return new Euler(this.x, this.y, this.z, this.order);
   }
 
+  /** Copies component values from the supplied instance into this one. */
   copy(euler: Euler): this {
     this.x = euler.x;
     this.y = euler.y;
@@ -92,6 +190,7 @@ export class Euler {
     return this;
   }
 
+  /** Reads this value's components from `array` starting at `offset`. */
   fromArray(array: [number, number, number, EulerOrder?]): this {
     this.x = array[0];
     this.y = array[1];
@@ -107,6 +206,7 @@ export class Euler {
     return this.setFromQuaternion(q, newOrder);
   }
 
+  /** Replaces all angles and optionally the rotation order. */
   set(x: number, y: number, z: number, order?: EulerOrder): this {
     this.x = x;
     this.y = y;
@@ -116,11 +216,13 @@ export class Euler {
     return this;
   }
 
+  /** Replaces these Euler angles from a quaternion. */
   setFromQuaternion(q: Quaternion, order?: EulerOrder): this {
     _m.makeRotationFromQuaternion(q);
     return this.setFromRotationMatrix(_m, order);
   }
 
+  /** Replaces these Euler angles from a rotation matrix. */
   setFromRotationMatrix(
     m: Matrix4 | { elements: number[] },
     order?: EulerOrder,
@@ -135,7 +237,7 @@ export class Euler {
     const m31 = te[2];
     const m32 = te[6];
     const m33 = te[10];
-    const currentOrder = order || this.order;
+    const currentOrder = order ?? this.order;
     this.#applyRotationOrder(
       currentOrder,
       m11,
@@ -166,7 +268,7 @@ export class Euler {
     m33: number,
   ): void {
     const m = { m11, m12, m13, m21, m22, m23, m31, m32, m33 };
-    const cfg = Euler.#ROTATION_ORDER_CONFIG[ord];
+    const cfg = ROTATION_ORDER_CONFIG[ord];
     if (cfg === undefined) return;
     this.#applyOrderConfig(cfg, m);
   }
@@ -174,8 +276,8 @@ export class Euler {
   #applyOrderConfig(cfg: RotationOrderConfig, m: Record<string, number>): void {
     const { primary, asinVal, lockVal, locked, unlocked } = cfg;
     const asin = asinVal(m);
-    this.#setAxis(primary, MathUtils.safeAsin(asin));
-    if (Math.abs(lockVal(m)) >= Euler.#GIMBAL_LOCK_THRESHOLD) {
+    this.#setAxis(primary, safeAsin(asin));
+    if (Math.abs(lockVal(m)) >= GIMBAL_LOCK_THRESHOLD) {
       this.#setAxis(locked.a.axis, Math.atan2(locked.a.n(m), locked.a.d(m)));
       const fallback = Math.atan2(locked.b.n(m), locked.b.d(m));
       this.#setAxis(
@@ -207,87 +309,6 @@ export class Euler {
     if (axis === "y") return this.y;
     return this.z;
   }
-
-  static #ROTATION_ORDER_CONFIG: Record<EulerOrder, RotationOrderConfig> = {
-    XYZ: {
-      primary: "y",
-      asinVal: (m) => m["m13"],
-      lockVal: (m) => m["m13"],
-      locked: {
-        a: { axis: "x", n: (m) => m["m32"], d: (m) => m["m22"] },
-        b: { axis: "z", n: (m) => -m["m12"], d: (m) => m["m11"] },
-      },
-      unlocked: {
-        a: { axis: "x", n: (m) => -m["m23"], d: (m) => m["m33"] },
-        b: { axis: "z", n: (m) => -m["m12"], d: (m) => m["m11"] },
-      },
-    },
-    YXZ: {
-      primary: "x",
-      asinVal: (m) => -m["m23"],
-      lockVal: (m) => m["m23"],
-      locked: {
-        a: { axis: "y", n: (m) => -m["m31"], d: (m) => m["m11"] },
-        b: { axis: "z", n: (m) => m["m21"], d: (m) => m["m22"] },
-      },
-      unlocked: {
-        a: { axis: "y", n: (m) => m["m13"], d: (m) => m["m33"] },
-        b: { axis: "z", n: (m) => m["m21"], d: (m) => m["m22"] },
-      },
-    },
-    ZXY: {
-      primary: "x",
-      asinVal: (m) => m["m32"],
-      lockVal: (m) => m["m32"],
-      locked: {
-        a: { axis: "z", n: (m) => m["m21"], d: (m) => m["m11"] },
-        b: { axis: "y", n: (m) => -m["m31"], d: (m) => m["m33"] },
-      },
-      unlocked: {
-        a: { axis: "y", n: (m) => -m["m31"], d: (m) => m["m33"] },
-        b: { axis: "z", n: (m) => -m["m12"], d: (m) => m["m22"] },
-      },
-    },
-    ZYX: {
-      primary: "y",
-      asinVal: (m) => -m["m31"],
-      lockVal: (m) => m["m31"],
-      locked: {
-        a: { axis: "z", n: (m) => -m["m12"], d: (m) => m["m22"] },
-        b: { axis: "x", n: (m) => m["m32"], d: (m) => m["m33"] },
-      },
-      unlocked: {
-        a: { axis: "x", n: (m) => m["m32"], d: (m) => m["m33"] },
-        b: { axis: "z", n: (m) => m["m21"], d: (m) => m["m11"] },
-      },
-    },
-    YZX: {
-      primary: "z",
-      asinVal: (m) => m["m21"],
-      lockVal: (m) => m["m21"],
-      locked: {
-        a: { axis: "y", n: (m) => m["m13"], d: (m) => m["m33"] },
-        b: { axis: "x", n: (m) => -m["m23"], d: (m) => m["m22"] },
-      },
-      unlocked: {
-        a: { axis: "x", n: (m) => -m["m23"], d: (m) => m["m22"] },
-        b: { axis: "y", n: (m) => -m["m31"], d: (m) => m["m11"] },
-      },
-    },
-    XZY: {
-      primary: "z",
-      asinVal: (m) => -m["m12"],
-      lockVal: (m) => m["m12"],
-      locked: {
-        a: { axis: "x", n: (m) => m["m32"], d: (m) => m["m22"] },
-        b: { axis: "y", n: (m) => m["m13"], d: (m) => m["m11"] },
-      },
-      unlocked: {
-        a: { axis: "x", n: (m) => m["m32"], d: (m) => m["m22"] },
-        b: { axis: "y", n: (m) => m["m13"], d: (m) => m["m11"] },
-      },
-    },
-  };
 
   /** Registers a callback invoked whenever x, y, z, or order changes. */
   setOnChangeCallback(callback: () => void): this {

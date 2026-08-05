@@ -1,22 +1,13 @@
-import { Track } from "../Track.ts";
+import { DiscreteTrack } from "./DiscreteTrack.ts";
 
-/** Keyframe track for boolean values - uses step interpolation (no blending). */
-export class BooleanTrack extends Track {
+/** Boolean keyframes sampled as discrete values with `itemSize` fixed at one. */
+export class BooleanTrack extends DiscreteTrack<boolean> {
+  /** Creates a boolean track from strictly ordered times and values. */
   constructor(
     name: string,
-    times: Float32Array | number[],
-    values: Float32Array | number[],
+    times: Float32Array | readonly number[],
+    values: readonly boolean[],
   ) {
-    super(name, times, values, 1);
-  }
-
-  /** Step interpolation - returns the value at index with no blending. */
-  override interpolate(
-    index: number,
-    _t0: number,
-    _t: number,
-    _t1: number,
-  ): number[] {
-    return [this.values[index]];
+    super(name, times, values, "boolean");
   }
 }

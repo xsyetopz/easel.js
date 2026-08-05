@@ -3,20 +3,20 @@ export function nearEqual(a: number, b: number, epsilon = 1e-6): boolean {
 }
 
 export function compareArrays(
-  easelArr: ArrayLike<number>,
-  threeArr: ArrayLike<number>,
+  EASELArr: ArrayLike<number>,
+  THREEArr: ArrayLike<number>,
   epsilon = 1e-6,
 ): { pass: boolean; failures: string[] } {
-  if (easelArr.length !== threeArr.length) {
+  if (EASELArr.length !== THREEArr.length) {
     return {
       pass: false,
-      failures: [`length ${easelArr.length} vs ${threeArr.length}`],
+      failures: [`length ${EASELArr.length} vs ${THREEArr.length}`],
     };
   }
   const failures: string[] = [];
-  for (let i = 0; i < easelArr.length; i++) {
-    if (Math.abs(easelArr[i] - threeArr[i]) >= epsilon) {
-      failures.push(`[${i}]: ${easelArr[i]} vs ${threeArr[i]}`);
+  for (let i = 0; i < EASELArr.length; i++) {
+    if (Math.abs(EASELArr[i] - THREEArr[i]) >= epsilon) {
+      failures.push(`[${i}]: ${EASELArr[i]} vs ${THREEArr[i]}`);
     }
   }
   return { pass: failures.length === 0, failures };

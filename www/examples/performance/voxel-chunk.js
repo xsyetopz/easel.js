@@ -217,7 +217,7 @@ function buildMergedGeometry(size, hollow) {
   geometry.setNormals(normals);
   geometry.setUVs(uvs);
   geometry.setColors(colors);
-  geometry.setIndex(indices);
+  geometry.index = indices;
 
   const triCount = Math.floor(indices.length / 3);
   return { geometry, triCount };
@@ -360,7 +360,7 @@ export function setup(canvas, params = {}) {
 
   rebuild(currentChunkSize, currentMeshMode, currentTextured, currentHollow);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
   let frames = 0;
   let fpsTime = 0;
@@ -370,7 +370,7 @@ export function setup(canvas, params = {}) {
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     elapsed += dt;
 
     const orbitRadius = currentChunkSize * 1.5;
@@ -378,6 +378,8 @@ export function setup(canvas, params = {}) {
     camera.position.z = Math.cos(elapsed * 0.4) * orbitRadius;
     camera.position.y = orbitRadius * 0.6;
     camera.lookAt(new EASEL.Vector3(0, 0, 0));
+
+    renderer.prepare(scene, camera);
 
     renderer.render(scene, camera);
 

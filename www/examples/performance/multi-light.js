@@ -81,7 +81,7 @@ export function setup(canvas, params = {}) {
 
   buildLights(currentCount);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
   let frames = 0;
   let fpsTime = 0;
@@ -90,7 +90,7 @@ export function setup(canvas, params = {}) {
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
 
     sphere.rotation.y += 0.3 * dt;
 
@@ -102,6 +102,8 @@ export function setup(canvas, params = {}) {
       pointLights[i].position.x = Math.cos(angle) * ORBIT_RADIUS;
       pointLights[i].position.z = Math.sin(angle) * ORBIT_RADIUS;
     }
+
+    renderer.prepare(scene, camera);
 
     renderer.render(scene, camera);
 

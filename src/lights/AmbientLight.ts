@@ -4,11 +4,19 @@ import { Light } from "./Light.ts";
 
 /** Flat scene-wide brightness added uniformly to all vertices. */
 export class AmbientLight extends Light {
-  override type = "AmbientLight";
+  /** String identifier used by runtime type checks and serialization. */
+  override type: string = "AmbientLight";
 
+  /** Runtime light type identifier used by dispatch and serialization. */
   lightType: number = LightType.Ambient;
 
-  constructor(color: ColorValue | number = 0xffffff, intensity = 1) {
+  /** Constructs a scene-wide light contribution for CPU vertex baking. */
+  constructor(color: ColorValue | number = 0xffffff, intensity: number = 1) {
     super(color, intensity);
+  }
+
+  /** Creates an independent copy with cloned owned state. */
+  override clone(): AmbientLight {
+    return new AmbientLight().copy(this);
   }
 }

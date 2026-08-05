@@ -5,7 +5,7 @@ export const meta = {
   name: "Animation Basics",
   category: "animation",
   description:
-    "Manual position/rotation/scale animation driven by Clock.delta - no keyframes needed.",
+    "Manual position/rotation/scale animation driven by Timer.update() - no keyframes needed.",
 };
 
 export const controls = [
@@ -49,13 +49,13 @@ export function setup(canvas, params = {}) {
 
   let speed = params.speed ?? 1;
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let elapsed = 0;
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     elapsed += dt * speed;
 
     box.rotation.y = elapsed * 1.2;
@@ -67,6 +67,8 @@ export function setup(canvas, params = {}) {
     const scaleY = 0.8 + 0.4 * ((bounce + 1) / 2);
     const scaleXZ = 1 / Math.sqrt(scaleY);
     box.scale.set(scaleXZ, scaleY, scaleXZ);
+
+    renderer.prepare(scene, camera);
 
     renderer.render(scene, camera);
   }
@@ -84,12 +86,12 @@ export function setup(canvas, params = {}) {
 
 export const easelSource = `import * as EASEL from "easel";
 
-const clock = new EASEL.Clock();
+const clock = new EASEL.Timer();
 let elapsed = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.delta;
+  const dt = clock.update().delta;
   elapsed += dt * speed;
 
   box.rotation.y = elapsed * 1.2;
@@ -101,6 +103,8 @@ function animate() {
   const scaleY  = 0.8 + 0.4 * ((bounce + 1) / 2);
   const scaleXZ = 1 / Math.sqrt(scaleY);
   box.scale.set(scaleXZ, scaleY, scaleXZ);
+
+  renderer.prepare(scene, camera);
 
   renderer.render(scene, camera);
 }
@@ -108,12 +112,12 @@ animate();`;
 
 export const threeSource = `import * as THREE from "three";
 
-const clock = new THREE.Clock();
+const clock = new THREE.Timer();
 let elapsed = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.getDelta();
+  const dt = clock.update().getDelta();
   elapsed += dt * speed;
 
   box.rotation.y = elapsed * 1.2;
@@ -125,6 +129,8 @@ function animate() {
   const scaleY  = 0.8 + 0.4 * ((bounce + 1) / 2);
   const scaleXZ = 1 / Math.sqrt(scaleY);
   box.scale.set(scaleXZ, scaleY, scaleXZ);
+
+  renderer.prepare(scene, camera);
 
   renderer.render(scene, camera);
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { OrthographicCamera } from "@/cameras/OrthographicCamera.ts";
 import { Scene } from "@/core/Scene.ts";
+import { Color } from "@/math/Color.ts";
 import { Renderer } from "@/renderers/Renderer.ts";
 import { Fog } from "@/scenes/Fog.ts";
 import { Texture } from "@/textures/Texture.ts";
@@ -32,12 +33,12 @@ class TestTexture extends Texture {
   }
 }
 
-class AutoUpdateTestTexture extends TestTexture {
-  autoUpdate = true;
+class ExplicitUpdateTestTexture extends TestTexture {
   updateCalls = 0;
 
-  update(): void {
+  override update(): this {
     this.updateCalls++;
+    return this;
   }
 }
 
@@ -89,6 +90,40 @@ function pixelAt(
   };
 }
 
+describe("Renderer explicit preparation", () => {
+  it("uses a modern clearColor property without legacy channel overloads", () => {
+    const renderer = new Renderer({ width: 2, height: 2 });
+    renderer.clearColor = 0x123456;
+    expect(renderer.clearColor).toBe(0x123456);
+    renderer.clearColor = new Color(1, 0.5, 0);
+    expect(renderer.clearColor).toBe(0xff8000);
+    expect(() => {
+      renderer.clearColor = 0x1000000;
+    }).toThrow(RangeError);
+  });
+
+  it("updates scene and camera matrices only through prepare", () => {
+    const renderer = new Renderer({ width: 2, height: 2 });
+    const scene = new Scene();
+    const camera = new OrthographicCamera({
+      left: -1,
+      right: 1,
+      top: 1,
+      bottom: -1,
+    });
+    scene.position.x = 3;
+    camera.position.z = 5;
+
+    renderer.render(scene, camera);
+    expect(scene.matrixWorld.elements[12]).toBe(0);
+    expect(camera.matrixWorldInverse.elements[14]).toBe(0);
+
+    renderer.prepare(scene, camera);
+    expect(scene.matrixWorld.elements[12]).toBe(3);
+    expect(camera.matrixWorldInverse.elements[14]).toBe(-5);
+  });
+});
+
 describe("Renderer scene background", () => {
   it("uploads a screen-space texture background before geometry", () => {
     const target = makeCaptureCanvas(2, 2);
@@ -135,7 +170,7 @@ describe("Renderer scene background", () => {
     }
   });
 
-  it("updates auto-updating texture backgrounds before clear", () => {
+  it("does not update texture backgrounds implicitly", () => {
     const target = makeCaptureCanvas(2, 2);
     const renderer = new Renderer({
       canvas: target.canvas,
@@ -143,7 +178,7 @@ describe("Renderer scene background", () => {
       height: 2,
     });
     const scene = new Scene();
-    const texture = new AutoUpdateTestTexture(
+    const texture = new ExplicitUpdateTestTexture(
       new Uint8ClampedArray(2 * 2 * 4),
       2,
       2,
@@ -152,6 +187,8 @@ describe("Renderer scene background", () => {
 
     renderer.render(scene, new OrthographicCamera());
 
+    expect(texture.updateCalls).toBe(0);
+    texture.update();
     expect(texture.updateCalls).toBe(1);
   });
 });

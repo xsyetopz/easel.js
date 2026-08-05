@@ -1,3 +1,5 @@
+import type { Camera } from "../cameras/Camera.ts";
+import type { Scene } from "../core/Scene.ts";
 import { Color } from "../math/Color.ts";
 import { FogCuller } from "../pipeline/FogCuller.ts";
 import { Framebuffer } from "../pipeline/framebuffer/Framebuffer.ts";
@@ -8,69 +10,52 @@ import { Rasterizer } from "../pipeline/rasterizer/Rasterizer.ts";
 import { SceneTraversal } from "../pipeline/SceneTraversal.ts";
 import { LightBaker } from "../pipeline/shading/LightBaker.ts";
 
-interface RendererOptions {
+/** Construction options for the CPU framebuffer and optional canvas target. */
+export interface RendererOptions {
+  /** Initial framebuffer width in CSS-independent pixels. */
   width?: number;
+  /** Initial framebuffer height in CSS-independent pixels. */
   height?: number;
+  /** Canvas receiving the final ImageData upload. */
   canvas?: HTMLCanvasElement;
-  pixelRatio?: number;
+  /** Whether painter sorting is enabled before CPU rasterization. */
   sortObjects?: boolean;
 }
 
-interface FogLike {
-  near: number;
-  far: number;
-  color: { r: number; g: number; b: number };
-}
-
-interface SceneLike {
-  children: SceneNodeLike[];
-  visible: boolean;
-  fog?: FogLike | undefined;
-  lights?: unknown;
-  background?: Color | number | TextureBackgroundLike | undefined;
-  autoUpdate?: boolean;
-}
-
-interface AutoUpdateTextureLike {
-  autoUpdate?: boolean;
-  update?: () => void;
-  needsUpdate?: boolean;
-}
-
-interface TextureBackgroundLike extends AutoUpdateTextureLike {
+interface TextureBackgroundLike {
   data?: { data: Uint8ClampedArray; width: number; height: number } | undefined;
   width: number;
   height: number;
 }
 
-interface SceneNodeLike {
-  children: SceneNodeLike[];
-  material?: {
-    map?: AutoUpdateTextureLike;
-  };
-}
-
-interface CameraLike {
-  matrixWorldInverse: { elements: Float32Array };
-  projectionMatrix: { elements: Float32Array };
-  updateMatrixWorld: () => void;
-  position: { x: number; y: number; z: number };
-}
-
+/** Optional timing fields populated by Renderer.render when profiling is enabled. */
 export interface RenderTimings {
+  /** Time spent clearing color and depth buffers, in milliseconds. */
   clearMs?: number;
+  /** Time spent traversing the scene graph, in milliseconds. */
   traversalMs?: number;
+  /** Time spent culling draw calls against fog, in milliseconds. */
   fogCullMs?: number;
+  /** Time spent sorting draw calls, in milliseconds. */
   sortMs?: number;
+  /** Time spent baking lighting and rasterizing draw calls, in milliseconds. */
   shadeRasterMs?: number;
+  /** Time spent uploading ImageData to Canvas2D, in milliseconds. */
   uploadMs?: number;
+  /** Total render time across all measured stages, in milliseconds. */
   totalMs?: number;
   // Optional detailed traversal breakdown (enabled by setting timings.profileTraversal = true).
+  /** Enables the detailed scene-traversal timing fields. */
   profileTraversal?: boolean;
+  /** Time spent updating world matrices during traversal, in milliseconds. */
   travUpdateWorldMs?: number;
+  /** Time spent walking scene nodes during traversal, in milliseconds. */
   travWalkMs?: number;
+  /** Time spent projecting geometry during traversal, in milliseconds. */
   travProjectMs?: number;
+  /** Time spent assembling draw calls during traversal, in milliseconds. */
   travAssembleMs?: number;
+  /** Number of draw calls assembled during traversal. */
   travDrawCalls?: number;
 }
 
@@ -89,25 +74,19 @@ export class Renderer {
   #lightBaker: LightBaker;
   #rasterizer: Rasterizer;
 
-  #pixelRatio = 1;
-  sortObjects = true;
+  /** Whether render() sorts draw calls before CPU rasterization. */
+  sortObjects: boolean = true;
 
   #clearColor = { r: 0, g: 0, b: 0 };
   #clear: FramebufferClear;
   #upload: FramebufferUpload;
 
+  /** Constructs a CPU framebuffer renderer with an optional Canvas2D target. */
   constructor(options: RendererOptions = {}) {
-    const {
-      width = 300,
-      height = 150,
-      canvas,
-      pixelRatio = 1,
-      sortObjects = true,
-    } = options;
+    const { width = 300, height = 150, canvas, sortObjects = true } = options;
 
     this.#width = width;
     this.#height = height;
-    this.#pixelRatio = pixelRatio;
     this.sortObjects = sortObjects;
 
     if (canvas) {
@@ -138,35 +117,34 @@ export class Renderer {
     this.#upload = new FramebufferUpload();
   }
 
+  /** Canvas element receiving framebuffer uploads, when available. */
   get domElement(): HTMLCanvasElement | undefined {
     return this.#canvas;
   }
 
+  /** Framebuffer width in pixels. */
   get width(): number {
     return this.#width;
   }
 
+  /** Framebuffer height in pixels. */
   get height(): number {
     return this.#height;
   }
 
-  get pixelRatio(): number {
-    return this.#pixelRatio;
+  /** Explicitly rebuilds scene world matrices and the camera view matrix. */
+  prepare(scene: Scene, camera: Camera, force: boolean = false): void {
+    scene.updateMatrixWorld(true, true, force);
+    camera.updateViewMatrix(true, false, force);
   }
 
   /** Renders a scene from a camera's perspective. */
-  render(scene: SceneLike, camera: CameraLike, timings?: RenderTimings): void {
+  render(scene: Scene, camera: Camera, timings?: RenderTimings): void {
     if (timings) {
       const perf = globalThis.performance;
       const now =
         typeof perf?.now === "function" ? perf.now.bind(perf) : Date.now;
       const t0 = now();
-
-      // 0. Mark auto-updating CanvasTextures dirty before the pipeline runs
-      this.#refreshAutoUpdateTextures(scene as unknown as SceneNodeLike);
-      this.#refreshAutoUpdateBackground(scene);
-
-      const tTex = now();
 
       // 1. Clear framebuffer + depth buffer
       this.#clearSceneBackground(scene);
@@ -206,7 +184,9 @@ export class Renderer {
       const fb = this.#framebuffer;
       const fogColor = fog ? fog.color : undefined;
       for (const drawCall of drawList) {
-        this.#lightBaker.bake(drawCall as never, lights);
+        if (drawCall.primitive !== "lines") {
+          this.#lightBaker.bake(drawCall as never, lights);
+        }
         this.#rasterizer.rasterize(
           drawCall as never,
           fb as never,
@@ -224,7 +204,7 @@ export class Renderer {
 
       const tUpload = now();
 
-      timings.clearMs = tClear - tTex;
+      timings.clearMs = tClear - t0;
       timings.traversalMs = tTrav - tClear;
       timings.fogCullMs = tFogCull - tTrav;
       timings.sortMs = tSort - tFogCull;
@@ -233,10 +213,6 @@ export class Renderer {
       timings.totalMs = tUpload - t0;
       return;
     }
-
-    // 0. Mark auto-updating CanvasTextures dirty before the pipeline runs
-    this.#refreshAutoUpdateTextures(scene as unknown as SceneNodeLike);
-    this.#refreshAutoUpdateBackground(scene);
 
     // 1. Clear framebuffer + depth buffer
     this.#clearSceneBackground(scene);
@@ -267,7 +243,9 @@ export class Renderer {
     const fb = this.#framebuffer;
     const fogColor = fog ? fog.color : undefined;
     for (const drawCall of drawList) {
-      this.#lightBaker.bake(drawCall as never, lights);
+      if (drawCall.primitive !== "lines") {
+        this.#lightBaker.bake(drawCall as never, lights);
+      }
       this.#rasterizer.rasterize(
         drawCall as never,
         fb as never,
@@ -282,7 +260,7 @@ export class Renderer {
     }
   }
 
-  #clearSceneBackground(scene: SceneLike): void {
+  #clearSceneBackground(scene: Scene): void {
     const fog = scene.fog;
     if (fog) {
       this.#clear.clear(
@@ -341,6 +319,7 @@ export class Renderer {
     this.#framebuffer.depthBuffer.clear();
   }
 
+  /** Updates the viewport dimensions and retained projection state. */
   setSize(width: number, height: number): void {
     this.#width = width;
     this.#height = height;
@@ -351,63 +330,32 @@ export class Renderer {
     }
   }
 
-  setPixelRatio(ratio: number): void {
-    this.#pixelRatio = ratio;
+  /** Packed clear color used when the scene supplies no background or fog. */
+  get clearColor(): number {
+    return (
+      (this.#clearColor.r << 16) |
+      (this.#clearColor.g << 8) |
+      this.#clearColor.b
+    );
   }
 
-  /**
-   * Sets the clear color used when no fog or scene.background is present.
-   *
-   * Overloads:
-   * - `setClearColor(color: Color)` -- Color instance with .r/.g/.b in [0, 1]
-   * - `setClearColor(hex: number)` -- packed hex e.g. `0xff0000`
-   * - `setClearColor(r, g, b)` -- three 0-255 integers (legacy)
-   */
-  setClearColor(rOrColor: Color | number, g?: number, b?: number): void {
-    if (rOrColor instanceof Color) {
-      this.#clearColor.r = Math.round(rOrColor.r * 255);
-      this.#clearColor.g = Math.round(rOrColor.g * 255);
-      this.#clearColor.b = Math.round(rOrColor.b * 255);
-    } else if (g === undefined && b === undefined) {
-      const hex = rOrColor;
-      this.#clearColor.r = (hex >> 16) & 0xff;
-      this.#clearColor.g = (hex >> 8) & 0xff;
-      this.#clearColor.b = hex & 0xff;
-    } else {
-      this.#clearColor.r = rOrColor;
-      this.#clearColor.g = g as number;
-      this.#clearColor.b = b as number;
+  /** Sets the packed RGB clear color used when no scene background or fog overrides it. */
+  set clearColor(value: Color | number) {
+    if (value instanceof Color) {
+      this.#clearColor.r = Math.round(value.r * 255);
+      this.#clearColor.g = Math.round(value.g * 255);
+      this.#clearColor.b = Math.round(value.b * 255);
+      return;
     }
+    if (!Number.isSafeInteger(value) || value < 0 || value > 0xffffff) {
+      throw new RangeError("Renderer.clearColor must be a 24-bit integer.");
+    }
+    this.#clearColor.r = (value >> 16) & 0xff;
+    this.#clearColor.g = (value >> 8) & 0xff;
+    this.#clearColor.b = value & 0xff;
   }
 
-  /**
-   * Walks the scene graph and, for texture with `autoUpdate` enabled,
-   * calls `map.update()` or sets `needsUpdate = true`.
-   */
-  #refreshAutoUpdateTextures(node: SceneNodeLike): void {
-    if (node.material?.map?.autoUpdate) {
-      this.#refreshAutoUpdateTexture(node.material.map);
-    }
-    for (const child of node.children) {
-      this.#refreshAutoUpdateTextures(child);
-    }
-  }
-
-  #refreshAutoUpdateBackground(scene: SceneLike): void {
-    if (!scene.fog && isTextureBackground(scene.background)) {
-      this.#refreshAutoUpdateTexture(scene.background);
-    }
-  }
-
-  #refreshAutoUpdateTexture(texture: AutoUpdateTextureLike): void {
-    if (!texture.autoUpdate) return;
-    if (typeof texture.update === "function") {
-      texture.update();
-    } else {
-      texture.needsUpdate = true;
-    }
-  }
-
+  /** Detaches the Canvas2D target and releases renderer-side references. */
   dispose(): void {
     if (this.#canvas && !this.#canvas.isConnected) {
       this.#canvas = undefined;

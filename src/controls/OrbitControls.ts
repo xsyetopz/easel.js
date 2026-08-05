@@ -1,5 +1,5 @@
 import { EventDispatcher } from "../core/EventDispatcher.ts";
-import { MathUtils } from "../math/MathUtils.ts";
+import { toRadians } from "../math/MathUtils.ts";
 import { Spherical } from "../math/Spherical.ts";
 import { Vector3 } from "../math/Vector3.ts";
 
@@ -35,63 +35,72 @@ const _endEvent = { type: "end" };
  * Dispatches "change", "start", and "end" events.
  */
 export class OrbitControls extends EventDispatcher {
+  /** Camera moved by orbit, zoom, and pan input. */
   camera: OrbitCamera;
 
+  /** Event target that receives pointer, wheel, and context-menu listeners. */
   domElement: OrbitDomElement;
 
   /** World-space point the camera orbits around. */
   target: Vector3 = new Vector3();
 
   /** When false, all interaction is ignored. */
-  enabled = true;
+  enabled: boolean = true;
 
-  enableRotate = true;
+  /** Whether primary-button dragging changes orbital angles. */
+  enableRotate: boolean = true;
 
-  enableZoom = true;
+  /** Whether wheel input changes orbital radius. */
+  enableZoom: boolean = true;
 
-  enablePan = true;
+  /** Whether secondary-button dragging changes the target position. */
+  enablePan: boolean = true;
 
-  rotateSpeed = 1.0;
+  /** Multiplier applied to pointer-derived angular deltas. */
+  rotateSpeed: number = 1.0;
 
-  zoomSpeed = 1.0;
+  /** Multiplier applied to wheel-derived radius changes. */
+  zoomSpeed: number = 1.0;
 
-  panSpeed = 1.0;
+  /** Multiplier applied to pointer-derived pan distance. */
+  panSpeed: number = 1.0;
 
-  /** Minimum orbital radius. */
-  minDistance = 0;
+  /** Lower bound for orbital radius in world units. */
+  minDistance: number = 0;
 
-  /** Maximum orbital radius. */
+  /** Upper bound for orbital radius in world units. */
   maxDistance: number = Number.POSITIVE_INFINITY;
 
   /** Minimum polar angle (radians, 0 = top). */
-  minPolarAngle = 0;
+  minPolarAngle: number = 0;
 
   /** Maximum polar angle (radians, Math.PI = bottom). */
   maxPolarAngle: number = Math.PI;
 
   /** When true, movements decelerate smoothly instead of stopping instantly. */
-  enableDamping = false;
+  enableDamping: boolean = false;
 
   /** Fraction of velocity lost per frame when damping is enabled. */
-  dampingFactor = 0.05;
+  dampingFactor: number = 0.05;
 
-  autoRotate = false;
+  /** Whether each update adds the configured automatic angular step. */
+  autoRotate: boolean = false;
 
-  /** Degrees per second. */
-  autoRotateSpeed = 2.0;
+  /** Automatic azimuth speed in degrees per second when enabled. */
+  autoRotateSpeed: number = 2.0;
 
   /** When true, panning moves in screen space. When false, panning moves along the horizontal plane. */
-  screenSpacePanning = true;
+  screenSpacePanning: boolean = true;
 
   #spherical: Spherical = new Spherical();
 
-  /** Pending delta applied each update(). */
+  /** Pending spherical rotation and radius deltas consumed by `update()`. */
   #sphericalDelta: Spherical = new Spherical(0, 0, 0);
 
-  /** Pending pan offset accumulated across pointer moves. */
+  /** Pending world-space target offset accumulated across pointer moves. */
   #panOffset: Vector3 = new Vector3();
 
-  /** Saved initial camera state for reset(). */
+  /** Camera position and target captured by the constructor for `reset()`. */
   #initialState: { position: Vector3; target: Vector3 };
 
   #state: (typeof STATE)[keyof typeof STATE] = STATE.NONE;
@@ -111,6 +120,7 @@ export class OrbitControls extends EventDispatcher {
   #onWheel: (event: Event) => void;
   #onContextMenu: (event: Event) => void;
 
+  /** Creates controls and installs listeners on the supplied event target. */
   constructor(camera: OrbitCamera, domElement: OrbitDomElement) {
     super();
     this.camera = camera;
@@ -139,8 +149,8 @@ export class OrbitControls extends EventDispatcher {
   }
 
   /**
-   * Apply pending rotation, zoom, and pan then update the camera.
-   * Must be called each frame.
+   * Applies pending rotation, zoom, and pan, then updates the camera. Call once
+   * per frame; returns whether the camera moved.
    */
   update(): boolean {
     if (!this.enabled) return false;
@@ -150,8 +160,7 @@ export class OrbitControls extends EventDispatcher {
     this.#prevTime = now;
 
     if (this.autoRotate) {
-      this.#sphericalDelta.theta -=
-        MathUtils.toRadians(this.autoRotateSpeed) * dt;
+      this.#sphericalDelta.theta -= toRadians(this.autoRotateSpeed) * dt;
     }
 
     if (this.#needsInit) {
@@ -192,7 +201,7 @@ export class OrbitControls extends EventDispatcher {
     if (this.enableDamping) {
       this.#sphericalDelta.theta *= 1 - this.dampingFactor;
       this.#sphericalDelta.phi *= 1 - this.dampingFactor;
-      this.#panOffset.mulScalar(1 - this.dampingFactor);
+      this.#panOffset.multiplyScalar(1 - this.dampingFactor);
     } else {
       this.#sphericalDelta.set(0, 0, 0);
       this.#panOffset.set(0, 0, 0);
@@ -205,7 +214,7 @@ export class OrbitControls extends EventDispatcher {
     return moved;
   }
 
-  /** Remove all DOM event listeners. Call when the controls are no longer needed. */
+  /** Removes all installed DOM listeners; call when controls are no longer needed. */
   dispose(): void {
     this.domElement.removeEventListener("pointerdown", this.#onPointerDown);
     this.domElement.removeEventListener("pointermove", this.#onPointerMove);
@@ -214,7 +223,7 @@ export class OrbitControls extends EventDispatcher {
     this.domElement.removeEventListener("contextmenu", this.#onContextMenu);
   }
 
-  /** Restore the camera position and target to the values at construction time. */
+  /** Restores the camera position and target captured at construction time. */
   reset(): void {
     this.camera.position.copy(this.#initialState.position);
     this.target.copy(this.#initialState.target);

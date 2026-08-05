@@ -8,7 +8,7 @@ const _edge1 = new Vector3();
 const _edge2 = new Vector3();
 const _normal = new Vector3();
 
-/** Handles the s0 >= 0 sub-case of ray-segment distance (det > 0 branch). */
+/** Handles the non-negative ray parameter branch of ray-segment distance. */
 function _segS0NonNeg(
   s0In: number,
   s1In: number,
@@ -43,7 +43,7 @@ function _segS0NonNeg(
   return { s0, s1, sqrDist };
 }
 
-/** Handles the det > 0 case of ray-segment distance. */
+/** Handles the non-parallel ray-segment distance branch. */
 function _segDetNonZero(
   s0In: number,
   s1In: number,
@@ -77,23 +77,65 @@ function _segDetNonZero(
   return { s0, s1, sqrDist };
 }
 
-/** Computes slab interval along one axis for ray-box intersection. */
-function _boxSlab(
-  minVal: number,
-  maxVal: number,
-  originVal: number,
-  invdir: number,
-): { lo: number; hi: number } {
-  if (invdir >= 0) {
-    return {
-      lo: (minVal - originVal) * invdir,
-      hi: (maxVal - originVal) * invdir,
-    };
+/**
+ * Returns the first non-negative parameter where a ray enters an AABB.
+ *
+ * The slab interval is kept entirely in scalar locals.  In particular, this
+ * helper must not return a `{ lo, hi }` record for each axis: a ray-box query
+ * is commonly used for every pick candidate, and those short-lived records
+ * would add avoidable garbage to the CPU path.  NaN updates match the
+ * conventional THREE.js behavior when a zero direction component starts on a
+ * box boundary (`0 * Infinity`).
+ */
+function _boxIntersectionT(
+  box: { min: Vector3; max: Vector3 },
+  origin: Vector3,
+  direction: Vector3,
+): number | undefined {
+  const invdirx = 1 / direction.x;
+  const invdiry = 1 / direction.y;
+  const invdirz = 1 / direction.z;
+
+  let tmin: number;
+  let tmax: number;
+  if (invdirx >= 0) {
+    tmin = (box.min.x - origin.x) * invdirx;
+    tmax = (box.max.x - origin.x) * invdirx;
+  } else {
+    tmin = (box.max.x - origin.x) * invdirx;
+    tmax = (box.min.x - origin.x) * invdirx;
   }
-  return {
-    lo: (maxVal - originVal) * invdir,
-    hi: (minVal - originVal) * invdir,
-  };
+
+  let tymin: number;
+  let tymax: number;
+  if (invdiry >= 0) {
+    tymin = (box.min.y - origin.y) * invdiry;
+    tymax = (box.max.y - origin.y) * invdiry;
+  } else {
+    tymin = (box.max.y - origin.y) * invdiry;
+    tymax = (box.min.y - origin.y) * invdiry;
+  }
+
+  if (tmin > tymax || tymin > tmax) return;
+  if (tymin > tmin || Number.isNaN(tmin)) tmin = tymin;
+  if (tymax < tmax || Number.isNaN(tmax)) tmax = tymax;
+
+  let tzmin: number;
+  let tzmax: number;
+  if (invdirz >= 0) {
+    tzmin = (box.min.z - origin.z) * invdirz;
+    tzmax = (box.max.z - origin.z) * invdirz;
+  } else {
+    tzmin = (box.max.z - origin.z) * invdirz;
+    tzmax = (box.min.z - origin.z) * invdirz;
+  }
+
+  if (tmin > tzmax || tzmin > tmax) return;
+  if (tzmin > tmin || Number.isNaN(tmin)) tmin = tzmin;
+  if (tzmax < tmax || Number.isNaN(tmax)) tmax = tzmax;
+
+  if (tmax < 0) return;
+  return tmin >= 0 ? tmin : tmax;
 }
 
 /** Ray defined by an origin point and direction vector. */
@@ -101,6 +143,7 @@ export class Ray {
   #origin: Vector3 = new Vector3(0, 0, 0);
   #direction: Vector3 = new Vector3(0, 0, -1);
 
+  /** Constructs a ray from an origin and direction. */
   constructor(
     origin: Vector3 = new Vector3(0, 0, 0),
     direction: Vector3 = new Vector3(0, 0, -1),
@@ -109,32 +152,39 @@ export class Ray {
     this.#direction = direction.clone();
   }
 
+  /** Ray origin in world coordinates; the returned vector is live. */
   get origin(): Vector3 {
     return this.#origin;
   }
 
+  /** Copies `value` into the ray origin. */
   set origin(value: Vector3) {
     this.#origin.copy(value);
   }
 
+  /** Ray direction; callers normally provide a normalized vector. */
   get direction(): Vector3 {
     return this.#direction;
   }
 
+  /** Copies `value` into the ray direction. */
   set direction(value: Vector3) {
     this.#direction.copy(value);
   }
 
+  /** Replaces all stored components with the supplied values. */
   set(origin: Vector3, direction: Vector3): this {
     this.#origin.copy(origin);
     this.#direction.copy(direction);
     return this;
   }
 
+  /** Returns a new instance with the same component values. */
   clone(): Ray {
     return new Ray(this.#origin, this.#direction);
   }
 
+  /** Copies component values from the supplied instance into this one. */
   copy(ray: Ray): this {
     this.#origin.copy(ray.origin);
     this.#direction.copy(ray.direction);
@@ -143,21 +193,22 @@ export class Ray {
 
   /** Returns the point at parameter t along the ray. */
   at(t: number, target: Vector3 = new Vector3()): Vector3 {
-    return target.copy(this.#direction).mulScalar(t).add(this.#origin);
+    return target.copy(this.#direction).multiplyScalar(t).add(this.#origin);
   }
 
-  /** Aims the ray direction toward v. */
+  /** Replaces the direction with the normalized vector from the origin to `v`. */
   lookAt(v: Vector3): this {
     this.#direction.copy(v).sub(this.#origin).normalize();
     return this;
   }
 
-  /** Moves the origin to the point at t and keeps the direction. */
+  /** Moves the origin to the point at ray parameter `t`. */
   recast(t: number): this {
     this.#origin.copy(this.at(t, _v1));
     return this;
   }
 
+  /** Writes the closest point on this ray to `point` into `target`. */
   closestPointToPoint(
     point: Vector3,
     target: Vector3 = new Vector3(),
@@ -165,28 +216,33 @@ export class Ray {
     target.copy(point).sub(this.#origin);
     const dirDist = target.dot(this.#direction);
     if (dirDist < 0) return target.copy(this.#origin);
-    return target.copy(this.#direction).mulScalar(dirDist).add(this.#origin);
+    return target
+      .copy(this.#direction)
+      .multiplyScalar(dirDist)
+      .add(this.#origin);
   }
 
+  /** Returns the Euclidean distance from this ray to `point`. */
   distanceToPoint(point: Vector3): number {
     return Math.sqrt(this.distanceSqToPoint(point));
   }
 
+  /** Returns the squared distance from the ray to `point`. */
   distanceSqToPoint(point: Vector3): number {
     const dirDist = _v1.copy(point).sub(this.#origin).dot(this.#direction);
-    if (dirDist < 0) return this.#origin.distanceSqTo(point);
-    _v1.copy(this.#direction).mulScalar(dirDist).add(this.#origin);
-    return _v1.distanceSqTo(point);
+    if (dirDist < 0) return this.#origin.distanceToSquared(point);
+    _v1.copy(this.#direction).multiplyScalar(dirDist).add(this.#origin);
+    return _v1.distanceToSquared(point);
   }
 
-  /** Squared distance from the ray to the closest point on a segment [v0,v1]. */
+  /** Returns the squared distance to segment `[v0, v1]` and optionally writes both closest points. */
   distanceSqToSegment(
     v0: Vector3,
     v1: Vector3,
     optionalPointOnRay?: Vector3,
     optionalPointOnSegment?: Vector3,
   ): number {
-    const segCenter = _v1.copy(v0).add(v1).mulScalar(0.5);
+    const segCenter = _v1.copy(v0).add(v1).multiplyScalar(0.5);
     const segDir = _v2.copy(v1).sub(v0).normalize();
     const diff = _v3.copy(this.#origin).sub(segCenter);
 
@@ -226,15 +282,19 @@ export class Ray {
     }
 
     if (optionalPointOnRay) {
-      optionalPointOnRay.copy(this.#direction).mulScalar(s0).add(this.#origin);
+      optionalPointOnRay
+        .copy(this.#direction)
+        .multiplyScalar(s0)
+        .add(this.#origin);
     }
     if (optionalPointOnSegment) {
-      optionalPointOnSegment.copy(segDir).mulScalar(s1).add(segCenter);
+      optionalPointOnSegment.copy(segDir).multiplyScalar(s1).add(segCenter);
     }
 
     return sqrDist;
   }
 
+  /** Returns the first forward ray hit on the sphere, or undefined. */
   intersectSphere(
     sphere: { centre: Vector3; radius: number },
     target: Vector3 = new Vector3(),
@@ -251,12 +311,14 @@ export class Ray {
     return this.at(t0 >= 0 ? t0 : t1, target);
   }
 
+  /** Returns true when the ray passes within `sphere.radius` of its center. */
   intersectsSphere(sphere: { centre: Vector3; radius: number }): boolean {
     return (
       this.distanceSqToPoint(sphere.centre) <= sphere.radius * sphere.radius
     );
   }
 
+  /** Returns the forward ray hit on the plane, or undefined. */
   intersectPlane(
     plane: { normal: Vector3; constant: number },
     target: Vector3 = new Vector3(),
@@ -266,6 +328,7 @@ export class Ray {
     return this.at(t, target);
   }
 
+  /** Returns true when the ray has a forward hit on `plane`. */
   intersectsPlane(plane: { normal: Vector3; constant: number }): boolean {
     const distToPoint = plane.normal.dot(this.#origin) + plane.constant;
     if (distToPoint === 0) return true;
@@ -273,6 +336,7 @@ export class Ray {
     return denominator * distToPoint < 0;
   }
 
+  /** Returns the non-negative ray parameter at the plane hit, or undefined. */
   distanceToPlane(plane: {
     normal: Vector3;
     constant: number;
@@ -286,37 +350,21 @@ export class Ray {
     return t >= 0 ? t : undefined;
   }
 
-  intersectBox3(
+  /** Returns the forward ray hit on the box, or undefined. */
+  intersectBox(
     box: { min: Vector3; max: Vector3 },
-    target: Vector3 = new Vector3(),
+    target: Vector3,
   ): Vector3 | undefined {
-    const origin = this.#origin;
-    const invdirx = 1 / this.#direction.x;
-    const invdiry = 1 / this.#direction.y;
-    const invdirz = 1 / this.#direction.z;
-
-    const x = _boxSlab(box.min.x, box.max.x, origin.x, invdirx);
-    const y = _boxSlab(box.min.y, box.max.y, origin.y, invdiry);
-
-    if (x.lo > y.hi || y.lo > x.hi) return;
-    const tmin0 = y.lo > x.lo ? y.lo : x.lo;
-    const tmax0 = y.hi < x.hi ? y.hi : x.hi;
-
-    const z = _boxSlab(box.min.z, box.max.z, origin.z, invdirz);
-
-    if (tmin0 > z.hi || z.lo > tmax0) return;
-    const tmin = z.lo > tmin0 ? z.lo : tmin0;
-    const tmax = z.hi < tmax0 ? z.hi : tmax0;
-
-    if (tmax < 0) return;
-    return this.at(tmin >= 0 ? tmin : tmax, target);
+    const t = _boxIntersectionT(box, this.#origin, this.#direction);
+    return t === undefined ? undefined : this.at(t, target);
   }
 
-  intersectsBox3(box: { min: Vector3; max: Vector3 }): boolean {
-    return this.intersectBox3(box, _v1) !== undefined;
+  /** Returns true when the ray has a forward hit on `box`. */
+  intersectsBox(box: { min: Vector3; max: Vector3 }): boolean {
+    return _boxIntersectionT(box, this.#origin, this.#direction) !== undefined;
   }
 
-  /** Moller-Trumbore ray-triangle intersection. */
+  /** Returns the forward hit on the triangle using Möller–Trumbore, or undefined. */
   intersectTriangle(
     a: Vector3,
     b: Vector3,
@@ -357,6 +405,7 @@ export class Ray {
     return this.at(QdN / DdN, target);
   }
 
+  /** Applies a 4x4 transform in place and returns this instance. */
   applyMatrix4(matrix4: { elements: ArrayLike<number> }): this {
     this.#direction.add(this.#origin);
     this.#origin.applyMatrix4(matrix4);
@@ -365,6 +414,7 @@ export class Ray {
     return this;
   }
 
+  /** Returns true when every stored component exactly matches the argument. */
   equals(ray: Ray): boolean {
     return (
       ray.origin.equals(this.#origin) && ray.direction.equals(this.#direction)

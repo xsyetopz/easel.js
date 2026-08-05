@@ -65,7 +65,7 @@ export function setup(canvas, params = {}) {
     return mesh;
   });
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function updateCamera() {
@@ -79,10 +79,11 @@ export function setup(canvas, params = {}) {
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     for (const mesh of meshes) {
       mesh.rotation.y += 0.5 * dt;
     }
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -118,6 +119,7 @@ camera.bottom = -newSize;
 camera.updateProjectionMatrix();
 
 const renderer = new EASEL.Renderer({ canvas, width: 800, height: 600 });
+renderer.prepare(scene, camera);
 renderer.render(scene, camera);`;
 
 export const threeSource = `import * as THREE from "three";
@@ -139,4 +141,5 @@ camera.updateProjectionMatrix();
 
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(800, 600);
+renderer.prepare(scene, camera);
 renderer.render(scene, camera);`;

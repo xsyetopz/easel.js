@@ -1,11 +1,11 @@
 type Constructable<T> = new (...args: unknown[]) => T;
 
-export function createPair<Easel, Three>(
-  EaselClass: Constructable<Easel>,
-  ThreeClass: Constructable<Three>,
+export function createPair<EASEL, THREE>(
+  EASELClass: Constructable<EASEL>,
+  THREEClass: Constructable<THREE>,
   ...args: unknown[]
-): { easel: Easel; three: Three } {
-  return { easel: new EaselClass(...args), three: new ThreeClass(...args) };
+): { EASEL: EASEL; THREE: THREE } {
+  return { EASEL: new EASELClass(...args), THREE: new THREEClass(...args) };
 }
 
 export function seededRandom(seed = 42): () => number {

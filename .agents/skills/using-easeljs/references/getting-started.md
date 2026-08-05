@@ -67,7 +67,7 @@ bun add @xsyetopz/easel@0.6.1
 ```
 
 These commands intentionally pin the 0.6.1 API. If the selected registry has not
-published 0.6.1 yet, validate against the local easel.js source rather than
+published 0.6.1 yet, validate against the local EASEL.js source rather than
 silently installing an older release. For Deno, use the [Deno guide](deno.md).
 
 Minimal runtime requirements:
@@ -173,7 +173,7 @@ metadata.
 The bundled references and templates intentionally target the 0.6.1 API. At the
 observation date, npm and JSR had not published 0.6.1, so the version-pinned
 install commands and templates require that release to be published before they
-can resolve remotely. Do not silently downgrade the API baseline; in an easel.js
+can resolve remotely. Do not silently downgrade the API baseline; in an EASEL.js
 checkout, validate against local `package.json`, `src/index.ts`, and declaration
 output instead.
 

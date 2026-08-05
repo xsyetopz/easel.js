@@ -50,14 +50,15 @@ export function setup(canvas, params = {}) {
   const points = new EASEL.Points(geometry, material);
   scene.add(points);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     points.rotation.y += 0.4 * dt;
     points.rotation.x += 0.15 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();

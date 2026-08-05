@@ -8,97 +8,102 @@ const _v3 = new Vector3();
 const _v4 = new Vector3();
 const _v5 = new Vector3();
 
-/** Projects point onto the nearest edge/vertex of triangle (a, b, c). */
-function _closestOnEdges(
+/** Computes barycentric coordinates of a point relative to a triangle. */
+export function triangleBarycoord(
+  point: Vector3,
   a: Vector3,
   b: Vector3,
   c: Vector3,
+  target: Vector3 = new Vector3(),
+): Vector3 | undefined {
+  _v0.copy(c).sub(a);
+  _v1.copy(b).sub(a);
+  _v2.copy(point).sub(a);
+
+  const dot00 = _v0.dot(_v0);
+  const dot01 = _v0.dot(_v1);
+  const dot02 = _v0.dot(_v2);
+  const dot11 = _v1.dot(_v1);
+  const dot12 = _v1.dot(_v2);
+  const denominator = dot00 * dot11 - dot01 * dot01;
+  if (denominator === 0) return;
+
+  const inverseDenominator = 1 / denominator;
+  const u = (dot11 * dot02 - dot01 * dot12) * inverseDenominator;
+  const v = (dot00 * dot12 - dot01 * dot02) * inverseDenominator;
+  return target.set(1 - u - v, v, u);
+}
+
+/** Returns true when `point` lies inside or on the triangle. */
+export function triangleContainsPoint(
   point: Vector3,
-  target: Vector3,
-): Vector3 {
-  const ab = _v3.copy(b).sub(a);
-  const ac = _v4.copy(c).sub(a);
-  const bc = _v5.copy(c).sub(b);
-  const ap = _v2.copy(point).sub(a);
-
-  const snom = ap.dot(ab);
-  const sdenom = point.clone().sub(b).dot(ab.negate());
-  const tnom = ap.dot(ac);
-  const tdenom = point.clone().sub(c).dot(ac.negate());
-
-  if (snom <= 0 && tnom <= 0) return target.copy(a);
-
-  const unom = point.clone().sub(b).dot(bc);
-  const udenom = point.clone().sub(c).dot(bc.negate());
-
-  if (sdenom <= 0 && unom <= 0) return target.copy(b);
-  if (tdenom <= 0 && udenom <= 0) return target.copy(c);
-
-  const n = Triangle.getNormal(a, b, c, new Vector3());
-  return _projectOntoEdge(
-    n,
-    a,
-    b,
-    c,
-    point,
-    target,
-    ab,
-    ac,
-    bc,
-    snom,
-    sdenom,
-    tnom,
-    tdenom,
-    unom,
-    udenom,
+  a: Vector3,
+  b: Vector3,
+  c: Vector3,
+): boolean {
+  const barycentric = triangleBarycoord(point, a, b, c, _v3);
+  if (barycentric === undefined) return false;
+  return (
+    barycentric.x >= 0 &&
+    barycentric.y >= 0 &&
+    barycentric.x + barycentric.y <= 1
   );
 }
 
-function _projectOntoEdge(
-  n: Vector3,
+/** Interpolates three vectors at `point`'s barycentric coordinates. */
+export function interpolateTriangle(
+  point: Vector3,
   a: Vector3,
   b: Vector3,
   c: Vector3,
-  point: Vector3,
-  target: Vector3,
-  ab: Vector3,
-  ac: Vector3,
-  bc: Vector3,
-  snom: number,
-  sdenom: number,
-  tnom: number,
-  tdenom: number,
-  unom: number,
-  udenom: number,
-): Vector3 {
-  const vc = n.dot(_v0.copy(a).sub(point).cross(_v0.copy(b).sub(point)));
-  if (vc <= 0 && snom >= 0 && sdenom >= 0) {
-    return target.copy(a).add(_v0.copy(ab).mulScalar(snom / (snom + sdenom)));
-  }
-  const va = n.dot(_v1.copy(b).sub(point).cross(_v1.copy(c).sub(point)));
-  if (va <= 0 && unom >= 0 && udenom >= 0) {
-    return target.copy(b).add(_v1.copy(bc).mulScalar(unom / (unom + udenom)));
-  }
-  const vb = n.dot(_v2.copy(c).sub(point).cross(_v2.copy(a).sub(point)));
-  if (vb <= 0 && tnom >= 0 && tdenom >= 0) {
-    return target.copy(a).add(_v3.copy(ac).mulScalar(tnom / (tnom + tdenom)));
-  }
+  v1: Vector3,
+  v2: Vector3,
+  v3: Vector3,
+  target: Vector3 = new Vector3(),
+): Vector3 | undefined {
+  const barycentric = triangleBarycoord(point, a, b, c, _v3);
+  if (barycentric === undefined) return;
+  target.x = v1.x * barycentric.x + v2.x * barycentric.y + v3.x * barycentric.z;
+  target.y = v1.y * barycentric.x + v2.y * barycentric.y + v3.y * barycentric.z;
+  target.z = v1.z * barycentric.x + v2.z * barycentric.y + v3.z * barycentric.z;
+  return target;
+}
 
-  const denom = va + vb + vc;
-  const s = vb / denom;
-  const t = vc / denom;
-  return target
-    .copy(a)
-    .add(_v4.copy(b).sub(a).mulScalar(s))
-    .add(_v5.copy(c).sub(a).mulScalar(t));
+/** Computes a normalized triangle normal. */
+export function triangleNormal(
+  a: Vector3,
+  b: Vector3,
+  c: Vector3,
+  target: Vector3 = new Vector3(),
+): Vector3 {
+  target.copy(c).sub(b);
+  _v0.copy(b).sub(a);
+  target.cross(_v0);
+  const lengthSquared = target.lengthSq;
+  return lengthSquared > 0
+    ? target.multiplyScalar(1 / Math.sqrt(lengthSquared))
+    : target.set(0, 0, 0);
+}
+
+/** Tests whether a triangle faces a direction. */
+export function isTriangleFrontFacing(
+  a: Vector3,
+  b: Vector3,
+  c: Vector3,
+  direction: Vector3,
+): boolean {
+  _v0.copy(c).sub(b);
+  _v1.copy(a).sub(b);
+  return _v0.cross(_v1).dot(direction) < 0;
 }
 
 /** Triangle defined by three 3D vertices. */
 export class Triangle {
-  #a: Vector3 = new Vector3();
-  #b: Vector3 = new Vector3();
-  #c: Vector3 = new Vector3();
+  readonly #a: Vector3 = new Vector3();
+  readonly #b: Vector3 = new Vector3();
+  readonly #c: Vector3 = new Vector3();
 
+  /** Constructs a triangle from three vertex positions. */
   constructor(
     a: Vector3 = new Vector3(),
     b: Vector3 = new Vector3(),
@@ -109,30 +114,37 @@ export class Triangle {
     this.#c = c.clone();
   }
 
+  /** First triangle vertex; the returned vector is live. */
   get a(): Vector3 {
     return this.#a;
   }
 
+  /** Copies the first triangle vertex into the live `a` value. */
   set a(value: Vector3) {
     this.#a.copy(value);
   }
 
+  /** Second triangle vertex; the returned vector is live. */
   get b(): Vector3 {
     return this.#b;
   }
 
+  /** Copies the second triangle vertex into the live `b` value. */
   set b(value: Vector3) {
     this.#b.copy(value);
   }
 
+  /** Third triangle vertex; the returned vector is live. */
   get c(): Vector3 {
     return this.#c;
   }
 
+  /** Copies `value` into the third triangle vertex. */
   set c(value: Vector3) {
     this.#c.copy(value);
   }
 
+  /** Replaces all stored components with the supplied values. */
   set(a: Vector3, b: Vector3, c: Vector3): this {
     this.#a.copy(a);
     this.#b.copy(b);
@@ -140,10 +152,12 @@ export class Triangle {
     return this;
   }
 
+  /** Returns a new instance with the same component values. */
   clone(): Triangle {
     return new Triangle(this.#a, this.#b, this.#c);
   }
 
+  /** Copies component values from the supplied instance into this one. */
   copy(triangle: Triangle): this {
     this.#a.copy(triangle.a);
     this.#b.copy(triangle.b);
@@ -151,64 +165,27 @@ export class Triangle {
     return this;
   }
 
-  getArea(): number {
+  /** Area of the triangle in squared world units. */
+  get area(): number {
     _v0.copy(this.#c).sub(this.#b);
     _v1.copy(this.#b).sub(this.#a);
     return _v0.cross(_v1).length * 0.5;
   }
 
-  /**
-   * Computes barycentric coordinates of point relative to triangle (a, b, c).
-   * Returns undefined if point is not coplanar or triangle is degenerate.
-   */
-  static getBarycoord(
-    point: Vector3,
-    a: Vector3,
-    b: Vector3,
-    c: Vector3,
-    target: Vector3 = new Vector3(),
-  ): Vector3 | undefined {
-    _v0.copy(c).sub(a);
-    _v1.copy(b).sub(a);
-    _v2.copy(point).sub(a);
-
-    const dot00 = _v0.dot(_v0);
-    const dot01 = _v0.dot(_v1);
-    const dot02 = _v0.dot(_v2);
-    const dot11 = _v1.dot(_v1);
-    const dot12 = _v1.dot(_v2);
-
-    const denom = dot00 * dot11 - dot01 * dot01;
-    if (denom === 0) return;
-
-    const invDenom = 1 / denom;
-    const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-    const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-    return target.set(1 - u - v, v, u);
-  }
-
+  /** Computes barycentric coordinates for `point`, or undefined for a degenerate triangle. */
   getBarycoord(
     point: Vector3,
     target: Vector3 = new Vector3(),
   ): Vector3 | undefined {
-    return Triangle.getBarycoord(point, this.#a, this.#b, this.#c, target);
+    return triangleBarycoord(point, this.#a, this.#b, this.#c, target);
   }
 
-  static containsPoint(
-    point: Vector3,
-    a: Vector3,
-    b: Vector3,
-    c: Vector3,
-  ): boolean {
-    const bary = Triangle.getBarycoord(point, a, b, c, _v3);
-    if (bary === undefined) return false;
-    return bary.x >= 0 && bary.y >= 0 && bary.x + bary.y <= 1;
-  }
-
+  /** Returns true when `point` lies inside or on the triangle. */
   containsPoint(point: Vector3): boolean {
-    return Triangle.containsPoint(point, this.#a, this.#b, this.#c);
+    return triangleContainsPoint(point, this.#a, this.#b, this.#c);
   }
 
+  /** Writes the closest point on this triangle to `point` into `target`. */
   closestPointToPoint(
     point: Vector3,
     target: Vector3 = new Vector3(),
@@ -216,28 +193,48 @@ export class Triangle {
     const a = this.#a;
     const b = this.#b;
     const c = this.#c;
+    const ab = _v0.copy(b).sub(a);
+    const ac = _v1.copy(c).sub(a);
+    const ap = _v2.copy(point).sub(a);
+    const d1 = ab.dot(ap);
+    const d2 = ac.dot(ap);
+    if (d1 <= 0 && d2 <= 0) return target.copy(a);
 
-    _v0.copy(b).sub(a);
-    _v1.copy(c).sub(a);
-    _v2.copy(point).sub(a);
+    const bp = _v3.copy(point).sub(b);
+    const d3 = ab.dot(bp);
+    const d4 = ac.dot(bp);
+    if (d3 >= 0 && d4 <= d3) return target.copy(b);
 
-    const dot00 = _v0.dot(_v0);
-    const dot01 = _v0.dot(_v1);
-    const dot02 = _v0.dot(_v2);
-    const dot11 = _v1.dot(_v1);
-    const dot12 = _v1.dot(_v2);
-
-    const denom = dot00 * dot11 - dot01 * dot01;
-    const v = denom === 0 ? 0 : (dot11 * dot02 - dot01 * dot12) / denom;
-    const w = denom === 0 ? 0 : (dot00 * dot12 - dot01 * dot02) / denom;
-
-    if (v < 0 || w < 0 || v + w > 1) {
-      return _closestOnEdges(a, b, c, point, target);
+    const vc = d1 * d4 - d3 * d2;
+    if (vc <= 0 && d1 >= 0 && d3 <= 0) {
+      return target.copy(a).addScaledVector(ab, d1 / (d1 - d3));
     }
 
-    return target.copy(a).add(_v0.mulScalar(v)).add(_v1.mulScalar(w));
+    const cp = _v4.copy(point).sub(c);
+    const d5 = ab.dot(cp);
+    const d6 = ac.dot(cp);
+    if (d6 >= 0 && d5 <= d6) return target.copy(c);
+
+    const vb = d5 * d2 - d1 * d6;
+    if (vb <= 0 && d2 >= 0 && d6 <= 0) {
+      return target.copy(a).addScaledVector(ac, d2 / (d2 - d6));
+    }
+
+    const va = d3 * d6 - d5 * d4;
+    if (va <= 0 && d4 >= d3 && d5 >= d6) {
+      const bc = _v5.copy(c).sub(b);
+      const weight = (d4 - d3) / (d4 - d3 + d5 - d6);
+      return target.copy(b).addScaledVector(bc, weight);
+    }
+
+    const inverseDenominator = 1 / (va + vb + vc);
+    return target
+      .copy(a)
+      .addScaledVector(ab, vb * inverseDenominator)
+      .addScaledVector(ac, vc * inverseDenominator);
   }
 
+  /** Returns true when every stored component exactly matches the argument. */
   equals(triangle: Triangle): boolean {
     return (
       triangle.a.equals(this.#a) &&
@@ -246,26 +243,7 @@ export class Triangle {
     );
   }
 
-  /** Interpolates v1, v2, v3 at the barycentric coordinate of point in triangle (a,b,c). */
-  static getInterpolation(
-    point: Vector3,
-    a: Vector3,
-    b: Vector3,
-    c: Vector3,
-    v1: Vector3,
-    v2: Vector3,
-    v3: Vector3,
-    target: Vector3 = new Vector3(),
-  ): Vector3 | undefined {
-    const bary = Triangle.getBarycoord(point, a, b, c, _v3);
-    if (bary === undefined) return;
-    target.set(0, 0, 0);
-    target.x += v1.x * bary.x + v2.x * bary.y + v3.x * bary.z;
-    target.y += v1.y * bary.x + v2.y * bary.y + v3.y * bary.z;
-    target.z += v1.z * bary.x + v2.z * bary.y + v3.z * bary.z;
-    return target;
-  }
-
+  /** Interpolates `v1`, `v2`, and `v3` at `point`'s barycentric coordinates. */
   getInterpolation(
     point: Vector3,
     v1: Vector3,
@@ -273,7 +251,7 @@ export class Triangle {
     v3: Vector3,
     target: Vector3 = new Vector3(),
   ): Vector3 | undefined {
-    return Triangle.getInterpolation(
+    return interpolateTriangle(
       point,
       this.#a,
       this.#b,
@@ -285,38 +263,26 @@ export class Triangle {
     );
   }
 
+  /** Writes the triangle centroid into `target`. */
   getMidpoint(target: Vector3 = new Vector3()): Vector3 {
     return target
       .copy(this.#a)
       .add(this.#b)
       .add(this.#c)
-      .mulScalar(1 / 3);
+      .multiplyScalar(1 / 3);
   }
 
-  /** Computes the normal of triangle (a, b, c) into target. */
-  static getNormal(
-    a: Vector3,
-    b: Vector3,
-    c: Vector3,
-    target: Vector3 = new Vector3(),
-  ): Vector3 {
-    target.copy(c).sub(b);
-    _v0.copy(b).sub(a);
-    target.cross(_v0);
-    const tLen = target.lengthSq;
-    return tLen > 0
-      ? target.mulScalar(1 / Math.sqrt(tLen))
-      : target.set(0, 0, 0);
-  }
-
+  /** Writes the normalized face normal into `target`. */
   getNormal(target: Vector3 = new Vector3()): Vector3 {
-    return Triangle.getNormal(this.#a, this.#b, this.#c, target);
+    return triangleNormal(this.#a, this.#b, this.#c, target);
   }
 
+  /** Writes the plane containing this triangle into `target`. */
   getPlane(target: Plane = new Plane()): Plane {
     return target.setFromCoplanarPoints(this.#a, this.#b, this.#c);
   }
 
+  /** Returns true when `box` overlaps this triangle. */
   intersectsBox(box: {
     min: Vector3;
     max: Vector3;
@@ -325,19 +291,8 @@ export class Triangle {
     return box.intersectsTriangle ? box.intersectsTriangle(this) : false;
   }
 
-  /** Returns true if triangle (a,b,c) is front-facing relative to direction. */
-  static isFrontFacing(
-    a: Vector3,
-    b: Vector3,
-    c: Vector3,
-    direction: Vector3,
-  ): boolean {
-    _v0.copy(c).sub(b);
-    _v1.copy(b).sub(a);
-    return _v0.cross(_v1).dot(direction) < 0;
-  }
-
+  /** Returns true when the triangle faces `direction`. */
   isFrontFacing(direction: Vector3): boolean {
-    return Triangle.isFrontFacing(this.#a, this.#b, this.#c, direction);
+    return isTriangleFrontFacing(this.#a, this.#b, this.#c, direction);
   }
 }

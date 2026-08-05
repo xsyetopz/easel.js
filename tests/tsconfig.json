@@ -4,5 +4,10 @@
     "noEmit": true,
     "types": ["bun-types"]
   },
-  "include": ["../src/**/*.ts", "../scripts/api-compat/**/*.ts", "**/*.ts"]
+  "include": [
+    "../src/**/*.ts",
+    "../scripts/check-modern-api.ts",
+    "../scripts/generate-starlight-docs.ts",
+    "**/*.ts"
+  ]
 }

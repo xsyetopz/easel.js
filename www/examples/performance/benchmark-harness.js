@@ -55,6 +55,7 @@ function runWorkload(workload, options) {
   let frame = 0;
   for (; frame < options.warmupFrames; frame++) {
     instance.step(frame);
+    instance.renderer.prepare(instance.scene, instance.camera);
     instance.renderer.render(instance.scene, instance.camera);
   }
 
@@ -66,6 +67,7 @@ function runWorkload(workload, options) {
     for (let i = 0; i < options.framesPerSample; i++, frame++) {
       const timings = { profileTraversal: options.profileTraversal };
       instance.step(frame);
+      instance.renderer.prepare(instance.scene, instance.camera);
       instance.renderer.render(instance.scene, instance.camera, timings);
       accumulatePipeline(pipeline, timings);
     }

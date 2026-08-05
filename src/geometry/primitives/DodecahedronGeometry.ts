@@ -74,9 +74,10 @@ const _indices = [
   19, 5, 14, 19, 14, 4, 19, 4, 17, 1, 12, 14, 1, 14, 5, 1, 5, 9,
 ];
 
-/** Dodecahedron geometry. */
+/** Dodecahedron projected onto a sphere by `PolyhedronGeometry`. */
 export class DodecahedronGeometry extends PolyhedronGeometry {
-  constructor(radius = 1, detail = 0) {
+  /** Constructs a dodecahedron projected to the requested radius and detail level. */
+  constructor(radius: number = 1, detail: number = 0) {
     super(_vertices, _indices, radius, detail);
     this.type = "DodecahedronGeometry";
     this.parameters = { radius, detail };

@@ -1,9 +1,15 @@
 import { Vector2 } from "../../math/Vector2.ts";
 import { LatheGeometry } from "./LatheGeometry.ts";
 
-/** Capsule geometry built by revolving a hemisphere-cylinder-hemisphere profile. */
+/** Capsule formed by revolving a hemisphere–cylinder–hemisphere profile. */
 export class CapsuleGeometry extends LatheGeometry {
-  constructor(radius = 1, length = 1, capSegments = 4, radialSegments = 8) {
+  /** Constructs a capsule from cylindrical length, cap radius, and radial subdivisions. */
+  constructor(
+    radius: number = 1,
+    length: number = 1,
+    capSegments: number = 4,
+    radialSegments: number = 8,
+  ) {
     const path: Vector2[] = [];
     const halfLength = length / 2;
 

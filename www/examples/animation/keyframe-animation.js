@@ -63,17 +63,18 @@ export function setup(canvas, params = {}) {
   const clip = new EASEL.AnimationClip("bounce", 1, [posTrack, scaleTrack]);
   const animator = new EASEL.Animator(box);
   const action = animator.clipAction(clip);
-  action.setLoop(EASEL.LoopRepeat, Number.POSITIVE_INFINITY);
+  action.setLoop(EASEL.Loop.Repeat, Number.POSITIVE_INFINITY);
   action.timeScale = params.speed ?? 1;
   action.play();
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     animator.update(dt);
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -109,7 +110,7 @@ const scaleTrack = new EASEL.VectorTrack(
 const clip     = new EASEL.AnimationClip("bounce", 1, [posTrack, scaleTrack]);
 const animator = new EASEL.Animator(box);
 const action   = animator.clipAction(clip);
-action.setLoop(EASEL.LoopRepeat, Infinity);
+action.setLoop(EASEL.Loop.Repeat, Infinity);
 action.timeScale = speed;
 action.play();
 

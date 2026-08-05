@@ -170,8 +170,7 @@ describe("ScanlineFill", () => {
     const ccw = collectFill(fill, 0, 0, 10, 0, 5, 10);
     const cw = collectFill(fill, 0, 0, 5, 10, 10, 0);
     const toKey = (p: { x: number; y: number }) => `${p.x},${p.y}`;
-    const compareUtf16 = (a: string, b: string) =>
-      a < b ? -1 : a > b ? 1 : 0;
+    const compareUtf16 = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
     const ccwKeys = ccw.map(toKey).sort(compareUtf16);
     const cwKeys = cw.map(toKey).sort(compareUtf16);
     expect(ccwKeys).toEqual(cwKeys);

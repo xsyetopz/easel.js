@@ -6,7 +6,7 @@ interface ImageDataLike {
   height: number;
 }
 
-/** RGBA pixel buffer backed by an Int32Array. */
+/** RGBA byte buffer with a Uint32 view for packed CPU writes. */
 export class Framebuffer {
   #width: number;
   #height: number;
@@ -15,6 +15,7 @@ export class Framebuffer {
   #u32: Uint32Array;
   #depthBuffer: DepthBuffer;
 
+  /** Constructs RGBA color and Uint16 depth storage for the requested dimensions. */
   constructor(width: number, height: number) {
     this.#width = width;
     this.#height = height;
@@ -35,37 +36,44 @@ export class Framebuffer {
     return { data: new Uint8ClampedArray(width * height * 4), width, height };
   }
 
+  /** Current color-buffer width in pixels. */
   get width(): number {
     return this.#width;
   }
 
+  /** Current color-buffer height in pixels. */
   get height(): number {
     return this.#height;
   }
 
+  /** Canvas-compatible ImageData-like view backed by the framebuffer. */
   get imageData(): ImageDataLike {
     return this.#imageData;
   }
 
+  /** Raw pixel or depth storage backing this object. */
   get data(): Uint8ClampedArray {
     return this.#data;
   }
 
+  /** Uint32 view used for packed RGBA writes. */
   get u32(): Uint32Array {
     return this.#u32;
   }
 
+  /** Uint16 depth buffer used for CPU early-Z tests. */
   get depthBuffer(): DepthBuffer {
     return this.#depthBuffer;
   }
 
+  /** Writes one packed RGBA pixel at integer framebuffer coordinates. */
   setPixel(
     x: number,
     y: number,
     r: number,
     g: number,
     b: number,
-    a = 255,
+    a: number = 255,
   ): void {
     const idx = (y * this.#width + x) << 2;
     this.#data[idx] = r;
@@ -74,6 +82,7 @@ export class Framebuffer {
     this.#data[idx + 3] = a;
   }
 
+  /** Reads one packed RGBA pixel at integer framebuffer coordinates. */
   getPixel(
     x: number,
     y: number,
@@ -87,6 +96,7 @@ export class Framebuffer {
     };
   }
 
+  /** Resizes color and depth storage for the requested pixel dimensions. */
   resize(width: number, height: number): void {
     this.#width = width;
     this.#height = height;

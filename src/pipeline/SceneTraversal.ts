@@ -1,22 +1,33 @@
 import { LightType, Shading, Side } from "../core/Constants.ts";
 import type { Node } from "../core/Node.ts";
+import { LineMaterial } from "../materials/LineMaterial.ts";
 import type { Material } from "../materials/Material.ts";
 import { Frustum } from "../math/Frustum.ts";
 import { Matrix4 } from "../math/Matrix4.ts";
+import type { SphericalHarmonicsCoefficients } from "../math/SphericalHarmonics3.ts";
 import { Vector3 } from "../math/Vector3.ts";
+import { Line } from "../objects/Line.ts";
+import { LineLoop } from "../objects/LineLoop.ts";
+import { LineSegments } from "../objects/LineSegments.ts";
 import { DrawCall } from "./DrawCall.ts";
 import { DrawList } from "./DrawList.ts";
 import { buildInstancedDrawCalls } from "./InstancedMeshBuilder.ts";
+import { LineBuffer } from "./LineBuffer.ts";
 import { TriangleBuffer } from "./TriangleBuffer.ts";
 
 const _mvp = new Matrix4();
 const _vp = new Matrix4();
+const _viewWorld = new Matrix4();
 const _bsCenter = new Vector3();
 const _frustum = new Frustum();
 const _emptyNormals = new Float32Array(0);
+const _emptyProjectedVerts = new Float32Array(0);
+const _emptyClipVerts = new Float32Array(0);
+const _emptyShadedColors = new Float32Array(0);
 const _emptyUvs = new Float32Array(0);
 const _emptyVertexColors = new Float32Array(0);
 const _emptyWorldPositions = new Float32Array(0);
+const _emptyViewDepths = new Float32Array(0);
 
 interface Vec3 {
   x: number;
@@ -31,7 +42,6 @@ interface AttributeLike {
 
 interface GeometryLike {
   boundingSphere?: { centre: Vector3; radius: number };
-  computeBoundingSphere?: () => void;
   getAttribute: (name: string) => AttributeLike | undefined;
   index?: { array: ArrayLike<number> } | ArrayLike<number>;
   _sequentialIndices?: Uint32Array;
@@ -45,14 +55,16 @@ interface SceneNode {
   geometry?: GeometryLike;
   material?: Material;
   matrixWorld: Matrix4;
-  updateMatrixWorld?: (updateParents?: boolean, force?: boolean) => void;
   frustumCulled?: boolean;
   _projectedVerts?: Float32Array;
+  _viewDepths?: Float32Array;
   _worldPositions?: Float32Array;
   _worldNormalCache?: Float32Array;
   _worldNormalCacheKey?: Float32Array;
   _triangleBuffer?: TriangleBuffer;
   _drawCall?: DrawCall;
+  _lineBuffer?: LineBuffer;
+  _lineClipVerts?: Float32Array;
   [k: string]: unknown;
 }
 
@@ -60,7 +72,6 @@ interface CameraLike {
   matrixWorldInverse: Matrix4;
   projectionMatrix: Matrix4;
   position: Vec3;
-  updateMatrixWorld: () => void;
 }
 
 interface SceneLike {
@@ -72,9 +83,10 @@ interface SceneLike {
         far: number;
         color: { r: number; g: number; b: number };
         lut: Float32Array;
+        mode?: "linear" | "exponential-squared";
+        lutNeedsUpdate?: boolean;
       }
     | undefined;
-  autoUpdate?: boolean;
 }
 
 const VERT_STRIDE = 4;
@@ -84,9 +96,9 @@ export class SceneTraversal {
   #fogNear = 0;
   #fogFar = 0;
   #fogLutScale = 0;
-  #fogLut: Float32Array | null = null;
+  #fogLut: Float32Array | undefined;
+  #fogMode: "linear" | "exponential-squared" = "linear";
   #hasFog = false;
-  #autoUpdate = false;
 
   // Scratch storage set by `#isFrustumCulled` so `#walk` can reuse
   // bounding sphere world center without recomputing it for fog checks.
@@ -97,14 +109,18 @@ export class SceneTraversal {
 
   #sphereScratch = { centre: _bsCenter, radius: 0 };
 
-  #drawList = new DrawList();
-  #sceneHasUpdateMatrixWorld = false;
+  // Scalar homogeneous clipping state reused for every line segment.
+  #clipLower = 0;
+  #clipUpper = 1;
 
+  #drawList = new DrawList();
+
+  /** Collects visible, frustum-culled draw calls and prepared lights for CPU rasterization. */
   traverse(
     scene: SceneLike,
     camera: CameraLike,
-    width = 300,
-    height = 150,
+    width: number = 300,
+    height: number = 150,
     timings?: {
       profileTraversal?: boolean;
       travUpdateWorldMs?: number;
@@ -123,35 +139,25 @@ export class SceneTraversal {
     let projectMs = 0;
     let assembleMs = 0;
 
-    this.#autoUpdate = scene.autoUpdate !== false;
     const tUpdate0 = timings ? now() : 0;
-    camera.updateMatrixWorld();
-    if (this.#autoUpdate) {
-      const sceneUpdate = (scene as unknown as { updateMatrixWorld?: unknown })
-        .updateMatrixWorld;
-      this.#sceneHasUpdateMatrixWorld = typeof sceneUpdate === "function";
-      if (typeof sceneUpdate === "function") {
-        (
-          sceneUpdate as (
-            updateParents?: boolean,
-            updateChildren?: boolean,
-          ) => void
-        ).call(scene, true, true);
-      }
-    } else {
-      this.#sceneHasUpdateMatrixWorld = false;
-    }
     if (timings) timings.travUpdateWorldMs = now() - tUpdate0;
 
     const fog = scene.fog;
+    if (fog?.lutNeedsUpdate) {
+      throw new Error("Fog LUT is dirty; call updateLut() before traversal.");
+    }
     this.#hasFog = !!fog;
     this.#fogNear = fog?.near ?? 0;
     this.#fogFar = fog?.far ?? 0;
-    this.#fogLut = fog?.lut ?? null;
-    this.#fogLutScale =
-      fog && fog.far - fog.near > 0 ? 255 / (fog.far - fog.near) : 0;
+    this.#fogMode = fog?.mode ?? "linear";
+    this.#fogLut = fog?.lut;
+    const fogLutDomain =
+      this.#fogMode === "exponential-squared"
+        ? this.#fogFar
+        : this.#fogFar - this.#fogNear;
+    this.#fogLutScale = fog && fogLutDomain > 0 ? 255 / fogLutDomain : 0;
 
-    _vp.copy(camera.projectionMatrix).mul(camera.matrixWorldInverse);
+    _vp.copy(camera.projectionMatrix).multiply(camera.matrixWorldInverse);
     _frustum.setFromProjectionMatrix(_vp);
 
     const drawList = this.#drawList;
@@ -202,19 +208,14 @@ export class SceneTraversal {
       | undefined,
   ): void {
     if (!node.visible) return;
+    const isLine =
+      node instanceof Line && node.material instanceof LineMaterial;
 
     if (
-      (node.type === "Mesh" || node.type === "Points") &&
+      (node.type === "Mesh" || node.type === "Points" || isLine) &&
       node.geometry &&
       node.material
     ) {
-      if (
-        this.#autoUpdate &&
-        !this.#sceneHasUpdateMatrixWorld &&
-        node.updateMatrixWorld
-      ) {
-        node.updateMatrixWorld(true, false);
-      }
       if (
         !this.#isFrustumCulled(
           node as SceneNode & {
@@ -248,16 +249,28 @@ export class SceneTraversal {
         }
 
         {
-          const dc = this.#buildDrawCall(
-            node as SceneNode & {
-              matrixWorld: Matrix4;
-              geometry: GeometryLike;
-              material: Material;
-            },
-            width,
-            height,
-            profiler,
-          );
+          const dc = isLine
+            ? this.#buildLineDrawCall(
+                node as SceneNode & {
+                  matrixWorld: Matrix4;
+                  geometry: GeometryLike;
+                  material: Material;
+                },
+                camera,
+                width,
+                height,
+              )
+            : this.#buildDrawCall(
+                node as SceneNode & {
+                  matrixWorld: Matrix4;
+                  geometry: GeometryLike;
+                  material: Material;
+                },
+                camera,
+                width,
+                height,
+                profiler,
+              );
           drawList.add(dc);
         }
       }
@@ -266,13 +279,6 @@ export class SceneTraversal {
       node.geometry &&
       node.material
     ) {
-      if (
-        this.#autoUpdate &&
-        !this.#sceneHasUpdateMatrixWorld &&
-        node.updateMatrixWorld
-      ) {
-        node.updateMatrixWorld(true, false);
-      }
       buildInstancedDrawCalls(
         node as never,
         camera,
@@ -280,9 +286,23 @@ export class SceneTraversal {
         width,
         height,
         drawList,
-        { hasFog: this.#hasFog, fogFar: this.#fogFar },
-        (a, b, c, d, e, f, g, h) =>
-          this.#assembleTriangles(a, b, c, d, e, f, g, h),
+        {
+          hasFog: this.#hasFog,
+          fogFar: this.#fogFar,
+          fogLut: this.#fogLut,
+        },
+        (a, b, c, d, e, f, g, h, i) =>
+          this.#assembleTriangles(
+            a,
+            b,
+            i ?? _emptyViewDepths,
+            c,
+            d,
+            e,
+            f,
+            g,
+            h,
+          ),
         (() => {
           const hasTexture = !!(
             node.material as unknown as { map?: { data?: unknown } }
@@ -292,7 +312,10 @@ export class SceneTraversal {
             : () => _emptyUvs;
         })(),
       );
-    } else if (typeof node.type === "string" && node.type.endsWith("Light")) {
+    } else if (
+      typeof node.type === "string" &&
+      (node.type.endsWith("Light") || node.type === "LightProbe")
+    ) {
       this.#collectLight(node, drawList);
     }
 
@@ -310,12 +333,6 @@ export class SceneTraversal {
     node: { geometry: GeometryLike; matrixWorld: Matrix4 },
     frustum: Frustum,
   ): boolean {
-    if (
-      node.geometry.boundingSphere === undefined &&
-      typeof node.geometry.computeBoundingSphere === "function"
-    ) {
-      node.geometry.computeBoundingSphere();
-    }
     const bs = node.geometry.boundingSphere;
     if (!bs) {
       const me = node.matrixWorld.elements;
@@ -351,12 +368,373 @@ export class SceneTraversal {
     return !frustum.intersectsSphere(this.#sphereScratch);
   }
 
+  #buildLineDrawCall(
+    node: SceneNode & {
+      matrixWorld: Matrix4;
+      geometry: GeometryLike;
+      material: Material;
+    },
+    camera: CameraLike,
+    width: number,
+    height: number,
+  ): DrawCall {
+    let drawCall = node._drawCall;
+    if (drawCall) {
+      drawCall.mesh = node as unknown as Node;
+      drawCall.material = node.material;
+      drawCall.centroid.x = this.#lastBsCenterX;
+      drawCall.centroid.y = this.#lastBsCenterY;
+      drawCall.centroid.z = this.#lastBsCenterZ;
+    } else {
+      drawCall = new DrawCall(
+        node as unknown as Node,
+        node.material,
+        this.#lastBsCenterX,
+        this.#lastBsCenterY,
+        this.#lastBsCenterZ,
+      );
+      node._drawCall = drawCall;
+    }
+
+    drawCall.primitive = "lines";
+    drawCall.triangles = undefined;
+    drawCall.shadedColorData = _emptyShadedColors;
+    drawCall.shadedColorStride = 0;
+    drawCall.worldPositions = _emptyWorldPositions;
+
+    _mvp.copy(_vp).multiply(node.matrixWorld);
+    const viewWorld =
+      this.#hasFog && this.#fogLut
+        ? _viewWorld.copy(camera.matrixWorldInverse).multiply(node.matrixWorld)
+        : undefined;
+    const viewDepths = this.#projectLineVertices(node, drawCall, viewWorld);
+
+    const colorAttr = node.geometry.getAttribute("color");
+    if (
+      node.material.vertexColors !== false &&
+      colorAttr?.itemSize === 3 &&
+      colorAttr.array.length === drawCall.vertCount * 3
+    ) {
+      drawCall.vertexColorData = colorAttr.array;
+      drawCall.vertexColorItemSize = 3;
+    } else {
+      drawCall.vertexColorData = _emptyVertexColors;
+      drawCall.vertexColorItemSize = 0;
+    }
+
+    const index = node.geometry.index;
+    if (index) {
+      drawCall.faceIndices = ((index as { array: ArrayLike<number> }).array ??
+        index) as number[] | Uint16Array | Uint32Array;
+    } else {
+      if (
+        !node.geometry._sequentialIndices ||
+        node.geometry._sequentialIndices.length !== drawCall.vertCount
+      ) {
+        node.geometry._sequentialIndices = Uint32Array.from(
+          { length: drawCall.vertCount },
+          (_, i) => i,
+        );
+      }
+      drawCall.faceIndices = node.geometry._sequentialIndices;
+    }
+
+    let lineBuffer = node._lineBuffer;
+    if (!lineBuffer) {
+      lineBuffer = new LineBuffer(
+        Math.max(0, Math.floor(drawCall.faceIndices.length / 2)),
+      );
+      node._lineBuffer = lineBuffer;
+    }
+    lineBuffer.reset();
+    const estimatedSegments =
+      node instanceof LineSegments
+        ? Math.floor(drawCall.faceIndices.length / 2)
+        : Math.max(0, drawCall.faceIndices.length);
+    lineBuffer.ensureCapacity(estimatedSegments);
+
+    const indices = drawCall.faceIndices;
+    const isLineSegments = node instanceof LineSegments;
+
+    if (isLineSegments) {
+      for (let i = 0; i + 1 < indices.length; i += 2) {
+        this.#appendIndexedLineSegment(
+          lineBuffer,
+          drawCall.clipVerts,
+          viewDepths,
+          indices[i],
+          indices[i + 1],
+          drawCall.vertCount,
+          width,
+          height,
+          false,
+        );
+      }
+    } else {
+      for (let i = 0; i + 1 < indices.length; i++) {
+        this.#appendIndexedLineSegment(
+          lineBuffer,
+          drawCall.clipVerts,
+          viewDepths,
+          indices[i],
+          indices[i + 1],
+          drawCall.vertCount,
+          width,
+          height,
+          i > 0,
+        );
+      }
+      if (node instanceof LineLoop && indices.length >= 2) {
+        this.#appendIndexedLineSegment(
+          lineBuffer,
+          drawCall.clipVerts,
+          viewDepths,
+          indices[indices.length - 1],
+          indices[0],
+          drawCall.vertCount,
+          width,
+          height,
+          true,
+        );
+      }
+    }
+
+    drawCall.lines = lineBuffer;
+    return drawCall;
+  }
+
+  #appendIndexedLineSegment(
+    lineBuffer: LineBuffer,
+    clipVerts: Float32Array,
+    viewDepths: Float32Array,
+    vertex0: number,
+    vertex1: number,
+    vertexCount: number,
+    width: number,
+    height: number,
+    continuesPrevious: boolean,
+  ): void {
+    if (
+      !(
+        isValidLineIndex(vertex0, vertexCount) &&
+        isValidLineIndex(vertex1, vertexCount)
+      )
+    ) {
+      return;
+    }
+    this.#appendLineSegment(
+      lineBuffer,
+      clipVerts,
+      viewDepths,
+      vertex0,
+      vertex1,
+      width,
+      height,
+      continuesPrevious,
+    );
+  }
+
+  #projectLineVertices(
+    node: SceneNode & { matrixWorld: Matrix4; geometry: GeometryLike },
+    drawCall: DrawCall,
+    viewWorld: Matrix4 | undefined,
+  ): Float32Array {
+    const posAttr = node.geometry.getAttribute("position");
+    if (!posAttr) {
+      drawCall.projectedVerts = _emptyProjectedVerts;
+      drawCall.clipVerts = _emptyClipVerts;
+      drawCall.vertCount = 0;
+      return _emptyViewDepths;
+    }
+
+    const arr = posAttr.array;
+    const itemSize = posAttr.itemSize ?? 3;
+    const count = Math.floor(arr.length / itemSize);
+    const needed = count * VERT_STRIDE;
+    let clip = node._lineClipVerts;
+    if (!clip || clip.length !== needed) {
+      clip = new Float32Array(needed);
+      node._lineClipVerts = clip;
+    }
+    drawCall.projectedVerts = _emptyProjectedVerts;
+    drawCall.clipVerts = clip;
+    drawCall.vertCount = count;
+
+    let viewDepths: Float32Array = _emptyViewDepths;
+    const viewElements = viewWorld?.elements;
+    if (viewElements) {
+      let cached = node._viewDepths;
+      if (!cached || cached.length !== count) {
+        cached = new Float32Array(count);
+        node._viewDepths = cached;
+      }
+      viewDepths = cached;
+    }
+
+    const me = _mvp.elements;
+    for (let i = 0; i < count; i++) {
+      const lx = arr[i * itemSize];
+      const ly = arr[i * itemSize + 1];
+      const lz = arr[i * itemSize + 2];
+      const cx = me[0] * lx + me[4] * ly + me[8] * lz + me[12];
+      const cy = me[1] * lx + me[5] * ly + me[9] * lz + me[13];
+      const cz = me[2] * lx + me[6] * ly + me[10] * lz + me[14];
+      const cw = me[3] * lx + me[7] * ly + me[11] * lz + me[15];
+      const cb = i * VERT_STRIDE;
+      clip[cb] = cx;
+      clip[cb + 1] = cy;
+      clip[cb + 2] = cz;
+      clip[cb + 3] = cw;
+      if (viewElements) {
+        const viewZ =
+          viewElements[2] * lx +
+          viewElements[6] * ly +
+          viewElements[10] * lz +
+          viewElements[14];
+        viewDepths[i] = viewZ < 0 ? -viewZ : 0;
+      }
+    }
+    return viewDepths;
+  }
+
+  #appendLineSegment(
+    lineBuffer: LineBuffer,
+    clipVerts: Float32Array,
+    viewDepths: Float32Array,
+    vertex0: number,
+    vertex1: number,
+    width: number,
+    height: number,
+    continuesPrevious: boolean,
+  ): void {
+    const b0 = vertex0 * VERT_STRIDE;
+    const b1 = vertex1 * VERT_STRIDE;
+    const x0 = clipVerts[b0];
+    const y0 = clipVerts[b0 + 1];
+    const z0 = clipVerts[b0 + 2];
+    const w0 = clipVerts[b0 + 3];
+    const x1 = clipVerts[b1];
+    const y1 = clipVerts[b1 + 1];
+    const z1 = clipVerts[b1 + 2];
+    const w1 = clipVerts[b1 + 3];
+    if (
+      !(
+        Number.isFinite(x0) &&
+        Number.isFinite(y0) &&
+        Number.isFinite(z0) &&
+        Number.isFinite(w0) &&
+        Number.isFinite(x1) &&
+        Number.isFinite(y1) &&
+        Number.isFinite(z1) &&
+        Number.isFinite(w1)
+      )
+    ) {
+      return;
+    }
+
+    const epsilon = 1e-7;
+    this.#clipLower = 0;
+    this.#clipUpper = 1;
+    if (!this.#clipPlane(x0 + w0, x1 + w1)) return;
+    if (!this.#clipPlane(-x0 + w0, -x1 + w1)) return;
+    if (!this.#clipPlane(y0 + w0, y1 + w1)) return;
+    if (!this.#clipPlane(-y0 + w0, -y1 + w1)) return;
+    if (!this.#clipPlane(z0 + w0, z1 + w1)) return;
+    if (!this.#clipPlane(-z0 + w0, -z1 + w1)) return;
+    if (!this.#clipPlane(w0 - epsilon, w1 - epsilon)) return;
+
+    const lower = this.#clipLower;
+    const upper = this.#clipUpper;
+
+    const c0x = x0 + (x1 - x0) * lower;
+    const c0y = y0 + (y1 - y0) * lower;
+    const c0z = z0 + (z1 - z0) * lower;
+    const c0w = w0 + (w1 - w0) * lower;
+    const c1x = x0 + (x1 - x0) * upper;
+    const c1y = y0 + (y1 - y0) * upper;
+    const c1z = z0 + (z1 - z0) * upper;
+    const c1w = w0 + (w1 - w0) * upper;
+    if (c0w <= epsilon || c1w <= epsilon) return;
+    const n0x = c0x / c0w;
+    const n0y = c0y / c0w;
+    const n0z = c0z / c0w;
+    const n1x = c1x / c1w;
+    const n1y = c1y / c1w;
+    const n1z = c1z / c1w;
+    if (
+      !(
+        Number.isFinite(n0x) &&
+        Number.isFinite(n0y) &&
+        Number.isFinite(n0z) &&
+        Number.isFinite(n1x) &&
+        Number.isFinite(n1y) &&
+        Number.isFinite(n1z)
+      )
+    ) {
+      return;
+    }
+
+    const sx0 = pixelX(n0x, width);
+    const sy0 = pixelY(n0y, height);
+    const sx1 = pixelX(n1x, width);
+    const sy1 = pixelY(n1y, height);
+    let dashPhase = 0;
+    if (w0 !== 0 && w1 !== 0) {
+      const rawNdcX0 = x0 / w0;
+      const rawNdcY0 = y0 / w0;
+      const rawScreenX0 = unboundedPixelX(rawNdcX0, width);
+      const rawScreenY0 = unboundedPixelY(rawNdcY0, height);
+      if (
+        Number.isFinite(rawScreenX0) &&
+        Number.isFinite(rawScreenY0) &&
+        lower > 0
+      ) {
+        dashPhase = Math.max(
+          Math.abs(sx0 - rawScreenX0),
+          Math.abs(sy0 - rawScreenY0),
+        );
+      }
+    }
+    const fog0 =
+      viewDepths.length > vertex0 ? this.#fogOpacityAt(viewDepths[vertex0]) : 0;
+    const fog1 =
+      viewDepths.length > vertex1 ? this.#fogOpacityAt(viewDepths[vertex1]) : 0;
+    lineBuffer.append(
+      sx0,
+      sy0,
+      sx1,
+      sy1,
+      n0z,
+      n1z,
+      fog0 + (fog1 - fog0) * lower,
+      fog0 + (fog1 - fog0) * upper,
+      vertex0,
+      vertex1,
+      lower,
+      upper,
+      dashPhase,
+      continuesPrevious,
+    );
+  }
+
+  /** Clips one homogeneous half-space without allocating a plane tuple. */
+  #clipPlane(f0: number, f1: number): boolean {
+    if (f0 < 0 && f1 < 0) return false;
+    if (f0 < 0 || f1 < 0) {
+      const t = f0 / (f0 - f1);
+      if (f0 < 0) this.#clipLower = Math.max(this.#clipLower, t);
+      else this.#clipUpper = Math.min(this.#clipUpper, t);
+    }
+    return this.#clipLower <= this.#clipUpper;
+  }
+
   #buildDrawCall(
     node: SceneNode & {
       matrixWorld: Matrix4;
       geometry: GeometryLike;
       material: Material;
     },
+    camera: CameraLike,
     width: number,
     height: number,
     profiler?:
@@ -385,7 +763,10 @@ export class SceneTraversal {
       node._drawCall = drawCall;
     }
 
-    _mvp.copy(_vp).mul(node.matrixWorld);
+    drawCall.primitive = "triangles";
+    drawCall.lines = undefined;
+
+    _mvp.copy(_vp).multiply(node.matrixWorld);
     const material = node.material as Material & {
       map?: { data?: unknown };
       points?: boolean;
@@ -397,16 +778,24 @@ export class SceneTraversal {
       materialType === "BasicMaterial" || materialType === "PointsMaterial";
     const hasTexture = !!material.map?.data;
 
+    // Fog needs -viewZ; clip W is not a depth for orthographic projections.
+    const viewWorld =
+      this.#hasFog && this.#fogLut
+        ? _viewWorld.copy(camera.matrixWorldInverse).multiply(node.matrixWorld)
+        : undefined;
+
+    let viewDepths: Float32Array;
     if (profiler) {
       const t0 = profiler.now();
-      this.#projectVertices(node, drawCall, !isUnlit);
+      viewDepths = this.#projectVertices(node, drawCall, !isUnlit, viewWorld);
       profiler.onProject(profiler.now() - t0);
     } else {
-      this.#projectVertices(node, drawCall, !isUnlit);
+      viewDepths = this.#projectVertices(node, drawCall, !isUnlit, viewWorld);
     }
 
     const colorAttr = node.geometry.getAttribute("color");
     if (
+      material.vertexColors !== false &&
       colorAttr?.itemSize === 3 &&
       colorAttr.array.length === drawCall.vertCount * 3
     ) {
@@ -440,6 +829,7 @@ export class SceneTraversal {
         drawCall.triangles = this.#assemblePoints(
           drawCall.faceIndices,
           drawCall.projectedVerts,
+          viewDepths,
           width,
           height,
           node,
@@ -452,6 +842,7 @@ export class SceneTraversal {
         drawCall.triangles = this.#assembleTriangles(
           drawCall.faceIndices,
           drawCall.projectedVerts,
+          viewDepths,
           worldNormals,
           uvs,
           width,
@@ -465,6 +856,7 @@ export class SceneTraversal {
       drawCall.triangles = this.#assemblePoints(
         drawCall.faceIndices,
         drawCall.projectedVerts,
+        viewDepths,
         width,
         height,
         node,
@@ -477,6 +869,7 @@ export class SceneTraversal {
       drawCall.triangles = this.#assembleTriangles(
         drawCall.faceIndices,
         drawCall.projectedVerts,
+        viewDepths,
         worldNormals,
         uvs,
         width,
@@ -496,9 +889,10 @@ export class SceneTraversal {
     node: SceneNode & { matrixWorld: Matrix4; geometry: GeometryLike },
     drawCall: DrawCall,
     writeWorldPositions: boolean,
-  ): void {
+    viewWorld: Matrix4 | undefined,
+  ): Float32Array {
     const posAttr = node.geometry.getAttribute("position");
-    if (!posAttr) return;
+    if (!posAttr) return _emptyViewDepths;
 
     const arr = posAttr.array;
     const itemSize = posAttr.itemSize ?? 3;
@@ -512,6 +906,17 @@ export class SceneTraversal {
     }
     drawCall.projectedVerts = pv;
     drawCall.vertCount = count;
+
+    const viewElements = viewWorld?.elements;
+    let viewDepths: Float32Array<ArrayBufferLike> = _emptyViewDepths;
+    if (viewElements) {
+      let cached = node._viewDepths;
+      if (!cached || cached.length !== count) {
+        cached = new Float32Array(count);
+        node._viewDepths = cached;
+      }
+      viewDepths = cached;
+    }
 
     if (!writeWorldPositions) {
       drawCall.worldPositions = _emptyWorldPositions;
@@ -531,8 +936,16 @@ export class SceneTraversal {
         pv[base + 1] = py * invW;
         pv[base + 2] = pz * invW;
         pv[base + 3] = pw;
+        if (viewElements) {
+          const viewZ =
+            viewElements[2] * lx +
+            viewElements[6] * ly +
+            viewElements[10] * lz +
+            viewElements[14];
+          viewDepths[i] = viewZ < 0 ? -viewZ : 0;
+        }
       }
-      return;
+      return viewDepths;
     }
 
     const worldNeeded = count * 3;
@@ -560,12 +973,21 @@ export class SceneTraversal {
       pv[base + 1] = py * invW;
       pv[base + 2] = pz * invW;
       pv[base + 3] = pw;
+      if (viewElements) {
+        const viewZ =
+          viewElements[2] * lx +
+          viewElements[6] * ly +
+          viewElements[10] * lz +
+          viewElements[14];
+        viewDepths[i] = viewZ < 0 ? -viewZ : 0;
+      }
 
       const wb = i * 3;
       wp[wb] = mw[0] * lx + mw[4] * ly + mw[8] * lz + mw[12];
       wp[wb + 1] = mw[1] * lx + mw[5] * ly + mw[9] * lz + mw[13];
       wp[wb + 2] = mw[2] * lx + mw[6] * ly + mw[10] * lz + mw[14];
     }
+    return viewDepths;
   }
 
   /**
@@ -665,9 +1087,28 @@ export class SceneTraversal {
     return result;
   }
 
+  /** Samples the prepared fog LUT for positive camera-space depth. */
+  #fogOpacityAt(depth: number): number {
+    const lut = this.#fogLut;
+    if (!lut) return 0;
+
+    const index =
+      this.#fogMode === "exponential-squared"
+        ? depth * this.#fogLutScale
+        : (depth - this.#fogNear) * this.#fogLutScale;
+    if (index <= 0) return lut[0];
+    if (index >= 255) return lut[255];
+
+    const lower = Math.floor(index);
+    const upper = lower + 1;
+    const weight = index - lower;
+    return lut[lower] + (lut[upper] - lut[lower]) * weight;
+  }
+
   #assemblePoints(
     indices: ArrayLike<number>,
     verts: Float32Array,
+    viewDepths: Float32Array,
     width: number,
     height: number,
     node: { _triangleBuffer?: TriangleBuffer; [k: string]: unknown },
@@ -684,9 +1125,6 @@ export class SceneTraversal {
     const halfW = width * 0.5;
     const halfH = height * 0.5;
     const hasFog = this.#hasFog;
-    const fogNear = this.#fogNear;
-    const fogLutScale = this.#fogLutScale;
-    const fogLut = this.#fogLut;
 
     const screenX = buf.screenX;
     const screenY = buf.screenY;
@@ -740,11 +1178,10 @@ export class SceneTraversal {
       vertNormalZ[slot] = 0;
 
       let ff = 0;
-      if (hasFog && fogLut) {
-        const fi = ((w - fogNear) * fogLutScale) | 0;
-        ff = fi <= 0 ? 0 : fi >= 255 ? fogLut[255] : fogLut[fi];
-        fogFactor[slot] = ff;
+      if (hasFog && viewDepths.length > vi) {
+        ff = this.#fogOpacityAt(viewDepths[vi]);
       }
+      if (hasFog) fogFactor[slot] = ff;
 
       vertexIndex[slot] = vi;
       if (vi > maxVi) maxVi = vi;
@@ -787,6 +1224,7 @@ export class SceneTraversal {
   #assembleTriangles(
     indices: ArrayLike<number>,
     verts: Float32Array,
+    viewDepths: Float32Array,
     worldNormals: Float32Array,
     uvs: Float32Array,
     width: number,
@@ -812,9 +1250,6 @@ export class SceneTraversal {
     const halfH = height * 0.5;
 
     const hasFog = this.#hasFog;
-    const fogNear = this.#fogNear;
-    const fogLutScale = this.#fogLutScale;
-    const fogLut = this.#fogLut;
     const wnLen = worldNormals.length;
     const uvLen = uvs.length;
 
@@ -858,12 +1293,12 @@ export class SceneTraversal {
       const x2 = verts[b2];
       const y2 = verts[b2 + 1];
 
-      const sx0 = ((x0 + 1) * halfW + 0.5) | 0;
-      const sy0 = ((1 - y0) * halfH + 0.5) | 0;
-      const sx1 = ((x1 + 1) * halfW + 0.5) | 0;
-      const sy1 = ((1 - y1) * halfH + 0.5) | 0;
-      const sx2 = ((x2 + 1) * halfW + 0.5) | 0;
-      const sy2 = ((1 - y2) * halfH + 0.5) | 0;
+      const sx0 = (x0 + 1) * halfW;
+      const sy0 = (1 - y0) * halfH;
+      const sx1 = (x1 + 1) * halfW;
+      const sy1 = (1 - y1) * halfH;
+      const sx2 = (x2 + 1) * halfW;
+      const sy2 = (1 - y2) * halfH;
 
       const cross = (sx1 - sx0) * (sy2 - sy0) - (sy1 - sy0) * (sx2 - sx0);
       if (cross === 0) continue;
@@ -876,13 +1311,15 @@ export class SceneTraversal {
       let ff0 = 0;
       let ff1 = 0;
       let ff2 = 0;
-      if (hasFog && fogLut) {
-        const i0f = ((w0 - fogNear) * fogLutScale) | 0;
-        const i1f = ((w1 - fogNear) * fogLutScale) | 0;
-        const i2f = ((w2 - fogNear) * fogLutScale) | 0;
-        ff0 = i0f <= 0 ? 0 : i0f >= 255 ? fogLut[255] : fogLut[i0f];
-        ff1 = i1f <= 0 ? 0 : i1f >= 255 ? fogLut[255] : fogLut[i1f];
-        ff2 = i2f <= 0 ? 0 : i2f >= 255 ? fogLut[255] : fogLut[i2f];
+      if (
+        hasFog &&
+        viewDepths.length > i0 &&
+        viewDepths.length > i1 &&
+        viewDepths.length > i2
+      ) {
+        ff0 = this.#fogOpacityAt(viewDepths[i0]);
+        ff1 = this.#fogOpacityAt(viewDepths[i1]);
+        ff2 = this.#fogOpacityAt(viewDepths[i2]);
       }
 
       let fnx = 0;
@@ -972,9 +1409,9 @@ export class SceneTraversal {
       }
 
       if (hasFog) {
-        fogFactor[o3] = fogLut ? ff0 : 0;
-        fogFactor[o3 + 1] = fogLut ? ff1 : 0;
-        fogFactor[o3 + 2] = fogLut ? ff2 : 0;
+        fogFactor[o3] = ff0;
+        fogFactor[o3 + 1] = ff1;
+        fogFactor[o3 + 2] = ff2;
       }
 
       vertexIndex[o3] = i0;
@@ -994,6 +1431,23 @@ export class SceneTraversal {
   }
 
   #collectLight(light: SceneNode, drawList: DrawList): void {
+    const lightWorld = light.matrixWorld.elements;
+    const lightWorldX = lightWorld[12];
+    const lightWorldY = lightWorld[13];
+    const lightWorldZ = lightWorld[14];
+
+    if (light.type === "LightProbe") {
+      const sh = light["sh"] as {
+        coefficients: SphericalHarmonicsCoefficients;
+      };
+      drawList.lights.push({
+        type: "probe",
+        coefficients: sh.coefficients,
+        intensity: light["intensity"],
+      });
+      return;
+    }
+
     if (light.type === "AmbientLight") {
       drawList.lights.push({
         type: "ambient",
@@ -1005,14 +1459,17 @@ export class SceneTraversal {
     }
 
     if (light.type === "HemisphereLight") {
-      const pos = light["position"] as Vec3;
-      const len = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z) || 1;
+      const elements = light.matrixWorld.elements;
+      const x = elements[12];
+      const y = elements[13];
+      const z = elements[14];
+      const len = Math.sqrt(x * x + y * y + z * z) || 1;
       drawList.lights.push({
         type: "hemisphere",
         lightType: LightType.Hemisphere,
         skyColor: light["color"],
         groundColor: light["groundColor"],
-        direction: { x: pos.x / len, y: pos.y / len, z: pos.z / len },
+        direction: { x: x / len, y: y / len, z: z / len },
         intensity: light["intensity"],
       });
       return;
@@ -1024,11 +1481,10 @@ export class SceneTraversal {
     }
 
     if (light.type === "PointLight") {
-      const pos = light["position"] as Vec3;
       drawList.lights.push({
         type: "point",
         lightType: LightType.Point,
-        position: { x: pos.x, y: pos.y, z: pos.z },
+        position: { x: lightWorldX, y: lightWorldY, z: lightWorldZ },
         color: light["color"],
         intensity: light["intensity"],
         distance: (light["distance"] as number) ?? 0,
@@ -1037,40 +1493,25 @@ export class SceneTraversal {
       return;
     }
 
-    if (
-      !light["position"] ||
-      light["color"] === undefined ||
-      light["intensity"] === undefined
-    ) {
+    if (light["color"] === undefined || light["intensity"] === undefined) {
       return;
     }
-    const pos = light["position"] as Vec3;
     let ddx: number;
     let ddy: number;
     let ddz: number;
     if (light["target"]) {
       const target = light["target"] as SceneNode;
-      const tme = target.matrixWorld?.elements;
-      const lme = light.matrixWorld?.elements;
-      const twx = tme
-        ? tme[12]
-        : ((target["position"] as Vec3 | undefined)?.x ?? 0);
-      const twy = tme
-        ? tme[13]
-        : ((target["position"] as Vec3 | undefined)?.y ?? 0);
-      const twz = tme
-        ? tme[14]
-        : ((target["position"] as Vec3 | undefined)?.z ?? 0);
-      const lwx = lme ? lme[12] : pos.x;
-      const lwy = lme ? lme[13] : pos.y;
-      const lwz = lme ? lme[14] : pos.z;
-      ddx = twx - lwx;
-      ddy = twy - lwy;
-      ddz = twz - lwz;
+      const targetWorld = target.matrixWorld.elements;
+      const twx = targetWorld[12];
+      const twy = targetWorld[13];
+      const twz = targetWorld[14];
+      ddx = twx - lightWorldX;
+      ddy = twy - lightWorldY;
+      ddz = twz - lightWorldZ;
     } else {
-      ddx = -pos.x;
-      ddy = -pos.y;
-      ddz = -pos.z;
+      ddx = -lightWorldX;
+      ddy = -lightWorldY;
+      ddz = -lightWorldZ;
     }
     const len = Math.sqrt(ddx * ddx + ddy * ddy + ddz * ddz) || 1;
     drawList.lights.push({
@@ -1083,56 +1524,67 @@ export class SceneTraversal {
   }
 
   #buildSpotLightEntry(light: SceneNode): Record<string, unknown> {
-    const pos = light["position"] as Vec3;
-    const me = light.matrixWorld?.elements;
+    const me = light.matrixWorld.elements;
+    const lightWorldX = me[12];
+    const lightWorldY = me[13];
+    const lightWorldZ = me[14];
     let wdx: number;
     let wdy: number;
     let wdz: number;
     if (light["target"]) {
       const target = light["target"] as SceneNode;
-      const tme = target.matrixWorld?.elements;
-      const twx = tme
-        ? tme[12]
-        : ((target["position"] as Vec3 | undefined)?.x ?? 0);
-      const twy = tme
-        ? tme[13]
-        : ((target["position"] as Vec3 | undefined)?.y ?? 0);
-      const twz = tme
-        ? tme[14]
-        : ((target["position"] as Vec3 | undefined)?.z ?? 0);
-      const lwx = me ? me[12] : pos.x;
-      const lwy = me ? me[13] : pos.y;
-      const lwz = me ? me[14] : pos.z;
-      wdx = twx - lwx;
-      wdy = twy - lwy;
-      wdz = twz - lwz;
+      const targetWorld = target.matrixWorld.elements;
+      const twx = targetWorld[12];
+      const twy = targetWorld[13];
+      const twz = targetWorld[14];
+      wdx = twx - lightWorldX;
+      wdy = twy - lightWorldY;
+      wdz = twz - lightWorldZ;
     } else {
       const dir = light["direction"] as Vec3 | undefined;
       const dx = dir?.x ?? 0;
       const dy = dir?.y ?? -1;
       const dz = dir?.z ?? 0;
-      if (me) {
-        wdx = me[0] * dx + me[4] * dy + me[8] * dz;
-        wdy = me[1] * dx + me[5] * dy + me[9] * dz;
-        wdz = me[2] * dx + me[6] * dy + me[10] * dz;
-      } else {
-        wdx = dx;
-        wdy = dy;
-        wdz = dz;
-      }
+      wdx = me[0] * dx + me[4] * dy + me[8] * dz;
+      wdy = me[1] * dx + me[5] * dy + me[9] * dz;
+      wdz = me[2] * dx + me[6] * dy + me[10] * dz;
     }
     const dirLen = Math.sqrt(wdx * wdx + wdy * wdy + wdz * wdz) || 1;
     return {
       type: "spot",
       lightType: LightType.Spot,
-      position: { x: pos.x, y: pos.y, z: pos.z },
+      position: { x: lightWorldX, y: lightWorldY, z: lightWorldZ },
       direction: { x: wdx / dirLen, y: wdy / dirLen, z: wdz / dirLen },
       color: light["color"],
       intensity: light["intensity"],
       angle: light["angle"],
       penumbra: (light["penumbra"] as number) ?? 0,
+      cosAngle: light["cosAngle"],
+      cosInnerAngle: light["cosInnerAngle"],
       distance: (light["distance"] as number) ?? 0,
       decay: (light["decay"] as number) ?? 2,
     };
   }
+}
+
+function isValidLineIndex(value: number, vertexCount: number): boolean {
+  return Number.isInteger(value) && value >= 0 && value < vertexCount;
+}
+
+function pixelX(ndc: number, width: number): number {
+  const value = Math.round((ndc + 1) * 0.5 * (width - 1));
+  return value < 0 ? 0 : value >= width ? width - 1 : value;
+}
+
+function pixelY(ndc: number, height: number): number {
+  const value = Math.round((1 - ndc) * 0.5 * (height - 1));
+  return value < 0 ? 0 : value >= height ? height - 1 : value;
+}
+
+function unboundedPixelX(ndc: number, width: number): number {
+  return Math.round((ndc + 1) * 0.5 * (width - 1));
+}
+
+function unboundedPixelY(ndc: number, height: number): number {
+  return Math.round((1 - ndc) * 0.5 * (height - 1));
 }

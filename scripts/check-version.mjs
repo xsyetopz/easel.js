@@ -9,7 +9,9 @@ function readJson(path) {
 const packageVersion = readJson("package.json").version;
 const jsrVersion = readJson("jsr.json").version;
 const indexSource = readFileSync("src/index.ts", "utf8");
-const revisionMatch = indexSource.match(/export const REVISION = "([^"]+)";/u);
+const revisionMatch = indexSource.match(
+  /export const REVISION(?::\s*string)?\s*=\s*"([^"]+)";/u,
+);
 const revisionVersion = revisionMatch?.[1];
 
 const versions = [

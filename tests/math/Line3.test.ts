@@ -29,7 +29,7 @@ describe("Line3", () => {
   it("delta getter", () => {
     const e = new Line3(new Vector3(1, 2, 3), new Vector3(4, 6, 9));
     const t = new TLine3(new TVector3(1, 2, 3), new TVector3(4, 6, 9));
-    // delta is a getter in easel (returns Vector3), method in THREE
+		// delta is a getter in EASEL (returns Vector3), method in THREE
     const ed = e.delta;
     const td = t.delta(new TVector3());
     expect(ed).toMatchVector(td);
@@ -38,7 +38,7 @@ describe("Line3", () => {
   it("length getter (vs THREE distance())", () => {
     const e = new Line3(new Vector3(0, 0, 0), new Vector3(3, 4, 0));
     const t = new TLine3(new TVector3(0, 0, 0), new TVector3(3, 4, 0));
-    // easel: .length getter, THREE: .distance() method
+		// EASEL: .length getter, THREE: .distance() method
     expect(e.length).toBeCloseTo(t.distance());
   });
 

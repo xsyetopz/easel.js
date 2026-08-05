@@ -10,7 +10,7 @@ independent: verify the target project declarations using
 2. `references/grounding.md` for verified EASEL.js 0.6.1 constraints and type
    anchors.
 3. Installed `node_modules/@xsyetopz/easel/dist/` declarations, or local
-   `src/`/`dist/` declarations in an easel.js checkout.
+   `src/`/`dist/` declarations in an EASEL.js checkout.
 4. `UNKNOWN` with the exact symbol and declaration path when no target API is
    verified. Keep the missing behavior explicit until a target-side design is
    verified.

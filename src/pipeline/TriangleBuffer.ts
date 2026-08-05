@@ -1,3 +1,4 @@
+/** Reusable typed-array storage for projected triangle attributes. */
 export class TriangleBuffer {
   /** Number of triangles currently stored. */
   length = 0;
@@ -5,11 +6,11 @@ export class TriangleBuffer {
   /** Allocated capacity in triangles. */
   #capacity: number;
 
-  /** Screen-space X for 3 vertices per triangle (stride 3). */
-  screenX: Int32Array = new Int32Array(0);
+  /** Fractional screen-space X for 3 vertices per triangle (stride 3). */
+  screenX: Float32Array = new Float32Array(0);
 
-  /** Screen-space Y for 3 vertices per triangle (stride 3). */
-  screenY: Int32Array = new Int32Array(0);
+  /** Fractional screen-space Y for 3 vertices per triangle (stride 3). */
+  screenY: Float32Array = new Float32Array(0);
 
   /** NDC Z for 3 vertices per triangle (stride 3). */
   ndcZ: Float32Array = new Float32Array(0);
@@ -56,6 +57,7 @@ export class TriangleBuffer {
   /** Whether sortOrder should be used for iteration. */
   sortOrderActive = false;
 
+  /** Constructs typed-array storage with the requested initial triangle capacity. */
   constructor(capacity = 64) {
     this.#capacity = capacity;
     this.#allocate(capacity);
@@ -63,8 +65,8 @@ export class TriangleBuffer {
 
   /** Allocate all typed arrays at the given capacity. */
   #allocate(capacity: number): void {
-    this.screenX = new Int32Array(capacity * 3);
-    this.screenY = new Int32Array(capacity * 3);
+    this.screenX = new Float32Array(capacity * 3);
+    this.screenY = new Float32Array(capacity * 3);
     this.ndcZ = new Float32Array(capacity * 3);
     this.faceNormalX = new Float32Array(capacity);
     this.faceNormalY = new Float32Array(capacity);

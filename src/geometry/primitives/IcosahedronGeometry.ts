@@ -47,9 +47,10 @@ const _indices = [
   11, 6, 2, 10, 8, 6, 7, 9, 8, 1,
 ];
 
-/** Icosahedron geometry. */
+/** Icosahedron projected onto a sphere by `PolyhedronGeometry`. */
 export class IcosahedronGeometry extends PolyhedronGeometry {
-  constructor(radius = 1, detail = 0) {
+  /** Constructs an icosahedron projected to the requested radius and detail level. */
+  constructor(radius: number = 1, detail: number = 0) {
     super(_vertices, _indices, radius, detail);
     this.type = "IcosahedronGeometry";
     this.parameters = { radius, detail };

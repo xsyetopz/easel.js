@@ -75,7 +75,7 @@ export function setup(canvas, params = {}) {
 
   const lights = [red, green, blue];
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let elapsed = 0;
   let animId;
   let currentSpeed = params.speed ?? 1;
@@ -83,7 +83,7 @@ export function setup(canvas, params = {}) {
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     elapsed += dt;
 
     const speed = currentSpeed;
@@ -102,6 +102,8 @@ export function setup(canvas, params = {}) {
       3,
       Math.sin(elapsed * speed * 1.3 + 4) * 3,
     );
+
+    renderer.prepare(scene, camera);
 
     renderer.render(scene, camera);
   }
@@ -151,10 +153,11 @@ const blue  = new EASEL.PointLight(0x0000ff, 1.5, 20, 2);
 
 let t = 0;
 function animate() {
-  t += clock.delta;
+  t += clock.update().delta;
   red.position.set(Math.cos(t) * 4, 2, Math.sin(t) * 4);
   green.position.set(Math.cos(t * 0.7 + 2) * 5, 1, Math.sin(t * 0.7 + 2) * 5);
   blue.position.set(Math.cos(t * 1.3 + 4) * 3, 3, Math.sin(t * 1.3 + 4) * 3);
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }`;
 
@@ -177,12 +180,13 @@ const red   = new THREE.PointLight(0xff0000, 1.5, 20, 2);
 const green = new THREE.PointLight(0x00ff00, 1.5, 20, 2);
 const blue  = new THREE.PointLight(0x0000ff, 1.5, 20, 2);
 
-const clock = new THREE.Clock();
+const clock = new THREE.Timer();
 let t = 0;
 function animate() {
-  t += clock.getDelta();
+  t += clock.update().getDelta();
   red.position.set(Math.cos(t) * 4, 2, Math.sin(t) * 4);
   green.position.set(Math.cos(t * 0.7 + 2) * 5, 1, Math.sin(t * 0.7 + 2) * 5);
   blue.position.set(Math.cos(t * 1.3 + 4) * 3, 3, Math.sin(t * 1.3 + 4) * 3);
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }`;

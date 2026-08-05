@@ -95,15 +95,16 @@ export function setup(canvas, params = {}) {
 
   buildGrid(currentSegments);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     for (const mesh of meshes) {
       mesh.rotation.y += 0.5 * dt;
     }
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();

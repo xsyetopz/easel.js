@@ -89,7 +89,7 @@ export function setup(canvas, params = {}) {
 
   buildGrid(currentCount);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
   let frames = 0;
   let fpsTime = 0;
@@ -100,7 +100,7 @@ export function setup(canvas, params = {}) {
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     elapsed += dt;
 
     // Slowly orbit the camera around the corner to vary the visible set
@@ -110,6 +110,8 @@ export function setup(canvas, params = {}) {
     camera.position.z = Math.sin(angle) * radius;
     camera.position.y = 12 + Math.sin(elapsed * 0.1) * 4;
     camera.lookAt(origin);
+
+    renderer.prepare(scene, camera);
 
     renderer.render(scene, camera, timings);
 

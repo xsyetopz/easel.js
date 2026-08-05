@@ -52,13 +52,14 @@ export function setup(canvas) {
   cone.position.set(-2.5, 0, 0);
   scene.add(cone);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    void clock.delta;
+    void clock.update().delta;
     orbitControls.update();
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -94,6 +95,7 @@ scene.add(sphere);
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }
 animate();`;
@@ -122,6 +124,7 @@ scene.add(sphere);
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }
 animate();`;

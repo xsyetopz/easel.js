@@ -1,7 +1,14 @@
 import { describe, expect, it } from "bun:test";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 import { Triangle as TTriangle, Vector3 as TVector3 } from "three";
-import { Triangle } from "@/math/Triangle.js";
+import {
+  interpolateTriangle,
+  isTriangleFrontFacing,
+  Triangle,
+  triangleBarycoord,
+  triangleContainsPoint,
+  triangleNormal,
+} from "@/math/Triangle.js";
 import { Vector3 } from "@/math/Vector3.js";
 
 describe("Triangle", () => {
@@ -31,7 +38,7 @@ describe("Triangle", () => {
       new TVector3(1, 0, 0),
       new TVector3(0, 1, 0),
     );
-    expect(e.getArea()).toBeCloseTo(t.getArea());
+    expect(e.area).toBeCloseTo(t.getArea());
   });
 
   it("getMidpoint", () => {
@@ -53,7 +60,7 @@ describe("Triangle", () => {
     expect(Math.abs(en.z)).toBeCloseTo(1);
     expect(en.x).toBeCloseTo(0);
     expect(en.y).toBeCloseTo(0);
-    // Note: easel uses opposite winding to THREE so sign may differ
+		// Note: EASEL uses opposite winding to THREE so sign may differ
   });
 
   it("containsPoint", () => {
@@ -73,6 +80,42 @@ describe("Triangle", () => {
     const ep = e.getBarycoord(point, new Vector3());
     const tp = t.getBarycoord(new TVector3(0.25, 0.25, 0), new TVector3());
     expect(ep).toMatchVector(tp, 1e-5);
+  });
+
+  it("provides top-level triangle operations", () => {
+    const point = new Vector3(0.25, 0.25, 0);
+    expect(triangleBarycoord(point, ea, eb, ec)).toMatchVector({
+      x: 0.5,
+      y: 0.25,
+      z: 0.25,
+    });
+    expect(triangleContainsPoint(point, ea, eb, ec)).toBe(true);
+    expect(interpolateTriangle(point, ea, eb, ec, ea, eb, ec)).toMatchVector(
+      point,
+    );
+    expect(triangleNormal(ea, eb, ec).length).toBeCloseTo(1);
+    expect(isTriangleFrontFacing(ea, eb, ec, new Vector3(0, 0, -1))).toBe(true);
+  });
+
+  it("matches THREE.js for closest points outside every edge", () => {
+    const EASEL = new Triangle(ea, eb, ec);
+    const THREE = new TTriangle(
+      new TVector3(0, 0, 0),
+      new TVector3(1, 0, 0),
+      new TVector3(0, 1, 0),
+    );
+    for (const point of [
+      new Vector3(-1, 0.25, 0),
+      new Vector3(0.25, -1, 0),
+      new Vector3(1, 1, 0),
+    ]) {
+      const actual = EASEL.closestPointToPoint(point);
+      const expected = THREE.closestPointToPoint(
+        new TVector3(point.x, point.y, point.z),
+        new TVector3(),
+      );
+      expect(actual).toMatchVector(expected);
+    }
   });
 
   it("clone", () => {

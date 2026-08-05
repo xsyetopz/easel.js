@@ -11,8 +11,8 @@ describe("QuadraticBezierCurve vs THREE", () => {
   const tv0 = new THREE.Vector2(0, 0);
   const tv1 = new THREE.Vector2(1, 2);
   const tv2 = new THREE.Vector2(2, 0);
-  const easel = new QuadraticBezierCurve(ev0, ev1, ev2);
-  const three = new THREE.QuadraticBezierCurve(tv0, tv1, tv2);
+  const EASEL = new QuadraticBezierCurve(ev0, ev1, ev2);
+	const THREECurve = new THREE.QuadraticBezierCurve(tv0, tv1, tv2);
 
-  expectCurveParity(easel, three);
+	expectCurveParity(EASEL, THREECurve);
 });

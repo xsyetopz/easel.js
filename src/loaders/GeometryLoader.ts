@@ -10,6 +10,7 @@ interface GeometryJSON {
 
 /** Loads a JSON geometry definition and returns a Geometry instance. */
 export class GeometryLoader extends Loader {
+  /** Loads the resource at `url` through the configured loading manager. */
   override load(
     url: string,
     onLoad?: (geometry: Geometry) => void,
@@ -17,9 +18,10 @@ export class GeometryLoader extends Loader {
     onError?: (err: unknown) => void,
   ): void {
     const fileLoader = new FileLoader(this.manager);
-    fileLoader.setPath(this.path);
-    fileLoader.setResponseType("json");
-    fileLoader.setRequestHeader(this.requestHeader);
+    fileLoader.cache = this.cache;
+    fileLoader.path = this.path;
+    fileLoader.responseType = "json";
+    fileLoader.requestHeader = this.requestHeader;
 
     fileLoader.load(
       url,
@@ -31,6 +33,7 @@ export class GeometryLoader extends Loader {
     );
   }
 
+  /** Parses serialized input into the corresponding EASEL value. */
   parse(json: GeometryJSON): Geometry {
     const geometry = new Geometry();
 
@@ -40,7 +43,7 @@ export class GeometryLoader extends Loader {
     }
 
     if (json.index) {
-      geometry.setIndex(json.index.array);
+      geometry.index = json.index.array;
     }
 
     return geometry;

@@ -54,14 +54,15 @@ export function setup(canvas) {
   gouraud.position.x = 2.5;
   scene.add(gouraud);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     flat.rotation.y += 0.3 * dt;
     gouraud.rotation.y += 0.3 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();

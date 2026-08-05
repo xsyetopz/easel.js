@@ -5,7 +5,7 @@ const ALLOWED_OUTDATED_ROWS = [
   // Astro check still depends on the TypeScript 5/6 compiler API.
   // The project keeps TypeScript 7 for the package and uses the alias
   // `typescript-compiler-api` for patched Astro/Volar compatibility.
-  /^\|\s+typescript \(dev\)\s+\|\s+6\.\d+\.\d+\s+\|\s+6\.\d+\.\d+\s+\|\s+7\.\d+\.\d+\s+\|/u,
+  /^\|\s+typescript \(dev\)\s+\|\s+(?:5\.9|6\.\d+)\.\d+\s+\|\s+(?:5\.9|6\.\d+)\.\d+\s+\|\s+7\.\d+\.\d+\s+\|/u,
 ];
 
 const outdatedRun = spawnSync(

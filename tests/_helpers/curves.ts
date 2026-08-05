@@ -4,7 +4,13 @@ import "./assertions.js";
 
 type VectorLike = Partial<Record<"x" | "y" | "z" | "w", number>>;
 
-type CurveLike = {
+type EASELCurveLike = {
+  getPoint(t: number): VectorLike | undefined;
+  readonly length: number;
+  getPoints(divisions: number): unknown[];
+};
+
+type THREECurveLike = {
   getPoint(t: number): VectorLike | undefined;
   getLength(): number;
   getPoints(divisions: number): unknown[];
@@ -20,8 +26,8 @@ type CurveParityOptions = {
 const defaultSamples = [0, 0.25, 0.5, 0.75, 1.0] as const;
 
 export function expectCurveParity(
-  easelCurve: CurveLike,
-  threeCurve: CurveLike,
+  EASELCurve: EASELCurveLike,
+  THREECurve: THREECurveLike,
   options: CurveParityOptions = {},
 ): void {
   const samples = options.samples ?? defaultSamples;
@@ -31,23 +37,23 @@ export function expectCurveParity(
 
   for (const sample of samples) {
     it(`getPoint(${sample}) matches`, () => {
-      expect(easelCurve.getPoint(sample)).toMatchVector(
-        defined(threeCurve.getPoint(sample), "three point"),
+      expect(EASELCurve.getPoint(sample)).toMatchVector(
+		defined(THREECurve.getPoint(sample), "THREE point"),
         pointEpsilon,
       );
     });
   }
 
   it("getLength matches", () => {
-    expect(
-      Math.abs(easelCurve.getLength() - threeCurve.getLength()),
-    ).toBeLessThan(lengthEpsilon);
+    expect(Math.abs(EASELCurve.length - THREECurve.getLength())).toBeLessThan(
+      lengthEpsilon,
+    );
   });
 
   if (pointsDivisions !== false) {
     it(`getPoints(${pointsDivisions}) count matches`, () => {
-      expect(easelCurve.getPoints(pointsDivisions).length).toBe(
-        threeCurve.getPoints(pointsDivisions).length,
+      expect(EASELCurve.getPoints(pointsDivisions).length).toBe(
+        THREECurve.getPoints(pointsDivisions).length,
       );
     });
   }

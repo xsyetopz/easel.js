@@ -1,5 +1,12 @@
+import {
+  Wrapping,
+  type Wrapping as WrappingMode,
+} from "../../core/Constants.ts";
 import type { DepthBuffer } from "../framebuffer/DepthBuffer.ts";
+import type { LineBuffer } from "../LineBuffer.ts";
 import type { TriangleBuffer } from "../TriangleBuffer.ts";
+import { textureCoordinateToTexel } from "../texture/TextureWrapping.ts";
+import { LineRasterizer } from "./LineRasterizer.ts";
 import { ScanlineFill } from "./ScanlineFill.ts";
 import { WireframeRasterizer } from "./WireframeRasterizer.ts";
 
@@ -35,14 +42,17 @@ interface TextureData {
 interface MaterialMap {
   data: TextureData;
   brightnessLevels?: Uint8ClampedArray[];
-  wrapS?: number;
-  wrapT?: number;
+  wrapS?: WrappingMode;
+  wrapT?: WrappingMode;
 }
 
 interface RasterMaterial {
   wireframe?: boolean;
   points?: boolean;
-  pointRadius?: number;
+  size?: number;
+  linewidth?: number;
+  dashSize?: number;
+  gapSize?: number;
   color?: { r: number; g: number; b: number };
   map?: MaterialMap;
   opacity?: number;
@@ -52,12 +62,17 @@ interface RasterMaterial {
 }
 
 interface RasterDrawCall {
-  triangles: TriangleBuffer;
+  primitive?: "triangles" | "lines";
+  triangles?: TriangleBuffer;
+  lines?: LineBuffer;
   material: RasterMaterial;
   shadedColorData?: Float32Array;
   shadedColorStride?: number;
   vertexColorData?: ArrayLike<number>;
   vertexColorItemSize?: number;
+  instanceColorR?: number;
+  instanceColorG?: number;
+  instanceColorB?: number;
 }
 
 interface RasterFramebuffer {
@@ -81,6 +96,7 @@ type ScanlineCallback = (
 export class Rasterizer {
   #scanlineFill = new ScanlineFill();
   #wireframe = new WireframeRasterizer();
+  #lineRasterizer = new LineRasterizer();
 
   // Per-triangle state fields (set once per triangle, read in scanline handlers).
   #depthBuf: DepthBuffer = undefined as unknown as DepthBuffer;
@@ -112,9 +128,7 @@ export class Rasterizer {
   #baseB = 255;
   #texData: Uint8ClampedArray | undefined;
   #texW = 0;
-  #texWm1 = 0;
   #texH = 0;
-  #texHm1 = 0;
   #uv0u = 0;
   #uv0v = 0;
   #uv1u = 0;
@@ -142,11 +156,8 @@ export class Rasterizer {
   #flatTextureLightG = 1;
   #flatTextureLightB = 1;
 
-  // UV wrapping mode (0 = ClampToEdge, 1 = Repeat)
-  #wrapS = 0;
-  #wrapT = 0;
-  // Clamp-to-edge samples texel cells: min(size - 1, floor(clamp(uv) * size)).
-  // Keep this expression inline in each textured hot path; TextureSampler allocates.
+  #wrapS: WrappingMode = Wrapping.ClampToEdge;
+  #wrapT: WrappingMode = Wrapping.ClampToEdge;
 
   // 9-step opacity (0 = fully opaque, 8 = fully transparent)
   #opacity = 0;
@@ -333,9 +344,7 @@ export class Rasterizer {
     let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
     const dbData = this.#dbData;
     const dbW = this.#dbWidth;
-    const texWm1 = this.#texWm1;
     const texH = this.#texH;
-    const texHm1 = this.#texHm1;
     const texW = this.#texW;
     const hasFog = this.#hasFog;
     const fbU32 = this.#fbU32;
@@ -376,20 +385,8 @@ export class Rasterizer {
     ) {
       const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
       if (depthTest && depth16 > dbData[dIdx]) continue;
-      const tx = wS
-        ? (((texU * texW) | 0) + texW) & texWm1
-        : texU <= 0
-          ? 0
-          : texU >= 1
-            ? texWm1
-            : (texU * texW) | 0;
-      const ty = wT
-        ? (((texV * texH) | 0) + texH) & texHm1
-        : texV <= 0
-          ? 0
-          : texV >= 1
-            ? texHm1
-            : (texV * texH) | 0;
+      const tx = textureCoordinateToTexel(texU, texW, wS);
+      const ty = textureCoordinateToTexel(texV, texH, wT);
       const tidx = (ty * texW + tx) << 2;
       if (texD[tidx + 3] === 0) continue;
       if (depthWrite) dbData[dIdx] = depth16;
@@ -493,9 +490,7 @@ export class Rasterizer {
     const dbData = this.#dbData;
     const dbW = this.#dbWidth;
     const texD = this.#texData as Uint8ClampedArray;
-    const texWm1 = this.#texWm1;
     const texH = this.#texH;
-    const texHm1 = this.#texHm1;
     const texW = this.#texW;
     const baseR = this.#baseR;
     const baseG = this.#baseG;
@@ -546,20 +541,8 @@ export class Rasterizer {
         }
         continue;
       }
-      const tx = wS
-        ? (((texU * texW) | 0) + texW) & texWm1
-        : texU <= 0
-          ? 0
-          : texU >= 1
-            ? texWm1
-            : (texU * texW) | 0;
-      const ty = wT
-        ? (((texV * texH) | 0) + texH) & texHm1
-        : texV <= 0
-          ? 0
-          : texV >= 1
-            ? texHm1
-            : (texV * texH) | 0;
+      const tx = textureCoordinateToTexel(texU, texW, wS);
+      const ty = textureCoordinateToTexel(texV, texH, wT);
       const tidx = (ty * texW + tx) << 2;
       if (texD[tidx + 3] === 0) {
         if (hasTint) {
@@ -695,9 +678,7 @@ export class Rasterizer {
     const dbData = this.#dbData;
     const dbW = this.#dbWidth;
     const texD = this.#texData as Uint8ClampedArray;
-    const texWm1 = this.#texWm1;
     const texH = this.#texH;
-    const texHm1 = this.#texHm1;
     const texW = this.#texW;
     const baseR = this.#baseR;
     const baseG = this.#baseG;
@@ -731,20 +712,8 @@ export class Rasterizer {
     ) {
       const depth16 = ((ndcZ + 1) * 32767.5 + 0.5) | 0;
       if (depthTest && depth16 > dbData[dIdx]) continue;
-      const tx = wS
-        ? (((texU * texW) | 0) + texW) & texWm1
-        : texU <= 0
-          ? 0
-          : texU >= 1
-            ? texWm1
-            : (texU * texW) | 0;
-      const ty = wT
-        ? (((texV * texH) | 0) + texH) & texHm1
-        : texV <= 0
-          ? 0
-          : texV >= 1
-            ? texHm1
-            : (texV * texH) | 0;
+      const tx = textureCoordinateToTexel(texU, texW, wS);
+      const ty = textureCoordinateToTexel(texV, texH, wT);
       const tidx = (ty * texW + tx) << 2;
       if (texD[tidx + 3] === 0) continue;
       if (depthWrite) dbData[dIdx] = depth16;
@@ -781,6 +750,18 @@ export class Rasterizer {
     _colorTable: unknown,
     fogColor?: { r: number; g: number; b: number },
   ): void {
+    if (drawCall.primitive === "lines") {
+      if (!drawCall.lines) return;
+      this.#lineRasterizer.rasterize(
+        drawCall.lines,
+        drawCall.material,
+        framebuffer,
+        fogColor,
+        drawCall.vertexColorData,
+        drawCall.vertexColorItemSize,
+      );
+      return;
+    }
     this.#hasFog = !!fogColor;
     if (fogColor) {
       this.#fogR = Math.round(fogColor.r * 255);
@@ -788,12 +769,18 @@ export class Rasterizer {
       this.#fogB = Math.round(fogColor.b * 255);
     }
     const { width, height } = framebuffer;
-    const { wireframe, points, pointRadius = 2 } = drawCall.material;
+    const { wireframe, points, size: pointRadius = 2 } = drawCall.material;
 
     const matColor = drawCall.material.color;
-    const baseR = matColor ? Math.round(matColor.r * 255) : 255;
-    const baseG = matColor ? Math.round(matColor.g * 255) : 255;
-    const baseB = matColor ? Math.round(matColor.b * 255) : 255;
+    const baseR = matColor
+      ? Math.round(matColor.r * (drawCall.instanceColorR ?? 1) * 255)
+      : 255;
+    const baseG = matColor
+      ? Math.round(matColor.g * (drawCall.instanceColorG ?? 1) * 255)
+      : 255;
+    const baseB = matColor
+      ? Math.round(matColor.b * (drawCall.instanceColorB ?? 1) * 255)
+      : 255;
 
     const texture = drawCall.material.map?.data ?? undefined;
 
@@ -808,9 +795,7 @@ export class Rasterizer {
     if (texture) {
       this.#texData = texture.data;
       this.#texW = texture.width;
-      this.#texWm1 = texture.width - 1;
       this.#texH = texture.height;
-      this.#texHm1 = texture.height - 1;
     }
 
     this.#opacity = (drawCall.material as RasterMaterial).opacity ?? 0;
@@ -821,8 +806,8 @@ export class Rasterizer {
       this.#depthTest && drawCall.material.depthWrite !== false;
 
     this.#brightnessLevels = drawCall.material.map?.brightnessLevels;
-    this.#wrapS = drawCall.material.map?.wrapS ?? 0;
-    this.#wrapT = drawCall.material.map?.wrapT ?? 0;
+    this.#wrapS = drawCall.material.map?.wrapS ?? Wrapping.ClampToEdge;
+    this.#wrapT = drawCall.material.map?.wrapT ?? Wrapping.ClampToEdge;
 
     const shadedColorData = drawCall.shadedColorData;
     const shadedColorStride = drawCall.shadedColorStride ?? 0;
@@ -1051,7 +1036,7 @@ export class Rasterizer {
         tint[7] = c2g;
         tint[8] = c2b;
         this.#vertexTintData = tint;
-        if (!isGouraud || !shadedColorData) {
+        if (!(isGouraud && shadedColorData)) {
           const lightR = isFlat && shadedColorData ? shadedColorData[base] : 1;
           const lightG =
             isFlat && shadedColorData ? shadedColorData[base + 1] : 1;
@@ -1165,9 +1150,19 @@ export class Rasterizer {
       const depth16 =
         (((this.#ndcZ0 + this.#ndcZ1 + this.#ndcZ2) / 3 + 1) * 32767.5 + 0.5) |
         0;
-      this.#wireframe.rasterize(x1, y1, x2, y2, x3, y3, (px, py) => {
-        this.#writePoint(px, py, depth16, packed);
-      });
+      this.#wireframe.rasterize(
+        x1,
+        y1,
+        x2,
+        y2,
+        x3,
+        y3,
+        (px, py) => {
+          this.#writePoint(px, py, depth16, packed);
+        },
+        width,
+        height,
+      );
     } else if (points) {
       const packed = 0xff000000 | (flatB << 16) | (flatG << 8) | flatR;
       const z1 = ((this.#ndcZ0 + 1) * 32767.5 + 0.5) | 0;

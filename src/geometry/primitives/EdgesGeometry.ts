@@ -1,14 +1,19 @@
 import { Geometry } from "../Geometry.ts";
 
 /**
- * Extracts edges from a Geometry where adjacent face normals differ by more
- * than thresholdAngle degrees.
+ * Extracts sharp edges from a source geometry.
+ *
+ * An edge is emitted when it has one adjacent face or when the angle between
+ * adjacent face normals exceeds `thresholdAngle` degrees.
  */
 export class EdgesGeometry extends Geometry {
+  /** Serialization discriminator for this runtime type. */
   declare type: string;
+  /** Primitive-construction parameters retained for serialization. */
   declare parameters: Record<string, unknown>;
 
-  constructor(geometry: Geometry, thresholdAngle = 1) {
+  /** Extracts edges whose adjacent face normals exceed the angle threshold. */
+  constructor(geometry: Geometry, thresholdAngle: number = 1) {
     super();
 
     this.type = "EdgesGeometry";

@@ -1,10 +1,12 @@
 import { describe, expect, it } from "bun:test";
 import "../_helpers/assertions.js";
 import {
+  Matrix3 as TMatrix3,
   Matrix4 as TMatrix4,
   Quaternion as TQuaternion,
   Vector3 as TVector3,
 } from "three";
+import { Matrix3 } from "@/math/Matrix3.js";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { Quaternion } from "@/math/Quaternion.js";
 import { Vector3 } from "@/math/Vector3.js";
@@ -68,27 +70,27 @@ describe("Matrix4", () => {
     expect(e).toMatchMatrix(t);
   });
 
-  it("mul", () => {
+  it("multiply", () => {
     const ea = new Matrix4().makeTranslation(1, 2, 3);
     const eb = new Matrix4().makeScale(2, 2, 2);
-    ea.mul(eb);
+    ea.multiply(eb);
     const ta = new TMatrix4().makeTranslation(1, 2, 3);
     const tb = new TMatrix4().makeScale(2, 2, 2);
     ta.multiply(tb);
     expect(ea).toMatchMatrix(ta);
   });
 
-  it("mulMatrices", () => {
+  it("multiplyMatrices", () => {
     const a = new Matrix4().makeRotationX(Math.PI / 2);
     const b = new Matrix4().makeTranslation(1, 0, 0);
-    const e = new Matrix4().mulMatrices(a, b);
+    const e = new Matrix4().multiplyMatrices(a, b);
     const ta = new TMatrix4().makeRotationX(Math.PI / 2);
     const tb = new TMatrix4().makeTranslation(1, 0, 0);
     const t = new TMatrix4().multiplyMatrices(ta, tb);
     expect(e).toMatchMatrix(t);
   });
 
-  it("mulMatricesAffine matches mulMatrices for affine inputs", () => {
+  it("multiplyMatricesAffine matches multiplyMatrices for affine inputs", () => {
     const posA = new Vector3(1, 2, 3);
     const qA = new Quaternion().setFromAxisAngle({ x: 0, y: 1, z: 0 }, 0.7);
     const sA = new Vector3(2, 1, 3);
@@ -99,8 +101,8 @@ describe("Matrix4", () => {
     const sB = new Vector3(1, 2, 1);
     const b = new Matrix4().compose(posB, qB, sB);
 
-    const eAffine = new Matrix4().mulMatricesAffine(a, b);
-    const eFull = new Matrix4().mulMatrices(a, b);
+    const eAffine = new Matrix4().multiplyMatricesAffine(a, b);
+    const eFull = new Matrix4().multiplyMatrices(a, b);
     expect(eAffine).toMatchMatrix(eFull);
   });
 
@@ -157,5 +159,119 @@ describe("Matrix4", () => {
     const e = new Matrix4().makeOrthographic(-1, 1, 1, -1, 0.1, 100);
     const t = new TMatrix4().makeOrthographic(-1, 1, 1, -1, 0.1, 100);
     expect(e).toMatchMatrix(t);
+  });
+
+  it("copies position and sets position from vectors or scalars", () => {
+    const source = new Matrix4().makeTranslation(4, 5, 6);
+    const e = new Matrix4().makeScale(2, 3, 4).copyPosition(source);
+    expect(e.elements[12]).toBe(4);
+    expect(e.elements[13]).toBe(5);
+    expect(e.elements[14]).toBe(6);
+    e.setPosition(new Vector3(-1, -2, -3));
+    expect([e.elements[12], e.elements[13], e.elements[14]]).toEqual([
+      -1, -2, -3,
+    ]);
+    e.setPosition(7, 8, 9);
+    expect([e.elements[12], e.elements[13], e.elements[14]]).toEqual([7, 8, 9]);
+  });
+
+  it("converts Matrix3 values and extracts or creates a basis", () => {
+    const source = new Matrix3().set(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    const e = new Matrix4().setFromMatrix3(source);
+    const t = new TMatrix4().setFromMatrix3(
+      new TMatrix3().set(1, 2, 3, 4, 5, 6, 7, 8, 9),
+    );
+    expect(e).toMatchMatrix(t);
+
+    const x = new Vector3();
+    const y = new Vector3();
+    const z = new Vector3();
+    new Matrix4()
+      .makeBasis(
+        new Vector3(1, 2, 3),
+        new Vector3(4, 5, 6),
+        new Vector3(7, 8, 10),
+      )
+      .extractBasis(x, y, z);
+    expect(x).toMatchVector({ x: 1, y: 2, z: 3 });
+    expect(y).toMatchVector({ x: 4, y: 5, z: 6 });
+    expect(z).toMatchVector({ x: 7, y: 8, z: 10 });
+  });
+
+  it("matches THREE for scalar, pre-matrix, and basis scale operations", () => {
+    const e = new Matrix4().set(
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+    );
+    const t = new TMatrix4().set(
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+    );
+    const em = new Matrix4().makeTranslation(2, 3, 4);
+    const tm = new TMatrix4().makeTranslation(2, 3, 4);
+    e.premultiply(em)
+      .multiplyScalar(1.5)
+      .scale(new Vector3(2, 3, 4));
+    t.premultiply(tm)
+      .multiplyScalar(1.5)
+      .scale(new TVector3(2, 3, 4));
+    expect(e).toMatchMatrix(t);
+  });
+
+  it("matches THREE for axis rotation, shear, determinant, and max scale", () => {
+    const axis = new Vector3(1, 2, 3).normalize();
+    const e = new Matrix4().makeRotationAxis(axis, 0.8);
+    const t = new TMatrix4().makeRotationAxis(
+      new TVector3(1, 2, 3).normalize(),
+      0.8,
+    );
+    expect(e).toMatchMatrix(t);
+    expect(e.determinantAffine()).toBeCloseTo(t.determinantAffine());
+    expect(e.maxScaleOnAxis).toBeCloseTo(t.getMaxScaleOnAxis());
+
+    const es = new Matrix4().makeShear(1, 2, 3, 4, 5, 6);
+    const ts = new TMatrix4().makeShear(1, 2, 3, 4, 5, 6);
+    expect(es).toMatchMatrix(ts);
+  });
+
+  it("copies arrays, compares, and writes with offsets", () => {
+    const values = Array.from({ length: 18 }, (_, index) => index - 1);
+    const e = new Matrix4().fromArray(values, 1);
+    const t = new TMatrix4().fromArray(values, 1);
+    expect(e.equals(new Matrix4().copy(e))).toBe(true);
+    expect(e).toMatchMatrix(t);
+    const output = [
+      99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
+    ];
+    expect(e.toArray(output, 1)).toBe(output);
+    expect(output.slice(1, 17)).toEqual(Array.from(e.elements));
   });
 });

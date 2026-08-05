@@ -1,4 +1,6 @@
 import { describe, expect, it } from "bun:test";
+import { SphericalHarmonics3 } from "@/math/SphericalHarmonics3.js";
+import { Vector3 } from "@/math/Vector3.js";
 import { accumulateLights } from "@/pipeline/shading/lightAccumulator.js";
 
 function makeDirectional(
@@ -97,6 +99,34 @@ describe("accumulateLights", () => {
     expect(result.r).toBeCloseTo(1.0, 2);
     expect(result.g).toBeCloseTo(1.0, 2);
     expect(result.b).toBeCloseTo(1.0, 2);
+  });
+
+  it("matches spherical-harmonic irradiance for a light probe", () => {
+    const sh = new SphericalHarmonics3();
+    for (let index = 0; index < 9; index += 1) {
+      sh.coefficients[index].set(
+        0.01 * (index + 1),
+        0.005 * (index + 1),
+        0.0025 * (index + 1),
+      );
+    }
+    const normal = new Vector3(0.25, 0.5, 0.75).normalize();
+    const intensity = 0.6;
+    const expected = sh
+      .irradianceAt(normal, new Vector3())
+      .multiplyScalar(intensity);
+    const result = accumulateLights(
+      normal.x,
+      normal.y,
+      normal.z,
+      [{ type: "probe", coefficients: sh.coefficients, intensity }],
+      0,
+      { r: 0, g: 0, b: 0 },
+    );
+
+    expect(result.r).toBeCloseTo(expected.x, 12);
+    expect(result.g).toBeCloseTo(expected.y, 12);
+    expect(result.b).toBeCloseTo(expected.z, 12);
   });
 
   it("multiple lights accumulate additively", () => {

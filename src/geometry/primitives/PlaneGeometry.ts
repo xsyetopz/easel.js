@@ -1,8 +1,14 @@
 import { Geometry } from "../Geometry.ts";
 
-/** Flat rectangular grid on the XY plane (z=0). */
+/** Flat rectangular grid on the XY plane with +Z normals. */
 export class PlaneGeometry extends Geometry {
-  constructor(width = 1, height = 1, widthSegments = 1, heightSegments = 1) {
+  /** Constructs a centered XY-plane grid from dimensions and segment counts. */
+  constructor(
+    width: number = 1,
+    height: number = 1,
+    widthSegments: number = 1,
+    heightSegments: number = 1,
+  ) {
     super();
 
     this.type = "PlaneGeometry";
@@ -63,6 +69,6 @@ export class PlaneGeometry extends Geometry {
     this.setPositions(positions);
     this.setNormals(normals);
     this.setUVs(uvs);
-    this.setIndex(indices);
+    this.index = indices;
   }
 }

@@ -12,47 +12,47 @@ export type GeometryLike = {
   getAttribute(name: string): AttributeLike | null | undefined;
 };
 
-export type ThreeGeometryLike = {
+export type THREEGeometryLike = {
   getAttribute(name: string): AttributeLike | null | undefined;
   getIndex(): AttributeLike | null | undefined;
 };
 
 export function getAttribute(
-  geometry: GeometryLike | ThreeGeometryLike,
+  geometry: GeometryLike | THREEGeometryLike,
   name: string,
 ): AttributeLike {
   return defined(geometry.getAttribute(name), `${name} attribute`);
 }
 
 export function getAttributeArray(
-  geometry: GeometryLike | ThreeGeometryLike,
+  geometry: GeometryLike | THREEGeometryLike,
   name: string,
 ): ArrayLike<number> {
   return getAttribute(geometry, name).array;
 }
 
 export function getAttributeCount(
-  geometry: GeometryLike | ThreeGeometryLike,
+  geometry: GeometryLike | THREEGeometryLike,
   name: string,
 ): number {
   return defined(getAttribute(geometry, name).count, `${name} count`);
 }
 
-export function getIndexArray(geometry: GeometryLike | ThreeGeometryLike) {
+export function getIndexArray(geometry: GeometryLike | THREEGeometryLike) {
   if ("getIndex" in geometry)
     return defined(geometry.getIndex(), "index").array;
   return defined(geometry.index, "index");
 }
 
 export function expectAttributeArraysClose(
-  easelGeometry: GeometryLike,
-  threeGeometry: ThreeGeometryLike,
+  EASELGeometry: GeometryLike,
+  THREEGeometry: THREEGeometryLike,
   name: string,
   epsilon = 1e-4,
 ): void {
   const { pass, failures } = compareArrays(
-    getAttributeArray(easelGeometry, name),
-    getAttributeArray(threeGeometry, name),
+    getAttributeArray(EASELGeometry, name),
+    getAttributeArray(THREEGeometry, name),
     epsilon,
   );
   if (!pass) {
@@ -61,13 +61,13 @@ export function expectAttributeArraysClose(
 }
 
 export function expectIndexLengthMatches(
-  easelGeometry: GeometryLike,
-  threeGeometry: ThreeGeometryLike,
+  EASELGeometry: GeometryLike,
+  THREEGeometry: THREEGeometryLike,
 ): void {
-  const easelLength = getIndexArray(easelGeometry).length;
-  const threeLength = getIndexArray(threeGeometry).length;
-  if (easelLength !== threeLength) {
-    throw new Error(`index length ${easelLength} vs ${threeLength}`);
+  const EASELLength = getIndexArray(EASELGeometry).length;
+  const THREELength = getIndexArray(THREEGeometry).length;
+  if (EASELLength !== THREELength) {
+    throw new Error(`index length ${EASELLength} vs ${THREELength}`);
   }
 }
 

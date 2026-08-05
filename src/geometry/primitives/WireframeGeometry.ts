@@ -1,10 +1,13 @@
 import { Geometry } from "../Geometry.ts";
 
-/** Outputs non-indexed line segments for every triangle edge of a Geometry. */
+/** Builds non-indexed line segments for each unique triangle edge. */
 export class WireframeGeometry extends Geometry {
-  override type = "WireframeGeometry";
+  /** Serialization discriminator for this runtime type. */
+  override type: string = "WireframeGeometry";
+  /** Primitive-construction parameters retained for serialization. */
   override parameters: Record<string, unknown> = {};
 
+  /** Extracts unique triangle edges as non-indexed line segments. */
   constructor(geometry: Geometry) {
     super();
 

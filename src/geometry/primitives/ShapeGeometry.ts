@@ -1,10 +1,11 @@
 import type { Shape } from "../../curves/Shape.ts";
-import { earcut } from "../../math/Earcut.ts";
+import { triangulateShape } from "../../math/ShapeUtils.ts";
 import { Geometry } from "../Geometry.ts";
 
-/** Triangulates one or more flat Shape objects into a filled 2D geometry on the XY plane. */
+/** Triangulates flat `Shape` contours into filled XY-plane geometry. */
 export class ShapeGeometry extends Geometry {
-  constructor(shapes: Shape | Shape[], curveSegments = 12) {
+  /** Triangulates one or more `Shape` contours on the XY plane. */
+  constructor(shapes: Shape | Shape[], curveSegments: number = 12) {
     super();
 
     this.type = "ShapeGeometry";
@@ -24,24 +25,17 @@ export class ShapeGeometry extends Geometry {
 
       // Flat vertex list: outer contour + all hole contours
       const flatCoords: number[] = [];
-      const holeIndices: number[] = [];
-
       for (const pt of shapePoints) {
         flatCoords.push(pt.x, pt.y);
       }
 
       for (const hole of holes) {
-        holeIndices.push(flatCoords.length / 2);
         for (const pt of hole) {
           flatCoords.push(pt.x, pt.y);
         }
       }
 
-      const faceIndices = earcut(
-        flatCoords,
-        holeIndices.length > 0 ? holeIndices : undefined,
-        2,
-      );
+      const faces = triangulateShape(shapePoints, holes);
 
       // Emit vertices
       const vertexCount = flatCoords.length / 2;
@@ -51,8 +45,12 @@ export class ShapeGeometry extends Geometry {
         uvs.push(flatCoords[i * 2], flatCoords[i * 2 + 1]);
       }
 
-      for (const idx of faceIndices) {
-        indices.push(vertexOffset + idx);
+      for (const face of faces) {
+        indices.push(
+          vertexOffset + face[0],
+          vertexOffset + face[1],
+          vertexOffset + face[2],
+        );
       }
 
       vertexOffset += vertexCount;
@@ -63,7 +61,7 @@ export class ShapeGeometry extends Geometry {
     this.setPositions(new Float32Array(positions));
     this.setNormals(new Float32Array(normals));
     this.setUVs(new Float32Array(uvs));
-    this.setIndex(new IndexArray(indices));
+    this.index = new IndexArray(indices);
     this.computeBoundingSphere();
   }
 }

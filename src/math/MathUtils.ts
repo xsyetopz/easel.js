@@ -1,140 +1,96 @@
-/** Common math utilities: clamp, lerp, remap, UUID generation. */
-export interface MathUtilsType {
-  EPSILON: number;
-  TAU: number;
-  HALF_PI: number;
-  THIRD_PI: number;
-  QUARTER_PI: number;
-  SIXTH_PI: number;
-  RAD2DEG: number;
-  DEG2RAD: number;
-  clamp(x: number, min: number, max: number): number;
-  fastAtan2(y: number, x: number): number;
-  fastMax(a: number, b: number): number;
-  fastMin(a: number, b: number): number;
-  fastRound(x: number): number;
-  fastTrunc(x: number): number;
-  isPowerOf2(n: number): boolean;
-  nextPowerOf2(n: number): number;
-  safeAsin(value: number): number;
-  toDegrees(radians: number): number;
-  toRadians(degrees: number): number;
-  tileDistance(
-    a: { x: number; y: number },
-    b: { x: number; y: number },
-  ): number;
-  packHsl16(h: number, s: number, l: number): number;
-  unpackHsl16(value: number): { h: number; s: number; l: number };
+/** Small tolerance used by numeric comparisons. */
+export const EPSILON = 1e-6;
+/** Full-turn angle in radians (2π). */
+export const TAU = 6.283185307179586;
+/** Right-angle half-turn in radians (π/2). */
+export const HALF_PI = 1.5707963267948966;
+/** One-third of π in radians. */
+export const THIRD_PI = 1.0471975511965976;
+/** One-quarter of π in radians. */
+export const QUARTER_PI = 0.7853981633974483;
+/** One-sixth of π in radians. */
+export const SIXTH_PI = 0.5235987755982988;
+/** Multiplier converting radians to degrees. */
+export const RAD2DEG = 57.29577951308232;
+/** Multiplier converting degrees to radians. */
+export const DEG2RAD = 0.017453292519943295;
+
+/** Clamps `x` to the inclusive range [`min`, `max`]. */
+export function clamp(x: number, min: number, max: number): number {
+  return x < min ? min : x > max ? max : x;
 }
 
-export const MathUtils: MathUtilsType = {
-  EPSILON: 1e-6,
-  TAU: 6.283185307179586,
-  HALF_PI: 1.5707963267948966,
-  THIRD_PI: 1.0471975511965976,
-  QUARTER_PI: 0.7853981633974483,
-  SIXTH_PI: 1.0471975511965976,
-  RAD2DEG: 57.29577951308232,
-  DEG2RAD: 0.017453292519943295,
+/** Fast atan2 approximation via a minimax polynomial. */
+export function fastAtan2(y: number, x: number): number {
+  const absoluteY = Math.abs(y) + 1e-10;
+  let ratio: number;
+  let angle: number;
+  if (x >= 0) {
+    ratio = (x - absoluteY) / (x + absoluteY);
+    angle = QUARTER_PI;
+  } else {
+    ratio = (x + absoluteY) / (absoluteY - x);
+    angle = 3 * QUARTER_PI;
+  }
+  angle += (0.1963 * ratio * ratio - 0.9817) * ratio;
+  return y < 0 ? -angle : angle;
+}
 
-  /** Clamps a value between min and max. */
-  clamp(x: number, min: number, max: number): number {
-    return x < min ? min : x > max ? max : x;
-  },
+/** Returns the larger of `a` and `b` without allocating. */
+export function fastMax(a: number, b: number): number {
+  return a > b ? a : b;
+}
 
-  /**
-   * Fast atan2 approximation via minimax polynomial.
-   * @returns Angle in radians
-   */
-  fastAtan2(y: number, x: number): number {
-    const abs_y = Math.abs(y) + 1e-10;
-    let r: number;
-    let angle: number;
-    if (x >= 0) {
-      r = (x - abs_y) / (x + abs_y);
-      angle = MathUtils.QUARTER_PI;
-    } else {
-      r = (x + abs_y) / (abs_y - x);
-      angle = 3 * MathUtils.QUARTER_PI;
-    }
-    angle += (0.1963 * r * r - 0.9817) * r;
-    return y < 0 ? -angle : angle;
-  },
+/** Returns the smaller of `a` and `b` without allocating. */
+export function fastMin(a: number, b: number): number {
+  return a < b ? a : b;
+}
 
-  fastMax(a: number, b: number): number {
-    return a > b ? a : b;
-  },
+/** Rounds `x` with the renderer's integer fast path. */
+export function fastRound(x: number): number {
+  return (x + 0.5) | 0;
+}
 
-  fastMin(a: number, b: number): number {
-    return a < b ? a : b;
-  },
+/** Truncates `x` with the renderer's integer fast path. */
+export function fastTrunc(x: number): number {
+  return x | 0;
+}
 
-  fastRound(x: number): number {
-    return (x + 0.5) | 0;
-  },
+/** Returns true when positive integer `n` is a power of two. */
+export function isPowerOf2(n: number): boolean {
+  return n > 0 && (n & (n - 1)) === 0;
+}
 
-  fastTrunc(x: number): number {
-    return x | 0;
-  },
+/** Returns the smallest power of two greater than or equal to `n`. */
+export function nextPowerOf2(n: number): number {
+  let value = n - 1;
+  value |= value >> 1;
+  value |= value >> 2;
+  value |= value >> 4;
+  value |= value >> 8;
+  value |= value >> 16;
+  return value + 1;
+}
 
-  isPowerOf2(n: number): boolean {
-    return n > 0 && (n & (n - 1)) === 0;
-  },
+/** Returns asin(`value`) after clamping the input to [-1, 1]. */
+export function safeAsin(value: number): number {
+  return Math.asin(value < -1 ? -1 : value > 1 ? 1 : value);
+}
 
-  /** Returns the next power of two >= n. */
-  nextPowerOf2(n: number): number {
-    let v = n - 1;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-    return v;
-  },
+/** Converts an angle in radians to degrees. */
+export function toDegrees(radians: number): number {
+  return radians * RAD2DEG;
+}
 
-  /** asin clamped to [-1, 1] to avoid NaN on floating-point noise. */
-  safeAsin(value: number): number {
-    return Math.asin(value < -1 ? -1 : value > 1 ? 1 : value);
-  },
+/** Converts an angle in degrees to radians. */
+export function toRadians(degrees: number): number {
+  return degrees * DEG2RAD;
+}
 
-  toDegrees(radians: number): number {
-    return radians * MathUtils.RAD2DEG;
-  },
-
-  toRadians(degrees: number): number {
-    return degrees * MathUtils.DEG2RAD;
-  },
-
-  /** Manhattan distance between two points. */
-  tileDistance(
-    a: { x: number; y: number },
-    b: { x: number; y: number },
-  ): number {
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-  },
-
-  /**
-   * Packs normalized HSL (0-1 each) into a 16-bit integer.
-   * Layout: hue 6 bits [15:10], saturation 3 bits [9:7], lightness 7 bits [6:0].
-   * @param h Hue in [0, 1]
-   * @param s Saturation in [0, 1]
-   * @param l Lightness in [0, 1]
-   */
-  packHsl16(h: number, s: number, l: number): number {
-    return (
-      (Math.round(h * 63) << 10) |
-      (Math.round(s * 7) << 7) |
-      Math.round(l * 127)
-    );
-  },
-
-  /** Unpacks a 16-bit integer produced by packHsl16 back to normalized HSL. */
-  unpackHsl16(value: number): { h: number; s: number; l: number } {
-    return {
-      h: ((value >> 10) & 63) / 63,
-      s: ((value >> 7) & 7) / 7,
-      l: (value & 127) / 127,
-    };
-  },
-};
+/** Returns the Manhattan distance between two integer-grid positions. */
+export function tileDistance(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+): number {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+}

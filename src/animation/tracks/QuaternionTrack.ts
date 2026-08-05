@@ -1,64 +1,53 @@
-import { Track } from "../Track.ts";
+import { slerpQuaternionsFlat } from "../../math/Quaternion.ts";
+import { Interpolation, Track, type TrackOptions } from "../Track.ts";
 
-/** Keyframe track for quaternion rotation values - uses spherical linear interpolation (slerp). */
-export class QuaternionTrack extends Track {
+/** Quaternion rotation keyframes sampled with spherical linear interpolation. */
+export class QuaternionTrack extends Track<"quaternion"> {
+  /** Runtime label identifying quaternion values and quaternion mixing rules. */
+  override get valueType(): "quaternion" {
+    return "quaternion";
+  }
+
+  /** Creates a four-component quaternion track with linear or discrete interpolation. */
   constructor(
     name: string,
     times: Float32Array | number[],
     values: Float32Array | number[],
+    options: Omit<TrackOptions, "itemSize"> = {},
   ) {
-    super(name, times, values, 4);
+    if (
+      options.interpolation !== undefined &&
+      options.interpolation !== Interpolation.Linear &&
+      options.interpolation !== Interpolation.Discrete
+    ) {
+      throw new RangeError(
+        "QuaternionTrack supports only linear or discrete interpolation.",
+      );
+    }
+    super(name, times, values, { ...options, itemSize: 4 });
   }
 
-  /** Slerp between quaternion keyframes at index and index+1. */
+  /** Slerps quaternion keyframes at `index` and `index + 1`. */
   override interpolate(
     index: number,
     t0: number,
     t: number,
     t1: number,
   ): number[] {
+    if (this.interpolation === Interpolation.Discrete) {
+      return Array.from(this.values.subarray(index * 4, index * 4 + 4));
+    }
     const alpha = t1 === t0 ? 0 : (t - t0) / (t1 - t0);
     const base0 = index * 4;
     const base1 = (index + 1) * 4;
-    const v = this.values;
-
-    let ax = v[base0];
-    let ay = v[base0 + 1];
-    let az = v[base0 + 2];
-    let aw = v[base0 + 3];
-    const bx = v[base1];
-    const by = v[base1 + 1];
-    const bz = v[base1 + 2];
-    const bw = v[base1 + 3];
-
-    // Shortest-path correction
-    let dot = ax * bx + ay * by + az * bz + aw * bw;
-    if (dot < 0) {
-      dot = -dot;
-      ax = -ax;
-      ay = -ay;
-      az = -az;
-      aw = -aw;
-    }
-
-    let scale0: number;
-    let scale1: number;
-    if (1 - dot > 1e-6) {
-      const theta = Math.acos(dot);
-      const sinTheta = Math.sin(theta);
-      scale0 = Math.sin((1 - alpha) * theta) / sinTheta;
-      scale1 = Math.sin(alpha * theta) / sinTheta;
-    } else {
-      // Fall back to linear lerp for nearly identical quaternions
-      scale0 = 1 - alpha;
-      scale1 = alpha;
-    }
-
-    return [
-      scale0 * ax + scale1 * bx,
-      scale0 * ay + scale1 * by,
-      scale0 * az + scale1 * bz,
-      scale0 * aw + scale1 * bw,
-    ];
+    return slerpQuaternionsFlat(
+      [0, 0, 0, 1],
+      0,
+      this.values,
+      base0,
+      this.values,
+      base1,
+      alpha,
+    );
   }
 }

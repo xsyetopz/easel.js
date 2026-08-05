@@ -13,16 +13,19 @@ interface TubeCurve {
 }
 
 /**
- * Generates a tube that extrudes along a 3D curve path using
- * rotation-minimizing frames to avoid unnecessary twisting.
+ * Generates a tube along a 3D curve path with rotation-minimizing frames.
+ *
+ * Sampling is bounded by `tubularSegments` and `radialSegments`; no adaptive
+ * subdivision is performed.
  */
 export class TubeGeometry extends Geometry {
+  /** Sweeps a circular profile along a 3D curve using bounded rotation-minimizing frames. */
   constructor(
     path: TubeCurve,
-    tubularSegments = 64,
-    radius = 1,
-    radialSegments = 8,
-    closed = false,
+    tubularSegments: number = 64,
+    radius: number = 1,
+    radialSegments: number = 8,
+    closed: boolean = false,
   ) {
     super();
 
@@ -60,7 +63,7 @@ export class TubeGeometry extends Geometry {
       Math.abs(t0.x) > 0.9 ? new Vector3(0, 1, 0) : new Vector3(1, 0, 0);
     const n0 = new Vector3()
       .copy(init)
-      .sub(t0.clone().mulScalar(t0.dot(init)))
+      .sub(t0.clone().multiplyScalar(t0.dot(init)))
       .normalize();
     frameNormals.push(n0);
     frameBinormals.push(new Vector3().copy(t0).cross(n0).normalize());
@@ -75,18 +78,22 @@ export class TubeGeometry extends Geometry {
       const c1 = v1.dot(v1);
       const nL =
         c1 > 0
-          ? nPrev.clone().sub(v1.clone().mulScalar((2 / c1) * v1.dot(nPrev)))
+          ? nPrev
+              .clone()
+              .sub(v1.clone().multiplyScalar((2 / c1) * v1.dot(nPrev)))
           : nPrev.clone();
       const tL =
         c1 > 0
-          ? tPrev.clone().sub(v1.clone().mulScalar((2 / c1) * v1.dot(tPrev)))
+          ? tPrev
+              .clone()
+              .sub(v1.clone().multiplyScalar((2 / c1) * v1.dot(tPrev)))
           : tPrev.clone();
 
       const v2 = tCurr.clone().sub(tL);
       const c2 = v2.dot(v2);
       const nCurr =
         c2 > 0
-          ? nL.clone().sub(v2.clone().mulScalar((2 / c2) * v2.dot(nL)))
+          ? nL.clone().sub(v2.clone().multiplyScalar((2 / c2) * v2.dot(nL)))
           : nL.clone();
 
       frameNormals.push(nCurr.normalize());
@@ -154,7 +161,7 @@ export class TubeGeometry extends Geometry {
     this.setPositions(new Float32Array(positions));
     this.setNormals(new Float32Array(normals));
     this.setUVs(new Float32Array(uvs));
-    this.setIndex(new IndexArray(indices));
+    this.index = new IndexArray(indices);
     this.computeBoundingSphere();
   }
 }

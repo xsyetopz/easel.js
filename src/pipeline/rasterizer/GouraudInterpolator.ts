@@ -1,4 +1,4 @@
-import { MathUtils } from "../../math/MathUtils.ts";
+import { decodeHsl16, encodeHsl16 } from "../../math/Hsl16.ts";
 
 /** Per-vertex color interpolator for Gouraud shading. */
 export class GouraudInterpolator {
@@ -7,8 +7,8 @@ export class GouraudInterpolator {
    * Uses shortest-arc interpolation for hue.
    */
   interpolate(hsl1: number, hsl2: number, t: number): number {
-    const a = MathUtils.unpackHsl16(hsl1);
-    const b = MathUtils.unpackHsl16(hsl2);
+    const a = decodeHsl16(hsl1);
+    const b = decodeHsl16(hsl2);
 
     let dh = b.h - a.h;
     if (dh > 0.5) dh -= 1;
@@ -18,6 +18,6 @@ export class GouraudInterpolator {
     const s = a.s + (b.s - a.s) * t;
     const l = a.l + (b.l - a.l) * t;
 
-    return MathUtils.packHsl16(h, s, l);
+    return encodeHsl16(h, s, l);
   }
 }

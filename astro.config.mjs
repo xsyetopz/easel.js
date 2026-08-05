@@ -16,6 +16,9 @@ const docsSidebarGroups = [
   "Math",
   "Loaders",
   "Curves",
+  "Pipeline",
+  "Renderers",
+  "Utilities",
 ].map((label) => ({
   label,
   collapsed: !["Core", "Cameras"].includes(label),
@@ -35,7 +38,7 @@ export default defineConfig({
   outDir: "./dist/www",
   integrations: [
     starlight({
-      title: "easel.js docs",
+      title: "EASEL.js docs",
       description: "Canvas2D software renderer API reference.",
       customCss: ["./www/astro/styles/starlight.scss"],
       credits: false,

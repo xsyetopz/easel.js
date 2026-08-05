@@ -27,7 +27,7 @@ export class PainterSort {
   sort(
     drawList: DrawList,
     cameraPosition: { x: number; y: number },
-    sortObjects = true,
+    sortObjects: boolean = true,
   ): void {
     const calls = drawList.calls;
     const n = calls.length;
@@ -151,7 +151,7 @@ export class PainterSort {
       const dc = calls[i];
       if (isTransparent(dc.material)) {
         const c = dc.centroid;
-        dc._tileDistance = Math.abs(c.x - cx) + Math.abs(c.y - cy);
+        dc.tileDistance = Math.abs(c.x - cx) + Math.abs(c.y - cy);
         transparent.push(dc);
       } else {
         opaque.push(dc);
@@ -198,5 +198,5 @@ function isTransparent(material: { transparent?: boolean }): boolean {
 
 function compareTransparentBackToFront(a: DrawCall, b: DrawCall): number {
   const layer = a.material.layer - b.material.layer;
-  return layer || b._tileDistance - a._tileDistance;
+  return layer || b.tileDistance - a.tileDistance;
 }

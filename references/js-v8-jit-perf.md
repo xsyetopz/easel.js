@@ -1,13 +1,13 @@
-# JS/TS Performance on V8 (Chrome/Node) - Notes for Easel.js
+# JS/TS Performance on V8 (Chrome/Node) - Notes for EASEL.js
 
 This complements `references/js-softrast-optguide.md`. That doc is
-rasterizer-specific + contains Easel-measured findings; this one captures
+rasterizer-specific + contains EASEL-measured findings; this one captures
 **engine-level** V8/JIT patterns that tend to matter for CPU-heavy pipelines
 (like a software renderer).
 
-## Applies to Easel.js because...
+## Applies to EASEL.js because...
 
-Easel.js is dominated by:
+EASEL.js is dominated by:
 
 - Long-lived hot loops over numeric data (projection, shading, rasterization,
   sorting).
@@ -32,7 +32,7 @@ falls back to slower paths.
 - Keep return types consistent (don’t return numbers in one branch and
   strings/objects in another).
 
-Practical Easel mapping:
+Practical EASEL mapping:
 
 - Prefer "validate once, then run hot":
   - Parse/normalize inputs at loader/setup boundaries.
@@ -44,7 +44,7 @@ Patterns like `arr[i] || 0` (or `value ?? 0`) add branches and can force V8 to
 keep extra type checks around. If you _know_ the data is numeric, make it
 numeric earlier and don’t re-check per iteration.
 
-Practical Easel mapping:
+Practical EASEL mapping:
 
 - Remove provably-dead fallbacks in typed array reads (matches the measured
   `?? 0` finding in `references/js-softrast-optguide.md`).
@@ -55,7 +55,7 @@ V8 optimizes property access best when a function sees the _same_ object shape
 repeatedly. Code becomes slower when call sites become polymorphic/megamorphic
 (many shapes).
 
-Practical Easel mapping:
+Practical EASEL mapping:
 
 - Avoid "sometimes add this property later" objects.
 - Avoid mixing multiple ad-hoc object literals for the same conceptual type when
@@ -68,7 +68,7 @@ Practical Easel mapping:
 - Prefer TypedArrays for large numeric datasets: predictable element types and
   layout.
 
-Practical Easel mapping:
+Practical EASEL mapping:
 
 - Geometry/triangle buffers are already SoA-style TypedArrays; keep it that way.
 - Be cautious when converting typed data into JS arrays "just for convenience"
@@ -82,7 +82,7 @@ Chaining `map/filter/reduce` (and friends) often:
 - does multiple full passes over data,
 - adds call overhead per element.
 
-Practical Easel mapping:
+Practical EASEL mapping:
 
 - In traversal/sort/build loops, prefer a single `for` loop that does the full
   transformation.
@@ -96,7 +96,7 @@ Typical indirection traps:
   make megamorphic)
 - dynamic dispatch via strings (string comparisons everywhere)
 
-Practical Easel mapping:
+Practical EASEL mapping:
 
 - If a per-triangle/per-pixel path depends on a material "mode", prefer a small
   numeric enum/bitfield chosen once per draw call, then use it in the hot loop.
@@ -108,12 +108,12 @@ at loop invariants. It’s not a universal win (engines are smart), but it’s a
 reasonable pattern when the loop is hot and the property is read every
 iteration.
 
-Practical Easel mapping:
+Practical EASEL mapping:
 
 - Use this only in the hottest loops (triangle/pixel loops), and only when
   profiling shows benefit.
 
-## Easel.js "watch list" (code-shape + JIT risks)
+## EASEL.js "watch list" (code-shape + JIT risks)
 
 These are not guaranteed problems; they’re high-ROI places to benchmark for
 deopts/regressions:

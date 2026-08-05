@@ -49,15 +49,16 @@ export function setup(canvas) {
   const boxHelper = new EASEL.BoxHelper(box, 0xffff00);
   scene.add(boxHelper);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     box.rotation.y += 0.6 * dt;
     boxHelper.update();
     orbitControls.update();
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -102,9 +103,10 @@ scene.add(boxHelper);
 
 function animate() {
   requestAnimationFrame(animate);
-  box.rotation.y += 0.6 * clock.delta;
+  box.rotation.y += 0.6 * clock.update().delta;
   boxHelper.update();
   controls.update();
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }
 animate();`;
@@ -139,9 +141,10 @@ scene.add(boxHelper);
 
 function animate() {
   requestAnimationFrame(animate);
-  box.rotation.y += 0.6 * clock.getDelta();
+  box.rotation.y += 0.6 * clock.update().getDelta();
   boxHelper.update();
   controls.update();
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }
 animate();`;

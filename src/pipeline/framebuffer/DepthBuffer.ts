@@ -4,6 +4,7 @@ export class DepthBuffer {
   #height: number;
   #data: Uint16Array;
 
+  /** Constructs a Uint16 depth buffer for the requested pixel dimensions. */
   constructor(width: number, height: number) {
     this.#width = width;
     this.#height = height;
@@ -11,14 +12,17 @@ export class DepthBuffer {
     this.#data.fill(0xffff);
   }
 
+  /** Framebuffer width in pixels. */
   get width(): number {
     return this.#width;
   }
 
+  /** Framebuffer height in pixels. */
   get height(): number {
     return this.#height;
   }
 
+  /** Uint16 depth values indexed by framebuffer pixel. */
   get data(): Uint16Array {
     return this.#data;
   }
@@ -40,6 +44,7 @@ export class DepthBuffer {
     return true;
   }
 
+  /** Resizes the Uint16 depth storage and resets all values to the far plane. */
   resize(width: number, height: number): void {
     this.#width = width;
     this.#height = height;

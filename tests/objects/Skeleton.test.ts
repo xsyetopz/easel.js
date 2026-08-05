@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { Node } from "@/core/Node.js";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { Bone } from "@/objects/Bone.ts";
 import { Skeleton } from "@/objects/Skeleton.js";
@@ -15,6 +16,17 @@ describe("Skeleton", () => {
     const sk = new Skeleton([b]);
     expect(sk.bones).toHaveLength(1);
     expect(sk.bones[0].name).toBe("hip");
+    expect(Object.isFrozen(sk.bones)).toBe(true);
+    expect(Object.isFrozen(sk.boneInverses)).toBe(true);
+  });
+
+  it("rejects non-Bone members and mismatched inverse arrays", () => {
+    expect(() => new Skeleton([new Node() as unknown as Bone])).toThrow(
+      "only Bone objects",
+    );
+    expect(
+      () => new Skeleton([makeBone("hip")], [new Matrix4(), new Matrix4()]),
+    ).toThrow("match the bone count");
   });
 
   it("allocates boneMatrices Float32Array sized bones*16", () => {

@@ -1,4 +1,4 @@
-import { MathUtils } from "../math/MathUtils.ts";
+import { encodeHsl16 } from "../math/Hsl16.ts";
 import type { ColorTable } from "./color/ColorTable.ts";
 
 interface Framebuffer {
@@ -82,7 +82,7 @@ export class PixelWriter {
       const step = Math.round(opacity * 8);
       const existing = framebuffer.getPixel(x, y);
       const { h, s, l } = rgbToHsl(existing.r, existing.g, existing.b);
-      const dstHsl16 = MathUtils.packHsl16(h, s, l);
+      const dstHsl16 = encodeHsl16(h, s, l);
       finalHsl16 = translucencyTable.blend(hsl16, dstHsl16, step);
     }
 

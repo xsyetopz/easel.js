@@ -1,12 +1,22 @@
+/** Linked-list node used internally by the Earcut polygon triangulator. */
 export interface EarcutNode {
+  /** Starting index of this vertex in the source coordinate array. */
   i: number;
+  /** Cartesian x component. */
   x: number;
+  /** Vertical Cartesian component. */
   y: number;
+  /** Previous node in the polygon ring. */
   prev: EarcutNode;
+  /** Next node in the polygon ring. */
   next: EarcutNode;
+  /** Z-order key used by hashed ear tests. */
   z: number;
-  prevZ: EarcutNode | null;
-  nextZ: EarcutNode | null;
+  /** Previous node in the z-order linked list, when indexed. */
+  prevZ: EarcutNode | undefined;
+  /** Next node in the z-order linked list, when indexed. */
+  nextZ: EarcutNode | undefined;
+  /** Whether this node is a Steiner point introduced during hole bridging. */
   steiner: boolean;
 }
 
@@ -17,9 +27,9 @@ export interface EarcutNode {
 export function earcut(
   data: number[],
   holeIndices?: number[],
-  dim = 2,
+  dim: number = 2,
 ): number[] {
-  const hasHoles = holeIndices != null && holeIndices.length > 0;
+  const hasHoles = holeIndices !== undefined && holeIndices.length > 0;
   const outerLen = hasHoles ? holeIndices[0] * dim : data.length;
   let outerNode = linkedList(data, 0, outerLen, dim, true);
   const triangles: number[] = [];
@@ -61,8 +71,8 @@ function createNode(i: number, x: number, y: number): EarcutNode {
     x,
     y,
     z: 0,
-    prevZ: null,
-    nextZ: null,
+    prevZ: undefined,
+    nextZ: undefined,
     steiner: false,
   } as EarcutNode;
   node.prev = node;
@@ -502,8 +512,8 @@ function indexCurve(
     p = p.next;
   } while (p !== start);
 
-  (p.prevZ as EarcutNode).nextZ = null;
-  p.prevZ = null;
+  (p.prevZ as EarcutNode).nextZ = undefined;
+  p.prevZ = undefined;
 
   sortLinked(p);
 }
@@ -515,14 +525,14 @@ function sortLinked(list: EarcutNode): EarcutNode {
   let result: EarcutNode = list;
 
   do {
-    let p: EarcutNode | null = result;
-    let head: EarcutNode | null = null;
-    let tail: EarcutNode | null = null;
+    let p: EarcutNode | undefined = result;
+    let head: EarcutNode | undefined;
+    let tail: EarcutNode | undefined;
     numMerges = 0;
 
     while (p) {
       numMerges++;
-      let q: EarcutNode | null = p;
+      let q: EarcutNode | undefined = p;
       let pSize = 0;
       for (let i = 0; i < inSize; i++) {
         pSize++;
@@ -553,7 +563,7 @@ function sortLinked(list: EarcutNode): EarcutNode {
       p = q;
     }
 
-    (tail as EarcutNode).nextZ = null;
+    (tail as EarcutNode).nextZ = undefined;
     inSize *= 2;
     result = head as EarcutNode;
   } while (numMerges > 1);
@@ -734,7 +744,7 @@ function splitPolygon(a: EarcutNode, b: EarcutNode): EarcutNode {
   return b2;
 }
 
-/** @returns positive = CCW winding */
+/** Returns a positive value for counter-clockwise winding. */
 function signedArea(
   data: number[],
   start: number,

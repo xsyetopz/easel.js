@@ -1,11 +1,13 @@
-import { MathUtils } from "./MathUtils.ts";
+import { fastAtan2 } from "./MathUtils.ts";
 import type { Matrix4 } from "./Matrix4.ts";
 import { Vector2 } from "./Vector2.ts";
+import type { Vector3 } from "./Vector3.ts";
 
 /** 3x3 matrix for 2D transforms and normal matrices. */
 export class Matrix3 {
   #elements: Float32Array<ArrayBufferLike> = new Float32Array(9);
 
+  /** Constructs a 3×3 matrix with column-major storage. */
   constructor(elements?: Float32Array<ArrayBufferLike>) {
     if (elements) {
       this.#elements = elements;
@@ -14,10 +16,12 @@ export class Matrix3 {
     }
   }
 
+  /** Column-major matrix storage exposed for direct numeric access. */
   get elements(): Float32Array {
     return this.#elements;
   }
 
+  /** Returns a new instance with the same component values. */
   clone(): Matrix3 {
     return new Matrix3().copy(this);
   }
@@ -45,11 +49,45 @@ export class Matrix3 {
     return this;
   }
 
-  /** Copies elements from another Matrix3 into this one. */
+  /** Copies all nine elements from `m` into this matrix. */
   copy(m: Matrix3): this {
     const me = m.elements;
     if (me === this.elements) return this;
     this.elements.set(me);
+    return this;
+  }
+
+  /** Returns true when all nine elements exactly match `m`. */
+  equals(m: Matrix3): boolean {
+    const te = this.elements;
+    const me = m.elements;
+    for (let index = 0; index < 9; index++) {
+      if (te[index] !== me[index]) return false;
+    }
+    return true;
+  }
+
+  /** Extracts the three column basis vectors into the supplied targets. */
+  extractBasis(xAxis: Vector3, yAxis: Vector3, zAxis: Vector3): this {
+    const te = this.elements;
+    xAxis.x = te[0];
+    xAxis.y = te[1];
+    xAxis.z = te[2];
+    yAxis.x = te[3];
+    yAxis.y = te[4];
+    yAxis.z = te[5];
+    zAxis.x = te[6];
+    zAxis.y = te[7];
+    zAxis.z = te[8];
+    return this;
+  }
+
+  /** Reads nine column-major values from `values` starting at `offset`. */
+  fromArray(values: ArrayLike<number>, offset: number = 0): this {
+    const te = this.elements;
+    for (let index = 0; index < 9; index++) {
+      te[index] = values[index + offset];
+    }
     return this;
   }
 
@@ -63,7 +101,7 @@ export class Matrix3 {
     this.extractScale(scale);
 
     const rotationMatrix = new Matrix3().extractRotation(this);
-    rotation.angle = MathUtils.fastAtan2(
+    rotation.angle = fastAtan2(
       rotationMatrix.elements[1],
       rotationMatrix.elements[0],
     );
@@ -71,7 +109,7 @@ export class Matrix3 {
     return this;
   }
 
-  /** Computes the determinant of this matrix. */
+  /** Returns the signed determinant of this matrix. */
   determinant(): number {
     const te = this.elements;
 
@@ -132,12 +170,44 @@ export class Matrix3 {
     return this;
   }
 
-  /** Sets this to the normal matrix derived from the given Matrix4. */
+  /** Replaces this matrix with the inverse-transpose normal matrix of `m`. */
   getNormalMatrix(m: Matrix4): this {
-    return this.setFromMatrix4(m).invert().transpose();
+    const me = m.elements;
+    const n11 = me[0];
+    const n21 = me[1];
+    const n31 = me[2];
+    const n12 = me[4];
+    const n22 = me[5];
+    const n32 = me[6];
+    const n13 = me[8];
+    const n23 = me[9];
+    const n33 = me[10];
+
+    const t11 = n33 * n22 - n32 * n23;
+    const t12 = n32 * n13 - n33 * n12;
+    const t13 = n23 * n12 - n22 * n13;
+    const determinant = n11 * t11 + n21 * t12 + n31 * t13;
+    const te = this.elements;
+
+    if (determinant === 0) {
+      te.fill(0);
+      return this;
+    }
+
+    const inverseDeterminant = 1 / determinant;
+    te[0] = t11 * inverseDeterminant;
+    te[1] = t12 * inverseDeterminant;
+    te[2] = t13 * inverseDeterminant;
+    te[3] = (n31 * n23 - n33 * n21) * inverseDeterminant;
+    te[4] = (n33 * n11 - n31 * n13) * inverseDeterminant;
+    te[5] = (n21 * n13 - n23 * n11) * inverseDeterminant;
+    te[6] = (n32 * n21 - n31 * n22) * inverseDeterminant;
+    te[7] = (n31 * n12 - n32 * n11) * inverseDeterminant;
+    te[8] = (n22 * n11 - n21 * n12) * inverseDeterminant;
+    return this;
   }
 
-  /** Resets this matrix to the identity. */
+  /** Replaces all elements with the identity matrix. */
   identity(): this {
     const te = this.elements;
     te[0] = 1;
@@ -189,7 +259,7 @@ export class Matrix3 {
     return this;
   }
 
-  /** Sets this to a 2D rotation matrix. */
+  /** Replaces this matrix with a 2D rotation by `radians`. */
   makeRotation(radians: number): this {
     const c = Math.cos(radians);
     const s = Math.sin(radians);
@@ -207,7 +277,7 @@ export class Matrix3 {
     return this;
   }
 
-  /** Sets this to a 2D scale matrix. */
+  /** Replaces this matrix with a 2D scale by `x` and `y`. */
   makeScale(x: number, y: number): this {
     const te = this.elements;
     te[0] = x;
@@ -222,7 +292,7 @@ export class Matrix3 {
     return this;
   }
 
-  /** Sets this to a 2D translation matrix. */
+  /** Replaces this matrix with a 2D translation by `x` and `y`. */
   makeTranslation(x: number, y: number): this {
     const te = this.elements;
     te[0] = 1;
@@ -237,13 +307,13 @@ export class Matrix3 {
     return this;
   }
 
-  /** Post-multiplies this matrix by m. */
-  mul(m: Matrix3): this {
-    return this.mulMatrices(this, m);
+  /** Post-multiplies this matrix by `m` in place. */
+  multiply(m: Matrix3): this {
+    return this.multiplyMatrices(this, m);
   }
 
-  /** Sets this matrix to the product a * b. */
-  mulMatrices(a: Matrix3, b: Matrix3): this {
+  /** Stores the matrix product `a * b` in this matrix. */
+  multiplyMatrices(a: Matrix3, b: Matrix3): this {
     const ae = a.elements;
     const be = b.elements;
     const te = this.elements;
@@ -280,7 +350,104 @@ export class Matrix3 {
     return this;
   }
 
-  /** Sets all nine elements directly (row-major argument order). */
+  /** Pre-multiplies this matrix by `m` in place. */
+  premultiply(m: Matrix3): this {
+    return this.multiplyMatrices(m, this);
+  }
+
+  /** Multiplies every matrix element by `s` in place. */
+  multiplyScalar(s: number): this {
+    const te = this.elements;
+    for (let index = 0; index < 9; index++) te[index] *= s;
+    return this;
+  }
+
+  /** Pre-multiplies the THREE-compatible 2D rotation by `theta`. */
+  rotate(theta: number): this {
+    // THREE's legacy rotate() uses makeRotation(-theta) and pre-multiplies.
+    // Keep the operation allocation-free by applying that product directly.
+    const c = Math.cos(theta);
+    const s = Math.sin(theta);
+    const te = this.elements;
+
+    const m0 = te[0];
+    const m1 = te[1];
+    const m3 = te[3];
+    const m4 = te[4];
+    const m6 = te[6];
+    const m7 = te[7];
+
+    te[0] = c * m0 + s * m1;
+    te[1] = -s * m0 + c * m1;
+    te[3] = c * m3 + s * m4;
+    te[4] = -s * m3 + c * m4;
+    te[6] = c * m6 + s * m7;
+    te[7] = -s * m6 + c * m7;
+    return this;
+  }
+
+  /** Pre-multiplies a 2D scale by `sx` and `sy`. */
+  scale(sx: number, sy: number): this {
+    const te = this.elements;
+    te[0] *= sx;
+    te[3] *= sx;
+    te[6] *= sx;
+    te[1] *= sy;
+    te[4] *= sy;
+    te[7] *= sy;
+    return this;
+  }
+
+  /** Pre-multiplies a 2D translation by `tx` and `ty`. */
+  translate(tx: number, ty: number): this {
+    const te = this.elements;
+    const m2 = te[2];
+    const m5 = te[5];
+    const m8 = te[8];
+    te[0] += tx * m2;
+    te[1] += ty * m2;
+    te[3] += tx * m5;
+    te[4] += ty * m5;
+    te[6] += tx * m8;
+    te[7] += ty * m8;
+    return this;
+  }
+
+  /** Replaces this matrix with an affine UV offset, repeat, rotation, and center transform. */
+  setUvTransform(
+    tx: number,
+    ty: number,
+    sx: number,
+    sy: number,
+    rotation: number,
+    cx: number,
+    cy: number,
+  ): this {
+    const c = Math.cos(rotation);
+    const s = Math.sin(rotation);
+    return this.set(
+      sx * c,
+      sx * s,
+      -sx * (c * cx + s * cy) + cx + tx,
+      -sy * s,
+      sy * c,
+      -sy * (-s * cx + c * cy) + cy + ty,
+      0,
+      0,
+      1,
+    );
+  }
+
+  /** Writes column-major elements to `values` starting at `offset`. */
+  toArray(values: number[] = [], offset: number = 0): number[] {
+    const te = this.elements;
+    for (let index = 0; index < 9; index++) {
+      values[index + offset] = te[index];
+    }
+    return values;
+  }
+
+  /** Writes all nine row-major arguments into column-major storage. */
   set(
     n11: number,
     n12: number,
@@ -305,7 +472,7 @@ export class Matrix3 {
     return this;
   }
 
-  /** Sets this matrix from the upper-left 3x3 of a Matrix4. */
+  /** Copies the upper-left 3×3 block of `m` into this matrix. */
   setFromMatrix4(m: Matrix4): this {
     const me = m.elements;
     const te = this.elements;
@@ -322,7 +489,7 @@ export class Matrix3 {
     return this;
   }
 
-  /** Transposes this matrix in place. */
+  /** Swaps rows and columns in place. */
   transpose(): this {
     const te = this.elements;
 
@@ -337,6 +504,21 @@ export class Matrix3 {
     te[5] = te[7];
     te[7] = temp;
 
+    return this;
+  }
+
+  /** Writes transposed elements to `values` without mutating this matrix. */
+  transposeInto(values: number[] | Float32Array<ArrayBufferLike>): this {
+    const te = this.elements;
+    values[0] = te[0];
+    values[1] = te[3];
+    values[2] = te[6];
+    values[3] = te[1];
+    values[4] = te[4];
+    values[5] = te[7];
+    values[6] = te[2];
+    values[7] = te[5];
+    values[8] = te[8];
     return this;
   }
 

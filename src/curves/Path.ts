@@ -4,48 +4,57 @@ import { CubicBezierCurve } from "./curves/CubicBezierCurve.ts";
 import { EllipseCurve } from "./curves/EllipseCurve.ts";
 import { LineCurve } from "./curves/LineCurve.ts";
 import { QuadraticBezierCurve } from "./curves/QuadraticBezierCurve.ts";
+import { SplineCurve } from "./curves/SplineCurve.ts";
 
-/** 2D path built from lines, arcs, and bezier segments. */
+/** 2D path built from lines, arcs, splines, and Bezier segments. */
 export class Path extends CurvePath {
-  override type = "Path";
+  /** Serialization discriminator for this runtime type. */
+  override type: string = "Path";
   #currentPoint = new Vector2();
 
+  /** Constructs a path and optionally connects the supplied points. */
   constructor(points?: Vector2[]) {
     super();
-    if (points) this.setFromPoints(points);
+    if (points && points.length > 0) this.setFromPoints(points);
   }
 
+  /** Mutable endpoint used as the origin for subsequent path commands. */
   get currentPoint(): Vector2 {
     return this.#currentPoint;
   }
 
-  /** Creates LineCurves connecting the given points and sets currentPoint to the last. */
+  /** Replaces the endpoint used by subsequent path commands. */
+  set currentPoint(value: Vector2) {
+    this.#currentPoint.copy(value);
+  }
+
+  /** Adds line segments that connect the supplied points in order. */
   setFromPoints(points: Vector2[]): this {
+    if (points.length === 0) return this;
     this.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
+    for (let i = 1; i < points.length; i++)
       this.lineTo(points[i].x, points[i].y);
-    }
     return this;
   }
 
-  /** Moves currentPoint without adding a curve. */
+  /** Moves the current point without adding a curve. */
   moveTo(x: number, y: number): this {
     this.#currentPoint.set(x, y);
     return this;
   }
 
-  /** Adds a LineCurve from currentPoint to (x, y). */
+  /** Appends a line from the current endpoint to `(x, y)`. */
   lineTo(x: number, y: number): this {
-    this.add(new LineCurve(this.#currentPoint.clone(), new Vector2(x, y)));
+    this.add(new LineCurve(this.#currentPoint, new Vector2(x, y)));
     this.#currentPoint.set(x, y);
     return this;
   }
 
-  /** Adds a QuadraticBezierCurve from currentPoint through (cpX, cpY) to (x, y). */
+  /** Appends a quadratic Bezier from the current endpoint. */
   quadraticCurveTo(cpX: number, cpY: number, x: number, y: number): this {
     this.add(
       new QuadraticBezierCurve(
-        this.#currentPoint.clone(),
+        this.#currentPoint,
         new Vector2(cpX, cpY),
         new Vector2(x, y),
       ),
@@ -54,7 +63,7 @@ export class Path extends CurvePath {
     return this;
   }
 
-  /** Adds a CubicBezierCurve from currentPoint through two control points to (x, y). */
+  /** Appends a cubic Bezier from the current endpoint. */
   bezierCurveTo(
     cp1X: number,
     cp1Y: number,
@@ -65,7 +74,7 @@ export class Path extends CurvePath {
   ): this {
     this.add(
       new CubicBezierCurve(
-        this.#currentPoint.clone(),
+        this.#currentPoint,
         new Vector2(cp1X, cp1Y),
         new Vector2(cp2X, cp2Y),
         new Vector2(x, y),
@@ -75,28 +84,41 @@ export class Path extends CurvePath {
     return this;
   }
 
-  /** Adds an EllipseCurve at currentPoint + (x, y) offset. */
-  arc(
-    x: number,
-    y: number,
-    radius: number,
-    startAngle: number,
-    endAngle: number,
-    clockwise: boolean,
-  ): this {
-    const cx = this.#currentPoint.x + x;
-    const cy = this.#currentPoint.y + y;
-    return this.absarc(cx, cy, radius, startAngle, endAngle, clockwise);
+  /** Appends a Catmull–Rom spline beginning at the current endpoint. */
+  splineThru(points: Vector2[]): this {
+    if (points.length === 0) return this;
+    this.add(new SplineCurve([this.#currentPoint, ...points]));
+    this.#currentPoint.copy(points[points.length - 1]);
+    return this;
   }
 
-  /** Adds an EllipseCurve at absolute center (x, y). */
+  /** Appends an arc whose center is offset from the current endpoint. */
+  arc(
+    x: number = 0,
+    y: number = 0,
+    radius: number = 1,
+    startAngle: number = 0,
+    endAngle: number = Math.PI * 2,
+    clockwise: boolean = false,
+  ): this {
+    return this.absarc(
+      this.#currentPoint.x + x,
+      this.#currentPoint.y + y,
+      radius,
+      startAngle,
+      endAngle,
+      clockwise,
+    );
+  }
+
+  /** Appends an arc centered at the supplied absolute coordinates. */
   absarc(
-    x: number,
-    y: number,
-    radius: number,
-    startAngle: number,
-    endAngle: number,
-    clockwise: boolean,
+    x: number = 0,
+    y: number = 0,
+    radius: number = 1,
+    startAngle: number = 0,
+    endAngle: number = Math.PI * 2,
+    clockwise: boolean = false,
   ): this {
     return this.absellipse(
       x,
@@ -110,24 +132,22 @@ export class Path extends CurvePath {
     );
   }
 
-  /** Adds an EllipseCurve at currentPoint + (x, y) offset. */
+  /** Appends an ellipse whose center is offset from the current endpoint. */
   ellipse(
-    x: number,
-    y: number,
-    xR: number,
-    yR: number,
-    startAngle: number,
-    endAngle: number,
-    clockwise: boolean,
-    rotation: number,
+    x: number = 0,
+    y: number = 0,
+    xRadius: number = 1,
+    yRadius: number = 1,
+    startAngle: number = 0,
+    endAngle: number = Math.PI * 2,
+    clockwise: boolean = false,
+    rotation: number = 0,
   ): this {
-    const cx = this.#currentPoint.x + x;
-    const cy = this.#currentPoint.y + y;
     return this.absellipse(
-      cx,
-      cy,
-      xR,
-      yR,
+      this.#currentPoint.x + x,
+      this.#currentPoint.y + y,
+      xRadius,
+      yRadius,
       startAngle,
       endAngle,
       clockwise,
@@ -135,47 +155,63 @@ export class Path extends CurvePath {
     );
   }
 
-  /** Adds an EllipseCurve at absolute center (x, y). */
+  /** Appends an ellipse centered at the supplied absolute coordinates. */
   absellipse(
-    x: number,
-    y: number,
-    xR: number,
-    yR: number,
-    startAngle: number,
-    endAngle: number,
-    clockwise: boolean,
-    rotation: number,
+    x: number = 0,
+    y: number = 0,
+    xRadius: number = 1,
+    yRadius: number = 1,
+    startAngle: number = 0,
+    endAngle: number = Math.PI * 2,
+    clockwise: boolean = false,
+    rotation: number = 0,
   ): this {
     const curve = new EllipseCurve(
       x,
       y,
-      xR,
-      yR,
+      xRadius,
+      yRadius,
       startAngle,
       endAngle,
       clockwise,
       rotation,
     );
     if (this.curves.length > 0) {
-      const firstPoint = curve.getPoint(0, undefined);
-      if (!firstPoint.equals(this.#currentPoint)) {
+      const firstPoint = curve.getPoint(0);
+      if (!firstPoint.equals(this.#currentPoint))
         this.lineTo(firstPoint.x, firstPoint.y);
-      }
     }
     this.add(curve);
-    const lastPoint = curve.getPoint(1, undefined);
-    this.#currentPoint.copy(lastPoint);
+    this.#currentPoint.copy(curve.getPoint(1));
     return this;
   }
 
+  /** Returns an independent copy with cloned child curves. */
   override clone(): Path {
     const Ctor = this.constructor as new () => Path;
     return new Ctor().copy(this);
   }
 
+  /** Copies child curves, closure settings, and the current endpoint. */
   override copy(source: Path): this {
     super.copy(source);
     this.#currentPoint.copy(source.currentPoint);
+    return this;
+  }
+
+  /** Serializes child curves, path settings, and the current endpoint. */
+  override toJSON(): Record<string, unknown> {
+    return {
+      ...super.toJSON(),
+      currentPoint: [this.#currentPoint.x, this.#currentPoint.y],
+    };
+  }
+
+  /** Restores path settings and endpoint from serialized data. */
+  override fromJSON(json: Record<string, unknown>): this {
+    super.fromJSON(json);
+    const currentPoint = json["currentPoint"];
+    if (Array.isArray(currentPoint)) this.#currentPoint.fromArray(currentPoint);
     return this;
   }
 }

@@ -45,14 +45,15 @@ export function setup(canvas) {
     (err) => console.error("Texture load failed:", err),
   );
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     box.rotation.x += 0.3 * dt;
     box.rotation.y += 0.5 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -92,11 +93,12 @@ const loader = new EASEL.TextureLoader();
   material.map = texture;
 });
 
-const clock = new EASEL.Clock();
+const clock = new EASEL.Timer();
 function animate() {
   requestAnimationFrame(animate);
-  box.rotation.x += 0.3 * clock.delta;
-  box.rotation.y += 0.5 * clock.delta;
+  box.rotation.x += 0.3 * clock.update().delta;
+  box.rotation.y += 0.5 * clock.update().delta;
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }
 animate();`;
@@ -131,11 +133,12 @@ const loader = new THREE.TextureLoader();
   material.needsUpdate = true;
 });
 
-const clock = new THREE.Clock();
+const clock = new THREE.Timer();
 function animate() {
   requestAnimationFrame(animate);
-  box.rotation.x += 0.3 * clock.getDelta();
-  box.rotation.y += 0.5 * clock.getDelta();
+  box.rotation.x += 0.3 * clock.update().getDelta();
+  box.rotation.y += 0.5 * clock.update().getDelta();
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }
 animate();`;

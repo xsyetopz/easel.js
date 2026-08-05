@@ -1,4 +1,4 @@
-import { Hsl16 } from "./Hsl16.ts";
+import { decodeHsl16, encodeHsl16 } from "../../math/Hsl16.ts";
 
 /** Precomputed alpha blending table for 9-step opacity. */
 export class TranslucencyTable {
@@ -11,8 +11,8 @@ export class TranslucencyTable {
     if (step === 0) return dstHsl16;
     if (step === 8) return srcHsl16;
 
-    const src = Hsl16.decode(srcHsl16);
-    const dst = Hsl16.decode(dstHsl16);
+    const src = decodeHsl16(srcHsl16);
+    const dst = decodeHsl16(dstHsl16);
     const t = step / 8;
 
     // Shortest-arc hue interpolation
@@ -27,6 +27,6 @@ export class TranslucencyTable {
     // Normalize hue to [0, 1]
     const hn = h < 0 ? h + 1 : h > 1 ? h - 1 : h;
 
-    return Hsl16.encode(hn, s, l);
+    return encodeHsl16(hn, s, l);
   }
 }

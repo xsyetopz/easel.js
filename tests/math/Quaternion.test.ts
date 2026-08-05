@@ -1,12 +1,17 @@
 import { describe, expect, it } from "bun:test";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 import {
   Euler as TEuler,
   Matrix4 as TMatrix4,
   Quaternion as TQuaternion,
 } from "three";
 import { Matrix4 } from "@/math/Matrix4.js";
-import { Quaternion } from "@/math/Quaternion.js";
+import {
+  multiplyQuaternionsFlat,
+  Quaternion,
+  slerpQuaternionsFlat,
+} from "@/math/Quaternion.js";
+import { Vector3 } from "@/math/Vector3.js";
 
 describe("Quaternion", () => {
   it("constructor defaults", () => {
@@ -32,7 +37,7 @@ describe("Quaternion", () => {
   });
 
   it("setFromEuler", () => {
-    // easel setFromEuler accepts plain {x,y,z,order} objects
+		// EASEL setFromEuler accepts plain {x,y,z,order} objects
     const euler = { x: 0.1, y: 0.2, z: 0.3, order: "XYZ" };
     const e = new Quaternion().setFromEuler(euler);
     // verify result is a unit quaternion
@@ -86,6 +91,26 @@ describe("Quaternion", () => {
     expect(e.length).toBeCloseTo(1);
   });
 
+  it("dot, angle, identity and conjugate", () => {
+    const a = new Quaternion().setFromAxisAngle(
+      { x: 0, y: 1, z: 0 },
+      Math.PI / 3,
+    );
+    const b = new Quaternion().setFromAxisAngle(
+      { x: 0, y: 1, z: 0 },
+      -Math.PI / 3,
+    );
+    expect(a.dot(a)).toBeCloseTo(1);
+    expect(a.angleTo(b)).toBeCloseTo((2 * Math.PI) / 3);
+    expect(a.clone().conjugate()).toMatchVector({
+      x: -a.x,
+      y: -a.y,
+      z: -a.z,
+      w: a.w,
+    });
+    expect(a.clone().identity()).toMatchVector({ x: 0, y: 0, z: 0, w: 1 });
+  });
+
   it("invert (conjugate for unit)", () => {
     const e = new Quaternion().setFromAxisAngle(
       { x: 0, y: 1, z: 0 },
@@ -116,7 +141,7 @@ describe("Quaternion", () => {
     expect(a.x === b.x && a.y === b.y && a.z === b.z && a.w === b.w).toBe(true);
   });
 
-  it("premul matches THREE premultiply", () => {
+  it("premultiply matches THREE", () => {
     const ea = new Quaternion().setFromAxisAngle(
       { x: 1, y: 0, z: 0 },
       Math.PI / 4,
@@ -125,7 +150,7 @@ describe("Quaternion", () => {
       { x: 0, y: 1, z: 0 },
       Math.PI / 3,
     );
-    ea.premul(eb);
+    ea.premultiply(eb);
 
     const ta = new TQuaternion().setFromAxisAngle(
       { x: 1, y: 0, z: 0 },
@@ -138,5 +163,86 @@ describe("Quaternion", () => {
     ta.premultiply(tb);
 
     expect(ea).toMatchVector(ta, 1e-5);
+  });
+
+  it("multiply and multiplyQuaternions match THREE", () => {
+    const ea = new Quaternion().setFromAxisAngle(
+      { x: 1, y: 0, z: 0 },
+      Math.PI / 4,
+    );
+    const eb = new Quaternion().setFromAxisAngle(
+      { x: 0, y: 1, z: 0 },
+      Math.PI / 3,
+    );
+    const e = ea.clone().multiply(eb);
+    const t = new TQuaternion()
+      .setFromAxisAngle({ x: 1, y: 0, z: 0 }, Math.PI / 4)
+      .multiply(
+        new TQuaternion().setFromAxisAngle({ x: 0, y: 1, z: 0 }, Math.PI / 3),
+      );
+    expect(e).toMatchVector(t, 1e-5);
+    expect(new Quaternion().multiplyQuaternions(ea, eb)).toMatchVector(t, 1e-5);
+  });
+
+  it("matches THREE flat quaternion operations without object allocation", () => {
+    const left = [99, 0, 0, 0, 1, 99];
+    const right = [99, 0, Math.SQRT1_2, 0, Math.SQRT1_2, 99];
+    const EASELProduct = new Float64Array(6);
+    const THREEProduct = Array<number>(6).fill(0);
+    expect(multiplyQuaternionsFlat(EASELProduct, 1, left, 1, right, 1)).toBe(
+      EASELProduct,
+    );
+    TQuaternion.multiplyQuaternionsFlat(THREEProduct, 1, left, 1, right, 1);
+    expect([...EASELProduct]).toEqual(THREEProduct);
+
+    const EASELSlerp = new Float64Array(6);
+    const THREESlerp = Array<number>(6).fill(0);
+    expect(slerpQuaternionsFlat(EASELSlerp, 1, left, 1, right, 1, 0.25)).toBe(
+      EASELSlerp,
+    );
+    TQuaternion.slerpFlat(THREESlerp, 1, left, 1, right, 1, 0.25);
+    expect([...EASELSlerp]).toEqual(THREESlerp);
+  });
+
+  it("setFromUnitVectors handles aligned and opposite directions", () => {
+    const from = new Vector3(1, 0, 0);
+    const to = new Vector3(0, 1, 0);
+    const e = new Quaternion().setFromUnitVectors(from, to);
+    expect(new Vector3(1, 0, 0).applyQuaternion(e)).toMatchVector(to, 1e-5);
+
+    const opposite = new Quaternion().setFromUnitVectors(
+      from,
+      new Vector3(-1, 0, 0),
+    );
+    expect(new Vector3(1, 0, 0).applyQuaternion(opposite)).toMatchVector(
+      { x: -1, y: 0, z: 0 },
+      1e-5,
+    );
+  });
+
+  it("slerp, rotateTowards and serialization", () => {
+    const start = new Quaternion().identity();
+    const end = new Quaternion().setFromAxisAngle(
+      { x: 0, y: 1, z: 0 },
+      Math.PI,
+    );
+    expect(start.clone().slerp(end, 0)).toMatchVector(start, 1e-5);
+    expect(start.clone().slerp(end, 1)).toMatchVector(end, 1e-5);
+    const stepped = start.clone().rotateTowards(end, Math.PI / 2);
+    expect(stepped.angleTo(end)).toBeCloseTo(Math.PI / 2, 5);
+    expect(stepped.length).toBeCloseTo(1, 5);
+    expect(
+      new Quaternion().slerpQuaternions(start, end, 0.5).length,
+    ).toBeCloseTo(1, 5);
+
+    const value = new Quaternion(1, 2, 3, 4);
+    const array = [0, 0, 0, 0, 0, 0];
+    expect(value.toArray(array, 1)).toEqual([0, 1, 2, 3, 4, 0]);
+    expect(new Quaternion().fromArray(array, 1)).toMatchVector(value);
+    expect(value.toJSON()).toEqual([1, 2, 3, 4]);
+  });
+
+  it("random returns a normalized quaternion", () => {
+    expect(new Quaternion().random().length).toBeCloseTo(1, 12);
   });
 });

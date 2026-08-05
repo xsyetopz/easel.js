@@ -106,12 +106,13 @@ export function setup(canvas, _params = {}) {
 
   canvas.addEventListener("mousemove", onMouseMove);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    void clock.delta;
+    void clock.update().delta;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();

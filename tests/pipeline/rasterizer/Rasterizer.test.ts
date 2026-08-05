@@ -1,4 +1,6 @@
 import { describe, expect, it } from "bun:test";
+import { Wrapping } from "@/core/Constants.ts";
+import { LineBuffer } from "@/pipeline/LineBuffer.js";
 import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 import {
   appendCenterTriangle,
@@ -428,6 +430,47 @@ describe("Rasterizer", () => {
     expect(pixel.b).toBe(0);
   });
 
+  it("line and triangle primitives share the CPU depth buffer", () => {
+    const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+    const triangle = new TriangleBuffer(1);
+    appendCenterTriangle(triangle, 0.5);
+    triangle.buildSortOrder();
+    rasterizer.rasterize(
+      { triangles: triangle, material: { color: { r: 0, g: 0, b: 1 } } },
+      fb,
+      undefined,
+    );
+
+    const line = new LineBuffer(1);
+    line.append(8, 7, 12, 7, -0.5, -0.5, 0, 0, 0, 1, 0, 1);
+    rasterizer.rasterize(
+      {
+        primitive: "lines",
+        lines: line,
+        material: { color: { r: 1, g: 0, b: 0 } },
+      },
+      fb,
+      undefined,
+    );
+    const pixel = fb.getPixel(10, 7);
+    expect(pixel.r).toBe(255);
+    expect(pixel.b).toBe(0);
+
+    const fartherLine = new LineBuffer(1);
+    fartherLine.append(8, 7, 12, 7, 1, 1, 0, 0, 0, 1, 0, 1);
+    rasterizer.rasterize(
+      {
+        primitive: "lines",
+        lines: fartherLine,
+        material: { color: { r: 0, g: 1, b: 0 } },
+      },
+      fb,
+      undefined,
+    );
+    expect(fb.getPixel(10, 7).r).toBe(255);
+    expect(fb.getPixel(10, 7).g).toBe(0);
+  });
+
   it("ndcZ=-1 (near plane): depth16=0 passes depth test on fresh framebuffer", () => {
     const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
     const tb = new TriangleBuffer(1);
@@ -674,6 +717,60 @@ describe("Rasterizer", () => {
     }
   });
 
+  it("preserves 64-pixel atlas texel centers across all textured paths", () => {
+    const data = new Uint8ClampedArray(64 * 64 * 4);
+    for (let y = 0; y < 64; y++) {
+      for (let x = 0; x < 64; x++) {
+        const offset = (y * 64 + x) * 4;
+        data[offset] = x;
+        data[offset + 1] = y;
+        data[offset + 3] = 255;
+      }
+    }
+    const modes: Array<{
+      shadedColorData?: Float32Array;
+      shadedColorStride?: number;
+    }> = [
+      {},
+      { shadedColorData: new Float32Array([1, 1, 1]), shadedColorStride: 3 },
+      {
+        shadedColorData: new Float32Array(9).fill(1),
+        shadedColorStride: 9,
+      },
+    ];
+
+    for (const mode of modes) {
+      for (let texel = 8; texel <= 15; texel++) {
+        const center = (texel + 0.5) / 64;
+        const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+        const tb = new TriangleBuffer(1);
+        appendCenterTriangle(
+          tb,
+          -1,
+          center,
+          center,
+          center,
+          center,
+          center,
+          center,
+        );
+        tb.buildSortOrder();
+        const drawCall: RasterDrawCall = {
+          triangles: tb,
+          material: { map: { data: { data, width: 64, height: 64 } } },
+        };
+        if (mode.shadedColorData && mode.shadedColorStride !== undefined) {
+          drawCall.shadedColorData = mode.shadedColorData;
+          drawCall.shadedColorStride = mode.shadedColorStride;
+        }
+        rasterizer.rasterize(drawCall, fb, undefined);
+        const pixel = fb.getPixel(10, 7);
+        expect(pixel.r).toBe(texel);
+        expect(pixel.g).toBe(texel);
+      }
+    }
+  });
+
   it("sortOrder controls which physical triangle is read at each iteration position", () => {
     const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
     const tb = new TriangleBuffer(2);
@@ -768,8 +865,8 @@ describe("Rasterizer", () => {
         material: {
           map: {
             data: { data: texData, width: 2, height: 2 },
-            wrapS: 1,
-            wrapT: 1,
+            wrapS: Wrapping.Repeat,
+            wrapT: Wrapping.Repeat,
           },
         },
       },
@@ -785,5 +882,31 @@ describe("Rasterizer", () => {
       repeatPixels.map((p) => `${p.r},${p.g},${p.b}`),
     );
     expect(repeatUnique.size).toBeGreaterThanOrEqual(clampUnique.size);
+  });
+
+  it("mirrors alternate UV tiles in the rasterizer", () => {
+    const { rasterizer, framebuffer } = makeRasterizerFixture();
+    const triangles = new TriangleBuffer(1);
+    appendCenterTriangle(triangles, -1, 1.25, 0, 1.25, 0, 1.25, 0);
+    triangles.buildSortOrder();
+    const data = new Uint8ClampedArray([
+      10, 0, 0, 255, 20, 0, 0, 255, 30, 0, 0, 255, 40, 0, 0, 255,
+    ]);
+
+    rasterizer.rasterize(
+      {
+        triangles,
+        material: {
+          map: {
+            data: { data, width: 4, height: 1 },
+            wrapS: Wrapping.MirroredRepeat,
+          },
+        },
+      },
+      framebuffer,
+      undefined,
+    );
+
+    expect(framebuffer.getPixel(10, 7).r).toBe(40);
   });
 });

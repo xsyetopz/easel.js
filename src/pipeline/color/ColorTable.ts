@@ -1,4 +1,4 @@
-import { MathUtils } from "../../math/MathUtils.ts";
+import { decodeHsl16 } from "../../math/Hsl16.ts";
 
 interface RgbColor {
   r: number;
@@ -9,41 +9,42 @@ interface RgbColor {
 /** Module-level reusable output for lookup() to avoid per-call allocation. */
 const _lookupOut: RgbColor = { r: 0, g: 0, b: 0 };
 
+function hueToRgb(p: number, q: number, t: number): number {
+  let channel = t;
+  if (channel < 0) channel += 1;
+  if (channel > 1) channel -= 1;
+  if (channel < 1 / 6) return p + (q - p) * 6 * channel;
+  if (channel < 1 / 2) return q;
+  if (channel < 2 / 3) return p + (q - p) * (2 / 3 - channel) * 6;
+  return p;
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  if (s === 0) {
+    const value = Math.round(l * 255);
+    return [value, value, value];
+  }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return [
+    Math.round(hueToRgb(p, q, h + 1 / 3) * 255),
+    Math.round(hueToRgb(p, q, h) * 255),
+    Math.round(hueToRgb(p, q, h - 1 / 3) * 255),
+  ];
+}
+
 /** Precomputed HSL16-to-RGB lookup table. */
 export class ColorTable {
   #table: Uint32Array;
 
+  /** Builds the precomputed HSL16-to-RGB lookup table. */
   constructor() {
     this.#table = new Uint32Array(65536);
     for (let i = 0; i < 65536; i++) {
-      const { h, s, l } = MathUtils.unpackHsl16(i);
-      const [r, g, b] = ColorTable.#hslToRgb(h, s, l);
+      const { h, s, l } = decodeHsl16(i);
+      const [r, g, b] = hslToRgb(h, s, l);
       this.#table[i] = (r << 16) | (g << 8) | b;
     }
-  }
-
-  static #hue2rgb(p: number, q: number, t: number): number {
-    let tc = t;
-    if (tc < 0) tc += 1;
-    if (tc > 1) tc -= 1;
-    if (tc < 1 / 6) return p + (q - p) * 6 * tc;
-    if (tc < 1 / 2) return q;
-    if (tc < 2 / 3) return p + (q - p) * (2 / 3 - tc) * 6;
-    return p;
-  }
-
-  static #hslToRgb(h: number, s: number, l: number): [number, number, number] {
-    if (s === 0) {
-      const v = Math.round(l * 255);
-      return [v, v, v];
-    }
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    return [
-      Math.round(ColorTable.#hue2rgb(p, q, h + 1 / 3) * 255),
-      Math.round(ColorTable.#hue2rgb(p, q, h) * 255),
-      Math.round(ColorTable.#hue2rgb(p, q, h - 1 / 3) * 255),
-    ];
   }
 
   /**

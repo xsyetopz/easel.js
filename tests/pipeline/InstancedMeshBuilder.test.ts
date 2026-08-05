@@ -17,7 +17,7 @@ function makeCamera() {
 }
 
 describe("InstancedMeshBuilder", () => {
-  it("reuses per-instance DrawCall + material + color objects", () => {
+  it("reuses a draw call and stores instance tint without material wrappers", () => {
     const material = new LambertMaterial({ color: 0xffffff });
 
     const node = {
@@ -83,11 +83,10 @@ describe("InstancedMeshBuilder", () => {
     );
     expect(dl1.calls).toHaveLength(1);
     const dc1 = dl1.calls[0];
-    const mat1 = dc1.material as unknown as { color?: unknown };
-    const col1 = mat1.color as { r: number; g: number; b: number };
-    expect(col1.r).toBeCloseTo(0.5);
-    expect(col1.g).toBeCloseTo(0.25);
-    expect(col1.b).toBeCloseTo(0.75);
+    expect(dc1.material).toBe(material);
+    expect(dc1.instanceColorR).toBeCloseTo(0.5);
+    expect(dc1.instanceColorG).toBeCloseTo(0.25);
+    expect(dc1.instanceColorB).toBeCloseTo(0.75);
     expect(dc1.vertexColorData).toBeInstanceOf(Float32Array);
     expect(dc1.vertexColorItemSize).toBe(3);
 
@@ -102,7 +101,7 @@ describe("InstancedMeshBuilder", () => {
     expect(pixel.g).toBe(32);
     expect(pixel.b).toBe(0);
 
-    // Mutate instanceColor to ensure the cached color object is updated, not replaced.
+    // Mutate instanceColor to ensure the cached draw call is updated in place.
     (node.instanceColor as Float32Array)[0] = 0.2;
 
     const dl2 = new DrawList();
@@ -119,12 +118,8 @@ describe("InstancedMeshBuilder", () => {
     );
     expect(dl2.calls).toHaveLength(1);
     const dc2 = dl2.calls[0];
-    const mat2 = dc2.material as unknown as { color?: unknown };
-    const col2 = mat2.color as { r: number; g: number; b: number };
-
     expect(dc2).toBe(dc1);
-    expect(mat2).toBe(mat1);
-    expect(col2).toBe(col1);
-    expect(col2.r).toBeCloseTo(0.2);
+    expect(dc2.material).toBe(material);
+    expect(dc2.instanceColorR).toBeCloseTo(0.2);
   });
 });

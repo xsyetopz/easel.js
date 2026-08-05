@@ -4,7 +4,7 @@ export const meta = {
   id: "hello-animation",
   name: "Hello Animation",
   category: "getting-started",
-  description: "Rotate, bounce, and scale a cube using clock.delta.",
+  description: "Rotate, bounce, and scale a cube using clock.update().delta.",
 };
 
 export const controls = [
@@ -45,20 +45,22 @@ export function setup(canvas, params = {}) {
   );
   scene.add(box);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let elapsed = 0;
   let speed = params.speed ?? 1;
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     elapsed += dt * speed;
 
     box.rotation.y = elapsed;
     box.position.y = Math.sin(elapsed * 2) * 0.5;
     const s = 1 + Math.sin(elapsed * 3) * 0.15;
     box.scale.set(s, s, s);
+
+    renderer.prepare(scene, camera);
 
     renderer.render(scene, camera);
   }
@@ -82,12 +84,12 @@ const box = new EASEL.Mesh(
 );
 scene.add(box);
 
-const clock = new EASEL.Clock();
+const clock = new EASEL.Timer();
 let elapsed = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.delta;
+  const dt = clock.update().delta;
   elapsed += dt;
 
   box.rotation.y = elapsed;
@@ -96,6 +98,8 @@ function animate() {
 
   const s = 1 + Math.sin(elapsed * 3) * 0.15;
   box.scale.set(s, s, s);
+
+  renderer.prepare(scene, camera);
 
   renderer.render(scene, camera);
 }
@@ -109,12 +113,12 @@ const box = new THREE.Mesh(
 );
 scene.add(box);
 
-const clock = new THREE.Clock();
+const clock = new THREE.Timer();
 let elapsed = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.getDelta();
+  const dt = clock.update().getDelta();
   elapsed += dt;
 
   box.rotation.y = elapsed;
@@ -123,6 +127,8 @@ function animate() {
 
   const s = 1 + Math.sin(elapsed * 3) * 0.15;
   box.scale.set(s, s, s);
+
+  renderer.prepare(scene, camera);
 
   renderer.render(scene, camera);
 }

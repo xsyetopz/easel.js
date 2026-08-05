@@ -1,17 +1,20 @@
 import { Geometry } from "../Geometry.ts";
 
-/** Torus knot geometry. */
+/** Tube swept around a `(p, q)` torus-knot curve. */
 export class TorusKnotGeometry extends Geometry {
+  /** Serialization discriminator for this runtime type. */
   declare type: string;
+  /** Primitive-construction parameters retained for serialization. */
   declare parameters: Record<string, unknown>;
 
+  /** Constructs a tube around a `(p, q)` torus-knot path. */
   constructor(
-    radius = 1,
-    tube = 0.4,
-    tubularSegments = 64,
-    radialSegments = 8,
-    p = 2,
-    q = 3,
+    radius: number = 1,
+    tube: number = 0.4,
+    tubularSegments: number = 64,
+    radialSegments: number = 8,
+    p: number = 2,
+    q: number = 3,
   ) {
     super();
 
@@ -97,7 +100,7 @@ export class TorusKnotGeometry extends Geometry {
     this.setPositions(new Float32Array(positions));
     this.setNormals(new Float32Array(normals));
     this.setUVs(new Float32Array(uvs));
-    this.setIndex(new IndexArray(indices));
+    this.index = new IndexArray(indices);
 
     function computePoint(u: number, out: number[]): void {
       const quOverP = q / p;

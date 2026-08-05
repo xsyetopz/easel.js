@@ -2,9 +2,10 @@ import { Plane } from "./Plane.ts";
 
 /** Six-plane view frustum for visibility culling. */
 export class Frustum {
-  /** 0: left, 1: right, 2: bottom, 3: top, 4: near, 5: far */
+  /** Plane order: left, right, bottom, top, near, then far. */
   planes: Plane[] = [];
 
+  /** Constructs a frustum with six reusable clipping planes. */
   constructor() {
     this.planes.push(new Plane());
     this.planes.push(new Plane());
@@ -14,10 +15,37 @@ export class Frustum {
     this.planes.push(new Plane());
   }
 
+  /**
+   * Copies six planes into this frustum.
+   *
+   * Omitting a plane resets that slot to a fresh default plane. The defaults
+   * are evaluated only when this method is called, so the render loop does not
+   * pay for any extra allocations while the frustum is reused.
+   */
+  set(
+    p0: Plane = new Plane(),
+    p1: Plane = new Plane(),
+    p2: Plane = new Plane(),
+    p3: Plane = new Plane(),
+    p4: Plane = new Plane(),
+    p5: Plane = new Plane(),
+  ): this {
+    const planes = this.planes;
+    planes[0].copy(p0);
+    planes[1].copy(p1);
+    planes[2].copy(p2);
+    planes[3].copy(p3);
+    planes[4].copy(p4);
+    planes[5].copy(p5);
+    return this;
+  }
+
+  /** Returns a new instance with the same component values. */
   clone(): Frustum {
     return new Frustum().copy(this);
   }
 
+  /** Returns true when `point` lies inside all six clipping half-spaces. */
   containsPoint(point: { x: number; y: number; z: number }): boolean {
     const planes = this.planes;
     if (planes[0].distanceToPoint(point) < 0) return false;
@@ -29,6 +57,7 @@ export class Frustum {
     return true;
   }
 
+  /** Copies component values from the supplied instance into this one. */
   copy(frustum: Frustum): this {
     const planes = this.planes;
     planes[0].copy(frustum.planes[0]);
@@ -40,6 +69,7 @@ export class Frustum {
     return this;
   }
 
+  /** Returns true when `box` intersects the frustum volume. */
   intersectsBox(box: {
     min: { x: number; y: number; z: number };
     max: { x: number; y: number; z: number };
@@ -62,6 +92,7 @@ export class Frustum {
     return true;
   }
 
+  /** Returns true when `sphere` intersects the frustum volume. */
   intersectsSphere(sphere: {
     centre: { x: number; y: number; z: number };
     radius: number;
@@ -78,6 +109,7 @@ export class Frustum {
     return true;
   }
 
+  /** Replaces all six planes with default planes. */
   makeEmpty(): this {
     for (let i = 0; i < 6; i++) {
       this.planes[i] = new Plane();

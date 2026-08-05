@@ -97,19 +97,21 @@ export function setup(canvas, params = {}) {
 
   drawPattern(ctx, currentPattern, currentCells);
   let texture = new EASEL.CanvasTexture(offscreen);
+  texture.update().buildBrightnessLevels();
 
   const material = new EASEL.BasicMaterial({ color: 0xffffff, map: texture });
   const box = new EASEL.Mesh(new EASEL.BoxGeometry(2.5, 2.5, 2.5), material);
   scene.add(box);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     box.rotation.x += 0.3 * dt;
     box.rotation.y += 0.5 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -124,6 +126,7 @@ export function setup(canvas, params = {}) {
 
       drawPattern(ctx, currentPattern, currentCells);
       texture = new EASEL.CanvasTexture(offscreen);
+      texture.update().buildBrightnessLevels();
       material.map = texture;
       material.needsUpdate = true;
     },
@@ -148,6 +151,7 @@ for (let row = 0; row < cells; row++) {
 }
 
 const texture = new EASEL.CanvasTexture(offscreen);
+texture.update().buildBrightnessLevels();
 const material = new EASEL.BasicMaterial({ color: 0xffffff, map: texture });
 const box = new EASEL.Mesh(new EASEL.BoxGeometry(2.5, 2.5, 2.5), material);
 scene.add(box);

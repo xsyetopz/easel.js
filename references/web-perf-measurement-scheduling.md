@@ -1,12 +1,12 @@
-# Web Performance (Browser) - Measurement + Scheduling for Easel.js
+# Web Performance (Browser) - Measurement + Scheduling for EASEL.js
 
 This is about **runtime smoothness** (frame time, jank, responsiveness), not
 just "bundle size". It’s meant to guide profiling and regression prevention for
-Easel.js’ Canvas2D software renderer and its React website.
+EASEL.js’ Canvas2D software renderer and its React website.
 
-## Applies to Easel.js because...
+## Applies to EASEL.js because...
 
-- Easel rendering is CPU-bound and commonly runs on the **main thread**
+- EASEL rendering is CPU-bound and commonly runs on the **main thread**
   (Canvas2D + scene updates).
 - Any single "long task" can block input, animation, and painting, producing
   visible jank.

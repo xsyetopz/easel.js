@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Attribute } from "@/geometry/Attribute.js";
+import { Matrix4 } from "@/math/Matrix4.ts";
+import { BufferAttribute as THREEBufferAttribute } from "three";
 
 describe("Attribute", () => {
   describe("constructor", () => {
@@ -20,6 +22,27 @@ describe("Attribute", () => {
       const arr = new Uint16Array([0, 1, 2]);
       const attr = new Attribute(arr, 1);
       expect(attr.array).toBe(arr);
+    });
+
+    it("accepts every CPU numeric typed-array representation", () => {
+      const arrays = [
+        new Float32Array(1),
+        new Int8Array(1),
+        new Uint8Array(1),
+        new Uint8ClampedArray(1),
+        new Int16Array(1),
+        new Uint16Array(1),
+        new Int32Array(1),
+        new Uint32Array(1),
+      ];
+      for (const array of arrays) {
+        expect(new Attribute(array, 1).array).toBe(array);
+      }
+    });
+
+    it("rejects invalid item shapes instead of retaining fractional counts", () => {
+      expect(() => new Attribute(new Float32Array(2), 0)).toThrow(RangeError);
+      expect(() => new Attribute(new Float32Array(3), 2)).toThrow(RangeError);
     });
   });
 
@@ -62,6 +85,36 @@ describe("Attribute", () => {
       const ret = attr.setX(1, 99);
       expect(ret).toBe(attr);
       expect(attr.getX(1)).toBe(99);
+    });
+  });
+
+  describe("normalized integer storage", () => {
+    it("matches THREE.js signed and unsigned component conversion", () => {
+      const arrays = [
+        new Int8Array([-128, 127]),
+        new Uint8Array([0, 255]),
+        new Int16Array([-32768, 32767]),
+        new Uint16Array([0, 65535]),
+        new Int32Array([-2147483648, 2147483647]),
+        new Uint32Array([0, 4294967295]),
+      ];
+      for (const array of arrays) {
+        const EASEL = new Attribute(array.slice(), 1, true);
+        const THREE = new THREEBufferAttribute(array.slice(), 1, true);
+        expect(EASEL.getX(0)).toBe(THREE.getX(0));
+        expect(EASEL.getX(1)).toBe(THREE.getX(1));
+        EASEL.setX(0, -0.5).setX(1, 0.5);
+        THREE.setX(0, -0.5).setX(1, 0.5);
+        expect(Array.from(EASEL.array)).toEqual(Array.from(THREE.array));
+      }
+    });
+
+    it("supports Uint8ClampedArray without inheriting THREE.js's type error", () => {
+      const attribute = new Attribute(new Uint8ClampedArray(2), 1, true);
+      attribute.setX(0, 0.25).setX(1, 0.75);
+      expect(Array.from(attribute.array)).toEqual([64, 191]);
+      expect(attribute.getX(0)).toBeCloseTo(64 / 255);
+      expect(attribute.getX(1)).toBeCloseTo(191 / 255);
     });
   });
 
@@ -116,6 +169,36 @@ describe("Attribute", () => {
       const copy = attr.clone();
       copy.setX(0, 99);
       expect(attr.getX(0)).toBe(1);
+    });
+  });
+
+  describe("CPU attribute operations", () => {
+    it("copies components through normalized value semantics", () => {
+      const source = new Attribute(new Uint8Array([255, 128]), 2, true);
+      const destination = new Attribute(new Uint16Array(2), 2, true);
+      expect(destination.copyAt(0, source, 0)).toBe(destination);
+      expect(destination.getX(0)).toBe(1);
+      expect(destination.getY(0)).toBeCloseTo(128 / 255, 4);
+    });
+
+    it("applies matrices explicitly", () => {
+      const attribute = new Attribute(new Float32Array([1, 2, 3]), 3);
+      expect(
+        attribute.applyMatrix4(new Matrix4().makeTranslation(4, 5, 6)),
+      ).toBe(attribute);
+      expect(Array.from(attribute.array)).toEqual([5, 7, 9]);
+    });
+
+    it("serializes storage type, normalization, and optional name", () => {
+      const attribute = new Attribute(new Int16Array([1, 2]), 2, true);
+      attribute.name = "weights";
+      expect(attribute.toJSON()).toEqual({
+        itemSize: 2,
+        type: "Int16Array",
+        array: [1, 2],
+        normalized: true,
+        name: "weights",
+      });
     });
   });
 

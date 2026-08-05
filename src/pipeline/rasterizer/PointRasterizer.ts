@@ -1,4 +1,4 @@
-/** Rasterizes point primitives as fixed-size squares. */
+/** Rasterizes point primitives as filled circular discs. */
 export class PointRasterizer {
   /** Fills a circle at (cx, cy) with integer pixel radius, clamped to screen. */
   rasterize(

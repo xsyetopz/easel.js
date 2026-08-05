@@ -1,14 +1,24 @@
 import { Geometry } from "../Geometry.ts";
 
 /**
- * Base class for platonic solid geometries. Subdivides faces by detail level
- * and projects all vertices onto a sphere of the given radius.
+ * Base geometry for subdivided polyhedra projected onto a sphere.
+ *
+ * Each source triangle is subdivided by `detail`, then its vertices are
+ * normalized to the requested radius and assigned spherical UVs.
  */
 export class PolyhedronGeometry extends Geometry {
+  /** Serialization discriminator for this runtime type. */
   declare type: string;
+  /** Primitive-construction parameters retained for serialization. */
   declare parameters: Record<string, unknown>;
 
-  constructor(vertices: number[], indices: number[], radius = 1, detail = 0) {
+  /** Constructs a subdivided polyhedron from flat vertex and triangle-index arrays. */
+  constructor(
+    vertices: number[],
+    indices: number[],
+    radius: number = 1,
+    detail: number = 0,
+  ) {
     super();
 
     this.type = "PolyhedronGeometry";

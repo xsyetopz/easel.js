@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.6/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -30,12 +30,6 @@
   "linter": {
     "rules": {
       "preset": "recommended",
-      /*
-       * error: invalid, unsafe, or observably incorrect code.
-       * warn: likely defect, maintainability risk, accessibility failure,
-       *       or context-dependent performance issue.
-       * info: architecture, API modernization, or non-blocking optimization.
-       */
       "a11y": {
         "noNoninteractiveElementInteractions": "warn",
         "noStaticElementInteractions": "warn",

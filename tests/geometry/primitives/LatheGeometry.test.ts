@@ -7,21 +7,21 @@ import { defined } from "../../_helpers/defined.js";
 import { expectUnitNormals } from "../../_helpers/geometry.js";
 
 const points = [new Vector2(0, -1), new Vector2(0.5, 0), new Vector2(0, 1)];
-const threePoints = points.map((p) => new THREE.Vector2(p.x, p.y));
+const THREEPoints = points.map((p) => new THREE.Vector2(p.x, p.y));
 
 describe("LatheGeometry vs THREE.LatheGeometry", () => {
   it("default segments - vertex count matches", () => {
     expect(
       defined(new LatheGeometry(points).getAttribute("position")).count,
     ).toBe(
-      defined(new THREE.LatheGeometry(threePoints).getAttribute("position"))
+      defined(new THREE.LatheGeometry(THREEPoints).getAttribute("position"))
         .count,
     );
   });
 
   it("default segments - index count matches", () => {
     expect(defined(new LatheGeometry(points).index).length).toBe(
-      defined(new THREE.LatheGeometry(threePoints).getIndex()).array.length,
+      defined(new THREE.LatheGeometry(THREEPoints).getIndex()).array.length,
     );
   });
 
@@ -50,7 +50,7 @@ describe("LatheGeometry vs THREE.LatheGeometry", () => {
     expect(
       defined(new LatheGeometry(points, 6).getAttribute("position")).count,
     ).toBe(
-      defined(new THREE.LatheGeometry(threePoints, 6).getAttribute("position"))
+      defined(new THREE.LatheGeometry(THREEPoints, 6).getAttribute("position"))
         .count,
     );
   });

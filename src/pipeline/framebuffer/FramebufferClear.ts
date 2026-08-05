@@ -6,14 +6,22 @@ interface TextureImageData {
   height: number;
 }
 
-/** Clears the framebuffer and depth buffer to initial state. */
+/** Clears color storage to the requested value; callers clear the depth buffer separately. */
 export class FramebufferClear {
-  clear(framebuffer: Framebuffer, r = 0, g = 0, b = 0, a = 255): void {
+  /** Fills color storage with the packed RGBA clear value. */
+  clear(
+    framebuffer: Framebuffer,
+    r: number = 0,
+    g: number = 0,
+    b: number = 0,
+    a: number = 255,
+  ): void {
     // ImageData is RGBA byte order; on little-endian Uint32Array reads ABGR.
     const packed = (a << 24) | (b << 16) | (g << 8) | r;
     framebuffer.u32.fill(packed);
   }
 
+  /** Copies a source texture into the framebuffer with nearest-neighbor scaling. */
   clearTexture(framebuffer: Framebuffer, texture: TextureImageData): void {
     const src = texture.data;
     const srcWidth = texture.width;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import "../_helpers/assertions.js";
-import { Ray as TRay, Vector3 as TVector3 } from "three";
+import { Box3 as TBox3, Ray as TRay, Vector3 as TVector3 } from "three";
 import { Box3 } from "@/math/Box3.js";
 import { Plane } from "@/math/Plane.js";
 import { Ray } from "@/math/Ray.js";
@@ -60,11 +60,67 @@ describe("Ray", () => {
     expect(defined(hit).y).toBeCloseTo(0);
   });
 
-  it("intersectBox3 hit", () => {
+  it("intersectBox hit", () => {
     const ray = new Ray(new Vector3(0, 0, 5), new Vector3(0, 0, -1));
     const box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1));
-    const hit = ray.intersectBox3(box, new Vector3());
+    const target = new Vector3();
+    const hit = ray.intersectBox(box, target);
     expect(hit).not.toBeUndefined();
+    expect(hit).toBe(target);
+    expect(ray.intersectsBox(box)).toBe(true);
+  });
+
+  it("intersectBox matches THREE for parallel slabs and inside origins", () => {
+    const cases = [
+      {
+        origin: [0, 0, 0] as const,
+        direction: [1, 0, 0] as const,
+        min: [-1, -2, -3] as const,
+        max: [1, 2, 3] as const,
+      },
+      {
+        origin: [2, 0, 0] as const,
+        direction: [0, 1, 0] as const,
+        min: [-1, -2, -3] as const,
+        max: [1, 2, 3] as const,
+      },
+      {
+        origin: [1, -4, 0] as const,
+        direction: [0, 1, 0] as const,
+        min: [-1, -2, -3] as const,
+        max: [1, 2, 3] as const,
+      },
+    ];
+
+    for (const values of cases) {
+      const origin = new Vector3(...values.origin);
+      const direction = new Vector3(...values.direction);
+      const box = new Box3(
+        new Vector3(...values.min),
+        new Vector3(...values.max),
+      );
+      const ray = new Ray(origin, direction);
+      const THREERay = new TRay(
+        new TVector3(...values.origin),
+        new TVector3(...values.direction),
+      );
+      const target = new Vector3(9, 8, 7);
+      const THREETarget = new TVector3(9, 8, 7);
+      const hit = ray.intersectBox(box, target);
+      const THREEHit = THREERay.intersectBox(
+        new TBox3(new TVector3(...values.min), new TVector3(...values.max)),
+        THREETarget,
+      );
+
+      expect(ray.intersectsBox(box)).toBe(THREEHit != null);
+      if (THREEHit == null) {
+        expect(hit).toBeUndefined();
+        expect(target).toMatchVector({ x: 9, y: 8, z: 7 });
+      } else {
+        expect(hit).toBe(target);
+        expect(hit).toMatchVector(THREEHit);
+      }
+    }
   });
 
   it("clone", () => {

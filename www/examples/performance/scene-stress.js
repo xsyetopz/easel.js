@@ -204,7 +204,7 @@ export function setup(canvas, params = {}) {
     currentTextured,
   );
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
   let frames = 0;
   let fpsTime = 0;
@@ -214,7 +214,7 @@ export function setup(canvas, params = {}) {
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     elapsed += dt;
 
     for (const mesh of meshes) {
@@ -228,6 +228,8 @@ export function setup(canvas, params = {}) {
       camera.position.y = 10;
       camera.lookAt(origin);
     }
+
+    renderer.prepare(scene, camera);
 
     renderer.render(scene, camera, timings);
 

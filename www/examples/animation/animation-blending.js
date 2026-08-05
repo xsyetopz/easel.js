@@ -64,7 +64,7 @@ export function setup(canvas, params = {}) {
     bounceScale,
   ]);
   const bounceAction = animator.clipAction(bounceClip);
-  bounceAction.setLoop(EASEL.LoopRepeat, Number.POSITIVE_INFINITY);
+  bounceAction.setLoop(EASEL.Loop.Repeat, Number.POSITIVE_INFINITY);
 
   const spinRot = new EASEL.VectorTrack(
     "rotation",
@@ -74,7 +74,7 @@ export function setup(canvas, params = {}) {
   );
   const spinClip = new EASEL.AnimationClip("spin", 1, [spinRot]);
   const spinAction = animator.clipAction(spinClip);
-  spinAction.setLoop(EASEL.LoopRepeat, Number.POSITIVE_INFINITY);
+  spinAction.setLoop(EASEL.Loop.Repeat, Number.POSITIVE_INFINITY);
 
   bounceAction.play();
   let activeClipName = "Bounce";
@@ -99,13 +99,14 @@ export function setup(canvas, params = {}) {
     switchTo(params.clip);
   }
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     animator.update(dt);
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -127,10 +128,10 @@ export const easelSource = `import * as EASEL from "easel";
 const animator = new EASEL.Animator(box);
 
 const bounceAction = animator.clipAction(bounceClip);
-bounceAction.setLoop(EASEL.LoopRepeat, Infinity);
+bounceAction.setLoop(EASEL.Loop.Repeat, Infinity);
 
 const spinAction = animator.clipAction(spinClip);
-spinAction.setLoop(EASEL.LoopRepeat, Infinity);
+spinAction.setLoop(EASEL.Loop.Repeat, Infinity);
 
 bounceAction.play();
 

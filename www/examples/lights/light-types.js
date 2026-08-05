@@ -93,14 +93,15 @@ export function setup(canvas, params = {}) {
     lightFactories[params.lightType ?? "Directional"](intensity);
   scene.add(activeLight);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
   let currentIntensity = intensity;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     sphere.rotation.y += 0.3 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();

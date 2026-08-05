@@ -139,7 +139,6 @@ jobs:
       - run: bun run tests:no-any
       - run: bun run examples:source-parity
       - run: bun test
-      - run: bun run api:check
 
   www:
     name: Website

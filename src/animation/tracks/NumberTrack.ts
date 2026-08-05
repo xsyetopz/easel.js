@@ -1,12 +1,14 @@
-import { Track } from "../Track.ts";
+import { Track, type TrackOptions } from "../Track.ts";
 
-/** Keyframe track for scalar number values - uses linear interpolation. */
+/** Scalar numeric keyframes with linear interpolation by default. */
 export class NumberTrack extends Track {
+  /** Creates a numeric track with one scalar value per keyframe. */
   constructor(
     name: string,
     times: Float32Array | number[],
     values: Float32Array | number[],
+    options: Omit<TrackOptions, "itemSize"> = {},
   ) {
-    super(name, times, values, 1);
+    super(name, times, values, { ...options, itemSize: 1 });
   }
 }

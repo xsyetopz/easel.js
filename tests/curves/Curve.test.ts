@@ -10,7 +10,7 @@ describe("Curve base (via LineCurve3)", () => {
   const curve = new LineCurve3(a, b);
 
   it("getLength returns positive value", () => {
-    expect(curve.getLength()).toBeCloseTo(5, 4);
+    expect(curve.length).toBeCloseTo(5, 4);
   });
 
   it("getLengths returns array of length arcLengthDivisions+1", () => {

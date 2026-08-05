@@ -4,10 +4,44 @@ import { Frustum as TFrustum, Matrix4 as TMatrix4 } from "three";
 import { Box3 } from "@/math/Box3.js";
 import { Frustum } from "@/math/Frustum.js";
 import { Matrix4 } from "@/math/Matrix4.js";
+import { Plane } from "@/math/Plane.js";
 import { Sphere } from "@/math/Sphere.js";
 import { Vector3 } from "@/math/Vector3.js";
 
 describe("Frustum", () => {
+  it("set copies six planes without replacing the plane records", () => {
+    const frustum = new Frustum();
+    const planeRecords = frustum.planes.slice();
+    const planes = Array.from(
+      { length: 6 },
+      (_, index) => new Plane(new Vector3(index + 1, 0, 0), index + 0.5),
+    );
+
+    expect(frustum.set(...planes)).toBe(frustum);
+    expect(frustum.planes).toHaveLength(6);
+    for (let index = 0; index < 6; index++) {
+      expect(frustum.planes[index]).toBe(planeRecords[index]);
+      expect(frustum.planes[index]).not.toBe(planes[index]);
+      expect(frustum.planes[index].equals(planes[index])).toBe(true);
+    }
+  });
+
+  it("set defaults omitted planes to the default plane", () => {
+    const frustum = new Frustum().set(
+      new Plane(new Vector3(0, 1, 0), 2),
+      new Plane(new Vector3(0, 0, 1), 3),
+    );
+
+    expect(frustum.planes[0].normal.equals(new Vector3(0, 1, 0))).toBe(true);
+    expect(frustum.planes[0].constant).toBe(2);
+    expect(frustum.planes[1].normal.equals(new Vector3(0, 0, 1))).toBe(true);
+    expect(frustum.planes[1].constant).toBe(3);
+    for (const plane of frustum.planes.slice(2)) {
+      expect(plane.normal.equals(new Vector3(1, 0, 0))).toBe(true);
+      expect(plane.constant).toBe(0);
+    }
+  });
+
   it("setFromProjectionMatrix + containsPoint origin", () => {
     const tm = new TMatrix4().makePerspective(-1, 1, 1, -1, 0.1, 100);
     const em = new Matrix4();

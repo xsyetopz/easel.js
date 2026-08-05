@@ -190,6 +190,7 @@ describe("scene-to-pixels integration", () => {
       type: "AmbientLight",
       visible: true,
       children: [],
+      matrixWorld: new Matrix4(),
       color: { r: 1, g: 0, b: 0 },
       intensity: 1,
     };

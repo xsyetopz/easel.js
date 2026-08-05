@@ -59,15 +59,16 @@ export function setup(canvas) {
   moon.position.x = 1;
   moonPivot.add(moon);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     sun.rotation.y += 0.1 * dt;
     planetPivot.rotation.y += 0.5 * dt;
     moonPivot.rotation.y += 2.0 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();

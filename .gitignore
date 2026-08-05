@@ -7,11 +7,9 @@ dist/
 .env.local
 src/**/*.d.ts
 src/**/*.d.ts.map
+.tmp/
 
 .astro/
 
 # Starlight generated API docs
 www/astro/content/docs/docs/
-
-# Explicit network probe output; locked manifests remain committed.
-api-compat/generated/latest-probe.json

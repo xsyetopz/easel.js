@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { Quaternion as TQuaternion } from "three";
 import { Track } from "@/animation/Track.js";
 import { QuaternionTrack } from "@/animation/tracks/QuaternionTrack.js";
 
@@ -40,5 +41,16 @@ describe("QuaternionTrack", () => {
     const v = t.getValueAtTime(0.5);
     const len = Math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2 + v[3] ** 2);
     expect(len).toBeCloseTo(1);
+  });
+
+  it("matches THREE flat quaternion interpolation", () => {
+    const values = [0, 0, 0, 1, 0, -Math.SQRT1_2, 0, -Math.SQRT1_2];
+    const track = new QuaternionTrack("q", [0, 1], values);
+    const expected = [0, 0, 0, 0];
+    TQuaternion.slerpFlat(expected, 0, values, 0, values, 4, 0.25);
+    const actual = track.getValueAtTime(0.25);
+    for (let index = 0; index < 4; index += 1) {
+      expect(actual[index]).toBeCloseTo(expected[index], 7);
+    }
   });
 });

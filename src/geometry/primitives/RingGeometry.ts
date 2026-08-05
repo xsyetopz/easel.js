@@ -1,13 +1,14 @@
 import { Geometry } from "../Geometry.ts";
 
-/** Flat ring (annulus) geometry on the XY plane. */
+/** Flat annulus on the XY plane with optional angular and radial segments. */
 export class RingGeometry extends Geometry {
+  /** Constructs a flat annulus from inner and outer radii and angular spans. */
   constructor(
-    innerRadius = 0.5,
-    outerRadius = 1,
-    thetaSegments = 32,
-    phiSegments = 1,
-    thetaStart = 0,
+    innerRadius: number = 0.5,
+    outerRadius: number = 1,
+    thetaSegments: number = 32,
+    phiSegments: number = 1,
+    thetaStart: number = 0,
     thetaLength: number = Math.PI * 2,
   ) {
     super();
@@ -65,6 +66,6 @@ export class RingGeometry extends Geometry {
     this.setPositions(new Float32Array(positions));
     this.setNormals(new Float32Array(normals));
     this.setUVs(new Float32Array(uvs));
-    this.setIndex(new IndexArray(indices));
+    this.index = new IndexArray(indices);
   }
 }

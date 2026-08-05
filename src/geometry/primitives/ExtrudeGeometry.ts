@@ -1,4 +1,4 @@
-import { earcut } from "../../math/Earcut.ts";
+import { triangulateShape } from "../../math/ShapeUtils.ts";
 import { Geometry } from "../Geometry.ts";
 
 interface ExtrudeOptions {
@@ -23,11 +23,13 @@ interface ExtrudeShape {
 }
 
 /**
- * Extrudes one or more Shape objects along the Z axis.
- * Generates front face, back face, and side walls.
- * Bevel is not implemented.
+ * Extrudes one or more flat contours along the Z axis.
+ *
+ * Generated meshes contain front, back, and side faces. Bevel options are
+ * retained in serialized parameters but are not rasterized.
  */
 export class ExtrudeGeometry extends Geometry {
+  /** Extrudes one or more flat contours along +Z using the requested depth and steps. */
   constructor(
     shapes: ExtrudeShape | ExtrudeShape[],
     options: ExtrudeOptions = {},
@@ -56,23 +58,16 @@ export class ExtrudeGeometry extends Geometry {
       const { shape: shapePoints, holes } = shape.extractPoints(12);
 
       const flatCoords: number[] = [];
-      const holeIndices: number[] = [];
-
       for (const pt of shapePoints) {
         flatCoords.push(pt.x, pt.y);
       }
       for (const hole of holes) {
-        holeIndices.push(flatCoords.length / 2);
         for (const pt of hole) {
           flatCoords.push(pt.x, pt.y);
         }
       }
 
-      const faceIndices = earcut(
-        flatCoords,
-        holeIndices.length > 0 ? holeIndices : undefined,
-        2,
-      );
+      const faceIndices = triangulateShape(shapePoints, holes).flat();
 
       const vertexCount = flatCoords.length / 2;
 
@@ -160,7 +155,7 @@ export class ExtrudeGeometry extends Geometry {
     this.setPositions(new Float32Array(positions));
     this.setNormals(new Float32Array(normals));
     this.setUVs(new Float32Array(uvs));
-    this.setIndex(new IndexArray(indices));
+    this.index = new IndexArray(indices);
     this.computeBoundingSphere();
   }
 }

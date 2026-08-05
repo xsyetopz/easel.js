@@ -22,57 +22,72 @@ const tpts = [
 describe("CatmullRomCurve3 endpoints vs THREE", () => {
   for (const curveType of ["centripetal", "chordal", "catmullrom"] as const) {
     it(`${curveType}: t=0 matches`, () => {
-      const easel = new CatmullRomCurve3(epts, false, curveType, 0.5);
-      const three = new THREE.CatmullRomCurve3(tpts, false, curveType, 0.5);
-      expect(easel.getPoint(0)).toMatchVector(three.getPoint(0), 1e-5);
+      const EASEL = new CatmullRomCurve3(epts, false, curveType, 0.5);
+			const THREECurve = new THREE.CatmullRomCurve3(
+				tpts,
+				false,
+				curveType,
+				0.5,
+			);
+			expect(EASEL.getPoint(0)).toMatchVector(THREECurve.getPoint(0), 1e-5);
     });
   }
 
   it("catmullrom: t=1 matches", () => {
-    const easel = new CatmullRomCurve3(epts, false, "catmullrom", 0.5);
-    const three = new THREE.CatmullRomCurve3(tpts, false, "catmullrom", 0.5);
-    expect(easel.getPoint(1)).toMatchVector(three.getPoint(1), 1e-5);
+    const EASEL = new CatmullRomCurve3(epts, false, "catmullrom", 0.5);
+		const THREECurve = new THREE.CatmullRomCurve3(
+			tpts,
+			false,
+			"catmullrom",
+			0.5,
+		);
+		expect(EASEL.getPoint(1)).toMatchVector(THREECurve.getPoint(1), 1e-5);
   });
 });
 
 // Self-consistency tests: curve properties independent of THREE comparison
 for (const curveType of ["centripetal", "chordal", "catmullrom"] as const) {
   describe(`CatmullRomCurve3 ${curveType} (self-consistency)`, () => {
-    const easel = new CatmullRomCurve3(epts, false, curveType, 0.5);
+    const EASEL = new CatmullRomCurve3(epts, false, curveType, 0.5);
 
     it("t=0 is at first control point", () => {
-      expect(easel.getPoint(0)).toMatchVector(epts[0], 1e-5);
+      expect(EASEL.getPoint(0)).toMatchVector(epts[0], 1e-5);
     });
 
     it("midpoint x is between 0 and 3", () => {
-      const mid = easel.getPoint(0.5);
+      const mid = EASEL.getPoint(0.5);
       expect(mid.x).toBeGreaterThan(0);
       expect(mid.x).toBeLessThan(3);
     });
 
     it("getLength is positive", () => {
-      expect(easel.getLength()).toBeGreaterThan(0);
+      expect(EASEL.length).toBeGreaterThan(0);
     });
 
     it("getPoints(10) returns 11 points", () => {
-      expect(easel.getPoints(10).length).toBe(11);
+      expect(EASEL.getPoints(10).length).toBe(11);
     });
   });
 }
 
 describe("CatmullRomCurve3 closed=true vs THREE (catmullrom)", () => {
-  const easel = new CatmullRomCurve3(epts, true, "catmullrom", 0.5);
-  const three = new THREE.CatmullRomCurve3(tpts, true, "catmullrom", 0.5);
+  const EASEL = new CatmullRomCurve3(epts, true, "catmullrom", 0.5);
+	const THREECurve = new THREE.CatmullRomCurve3(
+		tpts,
+		true,
+		"catmullrom",
+		0.5,
+	);
 
   it("t=0 matches", () => {
-    expect(easel.getPoint(0)).toMatchVector(three.getPoint(0), 1e-5);
+		expect(EASEL.getPoint(0)).toMatchVector(THREECurve.getPoint(0), 1e-5);
   });
 
   it("t=0.5 matches", () => {
-    expect(easel.getPoint(0.5)).toMatchVector(three.getPoint(0.5), 1e-5);
+		expect(EASEL.getPoint(0.5)).toMatchVector(THREECurve.getPoint(0.5), 1e-5);
   });
 
   it("t=1 matches", () => {
-    expect(easel.getPoint(1)).toMatchVector(three.getPoint(1), 1e-5);
+		expect(EASEL.getPoint(1)).toMatchVector(THREECurve.getPoint(1), 1e-5);
   });
 });

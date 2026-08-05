@@ -4,7 +4,7 @@ export const meta = {
   id: "geometries",
   name: "Geometry Types",
   category: "geometry",
-  description: "14 built-in geometry types displayed in a 4-column grid.",
+  description: "15 built-in geometry types displayed in a 4-column grid.",
 };
 
 export const controls = [];
@@ -51,6 +51,11 @@ export function setup(canvas) {
       side: EASEL.Side.Double,
     },
     {
+      geo: new EASEL.CircleGeometry(0.8, 24),
+      color: 0x4090e0,
+      side: EASEL.Side.Double,
+    },
+    {
       geo: new EASEL.RingGeometry(0.3, 0.8, 24),
       color: 0x40e090,
       side: EASEL.Side.Double,
@@ -83,15 +88,16 @@ export function setup(canvas) {
     meshes.push(mesh);
   }
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     for (const mesh of meshes) {
       mesh.rotation.y += 0.5 * dt;
     }
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -132,6 +138,7 @@ const entries = [
   { geo: new EASEL.TorusGeometry(0.6, 0.25, 12, 24), color: 0xe060e0 },
   { geo: new EASEL.TorusKnotGeometry(0.5, 0.18, 48, 8), color: 0x60e0e0 },
   { geo: new EASEL.PlaneGeometry(1.2, 1.2), color: 0xe09040, side: EASEL.Side.Double },
+  { geo: new EASEL.CircleGeometry(0.8, 24), color: 0x4090e0, side: EASEL.Side.Double },
   { geo: new EASEL.RingGeometry(0.3, 0.8, 24), color: 0x40e090, side: EASEL.Side.Double },
   { geo: new EASEL.IcosahedronGeometry(0.8), color: 0x9040e0 },
   { geo: new EASEL.OctahedronGeometry(0.8), color: 0xe04090 },
@@ -176,6 +183,7 @@ const entries = [
   { geo: new THREE.TorusGeometry(0.6, 0.25, 12, 24), color: 0xe060e0 },
   { geo: new THREE.TorusKnotGeometry(0.5, 0.18, 48, 8), color: 0x60e0e0 },
   { geo: new THREE.PlaneGeometry(1.2, 1.2), color: 0xe09040 },
+  { geo: new THREE.CircleGeometry(0.8, 24), color: 0x4090e0 },
   { geo: new THREE.RingGeometry(0.3, 0.8, 24), color: 0x40e090 },
   { geo: new THREE.IcosahedronGeometry(0.8), color: 0x9040e0 },
   { geo: new THREE.OctahedronGeometry(0.8), color: 0xe04090 },

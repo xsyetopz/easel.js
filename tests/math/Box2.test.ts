@@ -7,6 +7,7 @@ import { Vector2 } from "@/math/Vector2.js";
 describe("Box2", () => {
   it("constructor defaults to empty box", () => {
     const e = new Box2();
+    expect(e.isBox2).toBe(true);
     expect(e.min.x).toBe(Number.POSITIVE_INFINITY);
     expect(e.max.x).toBe(Number.NEGATIVE_INFINITY);
   });
@@ -35,7 +36,7 @@ describe("Box2", () => {
     expect(e.containsPoint(new Vector2(3, 1))).toBe(false);
   });
 
-  it("getCenter (easel: getCenter method)", () => {
+	it("getCenter (EASEL: getCenter method)", () => {
     const e = new Box2(new Vector2(0, 0), new Vector2(4, 4));
     const centre = e.getCenter(new Vector2());
     expect(centre).toMatchVector({ x: 2, y: 2 });
@@ -47,12 +48,49 @@ describe("Box2", () => {
     expect(size).toMatchVector({ x: 3, y: 5 });
   });
 
+  it("setFromCenterAndSize matches THREE", () => {
+    const center = new Vector2(2, -3);
+    const size = new Vector2(6, 10);
+    const e = new Box2().setFromCenterAndSize(center, size);
+    const t = new TBox2().setFromCenterAndSize(
+      new TVector2(center.x, center.y),
+      new TVector2(size.x, size.y),
+    );
+    expect(e.min).toMatchVector(t.min);
+    expect(e.max).toMatchVector(t.max);
+  });
+
+  it("setFromPoints handles empty and populated input", () => {
+    const e = new Box2().setFromPoints([
+      new Vector2(3, -1),
+      new Vector2(-2, 4),
+      new Vector2(1, 0),
+    ]);
+    const t = new TBox2().setFromPoints([
+      new TVector2(3, -1),
+      new TVector2(-2, 4),
+      new TVector2(1, 0),
+    ]);
+    expect(e.min).toMatchVector(t.min);
+    expect(e.max).toMatchVector(t.max);
+    expect(new Box2().setFromPoints([]).isEmpty()).toBe(true);
+  });
+
   it("intersectsBox", () => {
     const e1 = new Box2(new Vector2(0, 0), new Vector2(2, 2));
     const e2 = new Box2(new Vector2(1, 1), new Vector2(3, 3));
     const e3 = new Box2(new Vector2(5, 5), new Vector2(6, 6));
     expect(e1.intersectsBox(e2)).toBe(true);
     expect(e1.intersectsBox(e3)).toBe(false);
+  });
+
+  it("canonicalizes a disjoint intersection as empty", () => {
+    const box = new Box2(new Vector2(0, 0), new Vector2(2, 2));
+    box.intersect(new Box2(new Vector2(4, 4), new Vector2(5, 5)));
+    expect(box.isEmpty()).toBe(true);
+    box.union(new Box2(new Vector2(4, 4), new Vector2(5, 5)));
+    expect(box.min).toMatchVector({ x: 4, y: 4 });
+    expect(box.max).toMatchVector({ x: 5, y: 5 });
   });
 
   it("union", () => {

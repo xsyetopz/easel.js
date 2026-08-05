@@ -1,17 +1,20 @@
 import { Geometry } from "../Geometry.ts";
 
-/** Box (rectangular cuboid) geometry with per-face segments. */
+/** Rectangular cuboid with independently segmented faces. */
 export class BoxGeometry extends Geometry {
+  /** Serialization discriminator for this runtime type. */
   declare type: string;
+  /** Primitive-construction parameters retained for serialization. */
   declare parameters: Record<string, unknown>;
 
+  /** Constructs a centered cuboid from dimensions and per-face segment counts. */
   constructor(
-    width = 1,
-    height = 1,
-    depth = 1,
-    widthSegments = 1,
-    heightSegments = 1,
-    depthSegments = 1,
+    width: number = 1,
+    height: number = 1,
+    depth: number = 1,
+    widthSegments: number = 1,
+    heightSegments: number = 1,
+    depthSegments: number = 1,
   ) {
     super();
 
@@ -100,6 +103,6 @@ export class BoxGeometry extends Geometry {
     this.setPositions(new Float32Array(positions));
     this.setNormals(new Float32Array(normals));
     this.setUVs(new Float32Array(uvs));
-    this.setIndex(new IndexArray(indices));
+    this.index = new IndexArray(indices);
   }
 }

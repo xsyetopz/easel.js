@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { Shading } from "../../../src/core/Constants.ts";
+import { SphericalHarmonics3 } from "../../../src/math/SphericalHarmonics3.ts";
 import { LightBaker } from "../../../src/pipeline/shading/LightBaker.ts";
 import { TriangleBuffer } from "../../../src/pipeline/TriangleBuffer.ts";
 
@@ -80,6 +81,20 @@ describe("LightBaker", () => {
       expect(typeof dc.shadedColorData[j]).toBe("number");
       expect(Number.isFinite(dc.shadedColorData[j])).toBe(true);
     }
+  });
+
+  it("bakes light-probe irradiance through the Gouraud vertex path", () => {
+    const sh = new SphericalHarmonics3();
+    sh.coefficients[0].set(0.5, 0.25, 0.125);
+    const dc = makeDrawCall(Shading.Gouraud, [TRI_FACING_LIGHT]);
+    baker.bake(dc, [
+      { type: "probe", coefficients: sh.coefficients, intensity: 1 },
+    ]);
+
+    expect(dc.shadedColorStride).toBe(9);
+    expect(dc.shadedColorData[0]).toBeCloseTo(0.5431135, 6);
+    expect(dc.shadedColorData[1]).toBeCloseTo(0.32155675, 6);
+    expect(dc.shadedColorData[2]).toBeCloseTo(0.210778375, 6);
   });
 
   it("zero lights: shadedColorStride is 0 and bake returns early", () => {

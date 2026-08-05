@@ -1,4 +1,4 @@
-import { MathUtils } from "../../math/MathUtils.ts";
+import { clamp, fastTrunc } from "../../math/MathUtils.ts";
 
 /** Clamps UV coordinates to texture bounds. */
 export class TextureClamp {
@@ -12,11 +12,11 @@ export class TextureClamp {
     texWidth: number,
     texHeight: number,
   ): { x: number; y: number } {
-    const cu = MathUtils.clamp(u, 0, 1);
-    const cv = MathUtils.clamp(v, 0, 1);
+    const cu = clamp(u, 0, 1);
+    const cv = clamp(v, 0, 1);
     return {
-      x: Math.min(texWidth - 1, MathUtils.fastTrunc(cu * texWidth)),
-      y: Math.min(texHeight - 1, MathUtils.fastTrunc(cv * texHeight)),
+      x: Math.min(texWidth - 1, fastTrunc(cu * texWidth)),
+      y: Math.min(texHeight - 1, fastTrunc(cv * texHeight)),
     };
   }
 }

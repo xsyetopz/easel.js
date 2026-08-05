@@ -8,7 +8,7 @@ interface CullableDrawList {
   calls: DrawCall[];
 }
 
-/** Culls objects beyond the tile-radius fog distance. */
+/** Culls draw calls whose world-space centroid lies beyond fog.far. */
 export class FogCuller {
   /**
    * Removes draw calls beyond the fog far distance from the draw list.

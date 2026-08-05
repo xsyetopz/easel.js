@@ -79,15 +79,16 @@ export function setup(canvas, params = {}) {
   let fps = 0;
   let fpsFrames = 0;
   let fpsTime = 0;
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   const timings = {};
   const ctx = canvas.getContext("2d");
 
   function animate() {
     animId = requestAnimationFrame(animate);
     if (measuring) return;
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     visual.step(frame++);
+    visual.renderer.prepare(visual.scene, visual.camera);
     visual.renderer.render(visual.scene, visual.camera, timings);
     fpsFrames++;
     fpsTime += dt;
@@ -672,6 +673,7 @@ export const easelSource = `import * as EASEL from "easel";
 
 const renderer = new EASEL.Renderer({ canvas, width, height });
 const timings = { profileTraversal: true };
+renderer.prepare(scene, camera);
 renderer.render(scene, camera, timings);
 `;
 

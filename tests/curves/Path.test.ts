@@ -22,7 +22,7 @@ describe("Path vs THREE", () => {
   });
 
   describe("getPoints vs THREE", () => {
-    function makeEasel() {
+    function makeEASEL() {
       const p = new Path();
       p.moveTo(0, 0);
       p.lineTo(2, 0);
@@ -41,22 +41,22 @@ describe("Path vs THREE", () => {
     }
 
     it("curve count matches", () => {
-      expect(makeEasel().curves.length).toBe(makeTHREE().curves.length);
+      expect(makeEASEL().curves.length).toBe(makeTHREE().curves.length);
     });
 
-    // Easel getPoints returns divisions+1 points; THREE deduplicates segment joins.
+		// EASEL getPoints returns divisions+1 points; THREE deduplicates segment joins.
     it("getPoints(12) returns divisions+1 points", () => {
-      expect(makeEasel().getPoints(12).length).toBe(13);
+      expect(makeEASEL().getPoints(12).length).toBe(13);
     });
 
     it("getLength matches", () => {
-      const diff = Math.abs(makeEasel().getLength() - makeTHREE().getLength());
+      const diff = Math.abs(makeEASEL().length - makeTHREE().getLength());
       expect(diff).toBeLessThan(1e-3);
     });
 
     for (const t of [0, 0.5, 1.0]) {
       it(`getPoint(${t}) matches`, () => {
-        const ep = makeEasel().getPoint(t);
+        const ep = makeEASEL().getPoint(t);
         const tp = makeTHREE().getPoint(t);
         expect(ep).toMatchVector(tp, 1e-4);
       });

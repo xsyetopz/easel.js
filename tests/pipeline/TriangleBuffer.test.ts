@@ -61,6 +61,48 @@ describe("TriangleBuffer", () => {
       expect(buf.screenY[2]).toBe(60);
     });
 
+    it("preserves fractional screen coordinates", () => {
+      const buf = new TriangleBuffer();
+      buf.append(
+        10.125,
+        20.25,
+        30.375,
+        40.5,
+        50.625,
+        60.75,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+      );
+
+      expect(buf.screenX).toBeInstanceOf(Float32Array);
+      expect(buf.screenY).toBeInstanceOf(Float32Array);
+      expect(buf.screenX[0]).toBeCloseTo(10.125);
+      expect(buf.screenX[1]).toBeCloseTo(30.375);
+      expect(buf.screenX[2]).toBeCloseTo(50.625);
+      expect(buf.screenY[0]).toBeCloseTo(20.25);
+      expect(buf.screenY[1]).toBeCloseTo(40.5);
+      expect(buf.screenY[2]).toBeCloseTo(60.75);
+    });
+
     it("stores ndcZ correctly", () => {
       const buf = new TriangleBuffer();
       appendSentinel(buf);

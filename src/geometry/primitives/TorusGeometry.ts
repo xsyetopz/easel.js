@@ -1,12 +1,13 @@
 import { Geometry } from "../Geometry.ts";
 
-/** Torus geometry. */
+/** Parametric torus around the Y axis. */
 export class TorusGeometry extends Geometry {
+  /** Constructs a torus from major and tube radii and radial subdivisions. */
   constructor(
-    radius = 1,
-    tube = 0.4,
-    radialSegments = 12,
-    tubularSegments = 48,
+    radius: number = 1,
+    tube: number = 0.4,
+    radialSegments: number = 12,
+    tubularSegments: number = 48,
     arc: number = Math.PI * 2,
   ) {
     super();
@@ -66,6 +67,6 @@ export class TorusGeometry extends Geometry {
     this.setPositions(new Float32Array(positions));
     this.setNormals(new Float32Array(normals));
     this.setUVs(new Float32Array(uvs));
-    this.setIndex(new IndexArray(indices));
+    this.index = new IndexArray(indices);
   }
 }

@@ -49,14 +49,15 @@ export function setup(canvas) {
     glassMat.map = texture;
   });
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     brickBox.rotation.y += 0.3 * dt;
     glassBox.rotation.y += 0.3 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();

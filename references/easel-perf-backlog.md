@@ -1,8 +1,8 @@
-# Easel.js Performance Backlog
+# EASEL.js Performance Backlog
 
 This backlog is derived from:
 
-- `references/js-softrast-optguide.md` (Easel-measured rasterizer findings)
+- `references/js-softrast-optguide.md` (EASEL-measured rasterizer findings)
 - `references/js-v8-jit-perf.md` (V8/JIT code-shape guidance)
 - `references/web-perf-measurement-scheduling.md` (browser measurement +
   scheduling)
@@ -51,7 +51,7 @@ Rules:
 ### P0 - De-risk `TriangleBuffer` sorting comparator code-shape (NO LONGER APPLIES)
 
 - Stage: polygon sort (per draw call triangle buffer)
-- Status: Easel no longer z-sorts triangles within a draw call; `PolygonSorter`
+- Status: EASEL no longer z-sorts triangles within a draw call; `PolygonSorter`
   only builds an identity order and the depth buffer handles correctness.
 - Where:
   - `src/pipeline/sorting/PolygonSorter.ts`

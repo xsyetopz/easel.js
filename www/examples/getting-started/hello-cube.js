@@ -35,13 +35,14 @@ export function setup(canvas) {
   );
   scene.add(box);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     box.rotation.y += 0.8 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -77,10 +78,11 @@ const box = new EASEL.Mesh(
 );
 scene.add(box);
 
-const clock = new EASEL.Clock();
+const clock = new EASEL.Timer();
 function animate() {
   requestAnimationFrame(animate);
-  box.rotation.y += 0.8 * clock.delta;
+  box.rotation.y += 0.8 * clock.update().delta;
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }
 animate();`;
@@ -110,10 +112,11 @@ const box = new THREE.Mesh(
 );
 scene.add(box);
 
-const clock = new THREE.Clock();
+const clock = new THREE.Timer();
 function animate() {
   requestAnimationFrame(animate);
-  box.rotation.y += 0.8 * clock.getDelta();
+  box.rotation.y += 0.8 * clock.update().getDelta();
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
 }
 animate();`;

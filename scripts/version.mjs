@@ -50,7 +50,9 @@ if (!target) {
 const packageJson = readJson("package.json");
 const jsrJson = readJson("jsr.json");
 const indexSource = readFileSync("src/index.ts", "utf8");
-const revisionMatch = indexSource.match(/export const REVISION = "([^"]+)";/u);
+const revisionMatch = indexSource.match(
+  /export const REVISION(?::\s*string)?\s*=\s*"([^"]+)";/u,
+);
 const revisionVersion = revisionMatch?.[1];
 
 if (
@@ -72,8 +74,8 @@ writeJson("jsr.json", jsrJson);
 writeFileSync(
   "src/index.ts",
   indexSource.replace(
-    /export const REVISION = "[^"]+";/u,
-    `export const REVISION = "${nextVersion}";`,
+    /export const REVISION(?::\s*string)?\s*=\s*"[^"]+";/u,
+    `export const REVISION: string = "${nextVersion}";`,
   ),
 );
 console.log(`Version set to ${nextVersion}`);

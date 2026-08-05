@@ -1,48 +1,48 @@
-/** Bit-mask layer system for selective rendering and raycasting. */
+/** 32-bit mask used to filter rendering and raycasting participation. */
 export class Layers {
   #mask = 1;
 
-  /** Current bitmask. */
+  /** Current signed 32-bit layer mask. */
   get mask(): number {
     return this.#mask;
   }
 
-  /** Set the mask to a single layer. */
+  /** Replaces the mask with the bit at `layer`. */
   set(layer: number): void {
     this.#mask = 1 << layer;
   }
 
-  /** Enable a layer (add it to the mask). */
+  /** Sets the bit at `layer` without changing other enabled layers. */
   enable(layer: number): void {
     this.#mask |= 1 << layer;
   }
 
-  /** Enable all 32 layers. */
+  /** Enables all 32 mask bits. */
   enableAll(): void {
     this.#mask = 0xffffffff;
   }
 
-  /** Toggle a layer on/off. */
+  /** Flips the bit at `layer`. */
   toggle(layer: number): void {
     this.#mask ^= 1 << layer;
   }
 
-  /** Disable a layer (remove it from the mask). */
+  /** Clears the bit at `layer`. */
   disable(layer: number): void {
     this.#mask &= ~(1 << layer);
   }
 
-  /** Disable all layers. */
+  /** Disables all 32 layer bits. */
   disableAll(): void {
     this.#mask = 0;
   }
 
-  /** Test whether this mask overlaps another Layers mask. */
+  /** Returns whether this mask shares at least one bit with `layers`. */
   test(layers: Layers): boolean {
     return (this.#mask & layers.mask) !== 0;
   }
 
-  /** Test if a specific layer is enabled. */
+  /** Returns whether the bit at `layer` is enabled. */
   isEnabled(layer: number): boolean {
     return (this.#mask & (1 << layer)) !== 0;
   }

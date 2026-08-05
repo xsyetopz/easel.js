@@ -9,7 +9,7 @@
 ## Related docs
 
 - [`references/js-v8-jit-perf.md`](./js-v8-jit-perf.md) - V8/JIT code-shape
-  rules + Easel mapping
+  rules + EASEL mapping
 - [`references/web-perf-measurement-scheduling.md`](./web-perf-measurement-scheduling.md)
   - browser measurement, stage timing, scheduling to avoid jank
 - [`references/easel-perf-backlog.md`](./easel-perf-backlog.md) - prioritized
@@ -282,7 +282,7 @@ For alpha blending when needed:
 
 ---
 
-## V8-Specific Findings (Easel.js Benchmarking)
+## V8-Specific Findings (EASEL.js Benchmarking)
 
 > Measured on Canvas2D rasterizer, ~600x400 canvas, typical laptop, Chrome/V8.
 > These findings **override** generic advice above where they conflict.

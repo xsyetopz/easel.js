@@ -67,7 +67,7 @@ export function setup(canvas) {
 
   const geometry = new EASEL.Geometry();
   geometry.setAttribute("position", new EASEL.Attribute(positions, 3));
-  geometry.setIndex(indices);
+  geometry.index = indices;
   geometry.computeVertexNormals();
 
   const mesh = new EASEL.Mesh(
@@ -76,13 +76,14 @@ export function setup(canvas) {
   );
   scene.add(mesh);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     mesh.rotation.y += 0.6 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -112,7 +113,7 @@ const indices = [
 
 const geometry = new EASEL.Geometry();
 geometry.setAttribute("position", new EASEL.Attribute(positions, 3));
-geometry.setIndex(indices);
+geometry.index = indices;
 geometry.computeVertexNormals();
 
 const mesh = new EASEL.Mesh(
@@ -140,7 +141,7 @@ const indices = [
 const geometry = new THREE.BufferGeometry();
 geometry.setAttribute("position",
   new THREE.BufferAttribute(positions, 3));
-geometry.setIndex(indices);
+geometry.index = indices;
 geometry.computeVertexNormals();
 
 const mesh = new THREE.Mesh(

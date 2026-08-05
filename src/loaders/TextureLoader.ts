@@ -11,10 +11,12 @@ import type { LoadingManager } from "./LoadingManager.ts";
  * renderers that call getImageData().
  */
 export class TextureLoader extends Loader {
+  /** Constructs a texture loader bound to a LoadingManager. */
   constructor(manager: LoadingManager | undefined = void 0) {
     super(manager);
   }
 
+  /** Loads the resource at `url` through the configured loading manager. */
   override load(
     url: string,
     onLoad?: ((texture: Texture) => void) | undefined,
@@ -22,14 +24,18 @@ export class TextureLoader extends Loader {
     onError?: ((err: unknown) => void) | undefined,
   ): void {
     const loader = new ImageBitmapLoader(this.manager);
-    loader.setPath(this.path);
-    loader.setRequestHeader(this.requestHeader);
+    loader.cache = this.cache;
+    loader.path = this.path;
+    loader.crossOrigin = this.crossOrigin;
+    loader.withCredentials = this.withCredentials;
+    loader.requestHeader = this.requestHeader;
 
     loader.load(
       url,
       (bitmap) => {
         const texture = new Texture(bitmap);
         texture.needsUpdate = true;
+        texture.update().buildBrightnessLevels();
         onLoad?.(texture);
       },
       onProgress,

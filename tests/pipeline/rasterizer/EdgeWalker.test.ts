@@ -45,4 +45,10 @@ describe("EdgeWalker", () => {
     expect(xs).toContain(1);
     expect(xs).toContain(3);
   });
+
+  it("rejects fractional endpoints before the walker can spin", () => {
+    expect(() => walker.walk(0.25, 0, 5.5, 0, () => undefined)).toThrow(
+      RangeError,
+    );
+  });
 });

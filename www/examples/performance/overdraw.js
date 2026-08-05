@@ -94,7 +94,7 @@ export function setup(canvas, params = {}) {
 
   buildPlanes(currentCount, currentOpacity);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
   let frames = 0;
   let fpsTime = 0;
@@ -103,12 +103,14 @@ export function setup(canvas, params = {}) {
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     const elapsed = clock.elapsedTime;
 
     for (let i = 0; i < meshes.length; i++) {
       meshes[i].position.x = Math.sin(elapsed * 0.8 + i * 0.5) * 0.6;
     }
+
+    renderer.prepare(scene, camera);
 
     renderer.render(scene, camera);
 

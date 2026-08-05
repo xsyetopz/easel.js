@@ -11,7 +11,7 @@ type ScanlineCallback = (
 /** Fills a horizontal scanline span with shaded pixels. */
 export class ScanlineFill {
   /**
-   * Rasterizes a triangle defined by three screen-space integer points.
+   * Rasterizes a triangle defined by three screen-space points.
    * Calls callback once per scanline with barycentric start values and
    * per-pixel deltas, relative to the original vertex order (u->v1, v->v2).
    */

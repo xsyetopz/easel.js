@@ -1,17 +1,20 @@
 import { Geometry } from "../Geometry.ts";
 
-/** Parametric UV sphere. */
+/** Parametric sphere with latitude-longitude positions and UVs. */
 export class SphereGeometry extends Geometry {
+  /** Serialization discriminator for this runtime type. */
   declare type: string;
+  /** Primitive-construction parameters retained for serialization. */
   declare parameters: Record<string, unknown>;
 
+  /** Constructs a segmented UV sphere from angular spans and latitude-longitude subdivisions. */
   constructor(
-    radius = 1,
-    widthSegments = 32,
-    heightSegments = 16,
-    phiStart = 0,
+    radius: number = 1,
+    widthSegments: number = 32,
+    heightSegments: number = 16,
+    phiStart: number = 0,
     phiLength: number = Math.PI * 2,
-    thetaStart = 0,
+    thetaStart: number = 0,
     thetaLength: number = Math.PI,
   ) {
     super();
@@ -85,6 +88,6 @@ export class SphereGeometry extends Geometry {
     this.setPositions(new Float32Array(positions));
     this.setNormals(new Float32Array(normals));
     this.setUVs(new Float32Array(uvs));
-    this.setIndex(new IndexArray(indices));
+    this.index = new IndexArray(indices);
   }
 }

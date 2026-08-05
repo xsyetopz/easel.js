@@ -1,13 +1,17 @@
-import { Track } from "../Track.ts";
+import { Track, type TrackOptions } from "../Track.ts";
 
-/** Keyframe track for vector values - uses linear interpolation per component. */
+/** Vector keyframes with linear interpolation for each component. */
 export class VectorTrack extends Track {
+  /** Creates a vector track with the configured component count, defaulting to three. */
   constructor(
     name: string,
     times: Float32Array | number[],
     values: Float32Array | number[],
-    itemSize = 3,
+    options: TrackOptions = { itemSize: 3 },
   ) {
-    super(name, times, values, itemSize);
+    super(name, times, values, {
+      ...options,
+      itemSize: options.itemSize ?? 3,
+    });
   }
 }

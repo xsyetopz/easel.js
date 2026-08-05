@@ -1,4 +1,4 @@
-import { DataTexture } from "../textures/DataTexture.js";
+import { DataTexture } from "../textures/DataTexture.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 
@@ -13,6 +13,7 @@ interface ParseResult {
  * Subclasses override parse() to handle specific formats.
  */
 export class DataTextureLoader extends Loader {
+  /** Loads the resource at `url` through the configured loading manager. */
   override load(
     url: string,
     onLoad?: (texture: DataTexture) => void,
@@ -20,9 +21,10 @@ export class DataTextureLoader extends Loader {
     onError?: (err: unknown) => void,
   ): void {
     const fileLoader = new FileLoader(this.manager);
-    fileLoader.setPath(this.path);
-    fileLoader.setResponseType("arraybuffer");
-    fileLoader.setRequestHeader(this.requestHeader);
+    fileLoader.cache = this.cache;
+    fileLoader.path = this.path;
+    fileLoader.responseType = "arraybuffer";
+    fileLoader.requestHeader = this.requestHeader;
 
     fileLoader.load(
       url,
@@ -34,7 +36,7 @@ export class DataTextureLoader extends Loader {
           result.width,
           result.height,
         );
-        texture.needsUpdate = true;
+        texture.buildBrightnessLevels();
         onLoad?.(texture);
       },
       onProgress,
@@ -42,7 +44,7 @@ export class DataTextureLoader extends Loader {
     );
   }
 
-  /** Abstract - subclasses override to decode buffer. */
+  /** Decodes an ArrayBuffer into raw RGBA pixels; subclasses provide the format-specific implementation. */
   parse(_data: ArrayBuffer): ParseResult | undefined {
     return void 0 as ParseResult | undefined;
   }

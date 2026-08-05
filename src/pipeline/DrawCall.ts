@@ -1,18 +1,27 @@
 import type { Node } from "../core/Node.ts";
 import type { Material } from "../materials/Material.ts";
 import { Vector3 } from "../math/Vector3.ts";
+import type { LineBuffer } from "./LineBuffer.ts";
 
+/** World-space centroid used to order draw calls by tile distance. */
 export interface Centroid {
+  /** World-space centroid X coordinate used for tile sorting. */
   x: number;
+  /** World-space centroid Y coordinate used for tile sorting. */
   y: number;
+  /** World-space centroid Z coordinate used for tile sorting. */
   z: number;
 }
 
 const _pos = new Vector3();
 
-/** Single polygon draw operation with material, depth, and vertex data. */
+/** Single visible-object draw operation with material, depth, and projected vertex data. */
 export class DrawCall {
+  /** Source mesh instance represented by this draw call. */
   mesh: Node;
+
+  /** Internal primitive discriminator; lines never enter the triangle path. */
+  primitive: "triangles" | "lines" = "triangles";
 
   /**
    * Flat Float32Array of projected vertex data, stride 4.
@@ -20,16 +29,37 @@ export class DrawCall {
    */
   projectedVerts: Float32Array = new Float32Array(0);
 
-  vertCount = 0;
+  /** Number of vertices referenced by this draw call. */
+  vertCount: number = 0;
 
+  /** Material state used when rasterizing this draw call. */
   material: Material;
 
+  /** Per-instance red multiplier prepared once per draw call. */
+  instanceColorR: number = 1;
+
+  /** Per-instance green multiplier prepared once per draw call. */
+  instanceColorG: number = 1;
+
+  /** Per-instance blue multiplier prepared once per draw call. */
+  instanceColorB: number = 1;
+
+  /** Triangle index data into the geometry vertex arrays. */
   faceIndices: number[] | Uint16Array | Uint32Array = [];
 
+  /** World-space centroid used for tile-distance sorting. */
   centroid: Centroid = { x: 0, y: 0, z: 0 };
 
+  /** Reusable projected triangle storage for this draw call. */
   triangles: unknown = undefined;
 
+  /** Reusable CPU segment storage for line primitives. */
+  lines: LineBuffer | undefined;
+
+  /** Optional raw clip-space cache used while clipping line endpoints. */
+  clipVerts: Float32Array = new Float32Array(0);
+
+  /** Projected world-space positions for the draw-call vertices. */
   worldPositions: Float32Array = new Float32Array(0);
 
   /**
@@ -45,13 +75,15 @@ export class DrawCall {
   vertexColorData: ArrayLike<number> = [];
 
   /** Number of values between successive geometry vertex colors (3 for RGB). */
-  vertexColorItemSize = 0;
+  vertexColorItemSize: number = 0;
 
   /** Stride into shadedColorData: 3 for flat, 9 for gouraud, 0 when unset. */
-  shadedColorStride = 0;
+  shadedColorStride: number = 0;
 
-  _tileDistance = 0;
+  /** Manhattan tile distance from the active camera. */
+  tileDistance: number = 0;
 
+  /** Constructs reusable draw-call storage for one visible object. */
   constructor(
     mesh: Node,
     material: Material,

@@ -79,6 +79,7 @@ scene.add(cube);
 
 function frame(): void {
     cube.rotation.y += 0.01;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
 }
@@ -118,15 +119,8 @@ bun install
 bun test
 bun run typecheck
 bun run biome:check
-bun run api:check
 bun run www:build
 ```
-
-The API reference derives its THREE.js comparisons from versioned schemas,
-reviewed mappings, and generated manifests under `api-compat/`. Run
-`bun run api:generate` after public API or mapping changes. The explicit
-`bun run api:probe-latest` command compares locked versions with current
-registry releases without changing the normal offline build.
 
 Run `bun run release:check` before a release. Publishing is performed only by
 the protected GitHub Actions workflow.

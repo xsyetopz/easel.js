@@ -2,12 +2,20 @@ import * as EASEL from "@/index.js";
 
 export const meta = {
   id: "repeat-wrapping",
-  name: "Repeat Wrapping",
+  name: "Texture Wrapping",
   category: "textures",
-  description: "Shows Wrapping.Repeat with adjustable UV tiling.",
+  description:
+    "Compares repeat and mirrored-repeat wrapping with adjustable UV tiling.",
 };
 
 export const controls = [
+  {
+    type: "select",
+    key: "mode",
+    label: "Wrapping",
+    options: ["Repeat", "Mirrored Repeat"],
+    default: "Repeat",
+  },
   {
     type: "slider",
     key: "repeatU",
@@ -28,7 +36,7 @@ export const controls = [
   },
 ];
 
-function createCheckerTexture() {
+function createCheckerTexture(mode) {
   const size = 16;
   const data = new Uint8ClampedArray(size * size * 4);
   for (let y = 0; y < size; y++) {
@@ -42,8 +50,9 @@ function createCheckerTexture() {
     }
   }
   const tex = new EASEL.DataTexture(data, size, size);
-  tex.wrapS = EASEL.Wrapping.Repeat;
-  tex.wrapT = EASEL.Wrapping.Repeat;
+  tex.buildBrightnessLevels();
+  tex.wrapS = mode;
+  tex.wrapT = mode;
   return tex;
 }
 
@@ -72,7 +81,12 @@ export function setup(canvas, params = {}) {
   light.position.set(3, 5, 4);
   scene.add(light);
 
-  const texture = createCheckerTexture();
+  let mode = params.mode ?? "Repeat";
+  const texture = createCheckerTexture(
+    mode === "Mirrored Repeat"
+      ? EASEL.Wrapping.MirroredRepeat
+      : EASEL.Wrapping.Repeat,
+  );
   const material = new EASEL.LambertMaterial({ color: 0xffffff });
   material.map = texture;
 
@@ -100,13 +114,14 @@ export function setup(canvas, params = {}) {
   mesh.rotation.x = -0.5;
   scene.add(mesh);
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
     mesh.rotation.z += 0.2 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   }
   animate();
@@ -117,6 +132,15 @@ export function setup(canvas, params = {}) {
     },
     update(newParams) {
       let rebuild = false;
+      if (newParams.mode !== undefined && newParams.mode !== mode) {
+        mode = newParams.mode;
+        const wrapping =
+          mode === "Mirrored Repeat"
+            ? EASEL.Wrapping.MirroredRepeat
+            : EASEL.Wrapping.Repeat;
+        texture.wrapS = wrapping;
+        texture.wrapT = wrapping;
+      }
       if (newParams.repeatU !== undefined && newParams.repeatU !== repeatU) {
         repeatU = newParams.repeatU;
         rebuild = true;
@@ -140,8 +164,9 @@ export function setup(canvas, params = {}) {
 export const easelSource = `import * as EASEL from "easel";
 
 const tex = new EASEL.DataTexture(data, 16, 16);
-tex.wrapS = EASEL.Wrapping.Repeat;
-tex.wrapT = EASEL.Wrapping.Repeat;
+tex.buildBrightnessLevels();
+tex.wrapS = EASEL.Wrapping.MirroredRepeat;
+tex.wrapT = EASEL.Wrapping.MirroredRepeat;
 
 const material = new EASEL.LambertMaterial({ color: 0xffffff });
 material.map = tex;
@@ -159,8 +184,8 @@ scene.add(mesh);`;
 export const threeSource = `import * as THREE from "three";
 
 const tex = new THREE.DataTexture(data, 16, 16);
-tex.wrapS = THREE.RepeatWrapping;
-tex.wrapT = THREE.RepeatWrapping;
+tex.wrapS = THREE.MirroredRepeatWrapping;
+tex.wrapT = THREE.MirroredRepeatWrapping;
 tex.needsUpdate = true;
 
 const material = new THREE.MeshLambertMaterial({ color: 0xffffff });

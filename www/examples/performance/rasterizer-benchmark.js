@@ -114,7 +114,7 @@ export function setup(canvas, params = {}) {
     scene.add(mesh);
   }
 
-  const clock = new EASEL.Clock();
+  const clock = new EASEL.Timer();
   let animId;
   let frames = 0;
   let fpsTime = 0;
@@ -124,9 +124,10 @@ export function setup(canvas, params = {}) {
 
   function animate() {
     animId = requestAnimationFrame(animate);
-    const dt = clock.delta;
+    const dt = clock.update().delta;
 
     mesh.rotation.y += 0.4 * dt;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera, timings);
 
     frames++;

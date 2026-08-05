@@ -1,18 +1,21 @@
 import { Geometry } from "../Geometry.ts";
 
-/** Cylinder (or truncated cone) geometry with optional caps. */
+/** Cylinder or truncated cone with optional end caps. */
 export class CylinderGeometry extends Geometry {
+  /** Serialization discriminator for this runtime type. */
   declare type: string;
+  /** Primitive-construction parameters retained for serialization. */
   declare parameters: Record<string, unknown>;
 
+  /** Constructs a cylinder or truncated cone with segmented side and optional caps. */
   constructor(
-    radiusTop = 1,
-    radiusBottom = 1,
-    height = 1,
-    radialSegments = 32,
-    heightSegments = 1,
-    openEnded = false,
-    thetaStart = 0,
+    radiusTop: number = 1,
+    radiusBottom: number = 1,
+    height: number = 1,
+    radialSegments: number = 32,
+    heightSegments: number = 1,
+    openEnded: boolean = false,
+    thetaStart: number = 0,
     thetaLength: number = Math.PI * 2,
   ) {
     super();
@@ -131,6 +134,6 @@ export class CylinderGeometry extends Geometry {
     this.setPositions(new Float32Array(positions));
     this.setNormals(new Float32Array(normals));
     this.setUVs(new Float32Array(uvs));
-    this.setIndex(new IndexArray(indices));
+    this.index = new IndexArray(indices);
   }
 }

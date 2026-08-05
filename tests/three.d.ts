@@ -12,6 +12,14 @@ declare module "three" {
     copy(v: Point2): this;
     clone(): Vector2;
     add(v: Point2): this;
+    addScalar(s: number): this;
+    addScaledVector(v: Point2, s: number): this;
+    angle(): number;
+    angleTo(v: Point2): number;
+    applyMatrix3(m: { elements: ArrayLike<number> }): this;
+    divide(v: Point2): this;
+    multiply(v: Point2): this;
+    subScalar(s: number): this;
     sub(v: Point2): this;
     multiplyScalar(s: number): this;
     distanceTo(v: Point2): number;
@@ -26,8 +34,15 @@ declare module "three" {
     copy(v: Point3): this;
     clone(): Vector3;
     add(v: Point3): this;
+    addScalar(s: number): this;
+    addScaledVector(v: Point3, s: number): this;
+    angleTo(v: Point3): number;
+    applyAxisAngle(axis: Point3, angle: number): this;
     sub(v: Point3): this;
+    subScalar(s: number): this;
+    multiply(v: Point3): this;
     multiplyScalar(s: number): this;
+    divide(v: Point3): this;
     distanceTo(v: Point3): number;
     divideScalar(s: number): this;
     dot(v: Point3): number;
@@ -36,6 +51,7 @@ declare module "three" {
     lerp(v: Point3, alpha: number): this;
     length(): number;
     lengthSq(): number;
+    normalize(): this;
     applyMatrix4(m: Matrix4): this;
   }
   export class Vector4 {
@@ -60,6 +76,21 @@ declare module "three" {
     invert(): this;
     transpose(): this;
     determinant(): number;
+    fromArray(values: ArrayLike<number>, offset?: number): this;
+    makeRotation(theta: number): this;
+    multiplyScalar(s: number): this;
+    rotate(theta: number): this;
+    scale(sx: number, sy: number): this;
+    setUvTransform(
+      tx: number,
+      ty: number,
+      sx: number,
+      sy: number,
+      rotation: number,
+      cx: number,
+      cy: number,
+    ): this;
+    translate(tx: number, ty: number): this;
   }
   export class Matrix4 {
     elements: number[];
@@ -76,14 +107,46 @@ declare module "three" {
     makeRotationX(theta: number): this;
     makeRotationY(theta: number): this;
     makeRotationZ(theta: number): this;
+    makeRotationAxis(axis: Point3, angle: number): this;
+    makeShear(
+      xy: number,
+      xz: number,
+      yx: number,
+      yz: number,
+      zx: number,
+      zy: number,
+    ): this;
     makeScale(x: number, y: number, z: number): this;
     multiplyMatrices(a: Matrix4, b: Matrix4): this;
     makePerspective(...values: number[]): this;
     makeOrthographic(...values: number[]): this;
     compose(position: Point3, quaternion: Quaternion, scale: Point3): this;
     decompose(position: Vector3, quaternion: Quaternion, scale: Vector3): this;
+    fromArray(values: ArrayLike<number>, offset?: number): this;
+    multiplyScalar(s: number): this;
+    scale(v: Point3): this;
+    determinantAffine(): number;
+    getMaxScaleOnAxis(): number;
+    setFromMatrix3(m: Matrix3): this;
   }
   export class Quaternion {
+    static multiplyQuaternionsFlat(
+      destination: number[],
+      destinationOffset: number,
+      left: number[],
+      leftOffset: number,
+      right: number[],
+      rightOffset: number,
+    ): number[];
+    static slerpFlat(
+      destination: number[],
+      destinationOffset: number,
+      start: number[],
+      startOffset: number,
+      end: number[],
+      endOffset: number,
+      alpha: number,
+    ): void;
     x: number;
     y: number;
     z: number;
@@ -111,6 +174,14 @@ declare module "three" {
     setFromQuaternion(q: Quaternion, order?: EulerOrder): this;
     setFromRotationMatrix(m: Matrix4, order?: EulerOrder): this;
   }
+  export class Object3D {
+    position: Vector3;
+    quaternion: Quaternion;
+    rotateX(angle: number): this;
+    rotateY(angle: number): this;
+    translateY(distance: number): this;
+    translateZ(distance: number): this;
+  }
   export class Box2 {
     min: Vector2;
     max: Vector2;
@@ -124,6 +195,8 @@ declare module "three" {
     expandByPoint(point: Point2): this;
     union(box: Box2): this;
     intersect(box: Box2): this;
+    setFromCenterAndSize(center: Point2, size: Point2): this;
+    setFromPoints(points: readonly Point2[]): this;
   }
   export class Box3 {
     min: Vector3;
@@ -138,6 +211,16 @@ declare module "three" {
     expandByPoint(point: Point3): this;
     union(box: Box3): this;
     intersect(box: Box3): this;
+    applyMatrix4(matrix: Matrix4): this;
+    expandByVector(vector: Point3): this;
+    getBoundingSphere(target: Sphere): Sphere;
+    getParameter(point: Point3, target: Vector3): Vector3;
+    clampPoint(point: Point3, target: Vector3): Vector3;
+    distanceToPoint(point: Point3): number;
+    intersectsPlane(plane: Plane): boolean;
+    intersectsTriangle(triangle: Triangle): boolean;
+    setFromArray(values: ArrayLike<number>): this;
+    setFromCenterAndSize(center: Point3, size: Point3): this;
   }
   export class Sphere {
     center: Vector3;
@@ -217,6 +300,33 @@ declare module "three" {
     clone(): Spherical;
     copy(s: Spherical): this;
     setFromVector3(v: Point3): this;
+  }
+  export class SphericalHarmonics3 {
+    readonly isSphericalHarmonics3: true;
+    coefficients: Vector3[];
+    constructor();
+    set(coefficients: Vector3[]): this;
+    zero(): this;
+    getAt(normal: Point3, target: Vector3): Vector3;
+    getIrradianceAt(normal: Point3, target: Vector3): Vector3;
+    add(value: SphericalHarmonics3): this;
+    addScaledSH(value: SphericalHarmonics3, scalar: number): this;
+    scale(scalar: number): this;
+    lerp(value: SphericalHarmonics3, alpha: number): this;
+    equals(value: SphericalHarmonics3): boolean;
+    copy(value: SphericalHarmonics3): this;
+    clone(): SphericalHarmonics3;
+    fromArray(array: ArrayLike<number>, offset?: number): this;
+    toArray(array?: number[], offset?: number): number[];
+    static getBasisAt(normal: Point3, target: Float64Array | number[]): void;
+  }
+  export class LightProbe {
+    readonly isLightProbe: true;
+    intensity: number;
+    sh: SphericalHarmonics3;
+    constructor(sh?: SphericalHarmonics3, intensity?: number);
+    copy(source: LightProbe): this;
+    clone(): LightProbe;
   }
   export class Cylindrical {
     radius: number;
@@ -321,7 +431,22 @@ declare module "three" {
     array: ArrayLike<number>;
     itemSize: number;
     count: number;
-    constructor(array: ArrayLike<number>, itemSize: number);
+    normalized: boolean;
+    constructor(
+      array: ArrayLike<number>,
+      itemSize: number,
+      normalized?: boolean,
+    );
+    getComponent(index: number, component: number): number;
+    setComponent(index: number, component: number, value: number): this;
+    getX(index: number): number;
+    getY(index: number): number;
+    getZ(index: number): number;
+    getW(index: number): number;
+    setX(index: number, value: number): this;
+    setY(index: number, value: number): this;
+    setZ(index: number, value: number): this;
+    setW(index: number, value: number): this;
   }
   export class Float32BufferAttribute extends BufferAttribute {}
   export class Uint16BufferAttribute extends BufferAttribute {}
@@ -356,4 +481,51 @@ declare module "three" {
   export class TorusKnotGeometry extends BufferGeometry {}
   export class TubeGeometry extends BufferGeometry {}
   export class WireframeGeometry extends BufferGeometry {}
+  export class LoadingManager {
+    onStart: ((url: string, loaded: number, total: number) => void) | undefined;
+    onLoad: (() => void) | undefined;
+    onProgress:
+      | ((url: string, loaded: number, total: number) => void)
+      | undefined;
+    onError: ((url: string) => void) | undefined;
+    readonly abortController: AbortController;
+    constructor(
+      onLoad?: () => void,
+      onProgress?: (url: string, loaded: number, total: number) => void,
+      onError?: (url: string) => void,
+    );
+    addHandler(pattern: RegExp, loader: Loader): this;
+    getHandler(file: string): Loader | null;
+    removeHandler(pattern: RegExp): this;
+    abort(): this;
+  }
+  export class Loader {
+    manager: LoadingManager;
+    crossOrigin: string;
+    withCredentials: boolean;
+    path: string;
+    resourcePath: string;
+    requestHeader: Record<string, string>;
+    constructor(manager?: LoadingManager);
+  }
+  export class FileLoader extends Loader {
+    mimeType: string;
+    responseType: string;
+    abort(): this;
+  }
+  export class ImageLoader extends Loader {}
+  export class ImageBitmapLoader extends Loader {
+    readonly isImageBitmapLoader: true;
+    options: ImageBitmapOptions;
+    abort(): this;
+  }
+  export class TextureLoader extends Loader {}
+  export class Timer {
+    update(timestamp?: number): this;
+    reset(): this;
+    getDelta(): number;
+    getElapsed(): number;
+    getTimescale(): number;
+    setTimescale(value: number): this;
+  }
 }

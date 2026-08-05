@@ -26,17 +26,15 @@ function makeTHREESquare(x: number, y: number, size: number) {
 
 describe("Shape vs THREE", () => {
   describe("basic shape", () => {
-    const easel = makeSquare(0, 0, 2);
-    const three = makeTHREESquare(0, 0, 2);
+    const EASEL = makeSquare(0, 0, 2);
+    const THREE = makeTHREESquare(0, 0, 2);
 
     it("getPoints(4) count matches", () => {
-      expect(easel.getPoints(4).length).toBe(three.getPoints(4).length);
+      expect(EASEL.getPoints(4).length).toBe(THREE.getPoints(4).length);
     });
 
     it("getLength matches", () => {
-      expect(Math.abs(easel.getLength() - three.getLength())).toBeLessThan(
-        1e-3,
-      );
+      expect(Math.abs(EASEL.length - THREE.getLength())).toBeLessThan(1e-3);
     });
   });
 

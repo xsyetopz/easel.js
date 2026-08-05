@@ -1,4 +1,5 @@
 import { LightType } from "../../core/Constants.ts";
+import type { SphericalHarmonicsCoefficients } from "../../math/SphericalHarmonics3.ts";
 
 interface RGB {
   r: number;
@@ -45,8 +46,8 @@ interface SpotLightEntry {
   penumbra: number;
   distance: number;
   decay: number;
-  _cosAngle?: number;
-  _cosInnerAngle?: number;
+  cosAngle?: number;
+  cosInnerAngle?: number;
 }
 
 interface PointLightEntry {
@@ -55,6 +56,11 @@ interface PointLightEntry {
   intensity: number;
   distance: number;
   decay: number;
+}
+
+interface LightProbeEntry {
+  coefficients: SphericalHarmonicsCoefficients;
+  intensity: number;
 }
 
 interface LightEntry {
@@ -66,12 +72,66 @@ interface LightEntry {
   position?: Vec3;
   skyColor?: ColorLike | unknown;
   groundColor?: ColorLike | unknown;
+  coefficients?: SphericalHarmonicsCoefficients;
   angle?: number;
   penumbra?: number;
   distance?: number;
   decay?: number;
-  _cosAngle?: number;
-  _cosInnerAngle?: number;
+  cosAngle?: number;
+  cosInnerAngle?: number;
+}
+
+function accumulateProbe(
+  nx: number,
+  ny: number,
+  nz: number,
+  light: LightProbeEntry,
+  acc: RGB,
+): void {
+  const coefficients = light.coefficients;
+  const weight0 = 0.886227;
+  const weight1 = 1.023328 * ny;
+  const weight2 = 1.023328 * nz;
+  const weight3 = 1.023328 * nx;
+  const weight4 = 0.858086 * nx * ny;
+  const weight5 = 0.858086 * ny * nz;
+  const weight6 = 0.743125 * nz * nz - 0.247708;
+  const weight7 = 0.858086 * nx * nz;
+  const weight8 = 0.429043 * (nx * nx - ny * ny);
+  const intensity = light.intensity;
+  acc.r +=
+    (coefficients[0].x * weight0 +
+      coefficients[1].x * weight1 +
+      coefficients[2].x * weight2 +
+      coefficients[3].x * weight3 +
+      coefficients[4].x * weight4 +
+      coefficients[5].x * weight5 +
+      coefficients[6].x * weight6 +
+      coefficients[7].x * weight7 +
+      coefficients[8].x * weight8) *
+    intensity;
+  acc.g +=
+    (coefficients[0].y * weight0 +
+      coefficients[1].y * weight1 +
+      coefficients[2].y * weight2 +
+      coefficients[3].y * weight3 +
+      coefficients[4].y * weight4 +
+      coefficients[5].y * weight5 +
+      coefficients[6].y * weight6 +
+      coefficients[7].y * weight7 +
+      coefficients[8].y * weight8) *
+    intensity;
+  acc.b +=
+    (coefficients[0].z * weight0 +
+      coefficients[1].z * weight1 +
+      coefficients[2].z * weight2 +
+      coefficients[3].z * weight3 +
+      coefficients[4].z * weight4 +
+      coefficients[5].z * weight5 +
+      coefficients[6].z * weight6 +
+      coefficients[7].z * weight7 +
+      coefficients[8].z * weight8) *
+    intensity;
 }
 
 function accumulateAmbient(light: AmbientLightEntry, acc: RGB): void {
@@ -177,11 +237,11 @@ function accumulateSpot(
     ly * light.direction.y +
     lz * light.direction.z
   );
-  const outerCos = light._cosAngle ?? Math.cos(light.angle);
+  const outerCos = light.cosAngle ?? Math.cos(light.angle);
   if (cosAngle < outerCos) return;
 
   const innerCos =
-    light._cosInnerAngle ?? Math.cos(light.angle * (1 - light.penumbra));
+    light.cosInnerAngle ?? Math.cos(light.angle * (1 - light.penumbra));
   const spotFactor =
     light.penumbra > 0
       ? Math.min(Math.max((cosAngle - outerCos) / (innerCos - outerCos), 0), 1)
@@ -276,6 +336,8 @@ function accumulateOne(
     accumulateSpot(wx, wy, wz, nx, ny, nz, light as SpotLightEntry, out);
   } else if (light.type === "point") {
     accumulatePoint(wx, wy, wz, nx, ny, nz, light as PointLightEntry, out);
+  } else if (light.type === "probe") {
+    accumulateProbe(nx, ny, nz, light as LightProbeEntry, out);
   } else {
     accumulateDirectional(nx, ny, nz, light as DirectionalLightEntry, out);
   }

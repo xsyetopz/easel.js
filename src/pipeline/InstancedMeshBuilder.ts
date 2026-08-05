@@ -10,8 +10,10 @@ import { TriangleBuffer } from "./TriangleBuffer.ts";
 const _instLocal = new Matrix4();
 const _instWorld = new Matrix4();
 const _instMVP = new Matrix4();
+const _instViewWorld = new Matrix4();
 const _bsCenter = new Vector3();
 const _emptyVertexColors = new Float32Array(0);
+const _emptyViewDepths = new Float32Array(0);
 
 const VERT_STRIDE = 4;
 
@@ -24,13 +26,10 @@ interface InstancedNode {
   count: number;
   frustumCulled: boolean;
   _instProjVerts?: Float32Array[];
+  _instViewDepths?: Float32Array[];
   _instWorldPos?: Float32Array[];
   _instTriBuf?: TriangleBuffer[];
   _instDrawCalls?: DrawCall[];
-  _instMaterials?: (Material & {
-    color?: { r: number; g: number; b: number };
-  })[];
-  _instMaterialBaseId?: number;
   _instWorldNormals?: Float32Array[];
   _instWorldNormalKey?: Float32Array[];
 }
@@ -57,6 +56,7 @@ interface CameraLike {
 interface FogState {
   hasFog: boolean;
   fogFar: number;
+  fogLut?: Float32Array | undefined;
 }
 
 type AssembleTrianglesFn = (
@@ -68,6 +68,7 @@ type AssembleTrianglesFn = (
   height: number,
   material: Material,
   node: { _triangleBuffer?: TriangleBuffer },
+  viewDepths?: Float32Array,
 ) => TriangleBuffer;
 
 type BuildUvsFn = (node: { geometry: GeometryLike }) => Float32Array;
@@ -95,10 +96,6 @@ export function buildInstancedDrawCalls(
   const ic = node.instanceColor;
   const geometry = node.geometry;
   const baseMat = node.material;
-  if (node._instMaterialBaseId !== baseMat.id) {
-    node._instMaterialBaseId = baseMat.id;
-    if (node._instMaterials) node._instMaterials.length = 0;
-  }
 
   if (
     geometry.boundingSphere === undefined &&
@@ -108,13 +105,13 @@ export function buildInstancedDrawCalls(
   }
   const bs = geometry.boundingSphere;
 
-  if (!node._instProjVerts) node._instProjVerts = [];
-  if (!node._instWorldPos) node._instWorldPos = [];
-  if (!node._instTriBuf) node._instTriBuf = [];
+  node._instProjVerts ??= [];
+  node._instViewDepths ??= [];
+  node._instWorldPos ??= [];
+  node._instTriBuf ??= [];
   if (!node._instDrawCalls) node._instDrawCalls = [];
-  if (!node._instMaterials) node._instMaterials = [];
-  if (!node._instWorldNormals) node._instWorldNormals = [];
-  if (!node._instWorldNormalKey) node._instWorldNormalKey = [];
+  node._instWorldNormals ??= [];
+  node._instWorldNormalKey ??= [];
 
   const posAttr = geometry.getAttribute("position");
   if (!posAttr) return;
@@ -123,7 +120,9 @@ export function buildInstancedDrawCalls(
   const vertCount = posArr.length / posItemSize;
   const colorAttr = geometry.getAttribute("color");
   const vertexColorData =
-    colorAttr?.itemSize === 3 && colorAttr.array.length === vertCount * 3
+    baseMat.vertexColors !== false &&
+    colorAttr?.itemSize === 3 &&
+    colorAttr.array.length === vertCount * 3
       ? colorAttr.array
       : _emptyVertexColors;
   const vertexColorItemSize = vertexColorData.length > 0 ? 3 : 0;
@@ -156,12 +155,12 @@ export function buildInstancedDrawCalls(
   const wpNeeded = vertCount * 3;
   const wnNeeded = nCount * 3;
 
-  const { hasFog, fogFar } = fogState;
+  const { hasFog, fogFar, fogLut } = fogState;
 
   for (let i = 0; i < count; i++) {
     const off = i * 16;
     _instLocal.elements.set(im.subarray(off, off + 16));
-    _instWorld.mulMatricesAffine(node.matrixWorld, _instLocal);
+    _instWorld.multiplyMatricesAffine(node.matrixWorld, _instLocal);
 
     const iwe = _instWorld.elements;
 
@@ -210,13 +209,31 @@ export function buildInstancedDrawCalls(
 
     _instMVP
       .copy(camera.projectionMatrix)
-      .mul(camera.matrixWorldInverse)
-      .mul(_instWorld);
+      .multiply(camera.matrixWorldInverse)
+      .multiply(_instWorld);
+
+    // Fog uses positive camera-space depth, not clip-space W (which is always
+    // one for orthographic cameras). Keep this scratch matrix allocation-free.
+    const viewElements =
+      hasFog && fogLut
+        ? _instViewWorld.copy(camera.matrixWorldInverse).multiply(_instWorld)
+            .elements
+        : undefined;
 
     let pv = node._instProjVerts[i];
     if (!pv || pv.length !== pvNeeded) {
       pv = new Float32Array(pvNeeded);
       node._instProjVerts[i] = pv;
+    }
+
+    let viewDepths: Float32Array<ArrayBufferLike> = _emptyViewDepths;
+    if (viewElements && fogLut) {
+      let cached = node._instViewDepths[i];
+      if (!cached || cached.length !== vertCount) {
+        cached = new Float32Array(vertCount);
+        node._instViewDepths[i] = cached;
+      }
+      viewDepths = cached;
     }
 
     let wp = node._instWorldPos[i];
@@ -243,6 +260,15 @@ export function buildInstancedDrawCalls(
       pv[base + 1] = py * invW;
       pv[base + 2] = pz * invW;
       pv[base + 3] = pw;
+
+      if (viewElements && viewDepths.length > 0) {
+        const viewZ =
+          viewElements[2] * lx +
+          viewElements[6] * ly +
+          viewElements[10] * lz +
+          viewElements[14];
+        viewDepths[v] = viewZ < 0 ? -viewZ : 0;
+      }
 
       const wb = v * 3;
       wp[wb] = mw[0] * lx + mw[4] * ly + mw[8] * lz + mw[12];
@@ -318,28 +344,6 @@ export function buildInstancedDrawCalls(
       worldNormals = new Float32Array(0);
     }
 
-    let material: Material = baseMat;
-    if (ic) {
-      const baseColor = baseMat.color;
-      if (baseColor) {
-        let instMat = node._instMaterials[i];
-        if (!instMat) {
-          instMat = Object.create(baseMat) as typeof baseMat;
-          (instMat as typeof baseMat).color = { r: 1, g: 1, b: 1 };
-          node._instMaterials[i] = instMat;
-        }
-        const c = (instMat as typeof baseMat).color as {
-          r: number;
-          g: number;
-          b: number;
-        };
-        c.r = baseColor.r * ic[i * 3];
-        c.g = baseColor.g * ic[i * 3 + 1];
-        c.b = baseColor.b * ic[i * 3 + 2];
-        material = instMat;
-      }
-    }
-
     let triBuf = node._instTriBuf[i];
     const triCount = Math.floor(faceIndices.length / 3);
     if (!triBuf) {
@@ -354,21 +358,22 @@ export function buildInstancedDrawCalls(
       uvs,
       width,
       height,
-      material,
+      baseMat,
       { _triangleBuffer: triBuf },
+      viewDepths,
     );
 
     let drawCall = node._instDrawCalls[i];
     if (drawCall) {
       drawCall.mesh = node as unknown as Node;
-      drawCall.material = material;
+      drawCall.material = baseMat;
       drawCall.centroid.x = lastBsCenterX;
       drawCall.centroid.y = lastBsCenterY;
       drawCall.centroid.z = lastBsCenterZ;
     } else {
       drawCall = new DrawCall(
         node as unknown as Node,
-        material,
+        baseMat,
         lastBsCenterX,
         lastBsCenterY,
         lastBsCenterZ,
@@ -381,6 +386,10 @@ export function buildInstancedDrawCalls(
     drawCall.worldPositions = wp;
     drawCall.vertexColorData = vertexColorData;
     drawCall.vertexColorItemSize = vertexColorItemSize;
+    const hasInstanceColor = ic !== undefined && baseMat.color !== undefined;
+    drawCall.instanceColorR = hasInstanceColor ? ic[i * 3] : 1;
+    drawCall.instanceColorG = hasInstanceColor ? ic[i * 3 + 1] : 1;
+    drawCall.instanceColorB = hasInstanceColor ? ic[i * 3 + 2] : 1;
     drawCall.triangles = triangles;
     drawList.add(drawCall);
   }
