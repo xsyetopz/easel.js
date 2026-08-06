@@ -1,5 +1,5 @@
 import { Color } from "../math/Color.ts";
-import { Fog, type FogJSON } from "../scenes/Fog.ts";
+import type { Fog, FogJSON } from "../scenes/Fog.ts";
 import { Texture, type TextureJSON } from "../textures/Texture.ts";
 import { Node, type NodeJSON } from "./Node.ts";
 

@@ -161,7 +161,7 @@ function validateHeader(header: TGAHeader): void {
 
   if (
     header.imageType === TGA_TYPE_NO_DATA ||
-    (!indexed && !trueColor && !grayscale)
+    (!((indexed || trueColor ) || grayscale))
   ) {
     throw new Error(`TGALoader: Invalid image type ${header.imageType}.`);
   }

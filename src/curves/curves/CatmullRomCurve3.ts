@@ -83,7 +83,7 @@ export class CatmullRomCurve3 extends Curve {
     const p = (length - (this.#closed ? 0 : 1)) * t;
     let intPoint = Math.floor(p);
     const weight = p - intPoint;
-    let localWeight = weight;
+    const localWeight = weight;
     if (this.#closed) {
       intPoint +=
         intPoint > 0

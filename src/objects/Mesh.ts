@@ -6,7 +6,7 @@ import {
   unregisterGeometryCacheInvalidator,
 } from "../geometry/Geometry.ts";
 import type { Material } from "../materials/Material.ts";
-import { Vector3 } from "../math/Vector3.ts";
+import type { Vector3 } from "../math/Vector3.ts";
 import { raycastMeshGeometry } from "./raycast.ts";
 
 interface MorphAttributeLike {

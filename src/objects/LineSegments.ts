@@ -1,6 +1,6 @@
 import { Attribute } from "../geometry/Attribute.ts";
 import type { Geometry } from "../geometry/Geometry.ts";
-import { LineMaterial } from "../materials/LineMaterial.ts";
+import type { LineMaterial } from "../materials/LineMaterial.ts";
 import { Vector3 } from "../math/Vector3.ts";
 import { Line } from "./Line.ts";
 

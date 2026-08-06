@@ -132,7 +132,7 @@ export class PDBLoader extends Loader {
       }
     }
     for (const [serial, target] of connections) {
-      if (!bySerial.has(serial) || !bySerial.has(target)) continue;
+      if (!(bySerial.has(serial) && bySerial.has(target))) continue;
       const key = bondKey(serial, target);
       if (bondKeys.has(key)) continue;
       bondKeys.add(key);

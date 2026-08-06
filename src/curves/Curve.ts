@@ -150,7 +150,7 @@ export class Curve {
     if (lastIndex <= 0) return 0;
 
     const totalLength = arcLengths[lastIndex] ?? 0;
-    const requested = distance === undefined ? u * totalLength : distance;
+    const requested = distance ?? u * totalLength;
     const targetArcLength = clamp(
       Number.isFinite(requested) ? requested : 0,
       0,

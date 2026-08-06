@@ -528,7 +528,7 @@ export class TransformControls extends EventDispatcher {
     this.#view.elements.set(camera.matrixWorld.elements);
     this.#view.invert();
     target.copy(world).applyMatrix4(this.#view).applyMatrix4(this.#projection);
-    if (!Number.isFinite(target.x) || !Number.isFinite(target.y)) return false;
+    if (!(Number.isFinite(target.x) && Number.isFinite(target.y))) return false;
     const rect = this.domElement.getBoundingClientRect?.();
     const width = rect?.width ?? this.domElement.clientWidth ?? 800;
     const height = rect?.height ?? this.domElement.clientHeight ?? 600;
@@ -697,7 +697,7 @@ export class TransformControls extends EventDispatcher {
 
   #onPointerDown(raw: Event): void {
     const event = raw as ControlEvent;
-    if (!this.enabled || !this.object || (event.button ?? 0) !== 0) return;
+    if (!(this.enabled && this.object ) || (event.button ?? 0) !== 0) return;
     this.object.updateMatrixWorld(true, true);
     this.#activeAxis =
       this.axis ??
@@ -735,7 +735,7 @@ export class TransformControls extends EventDispatcher {
   }
 
   #onPointerMove(raw: Event): void {
-    if (!this.enabled || !this.dragging || !this.object) return;
+    if (!((this.enabled && this.dragging ) && this.object)) return;
     const event = raw as ControlEvent;
     if ((event.pointerId ?? 0) !== this.#pointerId) return;
     const pointer = this.#intersectPointer(event);

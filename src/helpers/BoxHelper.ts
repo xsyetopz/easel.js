@@ -2,7 +2,7 @@ import { Attribute } from "../geometry/Attribute.ts";
 import { Geometry } from "../geometry/Geometry.ts";
 import { LineMaterial } from "../materials/LineMaterial.ts";
 import { Box3 } from "../math/Box3.ts";
-import { Color, type ColorValue } from "../math/Color.ts";
+import type { Color, ColorValue } from "../math/Color.ts";
 import { LineSegments } from "../objects/LineSegments.ts";
 
 const BOX_EDGE_CORNERS = Uint8Array.of(

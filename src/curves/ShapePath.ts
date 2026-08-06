@@ -1,5 +1,5 @@
 import { Color } from "../math/Color.ts";
-import { Vector2 } from "../math/Vector2.ts";
+import type { Vector2 } from "../math/Vector2.ts";
 import { Path } from "./Path.ts";
 import { Shape } from "./Shape.ts";
 

@@ -282,7 +282,7 @@ export class ParticleWorld {
     for (let index = 0; index < this.particles.length; index++) {
       const particle = this.particles[index];
       const previousPosition = previousPositions[index];
-      if (!particle || !previousPosition) continue;
+      if (!(particle && previousPosition)) continue;
       if (!particle.dynamic) {
         particle.velocity.set(0, 0, 0);
         continue;

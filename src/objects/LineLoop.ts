@@ -1,5 +1,5 @@
 import type { Geometry } from "../geometry/Geometry.ts";
-import { LineMaterial } from "../materials/LineMaterial.ts";
+import type { LineMaterial } from "../materials/LineMaterial.ts";
 import { Line } from "./Line.ts";
 
 /** Polyline that adds a segment from its final vertex back to its first. */

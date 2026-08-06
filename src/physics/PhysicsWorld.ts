@@ -1,6 +1,6 @@
 import type { Node } from "../core/Node.ts";
 import { Vector3 } from "../math/Vector3.ts";
-import { HeightfieldShape } from "./HeightfieldShape.ts";
+import type { HeightfieldShape } from "./HeightfieldShape.ts";
 
 let nextRigidBodyId = 0;
 

@@ -208,7 +208,7 @@ export class SkinnedMesh extends Mesh {
   #applyBoneTransform(index: number, target: Vector3): void {
     const skeleton = this.#skeleton;
     const geometry = this.geometry;
-    if (!skeleton || !geometry) return;
+    if (!(skeleton && geometry)) return;
 
     const skinIndex = geometry.getAttribute("skinIndex");
     const skinWeight = geometry.getAttribute("skinWeight");

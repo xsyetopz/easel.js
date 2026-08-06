@@ -27,12 +27,12 @@ export class PCDLoader extends Loader {
 
   /** Parses an ASCII PCD header and point rows into positions and colors. */
   parse(text: string): Geometry {
-    const lines = text.split(/\r?\n/);
+    const lines = text.split(/\r?\n/u);
     let fields: string[] = [];
     let dataIndex = -1;
     for (let index = 0; index < lines.length; index++) {
       const line = lines[index]!.trim();
-      const [key, ...values] = line.split(/\s+/);
+      const [key, ...values] = line.split(/\s+/u);
       if (key?.toUpperCase() === "FIELDS")
         fields = values.map((value) => value.toLowerCase());
       if (key?.toUpperCase() === "DATA") {
@@ -57,7 +57,7 @@ export class PCDLoader extends Loader {
     const positions: number[] = [];
     const colors: number[] = [];
     for (const line of lines.slice(dataIndex)) {
-      const values = line.trim().split(/\s+/);
+      const values = line.trim().split(/\s+/u);
       if (values.length < fields.length || values[0] === "") continue;
       positions.push(Number(values[x]), Number(values[y]), Number(values[z]));
       if (rgb >= 0) {

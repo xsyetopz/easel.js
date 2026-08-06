@@ -1,5 +1,5 @@
-import { AABBShape, PhysicsWorld, RigidBody } from "./PhysicsWorld.ts";
-import { HeightfieldShape } from "./HeightfieldShape.ts";
+import type { AABBShape, PhysicsWorld, RigidBody } from "./PhysicsWorld.ts";
+import type { HeightfieldShape } from "./HeightfieldShape.ts";
 import { Vector3 } from "../math/Vector3.ts";
 
 /** Input values consumed by the CPU vehicle controller. */

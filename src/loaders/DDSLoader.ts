@@ -98,9 +98,7 @@ export class DDSLoader extends DataTextureLoader {
       const levelByteLength = rowBytes * mipHeight;
       const outputByteLength = mipWidth * mipHeight * 4;
       if (
-        !Number.isSafeInteger(levelByteLength) ||
-        !Number.isSafeInteger(outputByteLength) ||
-        !Number.isSafeInteger(dataOffset + levelByteLength) ||
+        !((Number.isSafeInteger(levelByteLength) &&Number.isSafeInteger(outputByteLength) ) &&Number.isSafeInteger(dataOffset + levelByteLength) ) ||
         dataOffset + levelByteLength > buffer.byteLength
       ) {
         throw new Error(

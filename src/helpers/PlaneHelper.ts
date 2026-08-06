@@ -1,7 +1,7 @@
 import { Attribute } from "../geometry/Attribute.ts";
 import { Geometry } from "../geometry/Geometry.ts";
 import { LineMaterial } from "../materials/LineMaterial.ts";
-import { Color, type ColorValue } from "../math/Color.ts";
+import type { Color, ColorValue } from "../math/Color.ts";
 import type { Plane } from "../math/Plane.ts";
 import { Line } from "../objects/Line.ts";
 
