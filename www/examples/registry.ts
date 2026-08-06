@@ -151,7 +151,26 @@ import { example as webxrXrControlsTransform } from "./xr/webxr_xr_controls_tran
 import { example as webxrXrCubes } from "./xr/webxr_xr_cubes.js";
 import { example as webxrXrDragging } from "./xr/webxr_xr_dragging.js";
 import { example as webxrXrHaptics } from "./xr/webxr_xr_haptics.js";
+import { example as cameraAnaglyphStereoCpu } from "./camera2/camera_anaglyph_stereo_cpu.js";
 import { example as cameraPerspectiveProjection } from "./camera2/perspective_projection.js";
+import { example as arcballProjection } from "./camera2/arcball_projection.js";
+import { example as arcballCompoundProjection } from "./camera2/arcball_compound_projection.js";
+import { example as flyProjection } from "./camera2/fly_projection.js";
+import { example as flyTurnProjection } from "./camera2/fly_turn_projection.js";
+import { example as flySprintCompoundProjection } from "./camera2/fly_sprint_compound_projection.js";
+import { example as sprintProjection } from "./camera2/sprint_projection.js";
+import { example as sprintCompoundProjection } from "./camera2/sprint_compound_projection.js";
+import { example as sprintTurnProjection } from "./camera2/sprint_turn_projection.js";
+import { example as orbitCompoundProjection } from "./camera2/orbit_compound_projection.js";
+import { example as orthoArcadeProjection } from "./camera2/ortho_arcade_projection.js";
+import { example as focusProjection } from "./camera2/focus_projection.js";
+import { example as focusCompoundProjection } from "./camera2/focus_compound_projection.js";
+import { example as smoothProjection } from "./camera2/smooth_projection.js";
+import { example as cineFocusProjection } from "./camera2/cine_focus_projection.js";
+import { example as arcstepProjection } from "./camera2/arcstep_projection.js";
+import { example as fastforwardProjection } from "./camera2/fastforward_projection.js";
+import { example as persistProjection } from "./camera2/persist_projection.js";
+import { example as hoistProjection } from "./camera2/hoist_projection.js";
 
 export const categoryLabels = {
   misc: "Miscellaneous",
@@ -205,6 +224,25 @@ export const examples: ExampleModule[] = [
   webxrXrHaptics,
   webxrVrHandinput,
   cameraPerspectiveProjection,
+  cameraAnaglyphStereoCpu,
+  arcballProjection,
+  arcballCompoundProjection,
+  flyProjection,
+  flyTurnProjection,
+  flySprintCompoundProjection,
+  sprintProjection,
+  sprintCompoundProjection,
+  sprintTurnProjection,
+  orbitCompoundProjection,
+  orthoArcadeProjection,
+  focusProjection,
+  focusCompoundProjection,
+  smoothProjection,
+  cineFocusProjection,
+  arcstepProjection,
+  fastforwardProjection,
+  persistProjection,
+  hoistProjection,
   canvasPhysicsRapierBasic,
   canvasPhysicsRapierCharacterController,
   canvasPhysicsRapierInstancing,
