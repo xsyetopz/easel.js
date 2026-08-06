@@ -41,7 +41,7 @@ export function setup(canvas) {
   );
   scene.add(cube);
 
-  let eyeSeparation = 0.3;
+  const eyeSeparation = 0.3;
   const focalLength = 10;
   let animationFrame;
   const clock = new Timer();

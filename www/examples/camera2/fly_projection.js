@@ -52,7 +52,7 @@ export function setup(canvas) {
   const clock = new Timer();
   let animationFrame;
   let yaw = Math.atan2(10, 10);
-  let pitch = 0;
+  const pitch = 0;
   const distance = Math.sqrt(10 ** 2 + 10 ** 2);
 
   function animate(timestamp) {
