@@ -69,7 +69,7 @@ export const landingPages: LandingPageContent[] = [
       },
     ],
     ctas: [
-      { label: "Open the Examples", href: "/examples/hello-cube" },
+      { label: "Open the Examples", href: "/examples/misc_controls_orbit" },
       {
         label: "Compare with THREE.js",
         href: "/compare/threejs",
@@ -118,8 +118,8 @@ export const landingPages: LandingPageContent[] = [
     ctas: [
       { label: "Browse the Docs", href: "/docs" },
       {
-        label: "Run Performance Examples",
-        href: "/examples/rasterizer-benchmark",
+        label: "Run Animation Examples",
+        href: "/examples/misc_animation_keys",
         variant: "light",
       },
     ],
@@ -128,7 +128,7 @@ export const landingPages: LandingPageContent[] = [
     slug: "canvas-software-renderer",
     title: "Canvas2D Software Renderer for the Browser",
     description:
-      "EASEL.js is a browser-side Canvas2D software renderer with a CPU rasterization pipeline, a THREE.js-style mental model, and examples covering lighting, materials, textures, and performance.",
+      "EASEL.js is a browser-side Canvas2D software renderer with a CPU rasterization pipeline, a THREE.js-style mental model, and examples aligned to supported three.js concepts.",
     eyebrow: "Category",
     intro:
       "EASEL.js targets Canvas2D software rendering: explicit control over a browser rasterizer instead of WebGL abstractions.",
@@ -194,18 +194,18 @@ export const landingPages: LandingPageContent[] = [
       {
         title: "Best entry points",
         body: [
-          "The performance, material, and texture examples show the library's rendering behavior, tradeoffs, and counters in live Canvas2D pages.",
+          "The supported three.js-aligned examples show the library's rendering behavior and CPU/Canvas2D tradeoffs in live pages.",
         ],
       },
     ],
     ctas: [
       {
-        label: "Open Rasterizer Benchmark",
-        href: "/examples/rasterizer-benchmark",
+        label: "Open Animation Example",
+        href: "/examples/misc_animation_groups",
       },
       {
-        label: "See Material Examples",
-        href: "/examples/material-types",
+        label: "See Control Examples",
+        href: "/examples/misc_controls_orbit",
         variant: "light",
       },
     ],

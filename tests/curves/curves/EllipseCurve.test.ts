@@ -6,13 +6,13 @@ import { expectCurveParity } from "../../_helpers/curves.js";
 describe("EllipseCurve vs THREE", () => {
   // (cx, cy, xRadius, yRadius, startAngle, endAngle, clockwise, rotation)
   const EASEL = new EllipseCurve(0, 0, 2, 1, 0, Math.PI, false, 0);
-	const THREECurve = new THREE.EllipseCurve(0, 0, 2, 1, 0, Math.PI, false, 0);
+  const THREECurve = new THREE.EllipseCurve(0, 0, 2, 1, 0, Math.PI, false, 0);
 
-	expectCurveParity(EASEL, THREECurve, { lengthEpsilon: 1e-3 });
+  expectCurveParity(EASEL, THREECurve, { lengthEpsilon: 1e-3 });
 
-	// Clockwise traversal: EASEL reverses angle direction (endAngle → startAngle),
+  // Clockwise traversal: EASEL reverses angle direction (endAngle → startAngle),
   // while THREE.js swaps start/end. The implementations differ intentionally.
-	describe("clockwise (EASEL behaviour)", () => {
+  describe("clockwise (EASEL behaviour)", () => {
     const eC = new EllipseCurve(0, 0, 2, 1, 0, Math.PI, true, 0);
     it("t=0 starts at endAngle (PI)", () => {
       // clockwise=true means start at endAngle, so cos(PI)=-1, sin(PI)=0

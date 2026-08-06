@@ -5,6 +5,9 @@ const examplesRoot = "www/examples";
 const jsFilePattern = /\.js$/;
 const sourcePattern =
   /export const (easelSource|threeSource) = (`([\s\S]*?)`|undefined);/g;
+const metaIdPattern =
+  /export const meta\s*=\s*\{[\s\S]*?\bid:\s*["']([^"']+)["']/;
+const adapterIdPattern = /export const threeAdapterId\s*=\s*meta\.id;/;
 const noThreeReasonPattern = /export const noThreeReason =\s*"([^"]+)";/;
 const commentPattern = /\/\/.*|\/\*[\s\S]*?\*\//g;
 const whitespacePattern = /\s+/g;
@@ -35,11 +38,16 @@ async function walk(dir) {
     }
     if (!jsFilePattern.test(path)) continue;
     const source = await readFile(path, "utf8");
+    const metaId = source.match(metaIdPattern)?.[1];
     const sources = {};
     for (const match of source.matchAll(sourcePattern)) {
       sources[match[1]] = match[2] === "undefined" ? undefined : match[3];
     }
     if (!("easelSource" in sources)) continue;
+    if (!metaId) {
+      failures.push(`${path}: missing meta.id for source correspondence`);
+      continue;
+    }
     if (!("threeSource" in sources)) {
       failures.push(`${path}: missing threeSource export`);
       continue;
@@ -48,6 +56,18 @@ async function walk(dir) {
       const reason = source.match(noThreeReasonPattern)?.[1]?.trim();
       if (!reason) failures.push(`${path}: missing noThreeReason`);
       continue;
+    }
+
+    if (!sources.easelSource?.toLowerCase().includes("easel")) {
+      failures.push(`${path}: easelSource does not identify EASEL.js code`);
+    }
+    if (!sources.threeSource.toLowerCase().includes("three")) {
+      failures.push(`${path}: threeSource does not identify THREE.js code`);
+    }
+    if (adapterIdPattern.test(source) && !source.includes(`id: "${metaId}"`)) {
+      failures.push(
+        `${path}: threeAdapterId must refer to the module's exact meta.id`,
+      );
     }
 
     const easelComments = collectComments(sources.easelSource);

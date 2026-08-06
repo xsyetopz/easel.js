@@ -63,6 +63,31 @@ export { NumberTrack } from "./animation/tracks/NumberTrack.ts";
 export { QuaternionTrack } from "./animation/tracks/QuaternionTrack.ts";
 export { StringTrack } from "./animation/tracks/StringTrack.ts";
 export { VectorTrack } from "./animation/tracks/VectorTrack.ts";
+// audio
+export {
+  AudioAnalyzer,
+  type AudioAnalyzerOptions,
+} from "./audio/AudioAnalyzer.ts";
+export {
+  AudioGraph,
+  type AudioGraphOptions,
+  createBrowserAudioContext,
+} from "./audio/AudioGraph.ts";
+export type {
+  AnalyserNodeLike,
+  AudioContextLike,
+  AudioNodeLike,
+  AudioParamLike,
+  OscillatorNodeLike,
+  StereoPannerNodeLike,
+} from "./audio/AudioTypes.ts";
+export {
+  type CanvasAudioContext,
+  type CanvasAudioVisualizerOptions,
+  drawAudioAnalyzer,
+  drawFrequencyBars,
+  drawTimeDomainWaveform,
+} from "./audio/CanvasAudioVisualizer.ts";
 export {
   assertCameraViewOffset,
   Camera,
@@ -82,8 +107,30 @@ export {
   type PerspectiveCameraJSON,
   type PerspectiveCameraOptions,
 } from "./cameras/PerspectiveCamera.ts";
+export {
+  type ArcballCamera,
+  ArcballControls,
+  type MouseAction,
+} from "./controls/ArcballControls.ts";
+export {
+  DragControls,
+  type DragControlsEvent,
+} from "./controls/DragControls.ts";
+export { FirstPersonControls } from "./controls/FirstPersonControls.ts";
+export { FlyControls } from "./controls/FlyControls.ts";
+export { MapControls } from "./controls/MapControls.ts";
 // controls
 export { OrbitControls } from "./controls/OrbitControls.ts";
+export { PointerLockControls } from "./controls/PointerLockControls.ts";
+export { TrackballControls } from "./controls/TrackballControls.ts";
+export {
+  type TransformAxis,
+  TransformControls,
+  type TransformMode,
+  type TransformPointer,
+  type TransformSpace,
+  type TransformViewport,
+} from "./controls/TransformControls.ts";
 export {
   BindMode,
   Layer,
@@ -119,9 +166,84 @@ export { LineCurve3 } from "./curves/curves/LineCurve3.ts";
 export { QuadraticBezierCurve } from "./curves/curves/QuadraticBezierCurve.ts";
 export { QuadraticBezierCurve3 } from "./curves/curves/QuadraticBezierCurve3.ts";
 export { SplineCurve } from "./curves/curves/SplineCurve.ts";
+export { type NURBSControlPoint, NURBSCurve } from "./curves/NURBSCurve.ts";
+export { NURBSSurface } from "./curves/NURBSSurface.ts";
+export {
+  calcBasisFunctionDerivatives,
+  calcBasisFunctions,
+  calcBSplineDerivatives,
+  calcBSplinePoint,
+  calcKoverI,
+  calcNURBSDerivatives,
+  calcRationalCurveDerivatives,
+  calcSurfacePoint,
+  calcVolumePoint,
+  findSpan,
+} from "./curves/NURBSUtils.ts";
+export { NURBSVolume } from "./curves/NURBSVolume.ts";
 export { Path } from "./curves/Path.ts";
 export { Shape } from "./curves/Shape.ts";
 export { ShapePath } from "./curves/ShapePath.ts";
+export {
+  parsePath,
+  parseSVGPath,
+  SVGPathParser,
+} from "./curves/SVGPathParser.ts";
+export {
+  createSVGPathElement,
+  pathToSVG,
+  type SVGPathSerializerOptions,
+  serializeSVGPath,
+  serializeSVGShapePath,
+} from "./curves/SVGPathSerializer.ts";
+export {
+  type EXRCompression,
+  EXRExporter,
+  type EXRExporterOptions,
+  type EXRPixelArray,
+  type EXRPixelSource,
+} from "./exporters/EXRExporter.ts";
+export {
+  GCodeExporter,
+  type GCodeExporterOptions,
+  type GCodePath,
+  type GCodePoint,
+  type GCodeSlice,
+} from "./exporters/GCodeExporter.ts";
+export {
+  type GLTFExportAccessor,
+  type GLTFExportAnimation,
+  type GLTFExportAnimationChannel,
+  type GLTFExportAnimationSampler,
+  type GLTFExportBuffer,
+  type GLTFExportBufferView,
+  type GLTFExportDocument,
+  GLTFExporter,
+  type GLTFExporterOptions,
+  type GLTFExportImage,
+  type GLTFExportMaterial,
+  type GLTFExportMesh,
+  type GLTFExportNode,
+  type GLTFExportPrimitive,
+  type GLTFExportResult,
+  type GLTFExportSampler,
+  type GLTFExportScene,
+  type GLTFExportTexture,
+} from "./exporters/GLTFExporter.ts";
+export {
+  MTLExporter,
+  type MTLExporterOptions,
+} from "./exporters/MTLExporter.ts";
+// exporters
+export {
+  OBJExporter,
+  type OBJExporterOptions,
+} from "./exporters/OBJExporter.ts";
+export {
+  PLYExporter,
+  type PLYExporterOptions,
+} from "./exporters/PLYExporter.ts";
+export { STLExporter } from "./exporters/STLExporter.ts";
 // geometry
 export { Attribute, type AttributeArray } from "./geometry/Attribute.ts";
 export { Geometry } from "./geometry/Geometry.ts";
@@ -132,6 +254,7 @@ export { BoxGeometry } from "./geometry/primitives/BoxGeometry.ts";
 export { CapsuleGeometry } from "./geometry/primitives/CapsuleGeometry.ts";
 export { CircleGeometry } from "./geometry/primitives/CircleGeometry.ts";
 export { ConeGeometry } from "./geometry/primitives/ConeGeometry.ts";
+export { ConvexGeometry } from "./geometry/primitives/ConvexGeometry.ts";
 export { CylinderGeometry } from "./geometry/primitives/CylinderGeometry.ts";
 export { DodecahedronGeometry } from "./geometry/primitives/DodecahedronGeometry.ts";
 export { EdgesGeometry } from "./geometry/primitives/EdgesGeometry.ts";
@@ -139,6 +262,10 @@ export { ExtrudeGeometry } from "./geometry/primitives/ExtrudeGeometry.ts";
 export { IcosahedronGeometry } from "./geometry/primitives/IcosahedronGeometry.ts";
 export { LatheGeometry } from "./geometry/primitives/LatheGeometry.ts";
 export { OctahedronGeometry } from "./geometry/primitives/OctahedronGeometry.ts";
+export {
+  type ParametricFunction,
+  ParametricGeometry,
+} from "./geometry/primitives/ParametricGeometry.ts";
 export { PlaneGeometry } from "./geometry/primitives/PlaneGeometry.ts";
 export { PolyhedronGeometry } from "./geometry/primitives/PolyhedronGeometry.ts";
 export { RingGeometry } from "./geometry/primitives/RingGeometry.ts";
@@ -204,10 +331,40 @@ export { PointLight, type PointLightJSON } from "./lights/PointLight.ts";
 export { SpotLight, type SpotLightJSON } from "./lights/SpotLight.ts";
 // loaders
 export { AnimationLoader } from "./loaders/AnimationLoader.ts";
+export {
+  type BVHChannel,
+  BVHLoader,
+  type BVHLoaderOptions,
+  type BVHLoaderResult,
+} from "./loaders/BVHLoader.ts";
 export { Cache } from "./loaders/Cache.ts";
 export { DataTextureLoader } from "./loaders/DataTextureLoader.ts";
+export {
+  DDSLoader,
+  type DDSMipmap,
+  type DDSParseResult,
+  type DDSPixelFormat,
+} from "./loaders/DDSLoader.ts";
 export { FileLoader, type FileResponseType } from "./loaders/FileLoader.ts";
+export { GCodeLoader } from "./loaders/GCodeLoader.ts";
 export { GeometryLoader } from "./loaders/GeometryLoader.ts";
+export {
+  type GLTFAnimation,
+  type GLTFAnimationChannel,
+  type GLTFAnimationTarget,
+  type GLTFDocument,
+  type GLTFInstanceAttributeInfo,
+  GLTFLoader,
+  type GLTFLoaderOptions,
+  type GLTFLoaderResult,
+  type GLTFMaterialInfo,
+  type GLTFNodeInstancingInfo,
+  type GLTFNodeLODInfo,
+  type GLTFTextureMap,
+  type GLTFTextureReference,
+  type GLTFVariantInfo,
+  type GLTFVariantMapping,
+} from "./loaders/GLTFLoader.ts";
 export { ImageBitmapLoader } from "./loaders/ImageBitmapLoader.ts";
 export { ImageLoader } from "./loaders/ImageLoader.ts";
 export { Loader } from "./loaders/Loader.ts";
@@ -218,8 +375,84 @@ export {
   LoadingManager,
 } from "./loaders/LoadingManager.ts";
 export { MaterialLoader } from "./loaders/MaterialLoader.ts";
+export {
+  MTLLoader,
+  type MTLLoaderOptions,
+  type MTLLoaderResult,
+  type MTLMaterialDefinition,
+  type MTLMaterialInfo,
+  type MTLMaterialOptions,
+  MTLMaterialTable,
+  type MTLMaterialType,
+  type MTLTextureReference,
+} from "./loaders/MTLLoader.ts";
+export {
+  type NRRDAxis,
+  type NRRDDataArray,
+  type NRRDEncoding,
+  type NRRDHeader,
+  type NRRDInput,
+  NRRDLoader,
+  type NRRDScalarType,
+  type NRRDSlice,
+  type NRRDTextureOptions,
+  NRRDVolume,
+} from "./loaders/NRRDLoader.ts";
+export {
+  OBJLoader,
+  type OBJLoaderOptions,
+  type OBJMaterialTable,
+} from "./loaders/OBJLoader.ts";
 export { ObjectLoader } from "./loaders/ObjectLoader.ts";
+export { PCDLoader } from "./loaders/PCDLoader.ts";
+export {
+  type PDBAtom,
+  type PDBJSON,
+  PDBLoader,
+  type PDBParseResult,
+} from "./loaders/PDBLoader.ts";
+export {
+  type PLYCustomPropertyMapping,
+  PLYLoader,
+  type PLYPropertyNameMapping,
+  type PLYScalarType,
+} from "./loaders/PLYLoader.ts";
+export { STLLoader } from "./loaders/STLLoader.ts";
+export {
+  SVGLoader,
+  type SVGLoaderResult,
+  type SVGPathMetadata,
+  type SVGStyle,
+} from "./loaders/SVGLoader.ts";
 export { TextureLoader } from "./loaders/TextureLoader.ts";
+export { TGALoader } from "./loaders/TGALoader.ts";
+export {
+  type TTFBoundingBox,
+  type TTFDirection,
+  TTFFont,
+  type TTFGlyph,
+  TTFLoader,
+  type TTFLoaderResult,
+} from "./loaders/TTFLoader.ts";
+export {
+  buildMesh,
+  buildMesh as buildVOXMesh,
+  buildVoxelVolume,
+  type VOXChunk,
+  type VOXFrame,
+  type VOXGroupNode,
+  VOXLoader,
+  type VOXLoaderResult,
+  VOXMesh,
+  type VOXModelReference,
+  type VOXNode,
+  type VOXShapeNode,
+  type VOXSize,
+  type VOXTransformNode,
+  type VOXTranslation,
+  type VOXVoxelVolume,
+} from "./loaders/VOXLoader.ts";
+export { XYZLoader } from "./loaders/XYZLoader.ts";
 // materials
 export {
   BasicMaterial,
@@ -310,6 +543,7 @@ export {
 export { Matrix2 } from "./math/Matrix2.ts";
 export { Matrix3 } from "./math/Matrix3.ts";
 export { Matrix4 } from "./math/Matrix4.ts";
+export { OBB } from "./math/OBB.ts";
 export { Plane } from "./math/Plane.ts";
 export {
   multiplyQuaternionsFlat,
@@ -345,6 +579,8 @@ export { cross3, dot3, Vector3 } from "./math/Vector3.ts";
 export { dot4, Vector4 } from "./math/Vector4.ts";
 // objects
 export { Bone } from "./objects/Bone.ts";
+export { CSS2DObject } from "./objects/CSS2DObject.ts";
+export { CSS3DObject, CSS3DSprite } from "./objects/CSS3DObject.ts";
 export { Group } from "./objects/Group.ts";
 export { InstancedMesh } from "./objects/InstancedMesh.ts";
 export { Line } from "./objects/Line.ts";
@@ -356,6 +592,65 @@ export { Points } from "./objects/Points.ts";
 export { Skeleton } from "./objects/Skeleton.ts";
 export { SkinnedMesh } from "./objects/SkinnedMesh.ts";
 export { Sprite } from "./objects/Sprite.ts";
+export { SVGObject } from "./objects/SVGObject.ts";
+// physics
+export {
+  CharacterController,
+  type CharacterControllerFrameHost,
+  type CharacterControllerOptions,
+} from "./physics/CharacterController.ts";
+export {
+  HeightfieldShape,
+  type HeightfieldShapeOptions,
+} from "./physics/HeightfieldShape.ts";
+export {
+  type CapsuleIntersection,
+  Octree,
+  type OctreeGraphOptions,
+  type TriangleCapsuleIntersection,
+} from "./physics/Octree.ts";
+export {
+  DistanceConstraint,
+  type DistanceConstraintOptions,
+  Particle,
+  type ParticleFrameHost,
+  type ParticleOptions,
+  ParticleWorld,
+  type ParticleWorldOptions,
+} from "./physics/ParticlePhysics.ts";
+export {
+  DistanceJoint,
+  type DistanceJointOptions,
+  PhysicsJoint,
+  type PhysicsJointOptions,
+  PhysicsJoints,
+  type PhysicsJointsOptions,
+  type PhysicsJointType,
+  RevoluteJoint,
+  type RevoluteJointOptions,
+  SphericalJoint,
+  type SphericalJointOptions,
+  SpringJoint,
+  type SpringJointOptions,
+} from "./physics/PhysicsJoints.ts";
+export {
+  AABBShape,
+  CircleShape,
+  type PhysicsContact,
+  type PhysicsFrameHost,
+  type PhysicsShape,
+  PhysicsWorld,
+  type PhysicsWorldOptions,
+  RigidBody,
+  type RigidBodyOptions,
+  SphereShape,
+} from "./physics/PhysicsWorld.ts";
+export {
+  VehicleController,
+  type VehicleControllerOptions,
+  type VehicleInput,
+  type VehicleWheel,
+} from "./physics/VehicleController.ts";
 export { ColorTable } from "./pipeline/color/ColorTable.ts";
 export { TranslucencyTable } from "./pipeline/color/TranslucencyTable.ts";
 export { DrawCall } from "./pipeline/DrawCall.ts";
@@ -385,12 +680,24 @@ export { PolygonSorter } from "./pipeline/sorting/PolygonSorter.ts";
 export { TileDistanceSorter } from "./pipeline/sorting/TileDistanceSorter.ts";
 export { TextureClamp } from "./pipeline/texture/TextureClamp.ts";
 export { TextureSampler } from "./pipeline/texture/TextureSampler.ts";
+export {
+  CSS2DRenderer,
+  type CSS2DRendererOptions,
+} from "./renderers/CSS2DRenderer.ts";
+export {
+  CSS3DRenderer,
+  type CSS3DRendererOptions,
+} from "./renderers/CSS3DRenderer.ts";
 // pipeline (advanced - typically consumed via Renderer)
 export {
   Renderer,
   type RendererOptions,
   type RenderTimings,
 } from "./renderers/Renderer.ts";
+export {
+  SVGRenderer,
+  type SVGRendererOptions,
+} from "./renderers/SVGRenderer.ts";
 // scenes
 export {
   Fog,

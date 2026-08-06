@@ -16,8 +16,8 @@ const hasComparison = threeSource !== undefined;
 	{hasComparison ? (
 		<div class="tabs" data-tabs>
 			<div class="tabs-list" role="tablist" aria-label="Code comparison">
-				<button class="tabs-tab" type="button" role="tab" aria-selected="true" data-tab-target="easel">EASEL.js</button>
-				<button class="tabs-tab" type="button" role="tab" aria-selected="false" data-tab-target="three">THREE.js</button>
+				<button class="tabs-tab" type="button" role="tab" aria-selected="true" data-tab-target="easel" data-engine-tab="easel">EASEL.js</button>
+				<button class="tabs-tab" type="button" role="tab" aria-selected="false" data-tab-target="three" data-engine-tab="three">THREE.js</button>
 			</div>
 			<div class="tabs-panel" role="tabpanel" data-tab-panel="easel">
 				<CodeBlock code={easelSource} language="javascript" />

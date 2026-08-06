@@ -15,6 +15,7 @@ let _geometryId = 0;
 
 const _point = new Vector3();
 const _offset = new Vector3();
+const _tangent = new Vector3();
 const _matrix = new Matrix4();
 const _normalMatrix = new Matrix3();
 
@@ -78,6 +79,11 @@ export class Geometry {
   type: string = "Geometry";
   /** Primitive-construction parameters retained for serialization. */
   parameters: Record<string, unknown> = {};
+  /** Draw-range interval in index or sequential-vertex units. */
+  drawRange: { start: number; count: number } = {
+    start: 0,
+    count: Number.POSITIVE_INFINITY,
+  };
   readonly #attributes = new Map<string, Attribute>();
   #index: Uint16Array | Uint32Array | undefined = undefined;
   #publishingInternalAttributeUpdate = false;
@@ -128,6 +134,14 @@ export class Geometry {
     return this;
   }
 
+  /** Replaces the tangent channel from packed xyzw vectors. */
+  setTangents(array: Float32Array | number[]): this {
+    const data =
+      array instanceof Float32Array ? array : new Float32Array(array);
+    this.#replaceAttribute("tangent", new Attribute(data, 4));
+    return this;
+  }
+
   /** Assigns or clears the triangle index buffer. */
   set index(array: Uint16Array | Uint32Array | number[] | undefined) {
     this.#clearSequentialIndices();
@@ -174,6 +188,13 @@ export class Geometry {
   /** Optional triangle index buffer; `undefined` selects sequential vertices. */
   get index(): Uint16Array | Uint32Array | undefined {
     return this.#index;
+  }
+
+  /** Sets the visible index or sequential-vertex interval for traversal. */
+  setDrawRange(start: number, count: number): this {
+    this.drawRange.start = start;
+    this.drawRange.count = count;
+    return this;
   }
 
   /** Read-only view of the named vertex channels. */
@@ -258,6 +279,126 @@ export class Geometry {
     return this;
   }
 
+  /** Computes per-vertex UV tangents and handedness for CPU helper geometry. */
+  computeTangents(): this {
+    const position = this.#attributes.get("position");
+    const normal = this.#attributes.get("normal");
+    const uv = this.#attributes.get("uv");
+    if (!(position && normal && uv)) return this;
+
+    const vertexCount = position.count;
+    if (normal.count < vertexCount || uv.count < vertexCount) return this;
+
+    const tangent = new Float32Array(vertexCount * 4);
+    const tan1 = Array.from({ length: vertexCount }, () => new Vector3());
+    const tan2 = Array.from({ length: vertexCount }, () => new Vector3());
+    const pA = new Vector3();
+    const pB = new Vector3();
+    const pC = new Vector3();
+    const uvA = new Vector3();
+    const uvB = new Vector3();
+    const uvC = new Vector3();
+    const edge1 = new Vector3();
+    const edge2 = new Vector3();
+    const sdir = new Vector3();
+    const tdir = new Vector3();
+    const isValidVertex = (index: number): boolean =>
+      Number.isInteger(index) && index >= 0 && index < vertexCount;
+
+    const handleTriangle = (a: number, b: number, c: number): void => {
+      if (!(isValidVertex(a) && isValidVertex(b) && isValidVertex(c))) {
+        return;
+      }
+
+      pA.set(position.getX(a), position.getY(a), position.getZ(a));
+      pB.set(position.getX(b), position.getY(b), position.getZ(b));
+      pC.set(position.getX(c), position.getY(c), position.getZ(c));
+      uvA.set(uv.getX(a), uv.getY(a), 0);
+      uvB.set(uv.getX(b), uv.getY(b), 0);
+      uvC.set(uv.getX(c), uv.getY(c), 0);
+      edge1.copy(pB).sub(pA);
+      edge2.copy(pC).sub(pA);
+      const du1 = uvB.x - uvA.x;
+      const dv1 = uvB.y - uvA.y;
+      const du2 = uvC.x - uvA.x;
+      const dv2 = uvC.y - uvA.y;
+      const determinant = du1 * dv2 - du2 * dv1;
+      if (
+        !Number.isFinite(determinant) ||
+        Math.abs(determinant) <= Number.EPSILON
+      ) {
+        return;
+      }
+
+      const reciprocal = 1 / determinant;
+      sdir
+        .copy(edge1)
+        .multiplyScalar(dv2)
+        .addScaledVector(edge2, -dv1)
+        .multiplyScalar(reciprocal);
+      tdir
+        .copy(edge2)
+        .multiplyScalar(du1)
+        .addScaledVector(edge1, -du2)
+        .multiplyScalar(reciprocal);
+      tan1[a].add(sdir);
+      tan1[b].add(sdir);
+      tan1[c].add(sdir);
+      tan2[a].add(tdir);
+      tan2[b].add(tdir);
+      tan2[c].add(tdir);
+    };
+
+    if (this.#index) {
+      for (let index = 0; index + 2 < this.#index.length; index += 3) {
+        handleTriangle(
+          this.#index[index] ?? -1,
+          this.#index[index + 1] ?? -1,
+          this.#index[index + 2] ?? -1,
+        );
+      }
+    } else {
+      for (let index = 0; index + 2 < vertexCount; index += 3) {
+        handleTriangle(index, index + 1, index + 2);
+      }
+    }
+
+    const normalVector = new Vector3();
+    const normalCopy = new Vector3();
+    const orthogonal = new Vector3();
+    const handednessVector = new Vector3();
+    for (let index = 0; index < vertexCount; index++) {
+      const tangentVector = tan1[index]!;
+      const bitangentVector = tan2[index]!;
+      normalVector.set(
+        normal.getX(index),
+        normal.getY(index),
+        normal.getZ(index),
+      );
+      normalCopy.copy(normalVector);
+      orthogonal
+        .copy(tangentVector)
+        .sub(normalVector.multiplyScalar(normalCopy.dot(tangentVector)))
+        .normalize();
+      const handedness =
+        handednessVector
+          .crossVectors(normalCopy, tangentVector)
+          .dot(bitangentVector) < 0
+          ? -1
+          : 1;
+      const offset = index * 4;
+      tangent[offset] = orthogonal.x;
+      tangent[offset + 1] = orthogonal.y;
+      tangent[offset + 2] = orthogonal.z;
+      tangent[offset + 3] = handedness;
+    }
+
+    const attribute = new Attribute(tangent, 4);
+    this.#publishInternalUpdate(attribute);
+    this.#replaceAttribute("tangent", attribute);
+    return this;
+  }
+
   /** Computes an axis-aligned bounding box from the position attribute. */
   computeBoundingBox(): this {
     const box = this.boundingBox ?? new Box3();
@@ -314,6 +455,7 @@ export class Geometry {
   /** Applies a transform once and invalidates only meshes sharing this geometry. */
   applyMatrix4(matrix: Matrix4): this {
     const normal = this.#attributes.get("normal");
+    const tangent = this.#attributes.get("tangent");
     if (normal) _normalMatrix.getNormalMatrix(matrix);
 
     const position = this.#attributes.get("position");
@@ -326,6 +468,26 @@ export class Geometry {
       normal.applyNormalMatrix(_normalMatrix);
       this.#publishInternalUpdate(normal);
       invalidateGeometryCaches(this);
+    }
+
+    if (tangent && tangent.itemSize >= 3) {
+      for (let index = 0; index < tangent.count; index++) {
+        _tangent
+          .set(tangent.getX(index), tangent.getY(index), tangent.getZ(index))
+          .transformDirection(matrix);
+        if (tangent.itemSize >= 4) {
+          tangent.setXYZW(
+            index,
+            _tangent.x,
+            _tangent.y,
+            _tangent.z,
+            tangent.getW(index),
+          );
+        } else {
+          tangent.setXYZ(index, _tangent.x, _tangent.y, _tangent.z);
+        }
+      }
+      this.#publishInternalUpdate(tangent);
     }
 
     this.boundingBox?.applyMatrix4(matrix);
@@ -378,6 +540,7 @@ export class Geometry {
       | Uint16Array
       | Uint32Array
       | undefined;
+    this.drawRange = { ...source.drawRange };
     this.boundingBox = source.boundingBox?.clone();
     this.boundingSphere = source.boundingSphere?.clone();
     this.#clearSequentialIndices();

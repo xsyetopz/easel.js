@@ -22,13 +22,13 @@ const THREEShapeUtils = (THREE as unknown as { ShapeUtils: ShapeUtilsLike })
 describe("ShapeUtils", () => {
   it("matches THREE.js signed area and winding", () => {
     const EASEL = [new Vector2(0, 0), new Vector2(4, 0), new Vector2(0, 3)];
-		const THREEPoints = EASEL.map(
-			(point) => new THREE.Vector2(point.x, point.y),
-		);
-		expect(shapeArea(EASEL)).toBe(THREEShapeUtils.area(THREEPoints));
-		expect(isShapeClockwise(EASEL)).toBe(
-			THREEShapeUtils.isClockWise(THREEPoints),
-		);
+    const THREEPoints = EASEL.map(
+      (point) => new THREE.Vector2(point.x, point.y),
+    );
+    expect(shapeArea(EASEL)).toBe(THREEShapeUtils.area(THREEPoints));
+    expect(isShapeClockwise(EASEL)).toBe(
+      THREEShapeUtils.isClockWise(THREEPoints),
+    );
   });
 
   it("matches THREE.js triangulation with a hole", () => {

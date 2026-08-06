@@ -30,6 +30,20 @@ describe("ImageBitmapLoader official surface", () => {
     expect(EASEL.options.colorSpaceConversion).toBe("none");
   });
 
+  it("setOptions returns the loader and preserves the official option shape", () => {
+    const EASEL = new ImageBitmapLoader();
+    const THREE = new THREEImageBitmapLoader();
+    const easelSource: ImageBitmapOptions = { imageOrientation: "flipY" };
+    const threeSource: ImageBitmapOptions = { imageOrientation: "flipY" };
+
+    expect(EASEL.setOptions(easelSource)).toBe(EASEL);
+    THREE.setOptions(threeSource);
+    easelSource.imageOrientation = "none";
+
+    expect(EASEL.options.imageOrientation).toBe(THREE.options.imageOrientation);
+    expect(EASEL.options.colorSpaceConversion).toBe("none");
+  });
+
   it("isImageBitmapLoader", () => {
     expect(new ImageBitmapLoader().isImageBitmapLoader).toBe(true);
     expect(new THREEImageBitmapLoader().isImageBitmapLoader).toBe(true);
@@ -37,10 +51,10 @@ describe("ImageBitmapLoader official surface", () => {
 });
 
 describe("ImageBitmapLoader lifecycle", () => {
-  it("copies and normalizes assigned options once", () => {
+  it("copies and normalizes options once", () => {
     const source: ImageBitmapOptions = { imageOrientation: "flipY" };
     const loader = new ImageBitmapLoader();
-    loader.options = source;
+    loader.setOptions(source);
     source.imageOrientation = "none";
 
     expect(loader.options).toEqual({

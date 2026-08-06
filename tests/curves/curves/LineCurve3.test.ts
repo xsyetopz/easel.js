@@ -10,7 +10,7 @@ describe("LineCurve3 vs THREE", () => {
   const tv0 = new THREE.Vector3(0, 0, 0);
   const tv1 = new THREE.Vector3(1, 2, 3);
   const EASEL = new LineCurve3(ev0, ev1);
-	const THREECurve = new THREE.LineCurve3(tv0, tv1);
+  const THREECurve = new THREE.LineCurve3(tv0, tv1);
 
-	expectCurveParity(EASEL, THREECurve);
+  expectCurveParity(EASEL, THREECurve);
 });

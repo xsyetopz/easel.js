@@ -19,7 +19,7 @@ const categories: string[] = Array.from(new Set(examples.map((example) => exampl
 				<div class="stack stack-md">
 					<h1 class="hero-title hero-title-center">Examples with source beside the renderer.</h1>
 					<p class="hero-copy">
-						{examples.length} pages across {categories.length} groups. Each page keeps the code, canvas behavior, and renderer tradeoff in one place.
+						{examples.length} supported three.js-aligned pages in {categories.length} {categories.length === 1 ? "group" : "groups"}. Each page keeps the EASEL CPU/Canvas2D implementation and renderer tradeoff in one place; WebGL/WebGPU-only demos are intentionally omitted.
 					</p>
 					<div class="group">
 						<a href={routeToPath("docs")} class="hero-text-link">API docs</a>

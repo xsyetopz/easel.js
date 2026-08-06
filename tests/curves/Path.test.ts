@@ -44,7 +44,7 @@ describe("Path vs THREE", () => {
       expect(makeEASEL().curves.length).toBe(makeTHREE().curves.length);
     });
 
-		// EASEL getPoints returns divisions+1 points; THREE deduplicates segment joins.
+    // EASEL getPoints returns divisions+1 points; THREE deduplicates segment joins.
     it("getPoints(12) returns divisions+1 points", () => {
       expect(makeEASEL().getPoints(12).length).toBe(13);
     });

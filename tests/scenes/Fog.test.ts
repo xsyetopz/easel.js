@@ -130,7 +130,7 @@ describe("Fog", () => {
     expect(Array.from(clone.lut)).toEqual(Array.from(fog.lut));
   });
 
-	it("matches linear THREE fog fields and serializes canonical state", () => {
+  it("matches linear THREE fog fields and serializes canonical state", () => {
     const reference = new THREEFog(0x123456, 10, 15);
     const fog = new Fog({
       color: 0x123456,

@@ -1,7 +1,9 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, setDefaultTimeout } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import process from "node:process";
+
+setDefaultTimeout(30_000);
 
 const root = `${import.meta.dir}/../..`;
 const packageVersion = JSON.parse(

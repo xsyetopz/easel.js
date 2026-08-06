@@ -36,7 +36,7 @@ describe("Box2", () => {
     expect(e.containsPoint(new Vector2(3, 1))).toBe(false);
   });
 
-	it("getCenter (EASEL: getCenter method)", () => {
+  it("getCenter (EASEL: getCenter method)", () => {
     const e = new Box2(new Vector2(0, 0), new Vector2(4, 4));
     const centre = e.getCenter(new Vector2());
     expect(centre).toMatchVector({ x: 2, y: 2 });

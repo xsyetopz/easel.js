@@ -37,7 +37,7 @@ describe("Quaternion", () => {
   });
 
   it("setFromEuler", () => {
-		// EASEL setFromEuler accepts plain {x,y,z,order} objects
+    // EASEL setFromEuler accepts plain {x,y,z,order} objects
     const euler = { x: 0.1, y: 0.2, z: 0.3, order: "XYZ" };
     const e = new Quaternion().setFromEuler(euler);
     // verify result is a unit quaternion

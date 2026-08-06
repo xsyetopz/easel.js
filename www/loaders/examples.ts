@@ -14,15 +14,9 @@ export interface ExampleCatalogEntry {
 export type ExampleControl = ControlDefinition;
 export type ExampleParams = Record<string, string | number>;
 
-export interface ExampleBenchmarkResult {
-  summary: string;
-  [key: string]: unknown;
-}
-
 export interface ExampleInstance {
   cleanup?: () => void;
   update?: (params: ExampleParams) => void;
-  runBenchmark?: () => ExampleBenchmarkResult | Promise<ExampleBenchmarkResult>;
 }
 
 export interface ExampleModule {
@@ -56,7 +50,7 @@ interface ExampleRegistryModule {
   examples: ExampleModule[];
 }
 
-async function loadExampleRegistry() {
+async function loadExampleRegistry(): Promise<ExampleRegistryModule> {
   return (await import("../examples/registry.ts")) as ExampleRegistryModule;
 }
 
@@ -70,7 +64,9 @@ export async function loadExampleCatalog(): Promise<ExampleCatalogData> {
   };
 }
 
-export async function loadExampleModule(exampleId: string) {
+export async function loadExampleModule(
+  exampleId: string,
+): Promise<ExampleModule | null> {
   const { examples } = await loadExampleRegistry();
   return examples.find((example) => example.meta.id === exampleId) ?? null;
 }

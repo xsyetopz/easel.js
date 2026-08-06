@@ -6,7 +6,7 @@ import { expectCurveParity } from "../../_helpers/curves.js";
 describe("ArcCurve vs THREE", () => {
   // (cx, cy, radius, startAngle, endAngle, clockwise)
   const EASEL = new ArcCurve(0, 0, 3, 0, Math.PI * 1.5, false);
-	const THREECurve = new THREE.ArcCurve(0, 0, 3, 0, Math.PI * 1.5, false);
+  const THREECurve = new THREE.ArcCurve(0, 0, 3, 0, Math.PI * 1.5, false);
 
-	expectCurveParity(EASEL, THREECurve, { lengthEpsilon: 1e-3 });
+  expectCurveParity(EASEL, THREECurve, { lengthEpsilon: 1e-3 });
 });

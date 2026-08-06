@@ -15,7 +15,7 @@ describe("TetrahedronGeometry vs THREE.TetrahedronGeometry", () => {
 
   it("default - has index or non-indexed positions", () => {
     const g = new TetrahedronGeometry();
-		// EASEL may use non-indexed flat geometry; vertex count > 0 either way
+    // EASEL may use non-indexed flat geometry; vertex count > 0 either way
     const posCount = defined(g.getAttribute("position")).count;
     expect(posCount).toBeGreaterThan(0);
   });

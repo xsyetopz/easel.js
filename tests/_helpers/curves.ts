@@ -38,7 +38,7 @@ export function expectCurveParity(
   for (const sample of samples) {
     it(`getPoint(${sample}) matches`, () => {
       expect(EASELCurve.getPoint(sample)).toMatchVector(
-		defined(THREECurve.getPoint(sample), "THREE point"),
+        defined(THREECurve.getPoint(sample), "THREE point"),
         pointEpsilon,
       );
     });

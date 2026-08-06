@@ -132,7 +132,7 @@ deopts/regressions:
 - `src/core/Node.ts`: `updateMatrixWorld` dominates deep-hierarchy scenes; avoid
   extra passes over children and avoid per-frame recomposition when
   `position/quaternion/scale` haven’t changed (benchmark using
-  `www/examples/performance/scene-hierarchy.js` and compare
+  `benchmarks/render-suite.mjs` and compare
   `timings.traversalMs`).
 - `src/pipeline/SceneTraversal.ts` + `src/pipeline/InstancedMeshBuilder.ts`:
   per-frame object churn (e.g. `new DrawCall()` / per-instance material objects)

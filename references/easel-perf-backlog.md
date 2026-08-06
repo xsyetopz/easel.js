@@ -29,17 +29,16 @@ Rules:
   - Skip `updateMatrix()` / `Matrix4.compose()` when `position/quaternion/scale`
     haven’t changed (cache last composed scalars on the Node).
 - How to validate:
-  - `www/examples/performance/scene-hierarchy.js` at high depth/branches.
-  - `www/examples/performance/scene-stress.js` at high mesh counts.
+  - `benchmarks/render-suite.mjs` at high depth/branches.
+  - `benchmarks/render-suite.mjs` at high mesh counts.
   - Compare `timings.traversalMs` (and `timings.totalMs`) before/after.
 
-### P0 - Add stage timing to a performance example (DONE)
+### P0 - Add stage timing to the benchmark suite (DONE)
 
 - Stage: measurement/observability
 - Why: Without stable measurements, perf work is mostly guesswork and
   regressions are hard to catch.
-- Where: `www/examples/performance/rasterizer-benchmark.js` (or another selected
-  performance example)
+- Where: `benchmarks/render-suite.mjs`
 - Proposed change:
   - Add `performance.mark/measure` for traversal/sort/shade/raster/upload.
   - Add a small on-screen HUD or console aggregation (p50/p95) behind a flag.
@@ -63,13 +62,13 @@ Rules:
 
 - Stage: traversal / scene build
 - Why: `new DrawCall()` per visible mesh/instance per frame adds allocation + GC
-  pressure (especially in `frustum-culling` and large scenes).
+  pressure (especially in high-culling workloads and large scenes).
 - Where:
   - `src/pipeline/SceneTraversal.ts` (cache `DrawCall` on node)
   - `src/pipeline/InstancedMeshBuilder.ts` (cache per-instance `DrawCall` +
     per-instance material/color objects)
 - How to validate:
-  - `www/examples/performance/frustum-culling.js` at high totals (watch
+  - `benchmarks/render-suite.mjs` at high totals (watch
     `traversalMs` + GC in DevTools).
 
 ### P1 - Reduce string comparisons in traversal if it becomes a hotspot
@@ -84,8 +83,8 @@ Rules:
     on numbers in traversal.
   - Keep public API (`type` strings) for compatibility; tags are internal.
 - How to validate:
-  - Profile a deep hierarchy + many lights scene (e.g.
-    `www/examples/performance/scene-hierarchy.js`, `multi-light.js`).
+  - Profile a deep hierarchy + many lights workload in
+    `benchmarks/render-suite.mjs`.
   - Accept only if traversal stage time drops measurably without regressions.
 
 ### P1 - Hoist defaulting out of hot loops by enforcing invariants at construction time
@@ -109,9 +108,25 @@ Rules:
   - Also run typecheck/tests to ensure no undefined accesses were previously
     relied upon.
 
-## P2 (bigger refactors / higher risk)
+### P2 - Point rendering Math.sqrt precomputation
 
-### P2 - Reduce per-draw-call object size / indirection (data locality pass)
+- Stage: point rendering in Rasterizer
+- Where:
+  - `src/pipeline/rasterizer/Rasterizer.ts` lines 1515, 1563
+  - `src/pipeline/rasterizer/PointRasterizer.ts` line 18
+- Change:
+  - Precompute `Math.sqrt` for point radius once, not per scanline
+  - Add `if (radius > 1)` guard to avoid computation when not needed
+- Status: implemented, tests passing
+- Notes:
+  - Black magic profiler showed no clear speedup (inconclusive results)
+  - Change made for edge case handling and code clarity
+  - Draw load macrobenchmark shows 5M triangles/sec with 2.04µs per triangle
+  - Geometry preparation dominates rasterizer cost
+
+## P3 (minor improvements, low ROI)
+
+### P3 - Math helper lookup caching
 
 - Stage: overall frame time (allocation + cache behavior)
 - Why: large object graphs and scattered memory can amplify cache misses;

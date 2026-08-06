@@ -102,7 +102,7 @@ describe("Material", () => {
     expect(material.vertexColors).toBe(false);
   });
 
-	it("serializes canonical common state without THREE metadata", () => {
+  it("serializes canonical common state without THREE metadata", () => {
     const material = new Material({
       name: "overlay",
       layer: 2,
@@ -134,7 +134,7 @@ describe("Material", () => {
     expect(material.toJSON()).not.toHaveProperty("metadata");
   });
 
-	it("matches installed THREE common material defaults and flags", async () => {
+  it("matches installed THREE common material defaults and flags", async () => {
     type THREEMaterial = {
       isMaterial: boolean;
       color: { getHex(): number };

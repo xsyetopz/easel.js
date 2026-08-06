@@ -44,8 +44,37 @@ interface GeometryLike {
   boundingSphere?: { centre: Vector3; radius: number };
   getAttribute: (name: string) => AttributeLike | undefined;
   index?: { array: ArrayLike<number> } | ArrayLike<number>;
+  drawRange?: { start: number; count: number };
   _sequentialIndices?: Uint32Array;
   _uvCache?: Float32Array;
+}
+
+type IndexArray = number[] | Uint16Array | Uint32Array;
+
+const _emptyIndices = new Uint32Array(0);
+
+/** Applies a three.js-style draw range without mutating geometry index data. */
+function sliceDrawRange(
+  indices: IndexArray,
+  drawRange: { start: number; count: number } | undefined,
+): IndexArray {
+  if (!drawRange) return indices;
+
+  // WebGL clamps the draw interval to the available element count before
+  // issuing the draw. Flooring at the final boundary keeps CPU indexing
+  // deterministic for the fractional values that WebGL would coerce.
+  const start = Math.max(0, drawRange.start);
+  const end = Math.min(indices.length, start + drawRange.count);
+  const drawCount = end - start;
+  if (!(drawCount > 0)) return _emptyIndices;
+
+  const first = Math.floor(start);
+  const last = Math.min(indices.length, first + Math.floor(drawCount));
+  if (last <= first) return _emptyIndices;
+  if (first === 0 && last === indices.length) return indices;
+
+  if (Array.isArray(indices)) return indices.slice(first, last);
+  return indices.subarray(first, last);
 }
 
 interface SceneNode {
@@ -423,9 +452,12 @@ export class SceneTraversal {
     }
 
     const index = node.geometry.index;
+    let faceIndices: IndexArray;
     if (index) {
-      drawCall.faceIndices = ((index as { array: ArrayLike<number> }).array ??
-        index) as number[] | Uint16Array | Uint32Array;
+      faceIndices = ((index as { array: ArrayLike<number> }).array ?? index) as
+        | number[]
+        | Uint16Array
+        | Uint32Array;
     } else {
       if (
         !node.geometry._sequentialIndices ||
@@ -436,8 +468,9 @@ export class SceneTraversal {
           (_, i) => i,
         );
       }
-      drawCall.faceIndices = node.geometry._sequentialIndices;
+      faceIndices = node.geometry._sequentialIndices;
     }
+    drawCall.faceIndices = sliceDrawRange(faceIndices, node.geometry.drawRange);
 
     let lineBuffer = node._lineBuffer;
     if (!lineBuffer) {
@@ -807,9 +840,12 @@ export class SceneTraversal {
     }
 
     const index = node.geometry.index;
+    let faceIndices: IndexArray;
     if (index) {
-      drawCall.faceIndices = ((index as { array: ArrayLike<number> }).array ??
-        index) as number[] | Uint16Array | Uint32Array;
+      faceIndices = ((index as { array: ArrayLike<number> }).array ?? index) as
+        | number[]
+        | Uint16Array
+        | Uint32Array;
     } else {
       if (
         !node.geometry._sequentialIndices ||
@@ -820,8 +856,9 @@ export class SceneTraversal {
           (_, i) => i,
         );
       }
-      drawCall.faceIndices = node.geometry._sequentialIndices;
+      faceIndices = node.geometry._sequentialIndices;
     }
+    drawCall.faceIndices = sliceDrawRange(faceIndices, node.geometry.drawRange);
 
     if (profiler) {
       const t0 = profiler.now();

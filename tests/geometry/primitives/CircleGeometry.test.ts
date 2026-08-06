@@ -9,20 +9,20 @@ import {
 describe("CircleGeometry vs THREE.CircleGeometry", () => {
   it("matches default positions, normals, UVs, and indices", () => {
     const EASEL = new CircleGeometry();
-		const THREEGeometry = new THREE.CircleGeometry();
-		expectAttributeArraysClose(EASEL, THREEGeometry, "position");
-		expectAttributeArraysClose(EASEL, THREEGeometry, "normal");
-		expectAttributeArraysClose(EASEL, THREEGeometry, "uv");
-		expectIndexLengthMatches(EASEL, THREEGeometry);
+    const THREEGeometry = new THREE.CircleGeometry();
+    expectAttributeArraysClose(EASEL, THREEGeometry, "position");
+    expectAttributeArraysClose(EASEL, THREEGeometry, "normal");
+    expectAttributeArraysClose(EASEL, THREEGeometry, "uv");
+    expectIndexLengthMatches(EASEL, THREEGeometry);
   });
 
   it("matches an integer-segment circular sector", () => {
     const EASEL = new CircleGeometry(2, 12, Math.PI / 4, Math.PI);
-		const THREEGeometry = new THREE.CircleGeometry(2, 12, Math.PI / 4, Math.PI);
-		expectAttributeArraysClose(EASEL, THREEGeometry, "position");
-		expectAttributeArraysClose(EASEL, THREEGeometry, "normal");
-		expectAttributeArraysClose(EASEL, THREEGeometry, "uv");
-		expectIndexLengthMatches(EASEL, THREEGeometry);
+    const THREEGeometry = new THREE.CircleGeometry(2, 12, Math.PI / 4, Math.PI);
+    expectAttributeArraysClose(EASEL, THREEGeometry, "position");
+    expectAttributeArraysClose(EASEL, THREEGeometry, "normal");
+    expectAttributeArraysClose(EASEL, THREEGeometry, "uv");
+    expectIndexLengthMatches(EASEL, THREEGeometry);
   });
 
   it("normalizes fractional segment counts to an integer mesh", () => {

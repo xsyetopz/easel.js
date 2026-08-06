@@ -182,26 +182,6 @@
 	padding: 0.25rem 0.45rem;
 }
 
-.benchmark-output {
-	background: var(--code-bg);
-	border-radius: var(--radius-sm);
-	color: var(--code-ink);
-	font-size: 0.76rem;
-	line-height: 1.5;
-	max-height: 11rem;
-	overflow: auto;
-	padding: 0.75rem;
-	white-space: pre-wrap;
-}
-
-.alert-error {
-	background: color-mix(in srgb, #cf222e 12%, var(--surface));
-	border: 1px solid color-mix(in srgb, #cf222e 45%, var(--line));
-	border-radius: var(--radius-sm);
-	color: var(--ink);
-	padding: 0.75rem;
-}
-
 .sidebar-scroll {
 	background: var(--surface);
 	color: var(--ink);

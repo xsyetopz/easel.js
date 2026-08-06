@@ -99,8 +99,8 @@ frame();
 - Opacity uses fixed steps rather than continuous alpha.
 
 See the [API reference](https://easeljs.org/docs) and
-[examples](https://easeljs.org/examples) for cameras, geometry, materials,
-textures, animation, picking, loaders, helpers, and voxel scenes.
+[examples](https://easeljs.org/examples) aligned to supported three.js animation,
+controls, and raycaster concepts without WebGL or WebGPU-only demos.
 
 ## Agent skills
 

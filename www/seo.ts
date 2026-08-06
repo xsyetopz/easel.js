@@ -175,7 +175,7 @@ export function getPageMetadata(
       const metadata = {
         title: "Examples | EASEL.js",
         description:
-          "Crawlable EASEL.js examples for lighting, materials, geometry, animation, textures, raycasting, and rasterizer performance.",
+          "Crawlable EASEL.js examples aligned to supported three.js animation, controls, and raycaster concepts on a CPU Canvas2D renderer.",
         canonicalPath: "/examples",
         openGraphType: "website" as const,
         structuredData: {},

@@ -7,7 +7,8 @@ const DEFAULT_OPTIONS: Readonly<ImageBitmapOptions> = Object.freeze({
 
 /** Loads an image through Fetch and createImageBitmap. */
 export class ImageBitmapLoader extends Loader {
-  #options: Readonly<ImageBitmapOptions> = DEFAULT_OPTIONS;
+  /** Options passed directly to createImageBitmap. */
+  options: Readonly<ImageBitmapOptions> = DEFAULT_OPTIONS;
   #optionsKey = JSON.stringify(Object.entries(DEFAULT_OPTIONS).sort());
   readonly #controllers = new Set<AbortController>();
 
@@ -16,19 +17,15 @@ export class ImageBitmapLoader extends Loader {
     return true;
   }
 
-  /** Options passed directly to createImageBitmap. */
-  get options(): Readonly<ImageBitmapOptions> {
-    return this.#options;
-  }
-
   /** Replaces bitmap decoding options with an immutable normalized copy. */
-  set options(value: Readonly<ImageBitmapOptions>) {
+  setOptions(value: Readonly<ImageBitmapOptions>): this {
     const entries = Object.entries({
       ...value,
       colorSpaceConversion: "none",
     }).sort(([left], [right]) => left.localeCompare(right));
-    this.#options = Object.freeze(Object.fromEntries(entries));
+    this.options = Object.freeze(Object.fromEntries(entries));
     this.#optionsKey = JSON.stringify(entries);
+    return this;
   }
 
   /** Builds the cache key from the URL and loader configuration. */
@@ -83,7 +80,7 @@ export class ImageBitmapLoader extends Loader {
         }
         return response.blob();
       })
-      .then((blob) => createImageBitmap(blob, this.#options))
+      .then((blob) => createImageBitmap(blob, this.options))
       .then((bitmap) => {
         this.cache?.set(cacheKey, bitmap);
         onLoad?.(bitmap);

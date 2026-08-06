@@ -49,6 +49,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   math: "Math",
   objects: "Objects",
   pipeline: "Pipeline",
+  physics: "Physics",
   renderers: "Renderers",
   scenes: "Scene",
   textures: "Textures",

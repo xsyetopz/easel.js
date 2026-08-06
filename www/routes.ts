@@ -43,14 +43,15 @@ export function parseLegacyHash(hash: string) {
 }
 
 export function parseCurrentRoute() {
-  if (typeof window === "undefined") return { page: "home" } as AppRoute;
+  if (typeof globalThis.location === "undefined")
+    return { page: "home" } as AppRoute;
 
   const legacyRoute =
-    window.location.pathname === "/"
-      ? parseLegacyHash(window.location.hash)
+    globalThis.location.pathname === "/"
+      ? parseLegacyHash(globalThis.location.hash)
       : null;
 
-  return legacyRoute ?? parseRoutePath(window.location.pathname);
+  return legacyRoute ?? parseRoutePath(globalThis.location.pathname);
 }
 
 export function routeToPath(route: AppRoute | string) {
@@ -74,12 +75,13 @@ export function routeToPath(route: AppRoute | string) {
 }
 
 export function upgradeLegacyHashRoute() {
-  if (typeof window === "undefined") return false;
-  if (window.location.pathname !== "/" || !window.location.hash) return false;
+  if (typeof globalThis.location === "undefined") return false;
+  if (globalThis.location.pathname !== "/" || !globalThis.location.hash)
+    return false;
 
-  const legacyRoute = parseLegacyHash(window.location.hash);
+  const legacyRoute = parseLegacyHash(globalThis.location.hash);
   if (!legacyRoute) return false;
 
-  window.history.replaceState({}, "", routeToPath(legacyRoute));
+  globalThis.history.replaceState({}, "", routeToPath(legacyRoute));
   return true;
 }

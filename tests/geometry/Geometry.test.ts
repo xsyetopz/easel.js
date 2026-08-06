@@ -1,14 +1,50 @@
 import { describe, expect, it } from "bun:test";
+import { Side } from "@/core/Constants.js";
 import { Attribute } from "@/geometry/Attribute.js";
 import {
   Geometry,
   registerGeometryCacheInvalidator,
   unregisterGeometryCacheInvalidator,
 } from "@/geometry/Geometry.js";
+import { LineMaterial } from "@/materials/LineMaterial.js";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { Quaternion } from "@/math/Quaternion.js";
 import { Vector3 } from "@/math/Vector3.js";
+import { Line } from "@/objects/Line.js";
+import { SceneTraversal } from "@/pipeline/SceneTraversal.js";
 import { defined } from "../_helpers/defined.ts";
+import {
+  makeTraversalCamera,
+  makeTraversalScene,
+} from "../_helpers/scene-traversal.ts";
+
+function traverseMesh(
+  geometry: Geometry,
+): ReturnType<SceneTraversal["traverse"]> {
+  const node = {
+    type: "Mesh",
+    visible: true,
+    children: [],
+    matrixWorld: new Matrix4(),
+    geometry,
+    material: { side: Side.Double, shading: 0 },
+  };
+  return new SceneTraversal().traverse(
+    makeTraversalScene(node),
+    makeTraversalCamera(),
+    100,
+    100,
+  );
+}
+
+function makeTwoTriangleGeometry(indexed: boolean): Geometry {
+  const geometry = new Geometry().setPositions([
+    -0.9, 0.9, 0, -0.9, 0.1, 0, -0.1, 0.5, 0, 0.1, 0.1, 0, 0.9, 0.1, 0, 0.9,
+    0.9, 0,
+  ]);
+  if (indexed) geometry.index = [0, 1, 2, 3, 4, 5];
+  return geometry;
+}
 
 describe("Geometry", () => {
   describe("setPositions", () => {
@@ -114,6 +150,69 @@ describe("Geometry", () => {
       g.index = new Uint16Array([0, 1, 2]);
       g.index = undefined;
       expect(g.index).toBeUndefined();
+    });
+  });
+
+  describe("draw range", () => {
+    it("defaults to the full sequential or indexed range", () => {
+      const g = new Geometry();
+      expect(g.drawRange).toEqual({
+        start: 0,
+        count: Number.POSITIVE_INFINITY,
+      });
+    });
+
+    it("sets a range and returns this for chaining", () => {
+      const g = new Geometry();
+      expect(g.setDrawRange(3, 6)).toBe(g);
+      expect(g.drawRange).toEqual({ start: 3, count: 6 });
+    });
+
+    it("copies draw range values without sharing the range object", () => {
+      const source = new Geometry().setDrawRange(2, 4);
+      const clone = source.clone();
+      expect(clone.drawRange).toEqual({ start: 2, count: 4 });
+      expect(clone.drawRange).not.toBe(source.drawRange);
+
+      clone.drawRange.start = 0;
+      expect(source.drawRange.start).toBe(2);
+    });
+
+    it("limits indexed mesh assembly to the selected index interval", () => {
+      const geometry = makeTwoTriangleGeometry(true).setDrawRange(3, 3);
+      const drawCall = defined(traverseMesh(geometry).calls[0]);
+
+      expect(Array.from(drawCall.faceIndices)).toEqual([3, 4, 5]);
+      expect((drawCall.triangles as { length: number }).length).toBe(1);
+    });
+
+    it("limits non-indexed mesh assembly to the selected vertex interval", () => {
+      const geometry = makeTwoTriangleGeometry(false).setDrawRange(3, 3);
+      const drawCall = defined(traverseMesh(geometry).calls[0]);
+
+      expect(Array.from(drawCall.faceIndices)).toEqual([3, 4, 5]);
+      expect((drawCall.triangles as { length: number }).length).toBe(1);
+    });
+
+    it("limits line assembly without changing source vertex indices", () => {
+      const geometry = new Geometry()
+        .setPositions([-0.9, 0, 0, -0.3, 0, 0, 0.3, 0, 0, 0.9, 0, 0])
+        .setDrawRange(1, 2);
+      const line = new Line(geometry, new LineMaterial());
+      const drawCall = defined(
+        new SceneTraversal().traverse(
+          makeTraversalScene(line),
+          makeTraversalCamera(),
+          100,
+          100,
+        ).calls[0],
+      );
+
+      expect(Array.from(drawCall.faceIndices)).toEqual([1, 2]);
+      expect(drawCall.lines?.length).toBe(1);
+      expect(Array.from(drawCall.lines?.vertexIndex.slice(0, 2) ?? [])).toEqual(
+        [1, 2],
+      );
     });
   });
 
@@ -387,6 +486,45 @@ describe("Geometry", () => {
         expect(normal.getX(i)).toBeCloseTo(0, 4);
         expect(normal.getY(i)).toBeCloseTo(0, 4);
       }
+    });
+
+    describe("computeTangents", () => {
+      it("computes orthogonal unit tangents and handedness from UVs", () => {
+        const g = new Geometry()
+          .setPositions([0, 0, 0, 1, 0, 0, 0, 1, 0])
+          .setNormals([0, 0, 1, 0, 0, 1, 0, 0, 1])
+          .setUVs([0, 0, 1, 0, 0, 1]);
+        g.index = [0, 1, 2];
+
+        expect(g.computeTangents()).toBe(g);
+        const tangent = defined(g.getAttribute("tangent"));
+        expect(tangent.itemSize).toBe(4);
+        for (let index = 0; index < tangent.count; index++) {
+          expect(tangent.getX(index)).toBeCloseTo(1, 6);
+          expect(tangent.getY(index)).toBeCloseTo(0, 6);
+          expect(tangent.getZ(index)).toBeCloseTo(0, 6);
+          expect(tangent.getW(index)).toBe(1);
+        }
+        expect(tangent.needsUpdate).toBe(true);
+      });
+
+      it("keeps degenerate UV triangles finite", () => {
+        const g = new Geometry()
+          .setPositions([0, 0, 0, 1, 0, 0, 0, 1, 0])
+          .setNormals([0, 0, 1, 0, 0, 1, 0, 0, 1])
+          .setUVs([0, 0, 0, 0, 0, 0]);
+        g.index = [0, 1, 2];
+        g.computeTangents();
+
+        const tangent = defined(g.getAttribute("tangent"));
+        expect(Array.from(tangent.array).every(Number.isFinite)).toBe(true);
+      });
+
+      it("does not create tangents without required channels", () => {
+        const g = new Geometry().setPositions([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+        expect(g.computeTangents()).toBe(g);
+        expect(g.getAttribute("tangent")).toBeUndefined();
+      });
     });
 
     it("returns this when no position attribute", () => {

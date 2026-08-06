@@ -517,6 +517,7 @@ declare module "three" {
   export class ImageBitmapLoader extends Loader {
     readonly isImageBitmapLoader: true;
     options: ImageBitmapOptions;
+    setOptions(options: ImageBitmapOptions): this;
     abort(): this;
   }
   export class TextureLoader extends Loader {}

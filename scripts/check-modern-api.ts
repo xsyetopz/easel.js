@@ -92,5 +92,5 @@ if (violations.length > 0) {
 }
 
 console.log(
-	"Modern API policy passed: no enums, static class items, private keywords, underscore-prefixed public members, or redundant accessor methods.",
+  "Modern API policy passed: no enums, static class items, private keywords, underscore-prefixed public members, or redundant accessor methods.",
 );

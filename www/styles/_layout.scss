@@ -26,6 +26,24 @@
 	padding: 1rem;
 }
 
+@media (min-width: 761px) {
+	.has-sidebar .shell-navbar {
+		align-self: flex-start;
+		height: calc(100vh - 56px);
+		max-height: calc(100vh - 56px);
+		overflow: hidden;
+		position: sticky;
+		top: 56px;
+	}
+
+	.has-sidebar .sidebar-scroll {
+		max-height: calc(100vh - 56px - 2rem);
+		overflow-y: auto;
+		overflow-x: hidden;
+		overscroll-behavior: contain;
+	}
+}
+
 .shell-main {
 	background: var(--bg);
 	color: var(--ink);

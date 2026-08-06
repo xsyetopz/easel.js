@@ -28,7 +28,7 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 
 		<div class="grid">
 			<div class:list={[controls.length > 0 ? "grid-col-9" : "grid-col-12"]}>
-				<div class="example-canvas-wrap">
+				<div class="example-canvas-wrap" data-example-stage>
 					<canvas data-example-canvas></canvas>
 				</div>
 			</div>
@@ -58,16 +58,6 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 					</section>
 				)}
 
-				<section class="panel-card" data-benchmark-panel hidden>
-					<h2>Benchmark</h2>
-					<p class="section-copy" style="font-size: 0.78rem; margin-bottom: 0.75rem;">Runs fixed workloads with warmup frames, repeated samples, p50/p95 FPS and frame timing, workload counters, pipeline timings, and JSON output.</p>
-					<div class="group" style="margin-bottom: 0.75rem;">
-						<button class="panel-button" type="button" data-run-benchmark>Run benchmark</button>
-						<button class="panel-button secondary" type="button" data-copy-benchmark disabled>Copy JSON</button>
-					</div>
-					<div class="alert-error" data-benchmark-error hidden></div>
-					<pre class="benchmark-output" data-benchmark-output hidden></pre>
-				</section>
 			</div>
 		</div>
 
@@ -77,7 +67,8 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 	</div>
 	<script>
 		import { examples } from "../examples/registry";
-		import type { ExampleBenchmarkResult, ExampleInstance, ExampleModule, ExampleParams } from "../loaders/examples";
+		import type { ExampleInstance, ExampleModule, ExampleParams } from "../loaders/examples";
+		import { setupThreeComparison } from "../runtime/three-comparison";
 
 		const root = document.querySelector("[data-example-viewer]");
 		if (root instanceof HTMLElement) {
@@ -86,12 +77,14 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 			const modules = examples as ExampleModule[];
 			const module = exampleId ? modules.find((entry) => entry.meta.id === exampleId) : undefined;
 			if (module) {
+				const stage = viewerRoot.querySelector("[data-example-stage]");
 				const canvasNode = viewerRoot.querySelector("[data-example-canvas]");
-				const canvas = canvasNode instanceof HTMLCanvasElement ? canvasNode : undefined;
+				const easelCanvas = canvasNode instanceof HTMLCanvasElement ? canvasNode : undefined;
 				const paramsNode = viewerRoot.querySelector("[data-example-params]");
 				const params: ExampleParams = paramsNode?.textContent ? JSON.parse(paramsNode.textContent) : {};
 				let instance: ExampleInstance | undefined;
-				let benchmarkResult: ExampleBenchmarkResult | null = null;
+				let threeInstance: ExampleInstance | undefined;
+				let threeCanvas: HTMLCanvasElement | undefined;
 
 				function sizeCanvas(canvasElement: HTMLCanvasElement): void {
 					const container = canvasElement.parentElement;
@@ -105,13 +98,56 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 					const output = viewerRoot.querySelector(`[data-control-output="${key}"]`);
 					if (output) output.textContent = String(value);
 					instance?.update?.(params);
+					threeInstance?.update?.(params);
 				}
 
-				if (canvas) {
-					sizeCanvas(canvas);
-					instance = module.setup(canvas, params);
+				function clearThreeState(): void {
+					threeInstance?.cleanup?.();
+					threeInstance = undefined;
+					threeCanvas?.remove();
+					threeCanvas = undefined;
+					stage?.querySelectorAll("[data-three-error]").forEach((message) => message.remove());
 				}
 
+				function mountEasel(): void {
+					instance?.cleanup?.();
+					instance = undefined;
+					clearThreeState();
+					if (!easelCanvas) return;
+					easelCanvas.hidden = false;
+					sizeCanvas(easelCanvas);
+					instance = module.setup(easelCanvas, params);
+				}
+
+				function mountThree(): void {
+					instance?.cleanup?.();
+					instance = undefined;
+					clearThreeState();
+					if (!stage || !easelCanvas || !exampleId) return;
+					easelCanvas.hidden = true;
+					threeCanvas = document.createElement("canvas");
+					threeCanvas.dataset.threeCanvas = "";
+					stage.append(threeCanvas);
+					sizeCanvas(threeCanvas);
+					try {
+						threeInstance = setupThreeComparison(threeCanvas, exampleId);
+					} catch (error) {
+						threeCanvas.remove();
+						threeCanvas = undefined;
+						const message = document.createElement("p");
+						message.className = "section-copy";
+						message.dataset.threeError = "";
+						message.textContent = `THREE.js WebGL comparison unavailable: ${error instanceof Error ? error.message : "WebGL initialization failed."}`;
+						stage.append(message);
+					}
+				}
+
+				mountEasel();
+				viewerRoot.addEventListener("example-engine-change", (event) => {
+					const engine = (event as CustomEvent<{ engine?: string }>).detail?.engine;
+					if (engine === "three") mountThree();
+					if (engine === "easel") mountEasel();
+				});
 				for (const control of viewerRoot.querySelectorAll("[data-control-key]")) {
 					const key = control.getAttribute("data-control-key");
 					if (!key) continue;
@@ -125,45 +161,10 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 					});
 				}
 
-				const benchmarkPanel = viewerRoot.querySelector("[data-benchmark-panel]");
-				const runBenchmark = viewerRoot.querySelector("[data-run-benchmark]");
-				const copyBenchmark = viewerRoot.querySelector("[data-copy-benchmark]");
-				const benchmarkOutput = viewerRoot.querySelector("[data-benchmark-output]");
-				const benchmarkError = viewerRoot.querySelector("[data-benchmark-error]");
-				if (typeof instance?.runBenchmark === "function" && benchmarkPanel instanceof HTMLElement) {
-					benchmarkPanel.hidden = false;
-				}
-				runBenchmark?.addEventListener("click", async () => {
-					if (typeof instance?.runBenchmark !== "function") return;
-					if (runBenchmark instanceof HTMLButtonElement) {
-						runBenchmark.disabled = true;
-						runBenchmark.textContent = "Running...";
-					}
-					if (benchmarkError instanceof HTMLElement) benchmarkError.hidden = true;
-					try {
-						benchmarkResult = await instance.runBenchmark();
-						if (benchmarkOutput instanceof HTMLElement) {
-							benchmarkOutput.hidden = false;
-							benchmarkOutput.textContent = benchmarkResult.summary;
-						}
-						if (copyBenchmark instanceof HTMLButtonElement) copyBenchmark.disabled = false;
-					} catch (error) {
-						if (benchmarkError instanceof HTMLElement) {
-							benchmarkError.hidden = false;
-							benchmarkError.textContent = error instanceof Error ? error.message : String(error);
-						}
-					} finally {
-						if (runBenchmark instanceof HTMLButtonElement) {
-							runBenchmark.disabled = false;
-							runBenchmark.textContent = "Run benchmark";
-						}
-					}
+				globalThis.addEventListener("beforeunload", () => {
+					instance?.cleanup?.();
+					threeInstance?.cleanup?.();
 				});
-				copyBenchmark?.addEventListener("click", async () => {
-					if (!benchmarkResult) return;
-					await navigator.clipboard.writeText(JSON.stringify(benchmarkResult, null, "\t"));
-				});
-				window.addEventListener("beforeunload", () => instance?.cleanup?.());
 			}
 		}
 	</script>

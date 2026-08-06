@@ -60,7 +60,7 @@ describe("Triangle", () => {
     expect(Math.abs(en.z)).toBeCloseTo(1);
     expect(en.x).toBeCloseTo(0);
     expect(en.y).toBeCloseTo(0);
-		// Note: EASEL uses opposite winding to THREE so sign may differ
+    // Note: EASEL uses opposite winding to THREE so sign may differ
   });
 
   it("containsPoint", () => {

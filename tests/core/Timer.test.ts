@@ -55,15 +55,15 @@ describe("Timer", () => {
 
   it("matches locked THREE.js Timer sampling semantics", () => {
     const timer = new Timer();
-		const THREEInstance = new THREETimer();
-		timer.timeScale = 0.75;
-		THREEInstance.setTimescale(0.75);
+    const THREEInstance = new THREETimer();
+    timer.timeScale = 0.75;
+    THREEInstance.setTimescale(0.75);
 
     for (const timestamp of [16, 42, 100]) {
       timer.update(timestamp);
-			THREEInstance.update(timestamp);
-			expect(timer.delta).toBeCloseTo(THREEInstance.getDelta());
-			expect(timer.elapsedTime).toBeCloseTo(THREEInstance.getElapsed());
+      THREEInstance.update(timestamp);
+      expect(timer.delta).toBeCloseTo(THREEInstance.getDelta());
+      expect(timer.elapsedTime).toBeCloseTo(THREEInstance.getElapsed());
     }
   });
 });

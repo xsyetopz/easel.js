@@ -15,25 +15,25 @@ describe("LoadingManager", () => {
     const EASEL = new LoadingManager();
     const THREE = new THREELoadingManager();
     const EASELLoader = new Loader();
-		const THREELoaderInstance = new THREELoader();
+    const THREELoaderInstance = new THREELoader();
     const regex = /\.jpg$/iu;
     const globalRegex = /\.jpg$/giu;
 
     EASEL.registerHandler(regex, EASELLoader);
-		THREE.addHandler(regex, THREELoaderInstance);
+    THREE.addHandler(regex, THREELoaderInstance);
     for (const file of ["foo.jpg", "foo.jpg.png", "foo.jpeg"]) {
       expect(EASEL.handlerFor(file) === EASELLoader).toBe(
-				THREE.getHandler(file) === THREELoaderInstance,
+        THREE.getHandler(file) === THREELoaderInstance,
       );
     }
 
     expect(EASEL.unregisterHandler(regex)).toBe(true);
     THREE.removeHandler(regex);
     EASEL.registerHandler(globalRegex, EASELLoader);
-		THREE.addHandler(globalRegex, THREELoaderInstance);
+    THREE.addHandler(globalRegex, THREELoaderInstance);
     for (let iteration = 0; iteration < 2; iteration++) {
       expect(EASEL.handlerFor("foo.jpg") === EASELLoader).toBe(
-				THREE.getHandler("foo.jpg") === THREELoaderInstance,
+        THREE.getHandler("foo.jpg") === THREELoaderInstance,
       );
     }
   });

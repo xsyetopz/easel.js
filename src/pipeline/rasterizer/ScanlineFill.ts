@@ -301,13 +301,15 @@ export class ScanlineFill {
     dvDx: number,
     callback: ScanlineCallback,
   ): void {
-    const rawStart = Math.ceil(Math.min(xLeft, xRight));
-    const rawEnd = Math.trunc(Math.max(xLeft, xRight));
+    const xLeftMinRight = xLeft < xRight ? xLeft : xRight;
+    const rawStart = Math.ceil(xLeftMinRight);
+    const xLeftMaxRight = xLeft > xRight ? xLeft : xRight;
+    const rawEnd = xLeftMaxRight | 0;
 
     if (rawEnd < 0 || rawStart >= width) return;
 
-    const startX = Math.max(0, rawStart);
-    const endX = Math.min(width - 1, rawEnd);
+    const startX = rawStart > 0 ? rawStart : 0;
+    const endX = rawEnd < width - 1 ? rawEnd : width - 1;
     if (startX > endX) return;
 
     // Barycentric start values at (startX, y) using pre-hoisted coefficients.

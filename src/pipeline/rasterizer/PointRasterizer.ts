@@ -15,7 +15,7 @@ export class PointRasterizer {
 
     for (let y = yMin; y <= yMax; y++) {
       const dy = y - cy;
-      const halfW = Math.sqrt(r2 - dy * dy);
+      const halfW = Math.sqrt(Math.max(0, r2 - dy * dy));
       const xMin = Math.max(0, Math.ceil(cx - halfW));
       const xMax = Math.min(width - 1, Math.floor(cx + halfW));
       for (let x = xMin; x <= xMax; x++) {

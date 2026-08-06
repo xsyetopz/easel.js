@@ -18,7 +18,7 @@ describe("SplineCurve vs THREE", () => {
     new THREE.Vector2(3, 0),
   ];
   const EASEL = new SplineCurve(epts);
-	const THREECurve = new THREE.SplineCurve(tpts);
+  const THREECurve = new THREE.SplineCurve(tpts);
 
-	expectCurveParity(EASEL, THREECurve, { lengthEpsilon: 1e-3 });
+  expectCurveParity(EASEL, THREECurve, { lengthEpsilon: 1e-3 });
 });

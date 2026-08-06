@@ -72,7 +72,7 @@ describe("light family", () => {
     expect(clone.intensity).toBe(2);
   });
 
-	it("serializes canonical light values without THREE metadata or target refs", () => {
+  it("serializes canonical light values without THREE metadata or target refs", () => {
     const ambient = new AmbientLight(0x123456, 2);
     const directional = new DirectionalLight(0x234567, 3);
     directional.target = new Node();

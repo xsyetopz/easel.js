@@ -1,0 +1,67 @@
+import {
+  AmbientLight,
+  BoxGeometry,
+  Color,
+  LambertMaterial,
+  Mesh,
+  PerspectiveCamera,
+  Renderer,
+  Scene,
+  Timer,
+  Vector3,
+} from "@/index.js";
+
+export const meta = {
+  id: "misc_exporter_usdz",
+  name: "USDZ exporter",
+  category: "misc",
+  description:
+    "CPU mesh demonstrated as USDZ export target. EASEL has no native USDZ encoder; the scene shows the mesh that would be exported.",
+};
+
+export const controls = [];
+
+export function setup(canvas) {
+  const width = canvas.width || 640;
+  const height = canvas.height || 360;
+  const scene = new Scene();
+  scene.background = new Color(0x121826);
+  const camera = new PerspectiveCamera({
+    fov: 42,
+    aspect: width / height,
+    near: 0.1,
+    far: 50,
+  });
+  camera.position.set(0, 0, 4);
+  camera.lookAt(new Vector3(0, 0, 0));
+  const renderer = new Renderer({ canvas, width, height });
+  scene.add(new AmbientLight(0xffffff, 0.7));
+  const mesh = new Mesh(
+    new BoxGeometry(1.8, 1.8, 1.8),
+    new LambertMaterial({ color: 0xe5a353 }),
+  );
+  scene.add(mesh);
+  const timer = new Timer();
+  let frame;
+  function animate() {
+    frame = globalThis.requestAnimationFrame(animate);
+    mesh.rotation.y += timer.update().delta * 0.4;
+    renderer.render(scene, camera);
+  }
+  animate();
+  return {
+    cleanup() {
+      if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
+    },
+  };
+}
+
+export const easelSource = `import * as EASEL from "@xsyetopz/easel";
+// Loader demonstration;
+const text = exporter.parse(mesh);`;
+
+export const threeSource = `import * as THREE from "three";
+// Loader demonstration;
+const arrayBuffer = exporter.parse(mesh);`;
+
+export const example = { meta, controls, setup, easelSource, threeSource };

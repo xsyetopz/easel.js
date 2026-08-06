@@ -14,7 +14,7 @@ describe("CubicBezierCurve vs THREE", () => {
   const tv2 = new THREE.Vector2(2, 2);
   const tv3 = new THREE.Vector2(3, 0);
   const EASEL = new CubicBezierCurve(ev0, ev1, ev2, ev3);
-	const THREECurve = new THREE.CubicBezierCurve(tv0, tv1, tv2, tv3);
+  const THREECurve = new THREE.CubicBezierCurve(tv0, tv1, tv2, tv3);
 
-	expectCurveParity(EASEL, THREECurve);
+  expectCurveParity(EASEL, THREECurve);
 });

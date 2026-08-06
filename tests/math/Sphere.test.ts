@@ -24,7 +24,7 @@ type THREESphereParity = TSphere & {
 describe("Sphere", () => {
   it("constructor defaults", () => {
     const e = new Sphere();
-		// EASEL: centre, THREE: center
+    // EASEL: centre, THREE: center
     expect(e.centre.x).toBe(0);
     expect(e.centre.y).toBe(0);
     expect(e.centre.z).toBe(0);

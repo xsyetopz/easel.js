@@ -118,7 +118,7 @@ describe("Texture compatibility surface", () => {
     ).toBe(3);
   });
 
-	it("differentially matches installed THREE UV transforms", async () => {
+  it("differentially matches installed THREE UV transforms", async () => {
     const THREEModule = (await import("three")) as unknown as {
       Texture: new () => {
         mapping: number;

@@ -70,6 +70,33 @@ import { example as canvasLoaderTextureTga } from "./canvas/loader/canvas_loader
 import { example as canvasLoaderTtf } from "./canvas/loader/canvas_loader_ttf.js";
 import { example as canvasLoaderVox } from "./canvas/loader/canvas_loader_vox.js";
 import { example as canvasLoaderXyz } from "./canvas/loader/canvas_loader_xyz.js";
+import { example as canvasLoader3dm } from "./canvas/loader/canvas_loader_3dm.js";
+import { example as canvasLoader3ds } from "./canvas/loader/canvas_loader_3ds.js";
+import { example as canvasLoader3dtiles } from "./canvas/loader/canvas_loader_3dtiles.js";
+import { example as canvasLoader3mf } from "./canvas/loader/canvas_loader_3mf.js";
+import { example as canvasLoader3mfMaterials } from "./canvas/loader/canvas_loader_3mf_materials.js";
+import { example as canvasLoaderAmf } from "./canvas/loader/canvas_loader_amf.js";
+import { example as canvasLoaderCollada } from "./canvas/loader/canvas_loader_collada.js";
+import { example as canvasLoaderColladaKinematics } from "./canvas/loader/canvas_loader_collada_kinematics.js";
+import { example as canvasLoaderColladaSkinning } from "./canvas/loader/canvas_loader_collada_skinning.js";
+import { example as canvasLoaderDraco } from "./canvas/loader/canvas_loader_draco.js";
+import { example as canvasLoaderFbx } from "./canvas/loader/canvas_loader_fbx.js";
+import { example as canvasLoaderFbxNurbs } from "./canvas/loader/canvas_loader_fbx_nurbs.js";
+import { example as canvasLoaderGltfAvif } from "./canvas/loader/canvas_loader_gltf_avif.js";
+import { example as canvasLoaderGltfCompressed } from "./canvas/loader/canvas_loader_gltf_compressed.js";
+import { example as canvasLoaderIfc } from "./canvas/loader/canvas_loader_ifc.js";
+import { example as canvasLoaderKmz } from "./canvas/loader/canvas_loader_kmz.js";
+import { example as canvasLoaderLdraw } from "./canvas/loader/canvas_loader_ldraw.js";
+import { example as canvasLoaderMd2 } from "./canvas/loader/canvas_loader_md2.js";
+import { example as canvasLoaderMd2Control } from "./canvas/loader/canvas_loader_md2_control.js";
+import { example as canvasLoaderMdd } from "./canvas/loader/canvas_loader_mdd.js";
+import { example as canvasLoaderTextureExr } from "./canvas/loader/canvas_loader_texture_exr.js";
+import { example as canvasLoaderTextureHdr } from "./canvas/loader/canvas_loader_texture_hdr.js";
+import { example as canvasLoaderTextureLottie } from "./canvas/loader/canvas_loader_texture_lottie.js";
+import { example as canvasLoaderTextureUltrahdr } from "./canvas/loader/canvas_loader_texture_ultrahdr.js";
+import { example as canvasLoaderUsdz } from "./canvas/loader/canvas_loader_usdz.js";
+import { example as canvasLoaderVrml } from "./canvas/loader/canvas_loader_vrml.js";
+import { example as canvasHelpersScene } from "./canvas/scene/canvas_helpers_scene.js";
 import { example as canvasMaterialsVideo } from "./canvas/media/canvas_materials_video.js";
 import { example as canvasMaterialsVideoWebcam } from "./canvas/media/canvas_materials_video_webcam.js";
 import { example as canvasMaterialsVideoWebgpu } from "./canvas/media/canvas_materials_video_webgpu.js";
@@ -119,6 +146,8 @@ import { example as controlsPointerlock } from "./misc/misc_controls_pointerlock
 import { example as controlsTrackball } from "./misc/misc_controls_trackball.js";
 import { example as controlsTransform } from "./misc/misc_controls_transform.js";
 import { example as exporterExr } from "./misc/misc_exporter_exr.js";
+import { example as exporterDraco } from "./misc/misc_exporter_draco.js";
+import { example as exporterUsdz } from "./misc/misc_exporter_usdz.js";
 import { example as exporterGcode } from "./misc/misc_exporter_gcode.js";
 import { example as exporterGltf } from "./misc/misc_exporter_gltf.js";
 import { example as exporterGltfNormals } from "./misc/misc_exporter_gltf_normals.js";
@@ -146,11 +175,8 @@ import { example as webaudioOrientation } from "./webaudio/webaudio_orientation.
 import { example as webaudioSandbox } from "./webaudio/webaudio_sandbox.js";
 import { example as webaudioTiming } from "./webaudio/webaudio_timing.js";
 import { example as webaudioVisualizer } from "./webaudio/webaudio_visualizer.js";
-import { example as webxrVrHandinput } from "./xr/webxr_vr_handinput.js";
-import { example as webxrXrControlsTransform } from "./xr/webxr_xr_controls_transform.js";
-import { example as webxrXrCubes } from "./xr/webxr_xr_cubes.js";
-import { example as webxrXrDragging } from "./xr/webxr_xr_dragging.js";
-import { example as webxrXrHaptics } from "./xr/webxr_xr_haptics.js";
+import { example as canvasLoaderGltfAnimationPointer } from "./canvas/loader/canvas_loader_gltf_animation_pointer.js";
+import { example as canvasLoaderTextureTiff } from "./canvas/loader/canvas_loader_texture_tiff.js";
 import { example as cameraAnaglyphStereoCpu } from "./camera2/camera_anaglyph_stereo_cpu.js";
 import { example as cameraPerspectiveProjection } from "./camera2/perspective_projection.js";
 import { example as arcballProjection } from "./camera2/arcball_projection.js";
@@ -181,7 +207,6 @@ export const categoryLabels = {
   css2d: "CSS2D (DOM)",
   css3d: "CSS3D (DOM)",
   games: "Games (Canvas2D)",
-  webxr: "WebXR input (Canvas2D)",
 };
 
 export const examples: ExampleModule[] = [
@@ -202,6 +227,8 @@ export const examples: ExampleModule[] = [
   exporterGltf,
   exporterGltfNormals,
   exporterExr,
+  exporterDraco,
+  exporterUsdz,
   exporterGcode,
   exporterPly,
   exporterStl,
@@ -218,11 +245,8 @@ export const examples: ExampleModule[] = [
   css3dSprites,
   css3dYoutube,
   gamesFps,
-  webxrXrCubes,
-  webxrXrControlsTransform,
-  webxrXrDragging,
-  webxrXrHaptics,
-  webxrVrHandinput,
+  canvasLoaderGltfAnimationPointer,
+  canvasLoaderTextureTiff,
   cameraPerspectiveProjection,
   cameraAnaglyphStereoCpu,
   arcballProjection,
@@ -298,6 +322,33 @@ export const examples: ExampleModule[] = [
   canvasLoaderStl,
   canvasLoaderXyz,
   canvasLoaderSvg,
+  canvasLoader3dm,
+  canvasLoader3ds,
+  canvasLoader3dtiles,
+  canvasLoader3mf,
+  canvasLoader3mfMaterials,
+  canvasLoaderAmf,
+  canvasLoaderCollada,
+  canvasLoaderColladaKinematics,
+  canvasLoaderColladaSkinning,
+  canvasLoaderDraco,
+  canvasLoaderFbx,
+  canvasLoaderFbxNurbs,
+  canvasLoaderGltfAvif,
+  canvasLoaderGltfCompressed,
+  canvasLoaderIfc,
+  canvasLoaderKmz,
+  canvasLoaderLdraw,
+  canvasLoaderMd2,
+  canvasLoaderMd2Control,
+  canvasLoaderMdd,
+  canvasLoaderTextureExr,
+  canvasLoaderTextureHdr,
+  canvasLoaderTextureLottie,
+  canvasLoaderTextureUltrahdr,
+  canvasLoaderUsdz,
+  canvasLoaderVrml,
+  canvasHelpersScene,
   canvasBatchLodBvh,
   canvasBuffergeometryAttributesInteger,
   canvasBuffergeometryAttributesNone,

@@ -13,5 +13,8 @@
 		for (const panel of root.querySelectorAll("[data-tab-panel]")) {
 			if (panel instanceof HTMLElement) panel.hidden = panel.dataset.tabPanel !== name;
 		}
+		if (name === "easel" || name === "three") {
+			root.dispatchEvent(new CustomEvent("example-engine-change", { bubbles: true, detail: { engine: name } }));
+		}
 	});
 </script>
