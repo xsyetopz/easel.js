@@ -1,7 +1,7 @@
 import process from "node:process";
 import { readFile } from "node:fs/promises";
 import { Glob } from "bun";
-import * as ts from "typescript-api";
+import * as ts from "typescript";
 
 function hasModifier(node: ts.Node, kind: ts.SyntaxKind): boolean {
   return (

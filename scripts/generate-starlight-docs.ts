@@ -2,7 +2,7 @@ import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import type { Dirent } from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import * as ts from "typescript-api";
+import * as ts from "typescript";
 
 interface ApiProperty {
   access: "read-only" | "read/write" | "write-only";
