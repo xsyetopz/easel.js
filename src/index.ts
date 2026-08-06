@@ -83,11 +83,11 @@ export type {
 } from "./audio/AudioTypes.ts";
 export {
   type CanvasAudioContext,
-  type CanvasAudioVisualizerOptions,
+  type AudioVisualizerOptions,
   drawAudioAnalyzer,
   drawFrequencyBars,
   drawTimeDomainWaveform,
-} from "./audio/CanvasAudioVisualizer.ts";
+} from "./audio/AudioVisualizer.ts";
 export {
   assertCameraViewOffset,
   Camera,

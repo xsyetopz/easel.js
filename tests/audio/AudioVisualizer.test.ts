@@ -26,7 +26,7 @@ function context(): CanvasAudioContext & { fills: number; strokes: number } {
   };
 }
 
-describe("Canvas audio visualizer", () => {
+describe("Audio visualizer", () => {
   test("draws one bar per requested sample and clears the frame", () => {
     const target = context();
     drawFrequencyBars(target, new Uint8Array([0, 128, 255]), {

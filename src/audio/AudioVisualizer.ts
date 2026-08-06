@@ -25,7 +25,7 @@ export interface CanvasAudioContext {
 }
 
 /** Options shared by frequency-bar and waveform drawing helpers. */
-export interface CanvasAudioVisualizerOptions {
+export interface AudioVisualizerOptions {
   /** Horizontal drawing origin in canvas pixels. */
   x?: number;
   /** Vertical drawing origin in canvas pixels. */
@@ -50,7 +50,7 @@ export interface CanvasAudioVisualizerOptions {
 export function drawFrequencyBars(
   context: CanvasAudioContext,
   data: ArrayLike<number>,
-  options: CanvasAudioVisualizerOptions = {},
+  options: AudioVisualizerOptions = {},
 ): void {
   const x = Math.max(0, options.x ?? 0);
   const y = Math.max(0, options.y ?? 0);
@@ -85,7 +85,7 @@ export function drawFrequencyBars(
 export function drawTimeDomainWaveform(
   context: CanvasAudioContext,
   data: ArrayLike<number>,
-  options: CanvasAudioVisualizerOptions = {},
+  options: AudioVisualizerOptions = {},
 ): void {
   const x = Math.max(0, options.x ?? 0);
   const y = Math.max(0, options.y ?? 0);
@@ -111,7 +111,7 @@ export function drawAudioAnalyzer(
   context: CanvasAudioContext,
   analyzer: AudioAnalyzer,
   mode: "frequency" | "time" = "frequency",
-  options: CanvasAudioVisualizerOptions = {},
+  options: AudioVisualizerOptions = {},
 ): void {
   if (mode === "time") {
     drawTimeDomainWaveform(context, analyzer.getTimeDomainData(), options);
