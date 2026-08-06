@@ -427,6 +427,11 @@ export {
 export { TextureLoader } from "./loaders/TextureLoader.ts";
 export { TGALoader } from "./loaders/TGALoader.ts";
 export {
+  TIFFLoader,
+  type TIFFParseResult,
+  type TIFFPhotometric,
+} from "./loaders/TIFFLoader.ts";
+export {
   type TTFBoundingBox,
   type TTFDirection,
   TTFFont,

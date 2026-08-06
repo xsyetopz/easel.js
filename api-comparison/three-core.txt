@@ -405,6 +405,7 @@
 >	AudioLoader.load	method	-	instance (url: string, onLoad: function(AudioBuffer), onProgress: onProgressCallback, onError: onErrorCallback) => void
 <	AudioNodeLike	record	interface { connect: (destination: AudioNodeLike | AudioParamLike) => unknown; disconnect?: (destination?: AudioNodeLike | AudioParamLike) => void }	-
 <	AudioParamLike	record	interface { value: number; setValueAtTime?: (value: number, time: number) => AudioParamLike; linearRampToValueAtTime?: (value: number, time: number) => AudioParamLike }	-
+<	AudioVisualizerOptions	record	interface { x?: number; y?: number; width?: number; height?: number; background?: string; foreground?: string; bars?: number; gap?: number; lineWidth?: number }	-
 =	AxesHelper	class	class extends LineSegments	class extends LineSegments
 <	AxesHelper.clone	method	instance () => AxesHelper	-
 <	AxesHelper.colors	accessor	instance rw AxisColors	-
@@ -813,7 +814,6 @@
 <	CameraOptions	record	interface { near?: number; far?: number; tileSize?: number }	-
 <	CameraView	record	interface { readonly enabled: boolean; readonly fullWidth: number; readonly fullHeight: number; readonly offsetX: number; readonly offsetY: number; readonly width: number; readonly height: number }	-
 <	CanvasAudioContext	record	interface { readonly canvas: { width: number; height: number }; fillStyle: string; strokeStyle: string; lineWidth: number; clearRect: (x: number, y: number, width: number, height: number) => void; fillRect: (x: number, y: number, width: number, height: number) => void; beginPath: () => void; lineTo: (x: number, y: number) => void; moveTo: (x: number, y: number) => void; stroke: () => void }	-
-<	CanvasAudioVisualizerOptions	record	interface { x?: number; y?: number; width?: number; height?: number; background?: string; foreground?: string; bars?: number; gap?: number; lineWidth?: number }	-
 =	CanvasTexture	class	class extends Texture	class extends Texture
 !	CanvasTexture.constructor	constructor	instance (canvas?: HTMLCanvasElement, mapping: number = 300, wrapS: WrappingMode = 0, wrapT: WrappingMode = 0, magFilter: number = 1003, minFilter: number = 1003, format: number = 1023, type: number = 1009, anisotropy: number = 1) => CanvasTexture	instance (canvas?: HTMLCanvasElement, mapping: number = Texture.DEFAULT_MAPPING, wrapS: number = ClampToEdgeWrapping, wrapT: number = ClampToEdgeWrapping, magFilter: number = LinearFilter, minFilter: number = LinearMipmapLinearFilter, format: number = RGBAFormat, type: number = UnsignedByteType, anisotropy: number = Texture.DEFAULT_ANISOTROPY) => CanvasTexture
 !	CanvasTexture.isCanvasTexture	field	instance ro true	instance ro boolean
@@ -911,7 +911,7 @@
 >	Clock.stop	method	-	instance () => void
 =	Color	class	class	class
 >	Color.NAMES	field	-	static rw Object
->	Color.__@iterator@5430	method	-	instance () => Generator<number, void, unknown>
+>	Color.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
 !	Color.add	method	instance (color: Color) => this	instance (color: Color) => Color
 !	Color.addColors	method	instance (color1: Color, color2: Color) => this	instance (color1: Color, color2: Color) => Color
 !	Color.addScalar	method	instance (scalar: number) => this	instance (s: number) => Color
@@ -1288,7 +1288,7 @@
 <	DrawCall.vertexColorItemSize	field	instance rw number	-
 <	DrawCall.worldPositions	field	instance rw Float32Array<ArrayBufferLike>	-
 <	DrawList	class	class	-
-<	DrawList.__@iterator@2728	method	instance () => Iterator<DrawCall, any, any>	-
+<	DrawList.__@iterator@2737	method	instance () => Iterator<DrawCall, any, any>	-
 <	DrawList.add	method	instance (drawCall: DrawCall) => void	-
 <	DrawList.calls	accessor	instance r DrawCall[]	-
 <	DrawList.clear	method	instance () => void	-
@@ -1350,7 +1350,7 @@
 >	EquirectangularRefractionMapping	const	-	const number
 =	Euler	class	class	class
 >	Euler.DEFAULT_ORDER	field	-	static rw string
->	Euler.__@iterator@5430	method	-	instance () => Generator<string | number, void, unknown>
+>	Euler.__@iterator@5447	method	-	instance () => Generator<string | number, void, unknown>
 >	Euler._onChange	method	-	instance (callback: any) => this
 >	Euler._onChangeCallback	method	-	instance () => void
 >	Euler._order	field	-	instance rw string
@@ -1578,7 +1578,8 @@
 >	GLSL1	const	-	const string
 >	GLSL3	const	-	const string
 <	GLTFAnimation	record	interface { readonly name: string; readonly channels: readonly GLTFAnimationChannel[] }	-
-<	GLTFAnimationChannel	record	interface { readonly target: { readonly node: number; readonly path: string }; readonly interpolation: "LINEAR" | "STEP" | "CUBICSPLINE"; readonly times: readonly number[]; readonly values: readonly number[] }	-
+<	GLTFAnimationChannel	record	interface { readonly target: GLTFAnimationTarget; readonly interpolation: "LINEAR" | "STEP" | "CUBICSPLINE"; readonly times: readonly number[]; readonly values: readonly number[] }	-
+<	GLTFAnimationTarget	record	interface { readonly node?: number; readonly path: string; readonly pointer?: string }	-
 <	GLTFDocument	record	type = Readonly<Record<string, unknown>>	-
 <	GLTFExportAccessor	record	interface { readonly bufferView: number; readonly byteOffset?: 0; readonly componentType: 5123 | 5125 | 5126; readonly count: number; readonly type: "SCALAR" | "VEC2" | "VEC3" | "VEC4"; readonly min?: readonly number[]; readonly max?: readonly number[] }	-
 <	GLTFExportAnimation	record	interface { readonly name?: string; readonly samplers: readonly GLTFExportAnimationSampler[]; readonly channels: readonly GLTFExportAnimationChannel[] }	-
@@ -1626,6 +1627,7 @@
 <	Geometry.clone	method	instance () => Geometry	-
 <	Geometry.computeBoundingBox	method	instance () => this	-
 <	Geometry.computeBoundingSphere	method	instance () => this	-
+<	Geometry.computeTangents	method	instance () => this	-
 <	Geometry.computeVertexNormals	method	instance () => this	-
 <	Geometry.constructor	constructor	instance () => Geometry	-
 <	Geometry.copy	method	instance (source: Geometry) => this	-
@@ -1646,6 +1648,7 @@
 <	Geometry.setDrawRange	method	instance (start: number, count: number) => this	-
 <	Geometry.setNormals	method	instance (array: Float32Array | number[]) => this	-
 <	Geometry.setPositions	method	instance (array: Float32Array | number[]) => this	-
+<	Geometry.setTangents	method	instance (array: Float32Array | number[]) => this	-
 <	Geometry.setUVs	method	instance (array: Float32Array | number[]) => this	-
 <	Geometry.toNonIndexed	method	instance () => Geometry	-
 <	Geometry.translate	method	instance (x: number, y: number, z: number) => this	-
@@ -2177,7 +2180,7 @@
 <	MTLLoaderOptions	record	type = MTLMaterialOptions	-
 <	MTLLoaderResult	record	interface { readonly materials: Readonly<Record<string, Material>>; readonly definitions: Readonly<Record<string, MTLMaterialDefinition>>; readonly materialsInfo: Readonly<Record<string, MTLMaterialInfo>>; readonly path: string; readonly warnings: readonly string[]; get(name: string): Material | undefined; create(name: string): Material; getDefinition(name: string): MTLMaterialDefinition | undefined; toArray(): Material[]; getIndex(name: string): number | undefined; preload(): this }	-
 <	MTLMaterialDefinition	record	interface { readonly name: string; readonly material: Material; readonly ambientColor: Color | undefined; readonly diffuseColor: Color | undefined; readonly baseColor: Color; readonly opacity: number; readonly transparency: number; readonly opacityLevel: number; readonly dissolve: number | undefined; readonly transparencyValue: number | undefined; readonly illum: number | undefined; readonly mapKd: MTLTextureReference | undefined; readonly properties: Readonly<Record<string, string | readonly number[]>> }	-
-<	MTLMaterialInfo	record	interface { readonly name: string; readonly ka?: readonly [number, number, number]; readonly kd?: readonly [number, number, number]; readonly d?: number; readonly tr?: number; readonly illum?: number; readonly map_kd?: string; readonly [key: string]: | string | number | readonly number[] | undefined }	-
+<	MTLMaterialInfo	record	interface { readonly name: string; readonly ka?: readonly [number, number, number]; readonly kd?: readonly [number, number, number]; readonly d?: number; readonly tr?: number; readonly illum?: number; readonly map_kd?: string; readonly [key: string]: string | number | readonly number[] | undefined }	-
 <	MTLMaterialOptions	record	interface { readonly materialType?: MTLMaterialType; readonly normalizeRGB?: boolean; readonly ignoreZeroRGBs?: boolean; readonly textures?: | ReadonlyMap<string, Texture> | Readonly<Record<string, Texture>> }	-
 <	MTLMaterialTable	class	class implements MTLLoaderResult	-
 <	MTLMaterialTable.constructor	constructor	instance (materials: Readonly<Record<string, Material>>, definitions: Readonly<Record<string, MTLMaterialDefinition>>, path: string, warnings: readonly string[], materialsInfo: Readonly<Record<string, MTLMaterialInfo>> = {}) => MTLMaterialTable	-
@@ -2351,7 +2354,7 @@
 !	Matrix2.identity	method	instance () => this	instance () => Matrix2
 !	Matrix2.set	method	instance (n11: number, n12: number, n21: number, n22: number) => this	instance (n11: number, n12: number, n21: number, n22: number) => Matrix2
 =	Matrix3	class	class	class
-<	Matrix3.__@iterator@2728	method	instance () => Generator<number, any, any>	-
+<	Matrix3.__@iterator@2737	method	instance () => Generator<number, any, any>	-
 =	Matrix3.clone	method	instance () => Matrix3	instance () => Matrix3
 <	Matrix3.compose	method	instance (position: Vector2, rotation: number, scale: Vector2) => this	-
 !	Matrix3.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix3	instance (n11?: number, n12?: number, n13?: number, n21?: number, n22?: number, n23?: number, n31?: number, n32?: number, n33?: number) => Matrix3
@@ -2386,7 +2389,7 @@
 <	Matrix3.transposeInto	method	instance (values: number[] | Float32Array<ArrayBufferLike>) => this	-
 >	Matrix3.transposeIntoArray	method	-	instance (r: Array<number>) => Matrix3
 =	Matrix4	class	class	class
-<	Matrix4.__@iterator@2728	method	instance () => Generator<number, any, any>	-
+<	Matrix4.__@iterator@2737	method	instance () => Generator<number, any, any>	-
 =	Matrix4.clone	method	instance () => Matrix4	instance () => Matrix4
 !	Matrix4.compose	method	instance (position: Vector3, q: Quaternion, scale: Vector3) => this	instance (position: Vector3, quaternion: Quaternion, scale: Vector3) => Matrix4
 !	Matrix4.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix4	instance (n11?: number, n12?: number, n13?: number, n14?: number, n21?: number, n22?: number, n23?: number, n24?: number, n31?: number, n32?: number, n33?: number, n34?: number, n41?: number, n42?: number, n43?: number, n44?: number) => Matrix4
@@ -3331,8 +3334,8 @@
 !	QuadraticBezierCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	QuadraticBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 =	Quaternion	class	class	class
-<	Quaternion.__@iterator@2728	method	instance () => Generator<number, any, any>	-
->	Quaternion.__@iterator@5430	method	-	instance () => Generator<number, void, unknown>
+<	Quaternion.__@iterator@2737	method	instance () => Generator<number, any, any>	-
+>	Quaternion.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
 >	Quaternion._onChange	method	-	instance (callback: any) => this
 >	Quaternion._onChangeCallback	method	-	instance () => void
 >	Quaternion._w	field	-	instance rw number
@@ -3945,6 +3948,11 @@
 <	TGALoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => TGALoader	-
 <	TGALoader.parse	method	instance (buffer: ArrayBuffer) => { data: Uint8ClampedArray; width: number; height: number; }	-
 <	THIRD_PI	const	const 1.0471975511965976	-
+<	TIFFLoader	class	class extends DataTextureLoader	-
+<	TIFFLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => TIFFLoader	-
+<	TIFFLoader.parse	method	instance (buffer: ArrayBuffer) => TIFFParseResult	-
+<	TIFFParseResult	record	interface { readonly data: Uint8ClampedArray; readonly width: number; readonly height: number; readonly endianness: "little" | "big"; readonly photometric: TIFFPhotometric; readonly compression: 1; readonly samplesPerPixel: number; readonly bitsPerSample: readonly number[]; readonly orientation: number; readonly rowsPerStrip: number; readonly stripCount: number; readonly planarConfiguration: 1; readonly extraSamples: readonly number[] }	-
+<	TIFFPhotometric	record	type = "black-is-zero" | "white-is-zero" | "rgb"	-
 >	TOUCH	const	-	const ConstantsTouch
 <	TTFBoundingBox	record	interface { readonly xMin: number; readonly xMax: number; readonly yMin: number; readonly yMax: number }	-
 <	TTFDirection	record	type = "ltr" | "rtl" | "tb"	-
@@ -4278,8 +4286,8 @@
 <	VOXVoxelVolume	record	interface { readonly size: VOXSize; readonly occupancy: Uint8Array; readonly colors: Uint8Array; readonly palette: readonly number[] }	-
 >	VSMShadowMap	const	-	const number
 =	Vector2	class	class	class
-<	Vector2.__@iterator@2728	method	instance () => Generator<number, any, any>	-
->	Vector2.__@iterator@5430	method	-	instance () => Generator<number, void, unknown>
+<	Vector2.__@iterator@2737	method	instance () => Generator<number, any, any>	-
+>	Vector2.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
 !	Vector2.add	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.addScaledVector	method	instance (v: Vector2, s: number) => this	instance (v: Vector2, s: number) => Vector2
@@ -4338,8 +4346,8 @@
 !	Vector2.x	accessor/field	instance rw number	instance rw number
 !	Vector2.y	accessor/field	instance rw number	instance rw number
 =	Vector3	class	class	class
-<	Vector3.__@iterator@2728	method	instance () => Generator<number, any, any>	-
->	Vector3.__@iterator@5430	method	-	instance () => Generator<number, void, unknown>
+<	Vector3.__@iterator@2737	method	instance () => Generator<number, any, any>	-
+>	Vector3.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
 !	Vector3.add	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.addScaledVector	method	instance (v: Vector3 | Vector4, s: number) => this	instance (v: Vector3|Vector4, s: number) => Vector3
@@ -4418,8 +4426,8 @@
 !	Vector3.y	accessor/field	instance rw number	instance rw number
 !	Vector3.z	accessor/field	instance rw number	instance rw number
 =	Vector4	class	class	class
-<	Vector4.__@iterator@2728	method	instance () => Generator<number, any, any>	-
->	Vector4.__@iterator@5430	method	-	instance () => Generator<number, void, unknown>
+<	Vector4.__@iterator@2737	method	instance () => Generator<number, any, any>	-
+>	Vector4.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
 !	Vector4.add	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.addScaledVector	method	instance (v: Vector4, s: number) => this	instance (v: Vector4, s: number) => Vector4
@@ -4590,9 +4598,9 @@
 <	dot2	function	(x: number, y: number, target: Vector2 = new Vector2()) => number	-
 <	dot3	function	(x: number, y: number, z: number, target: Vector3 = new Vector3()) => number	-
 <	dot4	function	(x: number, y: number, z: number, w: number, target: Vector4 = new Vector4()) => number	-
-<	drawAudioAnalyzer	function	(context: CanvasAudioContext, analyzer: AudioAnalyzer, mode: "frequency" | "time" = "frequency", options: CanvasAudioVisualizerOptions = {}) => void	-
-<	drawFrequencyBars	function	(context: CanvasAudioContext, data: ArrayLike<number>, options: CanvasAudioVisualizerOptions = {}) => void	-
-<	drawTimeDomainWaveform	function	(context: CanvasAudioContext, data: ArrayLike<number>, options: CanvasAudioVisualizerOptions = {}) => void	-
+<	drawAudioAnalyzer	function	(context: CanvasAudioContext, analyzer: AudioAnalyzer, mode: "frequency" | "time" = "frequency", options: AudioVisualizerOptions = {}) => void	-
+<	drawFrequencyBars	function	(context: CanvasAudioContext, data: ArrayLike<number>, options: AudioVisualizerOptions = {}) => void	-
+<	drawTimeDomainWaveform	function	(context: CanvasAudioContext, data: ArrayLike<number>, options: AudioVisualizerOptions = {}) => void	-
 <	earcut	function	(data: number[], holeIndices?: number[], dim: number = 2) => number[]	-
 <	encodeHsl16	function	(h: number, s: number, l: number) => number	-
 >	error	function	-	(...params: ...any) => void
