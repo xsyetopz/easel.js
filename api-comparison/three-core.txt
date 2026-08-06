@@ -238,11 +238,16 @@
 <	ArcballControls.target	field	instance rw Vector3	-
 <	ArcballControls.update	method	instance () => boolean	-
 <	ArcballControls.zoomSpeed	field	instance rw number	-
->	ArrayCamera	class	-	class extends PerspectiveCamera
+=	ArrayCamera	class	class extends PerspectiveCamera	class extends PerspectiveCamera
+<	ArrayCamera.arrayCameras	field	instance rw PerspectiveCamera[]	-
 >	ArrayCamera.cameras	field	-	instance rw Array<PerspectiveCamera>
->	ArrayCamera.constructor	constructor	-	instance (array: Array<PerspectiveCamera> = []) => ArrayCamera
->	ArrayCamera.isArrayCamera	field	-	instance ro boolean
->	ArrayCamera.isMultiViewCamera	field	-	instance ro boolean
+<	ArrayCamera.clone	method	instance () => ArrayCamera	-
+!	ArrayCamera.constructor	constructor	instance ({ arrayCameras = [], fov, aspect, near, far, tileSize, zoom, }: ArrayCameraOptions = {}) => ArrayCamera	instance (array: Array<PerspectiveCamera> = []) => ArrayCamera
+<	ArrayCamera.copy	method	instance (source: PerspectiveCamera, recursive: boolean = true) => this	-
+=	ArrayCamera.isArrayCamera	field	instance ro boolean	instance ro boolean
+=	ArrayCamera.isMultiViewCamera	field	instance ro boolean	instance ro boolean
+<	ArrayCamera.type	field	instance rw string	-
+<	ArrayCameraOptions	record	interface { arrayCameras?: PerspectiveCamera[]; fov?: number; aspect?: number; near?: number; far?: number; tileSize?: number; zoom?: number }	-
 <	ArrowDirection	record	interface { readonly x: number; readonly y: number; readonly z: number }	-
 !	ArrowHelper	class	class extends Node	class extends Object3D
 <	ArrowHelper.clone	method	instance () => ArrowHelper	-
@@ -295,22 +300,29 @@
 <	Attribute.toJSON	method	instance () => { itemSize: number; type: string; array: number[]; normalized: boolean; name?: string; }	-
 <	Attribute.transformDirection	method	instance (matrix: Matrix4) => this	-
 <	AttributeArray	record	type = | Float32Array | Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array	-
->	Audio	class	-	class extends Object3D
+!	Audio	class	class extends Node	class extends Object3D
 >	Audio._connected	field	-	instance rw boolean
 >	Audio._progress	field	-	instance rw number
 >	Audio._startedAt	field	-	instance rw number
->	Audio.autoplay	field	-	instance rw boolean
->	Audio.buffer	field	-	instance ro ?AudioBuffer
->	Audio.clone	method	-	instance (recursive: any) => any
->	Audio.connect	method	-	instance () => Audio
->	Audio.constructor	constructor	-	instance (listener: AudioListener) => Audio
->	Audio.context	field	-	instance ro AudioContext
->	Audio.copy	method	-	instance (source: any, recursive: any) => this
->	Audio.detune	field	-	instance ro number
->	Audio.disconnect	method	-	instance () => Audio|undefined
->	Audio.duration	field	-	instance rw undefined|number
->	Audio.filters	field	-	instance ro Array<AudioNode>
->	Audio.gain	field	-	instance ro GainNode
+<	Audio.applyDetune	method	instance (value: number) => this	-
+<	Audio.applyFilter	method	instance (filter: AudioNodeLike | undefined) => this	-
+<	Audio.applyLoop	method	instance (value: boolean) => this | undefined	-
+<	Audio.applyLoopEnd	method	instance (value: number) => this	-
+<	Audio.applyLoopStart	method	instance (value: number) => this	-
+<	Audio.applyPlaybackRate	method	instance (value: number) => this | undefined	-
+=	Audio.autoplay	field	instance rw boolean	instance rw boolean
+!	Audio.buffer	field	instance rw AudioBufferLike | undefined	instance ro ?AudioBuffer
+!	Audio.clone	method	instance (recursive: boolean = true) => Audio	instance (recursive: any) => any
+!	Audio.connect	method	instance () => this	instance () => Audio
+=	Audio.constructor	constructor	instance (listener: AudioListener) => Audio	instance (listener: AudioListener) => Audio
+!	Audio.context	field	instance ro AudioContextLike | undefined	instance ro AudioContext
+!	Audio.copy	method	instance (source: Audio, recursive: boolean = true) => this	instance (source: any, recursive: any) => this
+!	Audio.detune	field	instance rw number	instance ro number
+!	Audio.disconnect	method	instance () => this | undefined	instance () => Audio|undefined
+!	Audio.duration	field	instance rw number | undefined	instance rw undefined|number
+!	Audio.filters	field	instance rw AudioNodeLike[]	instance ro Array<AudioNode>
+<	Audio.firstFilter	accessor	instance r AudioNodeLike | undefined	-
+!	Audio.gain	field	instance ro AudioNodeLike | undefined	instance ro GainNode
 >	Audio.getDetune	method	-	instance () => number
 >	Audio.getFilter	method	-	instance () => AudioNode|undefined
 >	Audio.getFilters	method	-	instance () => Array<AudioNode>
@@ -318,33 +330,35 @@
 >	Audio.getOutput	method	-	instance () => GainNode
 >	Audio.getPlaybackRate	method	-	instance () => number
 >	Audio.getVolume	method	-	instance () => number
->	Audio.hasPlaybackControl	field	-	instance ro boolean
->	Audio.isPlaying	field	-	instance ro boolean
->	Audio.listener	field	-	instance ro AudioListener
->	Audio.loop	field	-	instance ro boolean
->	Audio.loopEnd	field	-	instance rw number
->	Audio.loopStart	field	-	instance rw number
->	Audio.offset	field	-	instance rw number
->	Audio.onEnded	method	-	instance () => void
->	Audio.pause	method	-	instance () => Audio|undefined
->	Audio.play	method	-	instance (delay: number = 0) => Audio|undefined
->	Audio.playbackRate	field	-	instance ro number
->	Audio.setBuffer	method	-	instance (audioBuffer: AudioBuffer) => Audio
+!	Audio.hasPlaybackControl	field	instance rw boolean	instance ro boolean
+!	Audio.isPlaying	field	instance rw boolean	instance ro boolean
+=	Audio.listener	field	instance ro AudioListener	instance ro AudioListener
+!	Audio.loop	field	instance rw boolean	instance ro boolean
+=	Audio.loopEnd	field	instance rw number	instance rw number
+=	Audio.loopStart	field	instance rw number	instance rw number
+=	Audio.offset	field	instance rw number	instance rw number
+=	Audio.onEnded	method	instance () => void	instance () => void
+<	Audio.output	accessor	instance r AudioNodeLike | undefined	-
+!	Audio.pause	method	instance () => this | undefined	instance () => Audio|undefined
+!	Audio.play	method	instance (delay: number = 0) => this | undefined	instance (delay: number = 0) => Audio|undefined
+!	Audio.playbackRate	field	instance rw number	instance ro number
+!	Audio.setBuffer	method	instance (audioBuffer: AudioBufferLike) => this	instance (audioBuffer: AudioBuffer) => Audio
 >	Audio.setDetune	method	-	instance (value: number) => Audio
 >	Audio.setFilter	method	-	instance (filter?: AudioNode) => Audio
->	Audio.setFilters	method	-	instance (value?: Array<AudioNode>) => Audio
+!	Audio.setFilters	method	instance (value: AudioNodeLike[] = []) => this	instance (value?: Array<AudioNode>) => Audio
 >	Audio.setLoop	method	-	instance (value: boolean) => Audio|undefined
 >	Audio.setLoopEnd	method	-	instance (value: number) => Audio
 >	Audio.setLoopStart	method	-	instance (value: number) => Audio
->	Audio.setMediaElementSource	method	-	instance (mediaElement: HTMLMediaElement) => Audio
->	Audio.setMediaStreamSource	method	-	instance (mediaStream: MediaStream) => Audio
->	Audio.setNodeSource	method	-	instance (audioNode: AudioNode) => Audio
+!	Audio.setMediaElementSource	method	instance (mediaElement: HTMLMediaElement) => this	instance (mediaElement: HTMLMediaElement) => Audio
+!	Audio.setMediaStreamSource	method	instance (mediaStream: MediaStream) => this	instance (mediaStream: MediaStream) => Audio
+!	Audio.setNodeSource	method	instance (audioNode: AudioNodeLike) => this	instance (audioNode: AudioNode) => Audio
 >	Audio.setPlaybackRate	method	-	instance (value?: number) => Audio|undefined
 >	Audio.setVolume	method	-	instance (value: number) => Audio
->	Audio.source	field	-	instance ro ?AudioNode
->	Audio.sourceType	field	-	instance ro ('empty'|'audioNode'|'mediaNode'|'mediaStreamNode'|'buffer')
->	Audio.stop	method	-	instance (delay: number = 0) => Audio|undefined
->	Audio.type	field	-	instance rw string
+!	Audio.source	field	instance rw AudioNodeLike | AudioBufferSourceNodeLike | undefined	instance ro ?AudioNode
+!	Audio.sourceType	field	instance rw AudioSourceType	instance ro ('empty'|'audioNode'|'mediaNode'|'mediaStreamNode'|'buffer')
+!	Audio.stop	method	instance (delay: number = 0) => this | undefined	instance (delay: number = 0) => Audio|undefined
+=	Audio.type	field	instance rw string	instance rw string
+<	Audio.volume	accessor	instance rw number	-
 >	AudioAnalyser	class	-	class
 >	AudioAnalyser.analyser	field	-	instance rw AnalyserNode
 >	AudioAnalyser.constructor	constructor	-	instance (audio: Audio, fftSize: number = 2048) => AudioAnalyser
@@ -364,11 +378,13 @@
 <	AudioAnalyzer.getTimeDomainData	method	instance (target: Uint8Array = this.#timeDomainData) => Uint8Array<ArrayBufferLike>	-
 <	AudioAnalyzer.timeDomainData	accessor	instance r Uint8Array<ArrayBufferLike>	-
 <	AudioAnalyzerOptions	record	interface { fftSize?: number; smoothingTimeConstant?: number; minDecibels?: number; maxDecibels?: number }	-
+<	AudioBufferLike	record	interface { readonly numberOfChannels: number; readonly sampleRate: number; readonly duration: number; getChannelData?: (channel: number) => Float32Array }	-
+<	AudioBufferSourceNodeLike	record	interface extends AudioNodeLike { buffer?: AudioBufferLike | undefined; loop?: boolean; loopStart?: number; loopEnd?: number; detune?: AudioParamLike; playbackRate?: AudioParamLike; onended?: (() => void) | undefined; start?: (when?: number, offset?: number, duration?: number) => void; stop?: (when?: number) => void }	-
 >	AudioContext	class	-	class
 >	AudioContext.constructor	constructor	-	instance () => AudioContext
 >	AudioContext.getContext	method	-	static () => Window.AudioContext
 >	AudioContext.setContext	method	-	static (value: Window.AudioContext) => void
-<	AudioContextLike	record	interface { readonly currentTime: number; readonly destination: AudioNodeLike; createGain?: () => AudioNodeLike & { gain: AudioParamLike }; createAnalyser?: () => AnalyserNodeLike; createMediaElementSource?: (element: HTMLMediaElement) => AudioNodeLike; createOscillator?: () => OscillatorNodeLike; createStereoPanner?: () => StereoPannerNodeLike; resume?: () => Promise<void>; suspend?: () => Promise<void>; close?: () => Promise<void> }	-
+<	AudioContextLike	record	interface { readonly currentTime: number; readonly destination: AudioNodeLike; readonly listener?: NativeAudioListenerLike; createGain?: () => AudioNodeLike & { gain: AudioParamLike }; createAnalyser?: () => AnalyserNodeLike; createMediaElementSource?: (element: HTMLMediaElement) => AudioNodeLike; createMediaStreamSource?: (stream: MediaStream) => AudioNodeLike; createOscillator?: () => OscillatorNodeLike; createStereoPanner?: () => StereoPannerNodeLike; createBufferSource?: () => AudioBufferSourceNodeLike; createPanner?: () => PannerNodeLike; decodeAudioData?: ( arrayBuffer: ArrayBuffer, successCallback?: (buffer: AudioBufferLike) => void, errorCallback?: (error: unknown) => void, ) => Promise<AudioBufferLike>; resume?: () => Promise<void>; suspend?: () => Promise<void>; close?: () => Promise<void> }	-
 <	AudioGraph	class	class	-
 <	AudioGraph.available	accessor	instance r boolean	-
 <	AudioGraph.connect	method	instance (source: AudioNodeLike | AudioNode | null) => AudioNodeLike | null	-
@@ -385,26 +401,31 @@
 <	AudioGraph.setMasterVolume	method	instance (value: number) => this	-
 <	AudioGraph.suspend	method	instance () => Promise<boolean>	-
 <	AudioGraphOptions	record	interface { context?: AudioContextLike | null; destination?: AudioNodeLike; masterVolume?: number }	-
->	AudioListener	class	-	class extends Object3D
+!	AudioListener	class	class extends Node	class extends Object3D
 >	AudioListener._timer	field	-	instance rw Timer
->	AudioListener.constructor	constructor	-	instance () => AudioListener
->	AudioListener.context	field	-	instance ro AudioContext
->	AudioListener.filter	field	-	instance ro ?AudioNode
->	AudioListener.gain	field	-	instance ro GainNode
+<	AudioListener.applyFilter	method	instance (value: AudioNodeLike) => this	-
+=	AudioListener.constructor	constructor	instance () => AudioListener	instance () => AudioListener
+!	AudioListener.context	field	instance ro AudioContextLike | undefined	instance ro AudioContext
+<	AudioListener.currentFilter	accessor	instance r AudioNodeLike | undefined	-
+!	AudioListener.filter	field	instance rw AudioNodeLike | undefined	instance ro ?AudioNode
+!	AudioListener.gain	field	instance ro AudioNodeLike | undefined	instance ro GainNode
 >	AudioListener.getFilter	method	-	instance () => ?AudioNode
 >	AudioListener.getInput	method	-	instance () => GainNode
 >	AudioListener.getMasterVolume	method	-	instance () => number
->	AudioListener.removeFilter	method	-	instance () => AudioListener
+<	AudioListener.input	accessor	instance r AudioNodeLike | undefined	-
+<	AudioListener.masterVolume	accessor	instance rw number	-
+!	AudioListener.removeFilter	method	instance () => this	instance () => AudioListener
 >	AudioListener.setFilter	method	-	instance (value: AudioNode) => AudioListener
 >	AudioListener.setMasterVolume	method	-	instance (value: number) => AudioListener
->	AudioListener.timeDelta	field	-	instance ro number
->	AudioListener.type	field	-	instance rw string
->	AudioListener.updateMatrixWorld	method	-	instance (force: any) => void
->	AudioLoader	class	-	class extends Loader
->	AudioLoader.constructor	constructor	-	instance (manager?: LoadingManager) => AudioLoader
->	AudioLoader.load	method	-	instance (url: string, onLoad: function(AudioBuffer), onProgress: onProgressCallback, onError: onErrorCallback) => void
+!	AudioListener.timeDelta	field	instance rw number	instance ro number
+=	AudioListener.type	field	instance rw string	instance rw string
+!	AudioListener.updateMatrixWorld	method	instance (force: boolean = false) => void	instance (force: any) => void
+=	AudioLoader	class	class extends Loader	class extends Loader
+!	AudioLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => AudioLoader	instance (manager?: LoadingManager) => AudioLoader
+!	AudioLoader.load	method	instance (url: string, onLoad?: (buffer: AudioBufferLike) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	instance (url: string, onLoad: function(AudioBuffer), onProgress: onProgressCallback, onError: onErrorCallback) => void
 <	AudioNodeLike	record	interface { connect: (destination: AudioNodeLike | AudioParamLike) => unknown; disconnect?: (destination?: AudioNodeLike | AudioParamLike) => void }	-
-<	AudioParamLike	record	interface { value: number; setValueAtTime?: (value: number, time: number) => AudioParamLike; linearRampToValueAtTime?: (value: number, time: number) => AudioParamLike }	-
+<	AudioParamLike	record	interface { value: number; setValueAtTime?: (value: number, time: number) => AudioParamLike; linearRampToValueAtTime?: (value: number, time: number) => AudioParamLike; setTargetAtTime?: (value: number, time: number, tau: number) => void }	-
+<	AudioSourceType	record	type = "empty" | "audioNode" | "mediaNode" | "mediaStreamNode" | "buffer"	-
 <	AudioVisualizerOptions	record	interface { x?: number; y?: number; width?: number; height?: number; background?: string; foreground?: string; bars?: number; gap?: number; lineWidth?: number }	-
 =	AxesHelper	class	class extends LineSegments	class extends LineSegments
 <	AxesHelper.clone	method	instance () => AxesHelper	-
@@ -725,10 +746,10 @@
 >	BufferGeometry.type	field	-	instance rw string
 >	BufferGeometry.userData	field	-	instance rw Object
 >	BufferGeometry.uuid	field	-	instance ro string
->	BufferGeometryLoader	class	-	class extends Loader
->	BufferGeometryLoader.constructor	constructor	-	instance (manager?: LoadingManager) => BufferGeometryLoader
->	BufferGeometryLoader.load	method	-	instance (url: string, onLoad: function(BufferGeometry), onProgress: onProgressCallback, onError: onErrorCallback) => void
->	BufferGeometryLoader.parse	method	-	instance (json: Object) => BufferGeometry
+=	BufferGeometryLoader	class	class extends Loader	class extends Loader
+!	BufferGeometryLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => BufferGeometryLoader	instance (manager?: LoadingManager) => BufferGeometryLoader
+!	BufferGeometryLoader.load	method	instance (url: string, onLoad?: (geometry: Geometry) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	instance (url: string, onLoad: function(BufferGeometry), onProgress: onProgressCallback, onError: onErrorCallback) => void
+!	BufferGeometryLoader.parse	method	instance (json: BufferGeometryJSON) => Geometry	instance (json: Object) => BufferGeometry
 >	ByteType	const	-	const number
 <	COLOR_HUE_SCALE	const	const 360	-
 <	COLOR_LIGHTNESS_SCALE	const	const 100	-
@@ -911,7 +932,7 @@
 >	Clock.stop	method	-	instance () => void
 =	Color	class	class	class
 >	Color.NAMES	field	-	static rw Object
->	Color.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
+>	Color.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
 !	Color.add	method	instance (color: Color) => this	instance (color: Color) => Color
 !	Color.addColors	method	instance (color1: Color, color2: Color) => this	instance (color1: Color, color2: Color) => Color
 !	Color.addScalar	method	instance (scalar: number) => this	instance (s: number) => Color
@@ -960,14 +981,15 @@
 =	Color.toJSON	method	instance () => number	instance () => number
 >	ColorKeyframeTrack	class	-	class extends KeyframeTrack
 >	ColorKeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => ColorKeyframeTrack
->	ColorManagement	const	-	const { enabled: boolean; workingColorSpace: string; spaces: {}; convert: (color: any, sourceColorSpace: any, targetColorSpace: any) => any; workingToColorSpace: (color: any, targetColorSpace: any) => any; colorSpaceToWorking: (color: any, sourceColorSpace: any) => any; getPrimaries: (colorSpace: any) => any; getTransfer: (colorSpace: any) => any; getToneMappingMode: (colorSpace: any) => any; getLuminanceCoefficients: (target: any, colorSpace?: any) => any; define: (colorSpaces: any) => void; _getMatrix: (targetMatrix: any, sourceColorSpace: any, targetColorSpace: any) => any; _getDrawingBufferColorSpace: (colorSpace: any) => any; _getUnpackColorSpace: (colorSpace?: any) => any; fromWorkingColorSpace: (color: any, targetColorSpace: any) => any; toWorkingColorSpace: (color: any, sourceColorSpace: any) => any; }
+!	ColorManagement	const	const { readonly enabled: false; readonly workingColorSpace: "srgb"; readonly convert: <TColor>(color: TColor) => TColor; readonly fromWorkingColorSpace: <TColor>(color: TColor) => TColor; readonly toWorkingColorSpace: <TColor>(color: TColor) => TColor; }	const { enabled: boolean; workingColorSpace: string; spaces: {}; convert: (color: any, sourceColorSpace: any, targetColorSpace: any) => any; workingToColorSpace: (color: any, targetColorSpace: any) => any; colorSpaceToWorking: (color: any, sourceColorSpace: any) => any; getPrimaries: (colorSpace: any) => any; getTransfer: (colorSpace: any) => any; getToneMappingMode: (colorSpace: any) => any; getLuminanceCoefficients: (target: any, colorSpace?: any) => any; define: (colorSpaces: any) => void; _getMatrix: (targetMatrix: any, sourceColorSpace: any, targetColorSpace: any) => any; _getDrawingBufferColorSpace: (colorSpace: any) => any; _getUnpackColorSpace: (colorSpace?: any) => any; fromWorkingColorSpace: (color: any, targetColorSpace: any) => any; toWorkingColorSpace: (color: any, sourceColorSpace: any) => any; }
 <	ColorTable	class	class	-
 <	ColorTable.constructor	constructor	instance () => ColorTable	-
 <	ColorTable.lookup	method	instance (hsl16: number, out: RgbColor = _lookupOut) => RgbColor	-
 <	ColorTrack	class	class extends Track	-
 <	ColorTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: Omit<TrackOptions, "itemSize"> = {}) => ColorTrack	-
 <	ColorValue	record	type = number | string | Color	-
->	Compatibility	const	-	const any
+!	Compatibility	const	const { readonly TEXTURE_COMPARE: "depthTextureCompare"; }	const any
+<	Compatibility	record	type = (typeof Compatibility)[keyof typeof Compatibility]	-
 >	CompressedArrayTexture	class	-	class extends CompressedTexture
 >	CompressedArrayTexture.addLayerUpdate	method	-	instance (layerIndex: number) => void
 >	CompressedArrayTexture.clearLayerUpdates	method	-	instance () => void
@@ -990,21 +1012,23 @@
 =	ConeGeometry.constructor	constructor	instance (radius: number = 1, height: number = 1, radialSegments: number = 32, heightSegments: number = 1, openEnded: boolean = false, thetaStart: number = 0, thetaLength: number = Math.PI * 2) => ConeGeometry	instance (radius: number = 1, height: number = 1, radialSegments: number = 32, heightSegments: number = 1, openEnded: boolean = false, thetaStart: number = 0, thetaLength: number = Math.PI * 2) => ConeGeometry
 >	ConeGeometry.fromJSON	method	-	static (data: Object) => ConeGeometry
 >	ConeGeometry.type	field	-	instance rw string
+<	ConsoleFunction	record	type = ( type: ConsoleType, message: string, ...params: unknown[] ) => void	-
+<	ConsoleType	record	type = "log" | "warn" | "error"	-
 >	ConstantAlphaFactor	const	-	const number
 >	ConstantColorFactor	const	-	const number
->	Controls	class	-	class extends EventDispatcher
->	Controls.connect	method	-	instance (element: HTMLElement) => void
->	Controls.constructor	constructor	-	instance (object: Object3D, domElement: ?HTMLElement = null) => Controls
->	Controls.disconnect	method	-	instance () => void
->	Controls.dispose	method	-	instance () => void
->	Controls.domElement	field	-	instance rw ?HTMLElement
->	Controls.enabled	field	-	instance rw boolean
+=	Controls	class	class extends EventDispatcher	class extends EventDispatcher
+!	Controls.connect	method	instance (element: EventTarget) => void	instance (element: HTMLElement) => void
+!	Controls.constructor	constructor	instance (object: Node, domElement?: EventTarget) => Controls	instance (object: Object3D, domElement: ?HTMLElement = null) => Controls
+=	Controls.disconnect	method	instance () => void	instance () => void
+=	Controls.dispose	method	instance () => void	instance () => void
+!	Controls.domElement	field	instance rw EventTarget | undefined	instance rw ?HTMLElement
+=	Controls.enabled	field	instance rw boolean	instance rw boolean
 >	Controls.keys	field	-	instance rw Object
 >	Controls.mouseButtons	field	-	instance rw {LEFT: ?number, MIDDLE: ?number, RIGHT: ?number}
->	Controls.object	field	-	instance rw Object3D
+!	Controls.object	field	instance rw Node	instance rw Object3D
 >	Controls.state	field	-	instance rw number
 >	Controls.touches	field	-	instance rw {ONE: ?number, TWO: ?number}
->	Controls.update	method	-	instance (delta?: number) => void
+!	Controls.update	method	instance (_delta?: number) => void	instance (delta?: number) => void
 <	ConvexGeometry	class	class extends Geometry	-
 <	ConvexGeometry.constructor	constructor	instance (points: readonly Vector3[] = []) => ConvexGeometry	-
 <	ConvexGeometry.parameters	field	instance rw Record<string, unknown>	-
@@ -1178,7 +1202,7 @@
 >	DataTextureLoader.createDataTexture	method	-	instance (buffer: ArrayBuffer) => DataTexture
 !	DataTextureLoader.load	method	instance (url: string, onLoad?: (texture: DataTexture) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	instance (url: string, onLoad: function(DataTexture), onProgress: onProgressCallback, onError: onErrorCallback) => DataTexture
 <	DataTextureLoader.parse	method	instance (_data: ArrayBuffer) => ParseResult | undefined	-
->	DataUtils	class	-	class
+!	DataUtils	const/class	const { toHalfFloat(value: number): number; fromHalfFloat(value: number): number; }	class
 >	DataUtils.constructor	constructor	-	instance () => DataUtils
 >	DataUtils.fromHalfFloat	method	-	static (val: number) => number
 >	DataUtils.toHalfFloat	method	-	static (val: number) => number
@@ -1288,7 +1312,7 @@
 <	DrawCall.vertexColorItemSize	field	instance rw number	-
 <	DrawCall.worldPositions	field	instance rw Float32Array<ArrayBufferLike>	-
 <	DrawList	class	class	-
-<	DrawList.__@iterator@2737	method	instance () => Iterator<DrawCall, any, any>	-
+<	DrawList.__@iterator@3073	method	instance () => Iterator<DrawCall, any, any>	-
 <	DrawList.add	method	instance (drawCall: DrawCall) => void	-
 <	DrawList.calls	accessor	instance r DrawCall[]	-
 <	DrawList.clear	method	instance () => void	-
@@ -1350,7 +1374,7 @@
 >	EquirectangularRefractionMapping	const	-	const number
 =	Euler	class	class	class
 >	Euler.DEFAULT_ORDER	field	-	static rw string
->	Euler.__@iterator@5447	method	-	instance () => Generator<string | number, void, unknown>
+>	Euler.__@iterator@5876	method	-	instance () => Generator<string | number, void, unknown>
 >	Euler._onChange	method	-	instance (callback: any) => this
 >	Euler._onChangeCallback	method	-	instance () => void
 >	Euler._order	field	-	instance rw string
@@ -1637,6 +1661,8 @@
 <	Geometry.getAttribute	method	instance (name: string) => Attribute | undefined	-
 <	Geometry.id	field	instance ro number	-
 <	Geometry.index	accessor	instance rw Uint16Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | undefined	-
+<	Geometry.morphAttributes	field	instance rw Record<string, Attribute[]> | undefined	-
+<	Geometry.morphTargetsRelative	field	instance rw boolean	-
 <	Geometry.name	field	instance rw string	-
 <	Geometry.parameters	field	instance rw Record<string, unknown>	-
 <	Geometry.rotateX	method	instance (angle: number) => this	-
@@ -1653,6 +1679,7 @@
 <	Geometry.toNonIndexed	method	instance () => Geometry	-
 <	Geometry.translate	method	instance (x: number, y: number, z: number) => this	-
 <	Geometry.type	field	instance rw string	-
+<	Geometry.userData	field	instance rw Record<string, unknown>	-
 <	GeometryLoader	class	class extends Loader	-
 <	GeometryLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => GeometryLoader	-
 <	GeometryLoader.load	method	instance (url: string, onLoad?: (geometry: Geometry) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	-
@@ -1754,7 +1781,7 @@
 !	ImageLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => ImageLoader	instance (manager?: LoadingManager) => ImageLoader
 !	ImageLoader.load	method	instance (url: string, onLoad?: ((image: HTMLImageElement) => void) | undefined, _onProgress?: ((event: ProgressEvent) => void) | undefined, onError?: ((err: Event | string | DOMException) => void) | undefined) => void	instance (url: string, onLoad: function(Image), onProgress: onProgressCallback, onError: onErrorCallback) => Image
 <	ImagePixelArray	record	type = Uint8Array | Uint8ClampedArray | Float32Array	-
->	ImageUtils	class	-	class
+!	ImageUtils	const/class	const { getDataUrl(image: HTMLImageElement | HTMLCanvasElement | ImageData, type?: string): string; srgbToLinear<TImage extends HTMLImageElement | HTMLCanvasElement | ImageBitmap | ImageDataLike>(image: TImage): TImage extends ImageDataLike<infer TArray> ? ImageDataLike<TArray> : HTMLCanvasElement; }	class
 >	ImageUtils.constructor	constructor	-	instance () => ImageUtils
 >	ImageUtils.getDataURL	method	-	static (image: (HTMLImageElement|HTMLCanvasElement), type: string = 'image/png') => string
 >	ImageUtils.sRGBToLinear	method	-	static (image: (HTMLImageElement|HTMLCanvasElement|ImageBitmap|Object)) => HTMLCanvasElement|Object
@@ -1903,8 +1930,10 @@
 <	InterpolationEnding	const	const { readonly ZeroCurvature: 2400; readonly ZeroSlope: 2401; readonly WrapAround: 2402; }	-
 <	InterpolationEndingMode	record	type = (typeof InterpolationEnding)[keyof typeof InterpolationEnding]	-
 <	InterpolationMode	record	type = (typeof Interpolation)[keyof typeof Interpolation]	-
->	InterpolationSamplingMode	const	-	const ConstantsInterpolationSamplingMode
->	InterpolationSamplingType	const	-	const ConstantsInterpolationSamplingType
+!	InterpolationSamplingMode	const	const { readonly NORMAL: "normal"; readonly CENTROID: "centroid"; readonly SAMPLE: "sample"; readonly FIRST: "first"; readonly EITHER: "either"; }	const ConstantsInterpolationSamplingMode
+<	InterpolationSamplingMode	record	type = (typeof InterpolationSamplingMode)[keyof typeof InterpolationSamplingMode]	-
+!	InterpolationSamplingType	const	const { readonly PERSPECTIVE: "perspective"; readonly LINEAR: "linear"; readonly FLAT: "flat"; }	const ConstantsInterpolationSamplingType
+<	InterpolationSamplingType	record	type = (typeof InterpolationSamplingType)[keyof typeof InterpolationSamplingType]	-
 <	Intersection	record	interface { distance: number; point: Vector3; face?: | { a: number; b: number; c: number; normal: Vector3 | undefined } | undefined; index?: number | undefined; object: RaycastObject }	-
 >	InvertStencilOp	const	-	const number
 >	KeepStencilOp	const	-	const number
@@ -2004,7 +2033,7 @@
 !	LightProbe.toJSON	method	instance () => LightProbeJSON	instance (meta: any) => any
 <	LightProbe.type	field	instance rw string	-
 <	LightProbeJSON	record	interface extends LightJSON { sh: number[] }	-
-<	LightType	const	const { readonly Ambient: 0; readonly Hemisphere: 1; readonly Directional: 2; readonly Point: 3; readonly Spot: 4; }	-
+<	LightType	const	const { readonly Ambient: 0; readonly Hemisphere: 1; readonly Directional: 2; readonly Point: 3; readonly Spot: 4; readonly RectArea: 5; }	-
 <	LightType	record	type = (typeof LightType)[keyof typeof LightType]	-
 !	Line	class	class extends Node	class extends Object3D
 <	Line.clone	method	instance () => Line	-
@@ -2113,7 +2142,7 @@
 >	LinearMipmapNearestFilter	const	-	const number
 >	LinearSRGBColorSpace	const	-	const string
 >	LinearToneMapping	const	-	const number
->	LinearTransfer	const	-	const string
+!	LinearTransfer	const	const "linear"	const string
 =	Loader	class	class	class
 >	Loader.DEFAULT_MATERIAL_NAME	field	-	static rw string
 !	Loader.abort	method	instance () => this	instance () => Loader
@@ -2165,7 +2194,8 @@
 >	LoopOnce	const	-	const number
 >	LoopPingPong	const	-	const number
 >	LoopRepeat	const	-	const number
->	MOUSE	const	-	const ConstantsMouse
+!	MOUSE	const	const { readonly LEFT: 0; readonly MIDDLE: 1; readonly RIGHT: 2; readonly ROTATE: 0; readonly DOLLY: 1; readonly PAN: 2; }	const ConstantsMouse
+<	MOUSE	record	type = (typeof MOUSE)[keyof typeof MOUSE]	-
 <	MTLExporter	class	class	-
 <	MTLExporter.constructor	constructor	instance () => MTLExporter	-
 <	MTLExporter.parse	method	instance (root: Node, options: MTLExporterOptions = {}) => string	-
@@ -2354,7 +2384,7 @@
 !	Matrix2.identity	method	instance () => this	instance () => Matrix2
 !	Matrix2.set	method	instance (n11: number, n12: number, n21: number, n22: number) => this	instance (n11: number, n12: number, n21: number, n22: number) => Matrix2
 =	Matrix3	class	class	class
-<	Matrix3.__@iterator@2737	method	instance () => Generator<number, any, any>	-
+<	Matrix3.__@iterator@3073	method	instance () => Generator<number, any, any>	-
 =	Matrix3.clone	method	instance () => Matrix3	instance () => Matrix3
 <	Matrix3.compose	method	instance (position: Vector2, rotation: number, scale: Vector2) => this	-
 !	Matrix3.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix3	instance (n11?: number, n12?: number, n13?: number, n21?: number, n22?: number, n23?: number, n31?: number, n32?: number, n33?: number) => Matrix3
@@ -2389,7 +2419,7 @@
 <	Matrix3.transposeInto	method	instance (values: number[] | Float32Array<ArrayBufferLike>) => this	-
 >	Matrix3.transposeIntoArray	method	-	instance (r: Array<number>) => Matrix3
 =	Matrix4	class	class	class
-<	Matrix4.__@iterator@2737	method	instance () => Generator<number, any, any>	-
+<	Matrix4.__@iterator@3073	method	instance () => Generator<number, any, any>	-
 =	Matrix4.clone	method	instance () => Matrix4	instance () => Matrix4
 !	Matrix4.compose	method	instance (position: Vector3, q: Quaternion, scale: Vector3) => this	instance (position: Vector3, quaternion: Quaternion, scale: Vector3) => Matrix4
 !	Matrix4.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix4	instance (n11?: number, n12?: number, n13?: number, n14?: number, n21?: number, n22?: number, n23?: number, n24?: number, n31?: number, n32?: number, n33?: number, n34?: number, n41?: number, n42?: number, n43?: number, n44?: number) => Matrix4
@@ -2611,6 +2641,7 @@
 <	NURBSVolume.knots1	field	instance rw number[]	-
 <	NURBSVolume.knots2	field	instance rw number[]	-
 <	NURBSVolume.knots3	field	instance rw number[]	-
+<	NativeAudioListenerLike	record	interface { positionX?: AudioParamLike; positionY?: AudioParamLike; positionZ?: AudioParamLike; forwardX?: AudioParamLike; forwardY?: AudioParamLike; forwardZ?: AudioParamLike; upX?: AudioParamLike; upY?: AudioParamLike; upZ?: AudioParamLike; setPosition?: (x: number, y: number, z: number) => void; setOrientation?: ( fx: number, fy: number, fz: number, ux: number, uy: number, uz: number, ) => void }	-
 >	NearestFilter	const	-	const number
 >	NearestMipMapLinearFilter	const	-	const 1005
 >	NearestMipMapNearestFilter	const	-	const 1004
@@ -2622,7 +2653,7 @@
 >	NeverStencilFunc	const	-	const number
 >	NoBlending	const	-	const number
 >	NoColorSpace	const	-	const string
->	NoNormalPacking	const	-	const string
+!	NoNormalPacking	const	const ""	const string
 >	NoToneMapping	const	-	const number
 <	Node	class	class extends EventDispatcher	-
 <	Node.add	method	instance (...objects: Node[]) => this	-
@@ -2690,8 +2721,8 @@
 <	NodeOptions	record	interface { uuid?: string }	-
 >	NormalAnimationBlendMode	const	-	const number
 >	NormalBlending	const	-	const number
->	NormalGAPacking	const	-	const string
->	NormalRGPacking	const	-	const string
+!	NormalGAPacking	const	const "ga"	const string
+!	NormalRGPacking	const	const "rg"	const string
 >	NotEqualCompare	const	-	const number
 >	NotEqualDepth	const	-	const number
 >	NotEqualStencilFunc	const	-	const number
@@ -2932,6 +2963,7 @@
 <	PainterSort	class	class	-
 <	PainterSort.constructor	constructor	instance () => PainterSort	-
 <	PainterSort.sort	method	instance (drawList: DrawList, cameraPosition: { x: number; y: number }, sortObjects: boolean = true) => void	-
+<	PannerNodeLike	record	interface extends AudioNodeLike { panningModel?: string; distanceModel?: string; refDistance?: number; rolloffFactor?: number; maxDistance?: number; coneInnerAngle?: number; coneOuterAngle?: number; coneOuterGain?: number; positionX?: AudioParamLike; positionY?: AudioParamLike; positionZ?: AudioParamLike; orientationX?: AudioParamLike; orientationY?: AudioParamLike; orientationZ?: AudioParamLike; setPosition?: (x: number, y: number, z: number) => void; setOrientation?: (fx: number, fy: number, fz: number) => void }	-
 <	ParametricFunction	record	type = ( u: number, v: number, target: Vector3, ) => Vector3 | void	-
 <	ParametricGeometry	class	class extends Geometry	-
 <	ParametricGeometry.constructor	constructor	instance (func: ParametricFunction = (u, v, target) => target.set(u, v, Math.cos(u) * Math.sin(v)), slices: number = 8, stacks: number = 8) => ParametricGeometry	-
@@ -3222,22 +3254,27 @@
 >	PolyhedronGeometry.fromJSON	method	-	static (data: Object) => PolyhedronGeometry
 !	PolyhedronGeometry.parameters	field	instance rw Record<string, unknown>	instance rw Object
 =	PolyhedronGeometry.type	field	instance rw string	instance rw string
->	PositionalAudio	class	-	class extends Audio
->	PositionalAudio.connect	method	-	instance () => this
->	PositionalAudio.constructor	constructor	-	instance (listener: AudioListener) => PositionalAudio
->	PositionalAudio.disconnect	method	-	instance () => this
+=	PositionalAudio	class	class extends Audio	class extends Audio
+=	PositionalAudio.connect	method	instance () => this	instance () => this
+=	PositionalAudio.constructor	constructor	instance (listener: AudioListener) => PositionalAudio	instance (listener: AudioListener) => PositionalAudio
+!	PositionalAudio.disconnect	method	instance () => this | undefined	instance () => this
+<	PositionalAudio.distanceModel	accessor	instance rw string	-
 >	PositionalAudio.getDistanceModel	method	-	instance () => ('linear'|'inverse'|'exponential')
 >	PositionalAudio.getMaxDistance	method	-	instance () => number
 >	PositionalAudio.getOutput	method	-	instance () => PannerNode
 >	PositionalAudio.getRefDistance	method	-	instance () => number
 >	PositionalAudio.getRolloffFactor	method	-	instance () => number
->	PositionalAudio.panner	field	-	instance ro PannerNode
->	PositionalAudio.setDirectionalCone	method	-	instance (coneInnerAngle: number, coneOuterAngle: number, coneOuterGain: number) => PositionalAudio
+<	PositionalAudio.maxDistance	accessor	instance rw number	-
+<	PositionalAudio.output	accessor	instance r AudioNodeLike | undefined	-
+!	PositionalAudio.panner	field	instance ro PannerNodeLike | undefined	instance ro PannerNode
+<	PositionalAudio.refDistance	accessor	instance rw number	-
+<	PositionalAudio.rolloffFactor	accessor	instance rw number	-
+!	PositionalAudio.setDirectionalCone	method	instance (coneInnerAngle: number, coneOuterAngle: number, coneOuterGain: number) => this	instance (coneInnerAngle: number, coneOuterAngle: number, coneOuterGain: number) => PositionalAudio
 >	PositionalAudio.setDistanceModel	method	-	instance (value: ('linear'|'inverse'|'exponential')) => PositionalAudio
 >	PositionalAudio.setMaxDistance	method	-	instance (value: number) => PositionalAudio
 >	PositionalAudio.setRefDistance	method	-	instance (value: number) => PositionalAudio
 >	PositionalAudio.setRolloffFactor	method	-	instance (value: number) => PositionalAudio
->	PositionalAudio.updateMatrixWorld	method	-	instance (force: any) => void
+!	PositionalAudio.updateMatrixWorld	method	instance (force: boolean = false) => void	instance (force: any) => void
 >	PropertyBinding	class	-	class
 >	PropertyBinding.Composite	field	-	static rw typeof Composite
 >	PropertyBinding._getValue_array	method	-	instance (buffer: any, offset: any) => void
@@ -3334,8 +3371,8 @@
 !	QuadraticBezierCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	QuadraticBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 =	Quaternion	class	class	class
-<	Quaternion.__@iterator@2737	method	instance () => Generator<number, any, any>	-
->	Quaternion.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
+<	Quaternion.__@iterator@3073	method	instance () => Generator<number, any, any>	-
+>	Quaternion.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
 >	Quaternion._onChange	method	-	instance (callback: any) => this
 >	Quaternion._onChangeCallback	method	-	instance () => void
 >	Quaternion._w	field	-	instance rw number
@@ -3482,15 +3519,18 @@
 !	Raycaster.set	method	instance (origin: Vector3, direction: Vector3) => this	instance (origin: Vector3, direction: Vector3) => void
 !	Raycaster.setFromCamera	method	instance (coords: { x: number; y: number }, camera: RaycastCamera) => this	instance (coords: Vector2, camera: Camera) => void
 >	Raycaster.setFromXRController	method	-	instance (controller: WebXRController) => Raycaster
->	RectAreaLight	class	-	class extends Light
->	RectAreaLight.constructor	constructor	-	instance (color: (number|Color|string) = 0xffffff, intensity: number = 1, width: number = 10, height: number = 10) => RectAreaLight
->	RectAreaLight.copy	method	-	instance (source: any) => this
->	RectAreaLight.height	field	-	instance rw number
+=	RectAreaLight	class	class extends Light	class extends Light
+<	RectAreaLight.clone	method	instance () => RectAreaLight	-
+!	RectAreaLight.constructor	constructor	instance (color: number | string = 0xffffff, intensity: number = 1, width: number = 10, height: number = 10) => RectAreaLight	instance (color: (number|Color|string) = 0xffffff, intensity: number = 1, width: number = 10, height: number = 10) => RectAreaLight
+!	RectAreaLight.copy	method	instance (source: RectAreaLight, recursive: boolean = true) => this	instance (source: any) => this
+=	RectAreaLight.height	field	instance rw number	instance rw number
 >	RectAreaLight.isRectAreaLight	field	-	instance ro boolean
->	RectAreaLight.power	accessor	-	instance rw number
->	RectAreaLight.toJSON	method	-	instance (meta: any) => any
->	RectAreaLight.type	field	-	instance rw string
->	RectAreaLight.width	field	-	instance rw number
+<	RectAreaLight.lightType	field	instance rw number	-
+=	RectAreaLight.power	accessor	instance rw number	instance rw number
+!	RectAreaLight.toJSON	method	instance () => RectAreaLightJSON	instance (meta: any) => any
+=	RectAreaLight.type	field	instance rw string	instance rw string
+=	RectAreaLight.width	field	instance rw number	instance rw number
+<	RectAreaLightJSON	record	interface extends LightJSON { width: number; height: number }	-
 >	RedFormat	const	-	const number
 >	RedIntegerFormat	const	-	const number
 >	ReinhardToneMapping	const	-	const number
@@ -3572,7 +3612,7 @@
 >	SIGNED_RG11_EAC_Format	const	-	const number
 <	SIXTH_PI	const	const 0.5235987755982988	-
 >	SRGBColorSpace	const	-	const string
->	SRGBTransfer	const	-	const string
+!	SRGBTransfer	const	const "srgb"	const string
 <	STLExporter	class	class	-
 <	STLExporter.constructor	constructor	instance () => STLExporter	-
 <	STLExporter.parse	method	instance (root: Node, name: string = "EASEL") => string	-
@@ -3690,7 +3730,7 @@
 =	ShapePath.type	field	instance rw string	instance rw string
 !	ShapePath.userData	field	instance rw Record<string, unknown>	instance rw Object
 <	ShapePoint2D	record	interface { readonly x: number; readonly y: number }	-
->	ShapeUtils	class	-	class
+!	ShapeUtils	const/class	const { area(contour: readonly ShapePoint2D[]): number; isClockWise(points: readonly ShapePoint2D[]): boolean; triangulateShape(contour: readonly ShapePoint2D[], holes: readonly (readonly ShapePoint2D[])[]): [number, number, number][]; }	class
 >	ShapeUtils.area	method	-	static (contour: Array<Vector2>) => number
 >	ShapeUtils.constructor	constructor	-	instance () => ShapeUtils
 >	ShapeUtils.isClockWise	method	-	static (pts: Array<Vector2>) => boolean
@@ -3911,27 +3951,33 @@
 !	Sprite.material	field	instance rw Material | undefined	instance rw (SpriteMaterial|SpriteNodeMaterial)
 !	Sprite.raycast	method	instance (raycaster: Raycaster, intersects: Intersection[]) => void	instance (raycaster: Raycaster, intersects: Array<Object>) => void
 =	Sprite.type	field	instance rw string	instance rw string
->	SpriteMaterial	class	-	class extends Material
->	SpriteMaterial.color	field	-	instance rw Color
->	SpriteMaterial.constructor	constructor	-	instance (parameters?: Object) => SpriteMaterial
->	SpriteMaterial.copy	method	-	instance (source: any) => this
->	SpriteMaterial.isSpriteMaterial	field	-	instance ro boolean
->	SpriteMaterial.type	field	-	instance rw string
+=	SpriteMaterial	class	class extends Material	class extends Material
+<	SpriteMaterial.clone	method	instance () => SpriteMaterial	-
+=	SpriteMaterial.color	field	instance rw Color	instance rw Color
+!	SpriteMaterial.constructor	constructor	instance (options: SpriteMaterialOptions = {}) => SpriteMaterial	instance (parameters?: Object) => SpriteMaterial
+!	SpriteMaterial.copy	method	instance (source: SpriteMaterial) => this	instance (source: any) => this
+!	SpriteMaterial.isSpriteMaterial	accessor/field	instance r true	instance ro boolean
+<	SpriteMaterial.map	field	instance rw Texture | undefined	-
+<	SpriteMaterial.rotation	field	instance rw number	-
+<	SpriteMaterial.toJSON	method	instance () => SpriteMaterialJSON	-
+=	SpriteMaterial.type	field	instance rw string	instance rw string
+<	SpriteMaterialJSON	record	interface extends MaterialJSON { color: number; map?: string; rotation: number }	-
+<	SpriteMaterialOptions	record	interface extends MaterialOptions { readonly color?: Color | number | string; readonly map?: Texture | undefined; readonly rotation?: number }	-
 >	SrcAlphaFactor	const	-	const number
 >	SrcAlphaSaturateFactor	const	-	const number
 >	SrcColorFactor	const	-	const number
 >	StaticCopyUsage	const	-	const number
 >	StaticDrawUsage	const	-	const number
 >	StaticReadUsage	const	-	const number
->	StereoCamera	class	-	class
+=	StereoCamera	class	class	class
 >	StereoCamera._cache	field	-	instance rw { focus: null; fov: null; aspect: null; near: null; far: null; zoom: null; eyeSep: null; }
->	StereoCamera.aspect	field	-	instance rw number
->	StereoCamera.cameraL	field	-	instance rw PerspectiveCamera
->	StereoCamera.cameraR	field	-	instance rw PerspectiveCamera
->	StereoCamera.constructor	constructor	-	instance () => StereoCamera
->	StereoCamera.eyeSep	field	-	instance rw number
->	StereoCamera.type	field	-	instance ro string
->	StereoCamera.update	method	-	instance (camera: PerspectiveCamera) => void
+=	StereoCamera.aspect	field	instance rw number	instance rw number
+=	StereoCamera.cameraL	field	instance rw PerspectiveCamera	instance rw PerspectiveCamera
+=	StereoCamera.cameraR	field	instance rw PerspectiveCamera	instance rw PerspectiveCamera
+=	StereoCamera.constructor	constructor	instance () => StereoCamera	instance () => StereoCamera
+=	StereoCamera.eyeSep	field	instance rw number	instance rw number
+!	StereoCamera.type	field	instance rw string	instance ro string
+=	StereoCamera.update	method	instance (camera: PerspectiveCamera) => void	instance (camera: PerspectiveCamera) => void
 <	StereoPannerNodeLike	record	interface extends AudioNodeLike { pan: AudioParamLike }	-
 >	StreamCopyUsage	const	-	const number
 >	StreamDrawUsage	const	-	const number
@@ -3953,7 +3999,8 @@
 <	TIFFLoader.parse	method	instance (buffer: ArrayBuffer) => TIFFParseResult	-
 <	TIFFParseResult	record	interface { readonly data: Uint8ClampedArray; readonly width: number; readonly height: number; readonly endianness: "little" | "big"; readonly photometric: TIFFPhotometric; readonly compression: 1; readonly samplesPerPixel: number; readonly bitsPerSample: readonly number[]; readonly orientation: number; readonly rowsPerStrip: number; readonly stripCount: number; readonly planarConfiguration: 1; readonly extraSamples: readonly number[] }	-
 <	TIFFPhotometric	record	type = "black-is-zero" | "white-is-zero" | "rgb"	-
->	TOUCH	const	-	const ConstantsTouch
+!	TOUCH	const	const { readonly ROTATE: 0; readonly PAN: 1; readonly DOLLY_PAN: 2; readonly DOLLY_ROTATE: 3; }	const ConstantsTouch
+<	TOUCH	record	type = (typeof TOUCH)[keyof typeof TOUCH]	-
 <	TTFBoundingBox	record	interface { readonly xMin: number; readonly xMax: number; readonly yMin: number; readonly yMax: number }	-
 <	TTFDirection	record	type = "ltr" | "rtl" | "tb"	-
 <	TTFFont	class	class	-
@@ -4047,7 +4094,7 @@
 <	TextureSampler.constructor	constructor	instance () => TextureSampler	-
 <	TextureSampler.sample	method	instance (texture: TextureData, u: number, v: number) => { r: number; g: number; b: number; a: number; }	-
 <	TextureSerializationMeta	record	interface extends SourceSerializationMeta { textures: Record<string, TextureJSON> }	-
->	TextureUtils	class	-	class
+!	TextureUtils	const/class	const { getDataUrl(image: HTMLImageElement | HTMLCanvasElement | ImageData, type?: string): string; }	class
 >	TextureUtils.constructor	constructor	-	instance () => TextureUtils
 >	TextureUtils.contain	method	-	static (texture: Texture, aspect: number) => Texture
 >	TextureUtils.cover	method	-	static (texture: Texture, aspect: number) => Texture
@@ -4220,9 +4267,9 @@
 >	Triangle.setFromAttributeAndIndices	method	-	instance (attribute: BufferAttribute, i0: number, i1: number, i2: number) => Triangle
 >	Triangle.setFromPointsAndIndices	method	-	instance (points: Array<Vector3>, i0: number, i1: number, i2: number) => Triangle
 <	TriangleCapsuleIntersection	record	interface extends CapsuleIntersection { readonly point: Vector3 }	-
->	TriangleFanDrawMode	const	-	const number
->	TriangleStripDrawMode	const	-	const number
->	TrianglesDrawMode	const	-	const number
+!	TriangleFanDrawMode	const	const 2	const number
+!	TriangleStripDrawMode	const	const 1	const number
+!	TrianglesDrawMode	const	const 0	const number
 !	TubeGeometry	class	class extends Geometry	class extends BufferGeometry
 >	TubeGeometry.binormals	field	-	instance rw any
 !	TubeGeometry.constructor	constructor	instance (path: TubeCurve, tubularSegments: number = 64, radius: number = 1, radialSegments: number = 8, closed: boolean = false) => TubeGeometry	instance (path: Curve = new Curves[ 'QuadraticBezierCurve3' ]( new Vector3( - 1, - 1, 0 ), new Vector3( - 1, 1, 0 ), new Vector3( 1, 1, 0 ) ), tubularSegments: number = 64, radius: number = 1, radialSegments: number = 8, closed: boolean = false) => TubeGeometry
@@ -4286,8 +4333,8 @@
 <	VOXVoxelVolume	record	interface { readonly size: VOXSize; readonly occupancy: Uint8Array; readonly colors: Uint8Array; readonly palette: readonly number[] }	-
 >	VSMShadowMap	const	-	const number
 =	Vector2	class	class	class
-<	Vector2.__@iterator@2737	method	instance () => Generator<number, any, any>	-
->	Vector2.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
+<	Vector2.__@iterator@3073	method	instance () => Generator<number, any, any>	-
+>	Vector2.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
 !	Vector2.add	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.addScaledVector	method	instance (v: Vector2, s: number) => this	instance (v: Vector2, s: number) => Vector2
@@ -4346,8 +4393,8 @@
 !	Vector2.x	accessor/field	instance rw number	instance rw number
 !	Vector2.y	accessor/field	instance rw number	instance rw number
 =	Vector3	class	class	class
-<	Vector3.__@iterator@2737	method	instance () => Generator<number, any, any>	-
->	Vector3.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
+<	Vector3.__@iterator@3073	method	instance () => Generator<number, any, any>	-
+>	Vector3.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
 !	Vector3.add	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.addScaledVector	method	instance (v: Vector3 | Vector4, s: number) => this	instance (v: Vector3|Vector4, s: number) => Vector3
@@ -4426,8 +4473,8 @@
 !	Vector3.y	accessor/field	instance rw number	instance rw number
 !	Vector3.z	accessor/field	instance rw number	instance rw number
 =	Vector4	class	class	class
-<	Vector4.__@iterator@2737	method	instance () => Generator<number, any, any>	-
->	Vector4.__@iterator@5447	method	-	instance () => Generator<number, void, unknown>
+<	Vector4.__@iterator@3073	method	instance () => Generator<number, any, any>	-
+>	Vector4.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
 !	Vector4.add	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.addScaledVector	method	instance (v: Vector4, s: number) => this	instance (v: Vector4, s: number) => Vector4
@@ -4603,7 +4650,7 @@
 <	drawTimeDomainWaveform	function	(context: CanvasAudioContext, data: ArrayLike<number>, options: AudioVisualizerOptions = {}) => void	-
 <	earcut	function	(data: number[], holeIndices?: number[], dim: number = 2) => number[]	-
 <	encodeHsl16	function	(h: number, s: number, l: number) => number	-
->	error	function	-	(...params: ...any) => void
+!	error	function	(...params: unknown[]) => void	(...params: ...any) => void
 <	extractUrlBase	function	(url: string) => string	-
 <	fastAtan2	function	(y: number, x: number) => number	-
 <	fastMax	function	(a: number, b: number) => number	-
@@ -4615,7 +4662,8 @@
 <	findSpan	function	(degree: number, u: number, knots: number[]) => number	-
 <	flattenJSON	function	(jsonKeys: readonly FlatKeyframe[], times: number[], values: TrackValue[], valuePropertyName: string) => void	-
 <	fromHalfFloat	function	(value: number) => number	-
->	getConsoleFunction	function	-	() => Function|null
+<	getAudioContext	function	() => AudioContextLike | undefined	-
+!	getConsoleFunction	function	() => ConsoleFunction | null	() => Function|null
 <	getDataUrl	function	(image: DataUrlImage, type: string = "image/png") => string	-
 <	getKeyframeOrder	function	(times: ArrayLike<number>) => number[]	-
 <	interpolateTriangle	function	(point: Vector3, a: Vector3, b: Vector3, c: Vector3, v1: Vector3, v2: Vector3, v3: Vector3, target: Vector3 = new Vector3()) => Vector3 | undefined	-
@@ -4623,7 +4671,7 @@
 <	isShapeClockwise	function	(points: readonly ShapePoint2D[]) => boolean	-
 <	isTriangleFrontFacing	function	(a: Vector3, b: Vector3, c: Vector3, direction: Vector3) => boolean	-
 <	isTypedArray	function	(value: unknown) => boolean	-
->	log	function	-	(...params: ...any) => void
+!	log	function	(...params: unknown[]) => void	(...params: ...any) => void
 <	makeCameraView	function	(fullWidth: number, fullHeight: number, offsetX: number, offsetY: number, width: number, height: number, enabled: boolean = true) => CameraView	-
 <	makeClipAdditive	function	(clip: AnimationClip, referenceFrame: number = 0, referenceClip: AnimationClip = clip, fps: number = 30) => AnimationClip	-
 <	multiplyQuaternionsFlat	function	<Destination extends QuaternionArray>(destination: Destination, destinationOffset: number, left: ArrayLike<number>, leftOffset: number, right: ArrayLike<number>, rightOffset: number) => Destination	-
@@ -4637,7 +4685,8 @@
 <	sanitizeBindingNodeName	function	(name: string) => string	-
 <	serializeSVGPath	function	(path: CurvePath, options: SVGPathSerializerOptions = {}) => string	-
 <	serializeSVGShapePath	function	(shapePath: ShapePath, options: SVGPathSerializerOptions = {}) => string	-
->	setConsoleFunction	function	-	(fn: Function) => void
+<	setAudioContext	function	(value: AudioContextLike | undefined) => void	-
+!	setConsoleFunction	function	(fn: ConsoleFunction | null) => void	(fn: Function) => void
 <	shapeArea	function	(contour: readonly ShapePoint2D[]) => number	-
 <	slerpQuaternionsFlat	function	<Destination extends QuaternionArray>(destination: Destination, destinationOffset: number, start: ArrayLike<number>, startOffset: number, end: ArrayLike<number>, endOffset: number, alpha: number) => Destination	-
 <	sortedArray	function	<ArrayType extends NumericTypedArray | readonly number[]>(values: ArrayType, stride: number, order: readonly number[]) => ArrayType extends NumericTypedArray ? ArrayType : number[]	-
@@ -4652,5 +4701,5 @@
 <	triangleContainsPoint	function	(point: Vector3, a: Vector3, b: Vector3, c: Vector3) => boolean	-
 <	triangleNormal	function	(a: Vector3, b: Vector3, c: Vector3, target: Vector3 = new Vector3()) => Vector3	-
 <	triangulateShape	function	(contour: readonly ShapePoint2D[], holes: readonly (readonly ShapePoint2D[])[]) => [number, number, number][]	-
->	warn	function	-	(...params: ...any) => void
->	warnOnce	function	-	(...params: ...any) => void
+!	warn	function	(...params: unknown[]) => void	(...params: ...any) => void
+!	warnOnce	function	(...params: unknown[]) => void	(...params: ...any) => void

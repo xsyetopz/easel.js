@@ -564,7 +564,7 @@ function ensureRange(
   name: string,
 ): void {
   if (
-    !(Number.isSafeInteger(offset) &&Number.isSafeInteger(length) ) ||
+    !(Number.isSafeInteger(offset) && Number.isSafeInteger(length)) ||
     offset < 0 ||
     length < 0 ||
     offset > view.byteLength ||

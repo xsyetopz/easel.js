@@ -4,15 +4,6 @@ import type { Geometry } from "../geometry/Geometry.ts";
 import type { Material } from "../materials/Material.ts";
 import { raycastPointsGeometry } from "./raycast.ts";
 
-interface MorphAttributeLike {
-  readonly length: number;
-  readonly name?: string;
-}
-
-interface MorphGeometryLike extends Geometry {
-  morphAttributes?: Record<string, readonly MorphAttributeLike[]>;
-}
-
 /** Point cloud rasterized as individual vertices. */
 export class Points extends Node {
   /** Serialization discriminator for this runtime type. */
@@ -60,8 +51,7 @@ export class Points extends Node {
 
   /** Populates morph target names and zeroed influence values when available. */
   updateMorphTargets(): void {
-    const morphAttributes = (this.geometry as MorphGeometryLike | undefined)
-      ?.morphAttributes;
+    const morphAttributes = this.geometry?.morphAttributes;
     const keys = morphAttributes ? Object.keys(morphAttributes) : [];
     const first = keys.length > 0 ? morphAttributes?.[keys[0]!] : undefined;
     if (first === undefined || first.length === 0) {

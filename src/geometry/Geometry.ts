@@ -84,6 +84,12 @@ export class Geometry {
     start: 0,
     count: Number.POSITIVE_INFINITY,
   };
+  /** Per-channel morph target arrays, or `undefined` when no morph targets exist. */
+  morphAttributes: Record<string, Attribute[]> | undefined = undefined;
+  /** Whether morph target positions are relative to the base attribute. */
+  morphTargetsRelative = false;
+  /** Application-specific metadata retained through serialization. */
+  userData: Record<string, unknown> = {};
   readonly #attributes = new Map<string, Attribute>();
   #index: Uint16Array | Uint32Array | undefined = undefined;
   #publishingInternalAttributeUpdate = false;

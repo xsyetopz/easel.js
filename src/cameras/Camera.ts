@@ -224,7 +224,11 @@ export class Camera extends Node {
       tileSize: this.tileSize,
     };
     if (
-      !((Number.isFinite(json.near) &&Number.isFinite(json.far) ) &&Number.isFinite(json.tileSize))
+      !(
+        Number.isFinite(json.near) &&
+        Number.isFinite(json.far) &&
+        Number.isFinite(json.tileSize)
+      )
     ) {
       throw new RangeError("Camera.toJSON requires finite camera values.");
     }

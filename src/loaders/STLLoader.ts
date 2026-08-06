@@ -7,7 +7,8 @@ function parseAscii(text: string): Geometry {
   const normals: number[] = [];
   const normalPattern =
     /facet\s+normal\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)/giu;
-  const vertexPattern = /vertex\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)/giu;
+  const vertexPattern =
+    /vertex\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)/giu;
   const facetNormals: number[][] = [];
   let normalMatch: RegExpExecArray | null;
   normalMatch = normalPattern.exec(text);

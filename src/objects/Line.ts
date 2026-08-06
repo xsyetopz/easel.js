@@ -6,15 +6,6 @@ import { LineMaterial } from "../materials/LineMaterial.ts";
 import { Vector3 } from "../math/Vector3.ts";
 import { raycastLineGeometry } from "./raycast.ts";
 
-interface MorphAttributeLike {
-  readonly length: number;
-  readonly name?: string;
-}
-
-interface MorphGeometryLike extends Geometry {
-  morphAttributes?: Record<string, readonly MorphAttributeLike[]>;
-}
-
 const _lineStart = new Vector3();
 const _lineEnd = new Vector3();
 
@@ -109,8 +100,7 @@ export class Line extends Node {
 
   /** Populates morph target names and zeroed influence values when available. */
   updateMorphTargets(): void {
-    const morphAttributes = (this.geometry as MorphGeometryLike | undefined)
-      ?.morphAttributes;
+    const morphAttributes = this.geometry?.morphAttributes;
     const keys = morphAttributes ? Object.keys(morphAttributes) : [];
     const first = keys.length > 0 ? morphAttributes?.[keys[0]!] : undefined;
     if (first === undefined || first.length === 0) {

@@ -17,11 +17,6 @@ interface MorphAttributeLike {
   readonly getZ?: (index: number) => number;
 }
 
-interface MorphGeometryLike extends Geometry {
-  morphAttributes?: Record<string, readonly MorphAttributeLike[]>;
-  morphTargetsRelative?: boolean;
-}
-
 /** Triangulated surface with geometry and material. */
 export class Mesh extends Node {
   /** Serialization discriminator for this runtime type. */
@@ -106,7 +101,7 @@ export class Mesh extends Node {
 
   /** Populates morph target names and zeroed influence values when available. */
   updateMorphTargets(): void {
-    const geometry = this.#geometry as MorphGeometryLike | undefined;
+    const geometry = this.#geometry;
     const morphAttributes = geometry?.morphAttributes;
     if (morphAttributes === undefined) {
       this.morphTargetDictionary = undefined;
@@ -145,8 +140,10 @@ export class Mesh extends Node {
       position.getZ(index),
     );
 
-    const geometry = this.#geometry as MorphGeometryLike | undefined;
-    const morphPosition = geometry?.morphAttributes?.["position"];
+    const geometry = this.#geometry;
+    const morphPosition = geometry?.morphAttributes?.["position"] as
+      | MorphAttributeLike[]
+      | undefined;
     const influences = this.morphTargetInfluences;
     if (morphPosition === undefined || influences === undefined) return target;
 

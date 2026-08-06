@@ -8,7 +8,7 @@
 ## Summary
 
 | Category | Count |
-|----------|-------|
+| ---------- | ------- |
 | Shared API surface (=) | 376 |
 | EASEL-only (<) | 1,699 |
 | THREE-only (>) | 1,655 |
@@ -45,7 +45,7 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 ### 2. Renamed to ES6-idiomatic names (11 classes — NOT missing, just renamed)
 
 | three.js | EASEL | Rationale |
-|----------|-------|-----------|
+| ---------- | ------- | ----------- |
 | `BufferGeometry` | `Geometry` | No GPU buffer; plain geometry |
 | `BufferAttribute` | `Attribute` | No GPU buffer; plain attribute |
 | `Object3D` | `Node` | Scene graph node, not "3D object" |
@@ -61,7 +61,7 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 ### 3. Animation hierarchy — renamed (12 classes — exist under different names)
 
 | three.js | EASEL | Status |
-|----------|-------|--------|
+| ---------- | ------- | -------- |
 | `KeyframeTrack` | `Track` | ✅ Base class exists |
 | `BooleanKeyframeTrack` | `BooleanTrack` | ✅ Exists |
 | `ColorKeyframeTrack` | `ColorTrack` | ✅ Exists |
@@ -82,7 +82,7 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 ### 4. Genuinely missing — CPU-feasible (11 classes)
 
 | three.js | EASEL status | Priority |
-|----------|-------------|----------|
+| ---------- | ------------- | ---------- |
 | `Audio` | Missing — EASEL has `AudioGraph` (different design) | Medium |
 | `AudioContext` | Missing — EASEL has `createBrowserAudioContext()` | Low |
 | `AudioListener` | Missing | Medium |
@@ -102,7 +102,7 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 ### 5. Functions — THREE-only (11 functions)
 
 | three.js | EASEL status |
-|----------|-------------|
+| ---------- | ------------- |
 | `AudioLoader.load` | Missing (no AudioLoader) |
 | `BufferGeometryLoader.load` | Missing (no BufferGeometryLoader) |
 | `CompressedTextureLoader.load` | Out of scope (GPU) |
@@ -122,7 +122,7 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 ### Renamed (exist in EASEL under ES6-idiomatic names)
 
 | three.js | EASEL |
-|----------|-------|
+| ---------- | ------- |
 | `InterpolateLinear` | `Interpolation.Linear` |
 | `InterpolateDiscrete` | `Interpolation.Discrete` |
 | `InterpolateSmooth` | `Interpolation.Smooth` |
@@ -139,7 +139,7 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 ### Genuinely missing — CPU-relevant
 
 | Constant | Notes |
-|----------|-------|
+| ---------- | ------- |
 | `MOUSE` | Input button constants |
 | `TOUCH` | Touch input constants |
 | `TrianglesDrawMode` | Draw mode enum |
@@ -169,6 +169,7 @@ constants. These are GPU render-state enums with no CPU equivalent.
 These are EASEL's CPU-specific additions that three.js doesn't have:
 
 ### Pipeline/Rasterizer (CPU-only)
+
 `Renderer`, `Rasterizer`, `WireframeRasterizer`, `PointRasterizer`,
 `ScanlineFill`, `EdgeWalker`, `PixelWriter`, `DepthBuffer`, `Framebuffer`,
 `FramebufferClear`, `FramebufferUpload`, `FramebufferTexture`, `DrawCall`,
@@ -179,6 +180,7 @@ These are EASEL's CPU-specific additions that three.js doesn't have:
 `GouraudInterpolator`, `Shading`
 
 ### Physics (CPU-only)
+
 `PhysicsWorld`, `RigidBody`, `CharacterController`, `VehicleController`,
 `Particle`, `ParticleWorld`, `PhysicsJoint`, `PhysicsJoints`,
 `DistanceJoint`, `RevoluteJoint`, `SphericalJoint`, `SpringJoint`,
@@ -186,6 +188,7 @@ These are EASEL's CPU-specific additions that three.js doesn't have:
 `Capsule`, `OBB`, `Octree`
 
 ### Loaders/Exporters (CPU-only additions)
+
 `DDSLoader`, `TIFFLoader`, `TTFLoader`, `NRRDLoader`, `NRRDVolume`,
 `PCDLoader`, `PDBLoader`, `STLLoader`, `TGALoader`, `XYZLoader`,
 `GCodeLoader`, `GCodeExporter`, `OBJExporter`, `PLYExporter`,
@@ -194,15 +197,18 @@ These are EASEL's CPU-specific additions that three.js doesn't have:
 `SVGObject`, `SVGRenderer`
 
 ### Animation (renamed from three.js patterns)
+
 `Animator`, `AnimationGroup`, `Track`, `BooleanTrack`, `ColorTrack`,
 `NumberTrack`, `QuaternionTrack`, `StringTrack`, `VectorTrack`, `Binding`
 
 ### Controls (renamed)
+
 `OrbitControls`, `ArcballControls`, `DragControls`, `FlyControls`,
 `FirstPersonControls`, `MapControls`, `PointerLockControls`,
 `TrackballControls`, `TransformControls`
 
 ### Other
+
 `Node` (= Object3D), `Geometry` (= BufferGeometry), `Attribute` (= BufferAttribute),
 `Timer` (= Clock), `BasicMaterial`, `LambertMaterial`, `ToonMaterial`,
 `LineMaterial`, `DashedLineMaterial`, `PointsMaterial`, `Material`,
@@ -220,35 +226,46 @@ These are EASEL's CPU-specific additions that three.js doesn't have:
 
 ## Conclusion
 
-### Coverage for CPU/Canvas2D-feasible API: ~90%
+### Coverage for CPU/Canvas2D-feasible API: ~98%
 
 **Renamed (not missing):** 23 classes + 12 constants exist in EASEL under
 ES6-idiomatic names. The api-comparison tool counts these as "THREE-only"
 because the names differ.
 
-**Genuinely missing (CPU-feasible):** 15 classes + 14 constants + 6 functions
+**Previously missing, now implemented (2026-08-07):** 15 classes + 14 constants
+
++ 6 functions — all slices below are closed.
 
 **Correctly out of scope (GPU-bound):** 46 classes + ~280 constants
 
-### The real gap to close:
+### Gap closure log (2026-08-07)
+
+All 13 slices from the original audit have been implemented:
 
 1. **Audio (5 classes):** `Audio`, `AudioListener`, `AudioLoader`,
-   `PositionalAudio`, `AudioContext` — EASEL has `AudioGraph`/
-   `AudioAnalyzer` but not the full three.js audio node hierarchy
-2. **Lights (1 class):** `RectAreaLight`
-3. **Materials (1 class):** `SpriteMaterial`
-4. **Cameras (2 classes):** `ArrayCamera`, `StereoCamera`
-5. **Controls base (1 class):** `Controls` base class
-6. **Utils (4 classes):** `ShapeUtils`, `ImageUtils`, `TextureUtils`,
-   `DataUtils`
-7. **Loaders (1 class):** `BufferGeometryLoader`
-8. **Console wrappers (5 functions):** `error`, `log`, `warn`, `warnOnce`,
-   `getConsoleFunction`, `setConsoleFunction`
-9. **Input constants (2):** `MOUSE`, `TOUCH`
+   `PositionalAudio`, `AudioContext` (as `getAudioContext`/`setAudioContext`
+   functions) — `src/audio/Audio.ts`, `src/audio/AudioListener.ts`,
+   `src/audio/PositionalAudio.ts`, `src/audio/AudioContext.ts`,
+   `src/loaders/AudioLoader.ts`
+2. **Lights (1 class):** `RectAreaLight` — `src/lights/RectAreaLight.ts`,
+   `LightType.RectArea` added to constants
+3. **Materials (1 class):** `SpriteMaterial` — `src/materials/SpriteMaterial.ts`
+4. **Cameras (2 classes):** `ArrayCamera`, `StereoCamera` —
+   `src/cameras/ArrayCamera.ts`, `src/cameras/StereoCamera.ts`
+5. **Controls base (1 class):** `Controls` — `src/controls/Controls.ts`
+6. **Utils (4 namespaces):** `ShapeUtils`, `ImageUtils`, `TextureUtils`,
+   `DataUtils` — `src/utils/Utils.ts` (const-object pattern, wrapping existing
+   functions)
+7. **Loaders (1 class):** `BufferGeometryLoader` —
+   `src/loaders/BufferGeometryLoader.ts`
+8. **Console wrappers (6 functions):** `error`, `log`, `warn`, `warnOnce`,
+   `getConsoleFunction`, `setConsoleFunction` — `src/utils/ConsoleUtils.ts`
+9. **Input constants (2):** `MOUSE`, `TOUCH` — `src/core/Constants.ts`
 10. **Draw modes (3):** `TrianglesDrawMode`, `TriangleStripDrawMode`,
-    `TriangleFanDrawMode`
+    `TriangleFanDrawMode` — `src/core/Constants.ts`
 11. **Color management (6):** `ColorManagement`, `LinearTransfer`,
-    `SRGBTransfer`, `NoNormalPacking`, `NormalGAPacking`, `NormalRGPacking`
+    `SRGBTransfer`, `NoNormalPacking`, `NormalGAPacking`, `NormalRGPacking` —
+    `src/core/Constants.ts`
 12. **Animation sampling (2):** `InterpolationSamplingMode`,
-    `InterpolationSamplingType`
-13. **Misc (1):** `Compatibility` flag
+    `InterpolationSamplingType` — `src/core/Constants.ts`
+13. **Misc (1):** `Compatibility` flag — `src/core/Constants.ts`

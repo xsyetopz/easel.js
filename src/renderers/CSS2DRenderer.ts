@@ -29,7 +29,7 @@ export class CSS2DRenderer {
   /** Sets the overlay viewport dimensions. */
   setSize(width: number, height: number): void {
     if (
-      !(Number.isFinite(width) &&Number.isFinite(height) ) ||
+      !(Number.isFinite(width) && Number.isFinite(height)) ||
       width <= 0 ||
       height <= 0
     ) {

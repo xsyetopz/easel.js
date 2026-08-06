@@ -69,25 +69,36 @@ export {
   type AudioAnalyzerOptions,
 } from "./audio/AudioAnalyzer.ts";
 export {
-  AudioGraph,
-  type AudioGraphOptions,
-  createBrowserAudioContext,
-} from "./audio/AudioGraph.ts";
-export type {
-  AnalyserNodeLike,
-  AudioContextLike,
-  AudioNodeLike,
-  AudioParamLike,
-  OscillatorNodeLike,
-  StereoPannerNodeLike,
-} from "./audio/AudioTypes.ts";
-export {
   type CanvasAudioContext,
   type AudioVisualizerOptions,
   drawAudioAnalyzer,
   drawFrequencyBars,
   drawTimeDomainWaveform,
 } from "./audio/AudioVisualizer.ts";
+export { Audio, type AudioSourceType } from "./audio/Audio.ts";
+export {
+  getAudioContext,
+  setAudioContext,
+} from "./audio/AudioContext.ts";
+export { AudioListener } from "./audio/AudioListener.ts";
+export { PositionalAudio } from "./audio/PositionalAudio.ts";
+export {
+  AudioGraph,
+  type AudioGraphOptions,
+  createBrowserAudioContext,
+} from "./audio/AudioGraph.ts";
+export type {
+  AnalyserNodeLike,
+  AudioBufferLike,
+  AudioBufferSourceNodeLike,
+  AudioContextLike,
+  AudioNodeLike,
+  AudioParamLike,
+  NativeAudioListenerLike,
+  OscillatorNodeLike,
+  PannerNodeLike,
+  StereoPannerNodeLike,
+} from "./audio/AudioTypes.ts";
 export {
   assertCameraViewOffset,
   Camera,
@@ -103,10 +114,15 @@ export {
   type OrthographicCameraOptions,
 } from "./cameras/OrthographicCamera.ts";
 export {
+  ArrayCamera,
+  type ArrayCameraOptions,
+} from "./cameras/ArrayCamera.ts";
+export {
   PerspectiveCamera,
   type PerspectiveCameraJSON,
   type PerspectiveCameraOptions,
 } from "./cameras/PerspectiveCamera.ts";
+export { StereoCamera } from "./cameras/StereoCamera.ts";
 export {
   type ArcballCamera,
   ArcballControls,
@@ -116,6 +132,7 @@ export {
   DragControls,
   type DragControlsEvent,
 } from "./controls/DragControls.ts";
+export { Controls } from "./controls/Controls.ts";
 export { FirstPersonControls } from "./controls/FirstPersonControls.ts";
 export { FlyControls } from "./controls/FlyControls.ts";
 export { MapControls } from "./controls/MapControls.ts";
@@ -133,10 +150,24 @@ export {
 } from "./controls/TransformControls.ts";
 export {
   BindMode,
+  ColorManagement,
+  Compatibility,
+  InterpolationSamplingMode,
+  InterpolationSamplingType,
   Layer,
   LightType,
+  LinearTransfer,
+  MOUSE,
+  NoNormalPacking,
+  NormalGAPacking,
+  NormalRGPacking,
   Shading,
   Side,
+  SRGBTransfer,
+  TOUCH,
+  TriangleFanDrawMode,
+  TriangleStripDrawMode,
+  TrianglesDrawMode,
   Wrapping,
 } from "./core/Constants.ts";
 export { EventDispatcher } from "./core/EventDispatcher.ts";
@@ -328,9 +359,14 @@ export {
 export { Light, type LightJSON } from "./lights/Light.ts";
 export { LightProbe, type LightProbeJSON } from "./lights/LightProbe.ts";
 export { PointLight, type PointLightJSON } from "./lights/PointLight.ts";
+export {
+  RectAreaLight,
+  type RectAreaLightJSON,
+} from "./lights/RectAreaLight.ts";
 export { SpotLight, type SpotLightJSON } from "./lights/SpotLight.ts";
 // loaders
 export { AnimationLoader } from "./loaders/AnimationLoader.ts";
+export { AudioLoader } from "./loaders/AudioLoader.ts";
 export {
   type BVHChannel,
   BVHLoader,
@@ -348,6 +384,7 @@ export {
 export { FileLoader, type FileResponseType } from "./loaders/FileLoader.ts";
 export { GCodeLoader } from "./loaders/GCodeLoader.ts";
 export { GeometryLoader } from "./loaders/GeometryLoader.ts";
+export { BufferGeometryLoader } from "./loaders/BufferGeometryLoader.ts";
 export {
   type GLTFAnimation,
   type GLTFAnimationChannel,
@@ -489,6 +526,11 @@ export {
   type PointsMaterialJSON,
   type PointsMaterialOptions,
 } from "./materials/PointsMaterial.ts";
+export {
+  SpriteMaterial,
+  type SpriteMaterialJSON,
+  type SpriteMaterialOptions,
+} from "./materials/SpriteMaterial.ts";
 export {
   ToonMaterial,
   type ToonMaterialJSON,
@@ -737,3 +779,19 @@ export {
   type ImagePixelArray,
   srgbToLinear,
 } from "./utils/ImageUtils.ts";
+export {
+  DataUtils,
+  ImageUtils,
+  ShapeUtils,
+  TextureUtils,
+} from "./utils/Utils.ts";
+export {
+  type ConsoleFunction,
+  type ConsoleType,
+  error,
+  getConsoleFunction,
+  log,
+  setConsoleFunction,
+  warn,
+  warnOnce,
+} from "./utils/ConsoleUtils.ts";

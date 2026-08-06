@@ -125,7 +125,7 @@ export class CharacterController {
 
   /** Constructs a controller with bounded deterministic fixed-step settings. */
   constructor(options: CharacterControllerOptions) {
-    if (!(options && (options.octree instanceof Octree))) {
+    if (!(options && options.octree instanceof Octree)) {
       throw new TypeError("CharacterController requires an Octree.");
     }
     this.octree = options.octree;
@@ -423,7 +423,11 @@ function createCapsule(radius: number, height: number): Capsule {
 
 function validateVector(value: Vector3, name: string): void {
   if (
-    !((Number.isFinite(value.x) &&Number.isFinite(value.y) ) &&Number.isFinite(value.z))
+    !(
+      Number.isFinite(value.x) &&
+      Number.isFinite(value.y) &&
+      Number.isFinite(value.z)
+    )
   ) {
     throw new RangeError(`CharacterController ${name} must be finite.`);
   }
