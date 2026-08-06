@@ -2,8 +2,8 @@ import { defineCollection } from "astro:content";
 import { docsLoader } from "@astrojs/starlight/loaders";
 import { docsSchema } from "@astrojs/starlight/schema";
 
-const DOC_EXTENSION_RE = /\.(markdown|mdown|mkdn|mkd|mdwn|md|mdx)$/;
-const INDEX_SUFFIX_RE = /\/index$/;
+const DOC_EXTENSION_RE = /\.(markdown|mdown|mkdn|mkd|mdwn|md|mdx)$/u;
+const INDEX_SUFFIX_RE = /\/index$/u;
 
 function generatedDocsId(entry: string) {
   const withoutExtension = entry.replace(DOC_EXTENSION_RE, "");

@@ -133,8 +133,8 @@ interface MetadataPayload {
 
 function humanizeParam(value: string) {
   return value
-    .replaceAll(/[-_]/g, " ")
-    .replaceAll(/\b\w/g, (match) => match.toUpperCase());
+    .replaceAll(/[-_]/gu, " ")
+    .replaceAll(/\b\w/gu, (match) => match.toUpperCase());
 }
 
 function getExampleById(exampleId: string, metadataPayload?: MetadataPayload) {

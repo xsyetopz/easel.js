@@ -6,10 +6,10 @@ export type AppRoute =
   | { page: "example"; param: string }
   | { page: "landing"; slug: string };
 
-const LEGACY_HASH_PREFIX = /^#\/?/;
+const LEGACY_HASH_PREFIX = /^#\/?/u;
 
 function normalizePath(path: string) {
-  return path.replace(/^\/+|\/+$/g, "");
+  return path.replace(/^\/+|\/+$/gu, "");
 }
 
 function parsePathSegments(path: string) {
