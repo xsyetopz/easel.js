@@ -1,96 +1,30 @@
-import {
-  Wrapping,
-  type Wrapping as WrappingMode,
-} from "../../core/Constants.ts";
+import { Wrapping } from "../../core/Constants.ts";
 import type { DepthBuffer } from "../framebuffer/DepthBuffer.ts";
-import type { LineBuffer } from "../LineBuffer.ts";
 import type { TriangleBuffer } from "../TriangleBuffer.ts";
-import { textureCoordinateToTexel } from "../texture/TextureWrapping.ts";
 import { LineRasterizer } from "./LineRasterizer.ts";
 import { ScanlineFill } from "./ScanlineFill.ts";
 import { WireframeRasterizer } from "./WireframeRasterizer.ts";
-
-/**
- * 4x4 Bayer ordered dither thresholds, normalized to [0, 1).
- * Indexed as BAYER4[(y & 3) << 2 | (x & 3)].
- */
-const BAYER4 = Float64Array.of(
-  0 / 16,
-  8 / 16,
-  2 / 16,
-  10 / 16,
-  12 / 16,
-  4 / 16,
-  14 / 16,
-  6 / 16,
-  3 / 16,
-  11 / 16,
-  1 / 16,
-  9 / 16,
-  15 / 16,
-  7 / 16,
-  13 / 16,
-  5 / 16,
-);
-
-interface TextureData {
-  data: Uint8ClampedArray;
-  width: number;
-  height: number;
-}
-
-interface MaterialMap {
-  data: TextureData;
-  brightnessLevels?: Uint8ClampedArray[];
-  wrapS?: WrappingMode;
-  wrapT?: WrappingMode;
-}
-
-interface RasterMaterial {
-  wireframe?: boolean;
-  points?: boolean;
-  size?: number;
-  linewidth?: number;
-  dashSize?: number;
-  gapSize?: number;
-  color?: { r: number; g: number; b: number };
-  map?: MaterialMap;
-  opacity?: number;
-  transparent?: boolean;
-  depthTest?: boolean;
-  depthWrite?: boolean;
-}
-
-interface RasterDrawCall {
-  primitive?: "triangles" | "lines";
-  triangles?: TriangleBuffer;
-  lines?: LineBuffer;
-  material: RasterMaterial;
-  shadedColorData?: Float32Array;
-  shadedColorStride?: number;
-  vertexColorData?: ArrayLike<number>;
-  vertexColorItemSize?: number;
-  instanceColorR?: number;
-  instanceColorG?: number;
-  instanceColorB?: number;
-}
-
-interface RasterFramebuffer {
-  width: number;
-  height: number;
-  depthBuffer: DepthBuffer;
-  u32: Uint32Array;
-}
-
-type ScanlineCallback = (
-  y: number,
-  xStart: number,
-  xEnd: number,
-  u: number,
-  v: number,
-  duDx: number,
-  dvDx: number,
-) => void;
+import type {
+  RasterDrawCall,
+  RasterFramebuffer,
+  RasterMaterial,
+  RasterizerState,
+  ScanlineCallback,
+  TextureData,
+} from "./_RasterizerTypes.ts";
+import {
+  fillFlat,
+  fillGouraud,
+  fillFlatTex,
+  fillUnlitTex,
+} from "./_ScanlineFillersBasic.ts";
+import {
+  fillGouraudTexCombinedTint,
+  fillGouraudTexNoTint,
+  fillGouraudTexUniformTint,
+  fillGouraudTexVertexTint,
+} from "./_ScanlineFillersGouraudTex.ts";
+import { rasterizePoint, writePoint } from "./_RasterizerPoint.ts";
 
 /** Scanline triangle rasterizer with texture sampling and shading. */
 export class Rasterizer {
@@ -98,73 +32,65 @@ export class Rasterizer {
   #wireframe = new WireframeRasterizer();
   #lineRasterizer = new LineRasterizer();
 
-  // Per-triangle state fields (set once per triangle, read in scanline handlers).
-  #depthBuf: DepthBuffer = undefined as unknown as DepthBuffer;
-  #dbData: Uint16Array = undefined as unknown as Uint16Array;
-  #dbWidth = 0;
-  #ndcZ0 = 0;
-  #ndcZ1 = 0;
-  #ndcZ2 = 0;
-  #flatR = 0;
-  #flatG = 0;
-  #flatB = 0;
-  #gouraudData: Float32Array | undefined;
-  #gouraudBase = 0;
-  #vertexColorData: ArrayLike<number> | undefined;
-  #vertexColorItemSize = 0;
-  #vertexTintData: Float32Array | undefined;
-  #vertexColorScratch = new Float32Array(9);
-  #vertexTintScratch = new Float32Array(9);
-  #hasTextureColorTint = false;
-  #hasCombinedTextureTint = false;
-  #textureColorR = 1;
-  #textureColorG = 1;
-  #textureColorB = 1;
-  #textureMaterialR = 1;
-  #textureMaterialG = 1;
-  #textureMaterialB = 1;
-  #baseR = 255;
-  #baseG = 255;
-  #baseB = 255;
-  #texData: Uint8ClampedArray | undefined;
-  #texW = 0;
-  #texH = 0;
-  #uv0u = 0;
-  #uv0v = 0;
-  #uv1u = 0;
-  #uv1v = 0;
-  #uv2u = 0;
-  #uv2v = 0;
-  #fbU32: Uint32Array = undefined as unknown as Uint32Array;
-
-  // Fog state
-  #hasFog = false;
-  #fogR = 0;
-  #fogG = 0;
-  #fogB = 0;
-  #fogF0 = 0;
-  #fogF1 = 0;
-  #fogF2 = 0;
-
-  // Brightness-copy texture levels
-  #brightnessLevels: Uint8ClampedArray[] | undefined;
-
-  // FlatTex optimization: pre-selected brightness level for constant litFactor
-  #selectedBrightTex: Uint8ClampedArray | undefined;
-  #flatLitFactor = 1;
-  #flatTextureLightR = 1;
-  #flatTextureLightG = 1;
-  #flatTextureLightB = 1;
-
-  #wrapS: WrappingMode = Wrapping.ClampToEdge;
-  #wrapT: WrappingMode = Wrapping.ClampToEdge;
-
-  // 9-step opacity (0 = fully opaque, 8 = fully transparent)
-  #opacity = 0;
-  #srcWeight = 1;
-  #blend = false;
-  #depthTest = true;
-  #depthWrite = true;
+  #state: RasterizerState = {
+    depthBuf: undefined as unknown as DepthBuffer,
+    dbData: undefined as unknown as Uint16Array,
+    dbWidth: 0,
+    ndcZ0: 0,
+    ndcZ1: 0,
+    ndcZ2: 0,
+    flatR: 0,
+    flatG: 0,
+    flatB: 0,
+    gouraudData: undefined,
+    gouraudBase: 0,
+    vertexColorData: undefined,
+    vertexColorItemSize: 0,
+    vertexTintData: undefined,
+    vertexColorScratch: new Float32Array(9),
+    vertexTintScratch: new Float32Array(9),
+    hasTextureColorTint: false,
+    hasCombinedTextureTint: false,
+    textureColorR: 1,
+    textureColorG: 1,
+    textureColorB: 1,
+    textureMaterialR: 1,
+    textureMaterialG: 1,
+    textureMaterialB: 1,
+    baseR: 255,
+    baseG: 255,
+    baseB: 255,
+    texData: undefined,
+    texW: 0,
+    texH: 0,
+    uv0u: 0,
+    uv0v: 0,
+    uv1u: 0,
+    uv1v: 0,
+    uv2u: 0,
+    uv2v: 0,
+    fbU32: undefined as unknown as Uint32Array,
+    hasFog: false,
+    fogR: 0,
+    fogG: 0,
+    fogB: 0,
+    fogF0: 0,
+    fogF1: 0,
+    fogF2: 0,
+    brightnessLevels: undefined,
+    selectedBrightTex: undefined,
+    flatLitFactor: 1,
+    flatTextureLightR: 1,
+    flatTextureLightG: 1,
+    flatTextureLightB: 1,
+    wrapS: Wrapping.ClampToEdge,
+    wrapT: Wrapping.ClampToEdge,
+    opacity: 0,
+    srcWeight: 1,
+    blend: false,
+    depthTest: true,
+    depthWrite: true,
+  };
 
   // Callback type enum: select per triangle, bind at the call site.
   // Storing .bind(this) as class fields changes V8's hidden class layout
@@ -179,66 +105,7 @@ export class Rasterizer {
     duDx: number,
     dvDx: number,
   ): void {
-    const w = 1 - u - v;
-    const dNdcZ =
-      duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
-    let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
-    const dbData = this.#dbData;
-    const dbW = this.#dbWidth;
-    const hasFog = this.#hasFog;
-    const flatR = this.#flatR;
-    const flatG = this.#flatG;
-    const flatB = this.#flatB;
-    const fbU32 = this.#fbU32;
-    let dIdx = y * dbW + xStart;
-    let dFogF = 0;
-    let fogF = 0;
-    let fogR = 0;
-    let fogG = 0;
-    let fogB = 0;
-    if (hasFog) {
-      dFogF =
-        duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
-      fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
-      fogR = this.#fogR;
-      fogG = this.#fogG;
-      fogB = this.#fogB;
-    }
-    const blend = this.#blend;
-    const depthTest = this.#depthTest;
-    const depthWrite = this.#depthWrite;
-    const srcWeight = this.#srcWeight;
-    const dDepth16 = dNdcZ * 32767.5;
-    let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
-    for (let x = xStart; x <= xEnd; x++, dIdx++, ndcZ += dNdcZ) {
-      depth16F += dDepth16;
-      const depth16 = depth16F | 0;
-      if (depthTest && depth16 > dbData[dIdx]) continue;
-      if (depthWrite) dbData[dIdx] = depth16;
-      let r = flatR;
-      let g = flatG;
-      let b = flatB;
-      if (hasFog) {
-        const d = BAYER4[((y & 3) << 2) | (x & 3)];
-        const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-        r = (r + (fogR - r) * f + d) | 0;
-        g = (g + (fogG - g) * f + d) | 0;
-        b = (b + (fogB - b) * f + d) | 0;
-      }
-      if (blend) {
-        const dstPx = fbU32[dIdx];
-        const sw = srcWeight;
-        const dw = 1 - sw;
-        fbU32[dIdx] =
-          0xff000000 |
-          (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-          (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-          ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-      } else {
-        fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-      }
-      if (hasFog) fogF += dFogF;
-    }
+    fillFlat(this.#state, y, xStart, xEnd, u, v, duDx, dvDx);
   }
 
   #fillGouraud(
@@ -250,80 +117,7 @@ export class Rasterizer {
     duDx: number,
     dvDx: number,
   ): void {
-    const w = 1 - u - v;
-    const dNdcZ =
-      duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
-    const gd = this.#gouraudData as Float32Array;
-    const b0 = this.#gouraudBase;
-    const dLR = duDx * (gd[b0] - gd[b0 + 6]) + dvDx * (gd[b0 + 3] - gd[b0 + 6]);
-    const dLG =
-      duDx * (gd[b0 + 1] - gd[b0 + 7]) + dvDx * (gd[b0 + 4] - gd[b0 + 7]);
-    const dLB =
-      duDx * (gd[b0 + 2] - gd[b0 + 8]) + dvDx * (gd[b0 + 5] - gd[b0 + 8]);
-    let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
-    let lr = u * gd[b0] + v * gd[b0 + 3] + w * gd[b0 + 6];
-    let lg = u * gd[b0 + 1] + v * gd[b0 + 4] + w * gd[b0 + 7];
-    let lb = u * gd[b0 + 2] + v * gd[b0 + 5] + w * gd[b0 + 8];
-    const dbData = this.#dbData;
-    const dbW = this.#dbWidth;
-    const baseR = this.#baseR;
-    const baseG = this.#baseG;
-    const baseB = this.#baseB;
-    const hasFog = this.#hasFog;
-    const fbU32 = this.#fbU32;
-    let dIdx = y * dbW + xStart;
-    let dFogF = 0;
-    let fogF = 0;
-    let fogR = 0;
-    let fogG = 0;
-    let fogB = 0;
-    if (hasFog) {
-      dFogF =
-        duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
-      fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
-      fogR = this.#fogR;
-      fogG = this.#fogG;
-      fogB = this.#fogB;
-    }
-    const blend = this.#blend;
-    const depthTest = this.#depthTest;
-    const depthWrite = this.#depthWrite;
-    const srcWeight = this.#srcWeight;
-    const dDepth16 = dNdcZ * 32767.5;
-    let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
-    for (
-      let x = xStart;
-      x <= xEnd;
-      x++, dIdx++, ndcZ += dNdcZ, lr += dLR, lg += dLG, lb += dLB
-    ) {
-      depth16F += dDepth16;
-      const depth16 = depth16F | 0;
-      if (depthTest && depth16 > dbData[dIdx]) continue;
-      if (depthWrite) dbData[dIdx] = depth16;
-      const d = BAYER4[((y & 3) << 2) | (x & 3)];
-      let r = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
-      let g = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
-      let bl = (baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + d) | 0;
-      if (hasFog) {
-        const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-        r = (r + (fogR - r) * f + d) | 0;
-        g = (g + (fogG - g) * f + d) | 0;
-        bl = (bl + (fogB - bl) * f + d) | 0;
-      }
-      if (blend) {
-        const dstPx = fbU32[dIdx];
-        const sw = srcWeight;
-        const dw = 1 - sw;
-        fbU32[dIdx] =
-          0xff000000 |
-          (((bl * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-          (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-          ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-      } else {
-        fbU32[dIdx] = 0xff000000 | (bl << 16) | (g << 8) | r;
-      }
-      if (hasFog) fogF += dFogF;
-    }
+    fillGouraud(this.#state, y, xStart, xEnd, u, v, duDx, dvDx);
   }
 
   #fillFlatTex(
@@ -335,111 +129,7 @@ export class Rasterizer {
     duDx: number,
     dvDx: number,
   ): void {
-    const w = 1 - u - v;
-    const dNdcZ =
-      duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
-    const dTexU =
-      duDx * (this.#uv0u - this.#uv2u) + dvDx * (this.#uv1u - this.#uv2u);
-    const dTexV =
-      duDx * (this.#uv0v - this.#uv2v) + dvDx * (this.#uv1v - this.#uv2v);
-    let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
-    let texU = u * this.#uv0u + v * this.#uv1u + w * this.#uv2u;
-    let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
-    const dbData = this.#dbData;
-    const dbW = this.#dbWidth;
-    const texH = this.#texH;
-    const texW = this.#texW;
-    const hasFog = this.#hasFog;
-    const fbU32 = this.#fbU32;
-    let dIdx = y * dbW + xStart;
-    const brightTex = this.#selectedBrightTex;
-    const litFactor = this.#flatLitFactor;
-    const hasColorTint = this.#hasTextureColorTint;
-    const colorR = this.#textureColorR;
-    const colorG = this.#textureColorG;
-    const colorB = this.#textureColorB;
-    const lightR = this.#flatTextureLightR;
-    const lightG = this.#flatTextureLightG;
-    const lightB = this.#flatTextureLightB;
-    const texD = this.#texData as Uint8ClampedArray;
-    const wS = this.#wrapS;
-    const wT = this.#wrapT;
-    let dFogF = 0;
-    let fogF = 0;
-    let fogR = 0;
-    let fogG = 0;
-    let fogB = 0;
-    if (hasFog) {
-      dFogF =
-        duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
-      fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
-      fogR = this.#fogR;
-      fogG = this.#fogG;
-      fogB = this.#fogB;
-    }
-    const blend = this.#blend;
-    const depthTest = this.#depthTest;
-    const depthWrite = this.#depthWrite;
-    const srcWeight = this.#srcWeight;
-    const dDepth16 = dNdcZ * 32767.5;
-    let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
-    for (
-      let x = xStart;
-      x <= xEnd;
-      x++, dIdx++, ndcZ += dNdcZ, texU += dTexU, texV += dTexV
-    ) {
-      depth16F += dDepth16;
-      const depth16 = depth16F | 0;
-      if (depthTest && depth16 > dbData[dIdx]) continue;
-      const tx = textureCoordinateToTexel(texU, texW, wS);
-      const ty = textureCoordinateToTexel(texV, texH, wT);
-      const tidx = (ty * texW + tx) << 2;
-      if (texD[tidx + 3] === 0) continue;
-      if (depthWrite) dbData[dIdx] = depth16;
-      const d = BAYER4[((y & 3) << 2) | (x & 3)];
-      let r: number;
-      let g: number;
-      let b: number;
-      if (hasColorTint) {
-        const sampleR = brightTex ? brightTex[tidx] : texD[tidx] * lightR;
-        const sampleG = brightTex
-          ? brightTex[tidx + 1]
-          : texD[tidx + 1] * lightG;
-        const sampleB = brightTex
-          ? brightTex[tidx + 2]
-          : texD[tidx + 2] * lightB;
-        r = (sampleR * colorR + d) | 0;
-        g = (sampleG * colorG + d) | 0;
-        b = (sampleB * colorB + d) | 0;
-      } else if (brightTex) {
-        r = brightTex[tidx];
-        g = brightTex[tidx + 1];
-        b = brightTex[tidx + 2];
-      } else {
-        r = (texD[tidx] * litFactor + d) | 0;
-        g = (texD[tidx + 1] * litFactor + d) | 0;
-        b = (texD[tidx + 2] * litFactor + d) | 0;
-      }
-      if (hasFog) {
-        const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-        r = (r + (fogR - r) * f + d) | 0;
-        g = (g + (fogG - g) * f + d) | 0;
-        b = (b + (fogB - b) * f + d) | 0;
-      }
-      if (blend) {
-        const dstPx = fbU32[dIdx];
-        const sw = srcWeight;
-        const dw = 1 - sw;
-        fbU32[dIdx] =
-          0xff000000 |
-          (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-          (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-          ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-      } else {
-        fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-      }
-      if (hasFog) fogF += dFogF;
-    }
+    fillFlatTex(this.#state, y, xStart, xEnd, u, v, duDx, dvDx);
   }
 
   #fillGouraudTexUniformTint(
@@ -451,124 +141,7 @@ export class Rasterizer {
     duDx: number,
     dvDx: number,
   ): void {
-    const w = 1 - u - v;
-    const dNdcZ =
-      duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
-    const dTexU =
-      duDx * (this.#uv0u - this.#uv2u) + dvDx * (this.#uv1u - this.#uv2u);
-    const dTexV =
-      duDx * (this.#uv0v - this.#uv2v) + dvDx * (this.#uv1v - this.#uv2v);
-    const gd = this.#gouraudData as Float32Array;
-    const b0 = this.#gouraudBase;
-    const dLR = duDx * (gd[b0] - gd[b0 + 6]) + dvDx * (gd[b0 + 3] - gd[b0 + 6]);
-    const dLG =
-      duDx * (gd[b0 + 1] - gd[b0 + 7]) + dvDx * (gd[b0 + 4] - gd[b0 + 7]);
-    const dLB =
-      duDx * (gd[b0 + 2] - gd[b0 + 8]) + dvDx * (gd[b0 + 5] - gd[b0 + 8]);
-    const uniformColorR = this.#textureColorR;
-    const uniformColorG = this.#textureColorG;
-    const uniformColorB = this.#textureColorB;
-    let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
-    let texU = u * this.#uv0u + v * this.#uv1u + w * this.#uv2u;
-    let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
-    let lr = u * gd[b0] + v * gd[b0 + 3] + w * gd[b0 + 6];
-    let lg = u * gd[b0 + 1] + v * gd[b0 + 4] + w * gd[b0 + 7];
-    let lb = u * gd[b0 + 2] + v * gd[b0 + 5] + w * gd[b0 + 8];
-    const dbData = this.#dbData;
-    const dbW = this.#dbWidth;
-    const texD = this.#texData as Uint8ClampedArray;
-    const texH = this.#texH;
-    const texW = this.#texW;
-    const hasFog = this.#hasFog;
-    const fbU32 = this.#fbU32;
-    let dIdx = y * dbW + xStart;
-    const bl = this.#brightnessLevels;
-    const hasBL = bl !== undefined;
-    const blCount = hasBL ? (bl as Uint8ClampedArray[]).length : 0;
-    const wS = this.#wrapS;
-    const wT = this.#wrapT;
-    let dFogF = 0;
-    let fogF = 0;
-    let fogR = 0;
-    let fogG = 0;
-    let fogB = 0;
-    if (hasFog) {
-      dFogF =
-        duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
-      fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
-      fogR = this.#fogR;
-      fogG = this.#fogG;
-      fogB = this.#fogB;
-    }
-    const blend = this.#blend;
-    const depthTest = this.#depthTest;
-    const depthWrite = this.#depthWrite;
-    const srcWeight = this.#srcWeight;
-    const dDepth16 = dNdcZ * 32767.5;
-    let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
-    for (
-      let x = xStart;
-      x <= xEnd;
-      x++,
-        dIdx++,
-        ndcZ += dNdcZ,
-        texU += dTexU,
-        texV += dTexV,
-        lr += dLR,
-        lg += dLG,
-        lb += dLB
-    ) {
-      depth16F += dDepth16;
-      const depth16 = depth16F | 0;
-      if (depthTest && depth16 > dbData[dIdx]) continue;
-      const tx = textureCoordinateToTexel(texU, texW, wS);
-      const ty = textureCoordinateToTexel(texV, texH, wT);
-      const tidx = (ty * texW + tx) << 2;
-      if (texD[tidx + 3] === 0) continue;
-      if (depthWrite) dbData[dIdx] = depth16;
-      const d = BAYER4[((y & 3) << 2) | (x & 3)];
-      const litR = lr < 0 ? 0 : lr > 1 ? 1 : lr;
-      const litG = lg < 0 ? 0 : lg > 1 ? 1 : lg;
-      const litB = lb < 0 ? 0 : lb > 1 ? 1 : lb;
-      const litFactor = (litR + litG + litB) * 0.3333333333333333;
-      let sampleR: number;
-      let sampleG: number;
-      let sampleB: number;
-      if (hasBL) {
-        const level = (litFactor * blCount + d) | 0;
-        const li = level < 0 ? 0 : level >= blCount ? blCount - 1 : level;
-        const bd = (bl as Uint8ClampedArray[])[li];
-        sampleR = bd[tidx];
-        sampleG = bd[tidx + 1];
-        sampleB = bd[tidx + 2];
-      } else {
-        sampleR = texD[tidx] * litR;
-        sampleG = texD[tidx + 1] * litG;
-        sampleB = texD[tidx + 2] * litB;
-      }
-      let r = (sampleR * uniformColorR + d) | 0;
-      let g = (sampleG * uniformColorG + d) | 0;
-      let b = (sampleB * uniformColorB + d) | 0;
-      if (hasFog) {
-        const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-        r = (r + (fogR - r) * f + d) | 0;
-        g = (g + (fogG - g) * f + d) | 0;
-        b = (b + (fogB - b) * f + d) | 0;
-      }
-      if (blend) {
-        const dstPx = fbU32[dIdx];
-        const sw = srcWeight;
-        const dw = 1 - sw;
-        fbU32[dIdx] =
-          0xff000000 |
-          (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-          (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-          ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-      } else {
-        fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-      }
-      if (hasFog) fogF += dFogF;
-    }
+    fillGouraudTexUniformTint(this.#state, y, xStart, xEnd, u, v, duDx, dvDx);
   }
 
   #fillGouraudTexCombinedTint(
@@ -580,105 +153,7 @@ export class Rasterizer {
     duDx: number,
     dvDx: number,
   ): void {
-    const w = 1 - u - v;
-    const dNdcZ =
-      duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
-    const dTexU =
-      duDx * (this.#uv0u - this.#uv2u) + dvDx * (this.#uv1u - this.#uv2u);
-    const dTexV =
-      duDx * (this.#uv0v - this.#uv2v) + dvDx * (this.#uv1v - this.#uv2v);
-    const gd = this.#gouraudData as Float32Array;
-    const b0 = this.#gouraudBase;
-    const dLR = duDx * (gd[b0] - gd[b0 + 6]) + dvDx * (gd[b0 + 3] - gd[b0 + 6]);
-    const dLG =
-      duDx * (gd[b0 + 1] - gd[b0 + 7]) + dvDx * (gd[b0 + 4] - gd[b0 + 7]);
-    const dLB =
-      duDx * (gd[b0 + 2] - gd[b0 + 8]) + dvDx * (gd[b0 + 5] - gd[b0 + 8]);
-    const materialR = this.#textureMaterialR;
-    const materialG = this.#textureMaterialG;
-    const materialB = this.#textureMaterialB;
-    let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
-    let texU = u * this.#uv0u + v * this.#uv1u + w * this.#uv2u;
-    let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
-    let lr = u * gd[b0] + v * gd[b0 + 3] + w * gd[b0 + 6];
-    let lg = u * gd[b0 + 1] + v * gd[b0 + 4] + w * gd[b0 + 7];
-    let lb = u * gd[b0 + 2] + v * gd[b0 + 5] + w * gd[b0 + 8];
-    const dbData = this.#dbData;
-    const dbW = this.#dbWidth;
-    const texD = this.#texData as Uint8ClampedArray;
-    const texH = this.#texH;
-    const texW = this.#texW;
-    const hasFog = this.#hasFog;
-    const fbU32 = this.#fbU32;
-    let dIdx = y * dbW + xStart;
-    const wS = this.#wrapS;
-    const wT = this.#wrapT;
-    let dFogF = 0;
-    let fogF = 0;
-    let fogR = 0;
-    let fogG = 0;
-    let fogB = 0;
-    if (hasFog) {
-      dFogF =
-        duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
-      fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
-      fogR = this.#fogR;
-      fogG = this.#fogG;
-      fogB = this.#fogB;
-    }
-    const blend = this.#blend;
-    const depthTest = this.#depthTest;
-    const depthWrite = this.#depthWrite;
-    const srcWeight = this.#srcWeight;
-    const dDepth16 = dNdcZ * 32767.5;
-    let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
-    for (
-      let x = xStart;
-      x <= xEnd;
-      x++,
-        dIdx++,
-        ndcZ += dNdcZ,
-        texU += dTexU,
-        texV += dTexV,
-        lr += dLR,
-        lg += dLG,
-        lb += dLB
-    ) {
-      depth16F += dDepth16;
-      const depth16 = depth16F | 0;
-      if (depthTest && depth16 > dbData[dIdx]) continue;
-      const tx = textureCoordinateToTexel(texU, texW, wS);
-      const ty = textureCoordinateToTexel(texV, texH, wT);
-      const tidx = (ty * texW + tx) << 2;
-      if (texD[tidx + 3] === 0) continue;
-      if (depthWrite) dbData[dIdx] = depth16;
-      const d = BAYER4[((y & 3) << 2) | (x & 3)];
-      const tintR = lr < 0 ? 0 : lr > 1 ? 1 : lr;
-      const tintG = lg < 0 ? 0 : lg > 1 ? 1 : lg;
-      const tintB = lb < 0 ? 0 : lb > 1 ? 1 : lb;
-      let r = (texD[tidx] * tintR * materialR + d) | 0;
-      let g = (texD[tidx + 1] * tintG * materialG + d) | 0;
-      let b = (texD[tidx + 2] * tintB * materialB + d) | 0;
-      if (hasFog) {
-        const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-        r = (r + (fogR - r) * f + d) | 0;
-        g = (g + (fogG - g) * f + d) | 0;
-        b = (b + (fogB - b) * f + d) | 0;
-      }
-      if (blend) {
-        const dstPx = fbU32[dIdx];
-        const sw = srcWeight;
-        const dw = 1 - sw;
-        fbU32[dIdx] =
-          0xff000000 |
-          (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-          (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-          ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-      } else {
-        fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-      }
-      if (hasFog) fogF += dFogF;
-    }
+    fillGouraudTexCombinedTint(this.#state, y, xStart, xEnd, u, v, duDx, dvDx);
   }
 
   #fillGouraudTexVertexTint(
@@ -690,134 +165,7 @@ export class Rasterizer {
     duDx: number,
     dvDx: number,
   ): void {
-    const w = 1 - u - v;
-    const dNdcZ =
-      duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
-    const dTexU =
-      duDx * (this.#uv0u - this.#uv2u) + dvDx * (this.#uv1u - this.#uv2u);
-    const dTexV =
-      duDx * (this.#uv0v - this.#uv2v) + dvDx * (this.#uv1v - this.#uv2v);
-    const gd = this.#gouraudData as Float32Array;
-    const b0 = this.#gouraudBase;
-    const dLR = duDx * (gd[b0] - gd[b0 + 6]) + dvDx * (gd[b0 + 3] - gd[b0 + 6]);
-    const dLG =
-      duDx * (gd[b0 + 1] - gd[b0 + 7]) + dvDx * (gd[b0 + 4] - gd[b0 + 7]);
-    const dLB =
-      duDx * (gd[b0 + 2] - gd[b0 + 8]) + dvDx * (gd[b0 + 5] - gd[b0 + 8]);
-    const tint = this.#vertexTintData as Float32Array;
-    const materialR = this.#textureMaterialR;
-    const materialG = this.#textureMaterialG;
-    const materialB = this.#textureMaterialB;
-    const dTR = duDx * (tint[0] - tint[6]) + dvDx * (tint[3] - tint[6]);
-    const dTG = duDx * (tint[1] - tint[7]) + dvDx * (tint[4] - tint[7]);
-    const dTB = duDx * (tint[2] - tint[8]) + dvDx * (tint[5] - tint[8]);
-    let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
-    let texU = u * this.#uv0u + v * this.#uv1u + w * this.#uv2u;
-    let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
-    let lr = u * gd[b0] + v * gd[b0 + 3] + w * gd[b0 + 6];
-    let lg = u * gd[b0 + 1] + v * gd[b0 + 4] + w * gd[b0 + 7];
-    let lb = u * gd[b0 + 2] + v * gd[b0 + 5] + w * gd[b0 + 8];
-    let tr = u * tint[0] + v * tint[3] + w * tint[6];
-    let tg = u * tint[1] + v * tint[4] + w * tint[7];
-    let tb = u * tint[2] + v * tint[5] + w * tint[8];
-    const dbData = this.#dbData;
-    const dbW = this.#dbWidth;
-    const texD = this.#texData as Uint8ClampedArray;
-    const texH = this.#texH;
-    const texW = this.#texW;
-    const hasFog = this.#hasFog;
-    const fbU32 = this.#fbU32;
-    let dIdx = y * dbW + xStart;
-    const bl = this.#brightnessLevels;
-    const hasBL = bl !== undefined;
-    const blCount = hasBL ? (bl as Uint8ClampedArray[]).length : 0;
-    const wS = this.#wrapS;
-    const wT = this.#wrapT;
-    let dFogF = 0;
-    let fogF = 0;
-    let fogR = 0;
-    let fogG = 0;
-    let fogB = 0;
-    if (hasFog) {
-      dFogF =
-        duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
-      fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
-      fogR = this.#fogR;
-      fogG = this.#fogG;
-      fogB = this.#fogB;
-    }
-    const blend = this.#blend;
-    const depthTest = this.#depthTest;
-    const depthWrite = this.#depthWrite;
-    const srcWeight = this.#srcWeight;
-    const dDepth16 = dNdcZ * 32767.5;
-    let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
-    for (
-      let x = xStart;
-      x <= xEnd;
-      x++,
-        dIdx++,
-        ndcZ += dNdcZ,
-        texU += dTexU,
-        texV += dTexV,
-        lr += dLR,
-        lg += dLG,
-        lb += dLB,
-        tr += dTR,
-        tg += dTG,
-        tb += dTB
-    ) {
-      depth16F += dDepth16;
-      const depth16 = depth16F | 0;
-      if (depthTest && depth16 > dbData[dIdx]) continue;
-      const tx = textureCoordinateToTexel(texU, texW, wS);
-      const ty = textureCoordinateToTexel(texV, texH, wT);
-      const tidx = (ty * texW + tx) << 2;
-      if (texD[tidx + 3] === 0) continue;
-      if (depthWrite) dbData[dIdx] = depth16;
-      const d = BAYER4[((y & 3) << 2) | (x & 3)];
-      const litR = lr < 0 ? 0 : lr > 1 ? 1 : lr;
-      const litG = lg < 0 ? 0 : lg > 1 ? 1 : lg;
-      const litB = lb < 0 ? 0 : lb > 1 ? 1 : lb;
-      const litFactor = (litR + litG + litB) * 0.3333333333333333;
-      let sampleR: number;
-      let sampleG: number;
-      let sampleB: number;
-      if (hasBL) {
-        const level = (litFactor * blCount + d) | 0;
-        const li = level < 0 ? 0 : level >= blCount ? blCount - 1 : level;
-        const bd = (bl as Uint8ClampedArray[])[li];
-        sampleR = bd[tidx];
-        sampleG = bd[tidx + 1];
-        sampleB = bd[tidx + 2];
-      } else {
-        sampleR = texD[tidx] * litFactor;
-        sampleG = texD[tidx + 1] * litFactor;
-        sampleB = texD[tidx + 2] * litFactor;
-      }
-      let r = (sampleR * tr * materialR + d) | 0;
-      let g = (sampleG * tg * materialG + d) | 0;
-      let b = (sampleB * tb * materialB + d) | 0;
-      if (hasFog) {
-        const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-        r = (r + (fogR - r) * f + d) | 0;
-        g = (g + (fogG - g) * f + d) | 0;
-        b = (b + (fogB - b) * f + d) | 0;
-      }
-      if (blend) {
-        const dstPx = fbU32[dIdx];
-        const sw = srcWeight;
-        const dw = 1 - sw;
-        fbU32[dIdx] =
-          0xff000000 |
-          (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-          (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-          ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-      } else {
-        fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-      }
-      if (hasFog) fogF += dFogF;
-    }
+    fillGouraudTexVertexTint(this.#state, y, xStart, xEnd, u, v, duDx, dvDx);
   }
 
   #fillGouraudTexNoTint(
@@ -829,121 +177,7 @@ export class Rasterizer {
     duDx: number,
     dvDx: number,
   ): void {
-    const w = 1 - u - v;
-    const dNdcZ =
-      duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
-    const dTexU =
-      duDx * (this.#uv0u - this.#uv2u) + dvDx * (this.#uv1u - this.#uv2u);
-    const dTexV =
-      duDx * (this.#uv0v - this.#uv2v) + dvDx * (this.#uv1v - this.#uv2v);
-    const gd = this.#gouraudData as Float32Array;
-    const b0 = this.#gouraudBase;
-    const dLR = duDx * (gd[b0] - gd[b0 + 6]) + dvDx * (gd[b0 + 3] - gd[b0 + 6]);
-    const dLG =
-      duDx * (gd[b0 + 1] - gd[b0 + 7]) + dvDx * (gd[b0 + 4] - gd[b0 + 7]);
-    const dLB =
-      duDx * (gd[b0 + 2] - gd[b0 + 8]) + dvDx * (gd[b0 + 5] - gd[b0 + 8]);
-    let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
-    let texU = u * this.#uv0u + v * this.#uv1u + w * this.#uv2u;
-    let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
-    let lr = u * gd[b0] + v * gd[b0 + 3] + w * gd[b0 + 6];
-    let lg = u * gd[b0 + 1] + v * gd[b0 + 4] + w * gd[b0 + 7];
-    let lb = u * gd[b0 + 2] + v * gd[b0 + 5] + w * gd[b0 + 8];
-    const dbData = this.#dbData;
-    const dbW = this.#dbWidth;
-    const texD = this.#texData as Uint8ClampedArray;
-    const texH = this.#texH;
-    const texW = this.#texW;
-    const baseR = this.#baseR;
-    const baseG = this.#baseG;
-    const baseB = this.#baseB;
-    const hasFog = this.#hasFog;
-    const fbU32 = this.#fbU32;
-    let dIdx = y * dbW + xStart;
-    const bl = this.#brightnessLevels;
-    const hasBL = bl !== undefined;
-    const blCount = hasBL ? (bl as Uint8ClampedArray[]).length : 0;
-    const wS = this.#wrapS;
-    const wT = this.#wrapT;
-    let dFogF = 0;
-    let fogF = 0;
-    let fogR = 0;
-    let fogG = 0;
-    let fogB = 0;
-    if (hasFog) {
-      dFogF =
-        duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
-      fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
-      fogR = this.#fogR;
-      fogG = this.#fogG;
-      fogB = this.#fogB;
-    }
-    const blend = this.#blend;
-    const depthTest = this.#depthTest;
-    const depthWrite = this.#depthWrite;
-    const srcWeight = this.#srcWeight;
-    const dDepth16 = dNdcZ * 32767.5;
-    let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
-    for (
-      let x = xStart;
-      x <= xEnd;
-      x++,
-        dIdx++,
-        ndcZ += dNdcZ,
-        texU += dTexU,
-        texV += dTexV,
-        lr += dLR,
-        lg += dLG,
-        lb += dLB
-    ) {
-      depth16F += dDepth16;
-      const depth16 = depth16F | 0;
-      if (depthTest && depth16 > dbData[dIdx]) continue;
-      const tx = textureCoordinateToTexel(texU, texW, wS);
-      const ty = textureCoordinateToTexel(texV, texH, wT);
-      const tidx = (ty * texW + tx) << 2;
-      if (texD[tidx + 3] === 0) continue;
-      if (depthWrite) dbData[dIdx] = depth16;
-      const d = BAYER4[((y & 3) << 2) | (x & 3)];
-      const cr = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
-      const cg = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
-      const cb = (baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + d) | 0;
-      const litFactor = (cr + cg + cb) * 0.00130718954248366;
-      let r: number;
-      let g: number;
-      let b: number;
-      if (hasBL) {
-        const level = (litFactor * blCount + d) | 0;
-        const li = level < 0 ? 0 : level >= blCount ? blCount - 1 : level;
-        const bd = (bl as Uint8ClampedArray[])[li];
-        r = bd[tidx];
-        g = bd[tidx + 1];
-        b = bd[tidx + 2];
-      } else {
-        r = (texD[tidx] * litFactor + d) | 0;
-        g = (texD[tidx + 1] * litFactor + d) | 0;
-        b = (texD[tidx + 2] * litFactor + d) | 0;
-      }
-      if (hasFog) {
-        const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-        r = (r + (fogR - r) * f + d) | 0;
-        g = (g + (fogG - g) * f + d) | 0;
-        b = (b + (fogB - b) * f + d) | 0;
-      }
-      if (blend) {
-        const dstPx = fbU32[dIdx];
-        const sw = srcWeight;
-        const dw = 1 - sw;
-        fbU32[dIdx] =
-          0xff000000 |
-          (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-          (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-          ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-      } else {
-        fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-      }
-      if (hasFog) fogF += dFogF;
-    }
+    fillGouraudTexNoTint(this.#state, y, xStart, xEnd, u, v, duDx, dvDx);
   }
 
   #fillUnlitTex(
@@ -955,85 +189,7 @@ export class Rasterizer {
     duDx: number,
     dvDx: number,
   ): void {
-    const w = 1 - u - v;
-    const dNdcZ =
-      duDx * (this.#ndcZ0 - this.#ndcZ2) + dvDx * (this.#ndcZ1 - this.#ndcZ2);
-    const dTexU =
-      duDx * (this.#uv0u - this.#uv2u) + dvDx * (this.#uv1u - this.#uv2u);
-    const dTexV =
-      duDx * (this.#uv0v - this.#uv2v) + dvDx * (this.#uv1v - this.#uv2v);
-    let ndcZ = u * this.#ndcZ0 + v * this.#ndcZ1 + w * this.#ndcZ2;
-    let texU = u * this.#uv0u + v * this.#uv1u + w * this.#uv2u;
-    let texV = u * this.#uv0v + v * this.#uv1v + w * this.#uv2v;
-    const dbData = this.#dbData;
-    const dbW = this.#dbWidth;
-    const texD = this.#texData as Uint8ClampedArray;
-    const texH = this.#texH;
-    const texW = this.#texW;
-    const baseR = this.#baseR;
-    const baseG = this.#baseG;
-    const baseB = this.#baseB;
-    const hasFog = this.#hasFog;
-    const fbU32 = this.#fbU32;
-    let dIdx = y * dbW + xStart;
-    const wS = this.#wrapS;
-    const wT = this.#wrapT;
-    let dFogF = 0;
-    let fogF = 0;
-    let fogR = 0;
-    let fogG = 0;
-    let fogB = 0;
-    if (hasFog) {
-      dFogF =
-        duDx * (this.#fogF0 - this.#fogF2) + dvDx * (this.#fogF1 - this.#fogF2);
-      fogF = u * this.#fogF0 + v * this.#fogF1 + w * this.#fogF2;
-      fogR = this.#fogR;
-      fogG = this.#fogG;
-      fogB = this.#fogB;
-    }
-    const blend = this.#blend;
-    const depthTest = this.#depthTest;
-    const depthWrite = this.#depthWrite;
-    const srcWeight = this.#srcWeight;
-    const dDepth16 = dNdcZ * 32767.5;
-    let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
-    for (
-      let x = xStart;
-      x <= xEnd;
-      x++, dIdx++, ndcZ += dNdcZ, texU += dTexU, texV += dTexV
-    ) {
-      depth16F += dDepth16;
-      const depth16 = depth16F | 0;
-      if (depthTest && depth16 > dbData[dIdx]) continue;
-      const tx = textureCoordinateToTexel(texU, texW, wS);
-      const ty = textureCoordinateToTexel(texV, texH, wT);
-      const tidx = (ty * texW + tx) << 2;
-      if (texD[tidx + 3] === 0) continue;
-      if (depthWrite) dbData[dIdx] = depth16;
-      const d = BAYER4[((y & 3) << 2) | (x & 3)];
-      let r = (texD[tidx] * baseR * 0.00392156862745098 + d) | 0;
-      let g = (texD[tidx + 1] * baseG * 0.00392156862745098 + d) | 0;
-      let b = (texD[tidx + 2] * baseB * 0.00392156862745098 + d) | 0;
-      if (hasFog) {
-        const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-        r = (r + (fogR - r) * f + d) | 0;
-        g = (g + (fogG - g) * f + d) | 0;
-        b = (b + (fogB - b) * f + d) | 0;
-      }
-      if (blend) {
-        const dstPx = fbU32[dIdx];
-        const sw = srcWeight;
-        const dw = 1 - sw;
-        fbU32[dIdx] =
-          0xff000000 |
-          (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-          (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-          ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-      } else {
-        fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-      }
-      if (hasFog) fogF += dFogF;
-    }
+    fillUnlitTex(this.#state, y, xStart, xEnd, u, v, duDx, dvDx);
   }
 
   /** Rasterizes a draw call to the framebuffer by dispatching to the appropriate sub-rasterizer. */
@@ -1055,11 +211,11 @@ export class Rasterizer {
       );
       return;
     }
-    this.#hasFog = !!fogColor;
+    this.#state.hasFog = !!fogColor;
     if (fogColor) {
-      this.#fogR = Math.round(fogColor.r * 255);
-      this.#fogG = Math.round(fogColor.g * 255);
-      this.#fogB = Math.round(fogColor.b * 255);
+      this.#state.fogR = Math.round(fogColor.r * 255);
+      this.#state.fogG = Math.round(fogColor.g * 255);
+      this.#state.fogB = Math.round(fogColor.b * 255);
     }
     const { width, height } = framebuffer;
     const { wireframe, points, size: pointRadius = 2 } = drawCall.material;
@@ -1077,35 +233,38 @@ export class Rasterizer {
 
     const texture = drawCall.material.map?.data ?? undefined;
 
-    this.#baseR = baseR;
-    this.#baseG = baseG;
-    this.#baseB = baseB;
-    this.#depthBuf = framebuffer.depthBuffer;
-    this.#dbData = this.#depthBuf.data;
-    this.#dbWidth = this.#depthBuf.width;
-    this.#fbU32 = framebuffer.u32;
+    this.#state.baseR = baseR;
+    this.#state.baseG = baseG;
+    this.#state.baseB = baseB;
+    this.#state.depthBuf = framebuffer.depthBuffer;
+    this.#state.dbData = this.#state.depthBuf.data;
+    this.#state.dbWidth = this.#state.depthBuf.width;
+    this.#state.fbU32 = framebuffer.u32;
 
     if (texture) {
-      this.#texData = texture.data;
-      this.#texW = texture.width;
-      this.#texH = texture.height;
+      this.#state.texData = texture.data;
+      this.#state.texW = texture.width;
+      this.#state.texH = texture.height;
     }
 
-    this.#opacity = (drawCall.material as RasterMaterial).opacity ?? 0;
-    this.#blend = drawCall.material.transparent === true && this.#opacity > 0;
-    this.#srcWeight = this.#blend ? (8 - this.#opacity) / 8 : 1;
-    this.#depthTest = drawCall.material.depthTest !== false;
-    this.#depthWrite =
-      this.#depthTest && drawCall.material.depthWrite !== false;
+    this.#state.opacity = (drawCall.material as RasterMaterial).opacity ?? 0;
+    this.#state.blend =
+      drawCall.material.transparent === true && this.#state.opacity > 0;
+    this.#state.srcWeight = this.#state.blend
+      ? (8 - this.#state.opacity) / 8
+      : 1;
+    this.#state.depthTest = drawCall.material.depthTest !== false;
+    this.#state.depthWrite =
+      this.#state.depthTest && drawCall.material.depthWrite !== false;
 
-    this.#brightnessLevels = drawCall.material.map?.brightnessLevels;
-    this.#wrapS = drawCall.material.map?.wrapS ?? Wrapping.ClampToEdge;
-    this.#wrapT = drawCall.material.map?.wrapT ?? Wrapping.ClampToEdge;
+    this.#state.brightnessLevels = drawCall.material.map?.brightnessLevels;
+    this.#state.wrapS = drawCall.material.map?.wrapS ?? Wrapping.ClampToEdge;
+    this.#state.wrapT = drawCall.material.map?.wrapT ?? Wrapping.ClampToEdge;
 
     const shadedColorData = drawCall.shadedColorData;
     const shadedColorStride = drawCall.shadedColorStride ?? 0;
-    this.#vertexColorData = drawCall.vertexColorData;
-    this.#vertexColorItemSize = drawCall.vertexColorItemSize ?? 0;
+    this.#state.vertexColorData = drawCall.vertexColorData;
+    this.#state.vertexColorItemSize = drawCall.vertexColorItemSize ?? 0;
 
     const tb = drawCall.triangles;
     if (!tb) return;
@@ -1171,8 +330,8 @@ export class Rasterizer {
     let c2r = 1;
     let c2g = 1;
     let c2b = 1;
-    const vertexColors = this.#vertexColorData;
-    if (vertexColors && this.#vertexColorItemSize === 3) {
+    const vertexColors = this.#state.vertexColorData;
+    if (vertexColors && this.#state.vertexColorItemSize === 3) {
       const vi0 = tb.vertexIndex[v];
       const vi1 = tb.vertexIndex[v + 1];
       const vi2 = tb.vertexIndex[v + 2];
@@ -1252,15 +411,15 @@ export class Rasterizer {
       }
     }
 
-    this.#vertexTintData = undefined;
-    this.#hasTextureColorTint = false;
-    this.#hasCombinedTextureTint = false;
-    this.#textureColorR = 1;
-    this.#textureColorG = 1;
-    this.#textureColorB = 1;
-    this.#textureMaterialR = baseR / 255;
-    this.#textureMaterialG = baseG / 255;
-    this.#textureMaterialB = baseB / 255;
+    this.#state.vertexTintData = undefined;
+    this.#state.hasTextureColorTint = false;
+    this.#state.hasCombinedTextureTint = false;
+    this.#state.textureColorR = 1;
+    this.#state.textureColorG = 1;
+    this.#state.textureColorB = 1;
+    this.#state.textureMaterialR = baseR / 255;
+    this.#state.textureMaterialG = baseG / 255;
+    this.#state.textureMaterialB = baseB / 255;
     let effectiveBaseR = baseR;
     let effectiveBaseG = baseG;
     let effectiveBaseB = baseB;
@@ -1269,10 +428,10 @@ export class Rasterizer {
       effectiveBaseG = Math.round(baseG * c0g);
       effectiveBaseB = Math.round(baseB * c0b);
       if (texture) {
-        this.#hasTextureColorTint = true;
-        this.#textureColorR = effectiveBaseR / 255;
-        this.#textureColorG = effectiveBaseG / 255;
-        this.#textureColorB = effectiveBaseB / 255;
+        this.#state.hasTextureColorTint = true;
+        this.#state.textureColorR = effectiveBaseR / 255;
+        this.#state.textureColorG = effectiveBaseG / 255;
+        this.#state.textureColorB = effectiveBaseB / 255;
       }
     }
 
@@ -1290,35 +449,35 @@ export class Rasterizer {
       flatB = Math.round(effectiveBaseB * shadedColorData[base + 2]);
     }
 
-    this.#ndcZ0 = tb.ndcZ[v];
-    this.#ndcZ1 = tb.ndcZ[v + 1];
-    this.#ndcZ2 = tb.ndcZ[v + 2];
+    this.#state.ndcZ0 = tb.ndcZ[v];
+    this.#state.ndcZ1 = tb.ndcZ[v + 1];
+    this.#state.ndcZ2 = tb.ndcZ[v + 2];
 
-    if (this.#hasFog) {
-      this.#fogF0 = tb.fogFactor[v];
-      this.#fogF1 = tb.fogFactor[v + 1];
-      this.#fogF2 = tb.fogFactor[v + 2];
+    if (this.#state.hasFog) {
+      this.#state.fogF0 = tb.fogFactor[v];
+      this.#state.fogF1 = tb.fogFactor[v + 1];
+      this.#state.fogF2 = tb.fogFactor[v + 2];
     }
-    this.#baseR = effectiveBaseR;
-    this.#baseG = effectiveBaseG;
-    this.#baseB = effectiveBaseB;
-    this.#flatR = flatR;
-    this.#flatG = flatG;
-    this.#flatB = flatB;
+    this.#state.baseR = effectiveBaseR;
+    this.#state.baseG = effectiveBaseG;
+    this.#state.baseB = effectiveBaseB;
+    this.#state.flatR = flatR;
+    this.#state.flatG = flatG;
+    this.#state.flatB = flatB;
 
     if (isGouraud && shadedColorData) {
-      this.#gouraudData = shadedColorData;
-      this.#gouraudBase = base;
+      this.#state.gouraudData = shadedColorData;
+      this.#state.gouraudBase = base;
     }
 
     if (hasVertexColor && mixedVertexColor) {
-      const scratch = this.#vertexColorScratch;
+      const scratch = this.#state.vertexColorScratch;
       if (
         texture &&
         (isFlat || isGouraud) &&
-        this.#brightnessLevels !== undefined
+        this.#state.brightnessLevels !== undefined
       ) {
-        const tint = this.#vertexTintScratch;
+        const tint = this.#state.vertexTintScratch;
         tint[0] = c0r;
         tint[1] = c0g;
         tint[2] = c0b;
@@ -1328,7 +487,7 @@ export class Rasterizer {
         tint[6] = c2r;
         tint[7] = c2g;
         tint[8] = c2b;
-        this.#vertexTintData = tint;
+        this.#state.vertexTintData = tint;
         if (!(isGouraud && shadedColorData)) {
           const lightR = isFlat && shadedColorData ? shadedColorData[base] : 1;
           const lightG =
@@ -1340,11 +499,11 @@ export class Rasterizer {
             scratch[k * 3 + 1] = lightG;
             scratch[k * 3 + 2] = lightB;
           }
-          this.#gouraudData = scratch;
-          this.#gouraudBase = 0;
+          this.#state.gouraudData = scratch;
+          this.#state.gouraudBase = 0;
         }
       } else {
-        if (texture) this.#hasCombinedTextureTint = true;
+        if (texture) this.#state.hasCombinedTextureTint = true;
         for (let k = 0; k < 3; k++) {
           const lightBase = k * 3;
           const lightR =
@@ -1372,47 +531,47 @@ export class Rasterizer {
           scratch[lightBase + 1] = lightG * colorG;
           scratch[lightBase + 2] = lightB * colorB;
         }
-        this.#gouraudData = scratch;
-        this.#gouraudBase = 0;
+        this.#state.gouraudData = scratch;
+        this.#state.gouraudBase = 0;
       }
     }
 
     if (texture) {
-      this.#uv0u = tb.uvU[v];
-      this.#uv0v = tb.uvV[v];
-      this.#uv1u = tb.uvU[v + 1];
-      this.#uv1v = tb.uvV[v + 1];
-      this.#uv2u = tb.uvU[v + 2];
-      this.#uv2v = tb.uvV[v + 2];
+      this.#state.uv0u = tb.uvU[v];
+      this.#state.uv0v = tb.uvV[v];
+      this.#state.uv1u = tb.uvU[v + 1];
+      this.#state.uv1v = tb.uvV[v + 1];
+      this.#state.uv2u = tb.uvU[v + 2];
+      this.#state.uv2v = tb.uvV[v + 2];
     }
 
     // FlatTex optimization: select brightness level once per triangle
     if (isFlat && texture && !mixedVertexColor) {
-      if (this.#hasTextureColorTint && shadedColorData) {
-        this.#flatTextureLightR =
+      if (this.#state.hasTextureColorTint && shadedColorData) {
+        this.#state.flatTextureLightR =
           shadedColorData[base] < 0
             ? 0
             : shadedColorData[base] > 1
               ? 1
               : shadedColorData[base];
-        this.#flatTextureLightG =
+        this.#state.flatTextureLightG =
           shadedColorData[base + 1] < 0
             ? 0
             : shadedColorData[base + 1] > 1
               ? 1
               : shadedColorData[base + 1];
-        this.#flatTextureLightB =
+        this.#state.flatTextureLightB =
           shadedColorData[base + 2] < 0
             ? 0
             : shadedColorData[base + 2] > 1
               ? 1
               : shadedColorData[base + 2];
       } else {
-        this.#flatTextureLightR = 1;
-        this.#flatTextureLightG = 1;
-        this.#flatTextureLightB = 1;
+        this.#state.flatTextureLightR = 1;
+        this.#state.flatTextureLightG = 1;
+        this.#state.flatTextureLightB = 1;
       }
-      const litFactor = this.#hasTextureColorTint
+      const litFactor = this.#state.hasTextureColorTint
         ? shadedColorData
           ? (shadedColorData[base] +
               shadedColorData[base + 1] +
@@ -1420,8 +579,8 @@ export class Rasterizer {
             0.3333333333333333
           : 1
         : (flatR + flatG + flatB) * 0.00130718954248366;
-      this.#flatLitFactor = litFactor;
-      const blLevels = this.#brightnessLevels;
+      this.#state.flatLitFactor = litFactor;
+      const blLevels = this.#state.brightnessLevels;
       if (blLevels) {
         const level = (litFactor * blLevels.length + 0.5) | 0;
         const li =
@@ -1430,18 +589,20 @@ export class Rasterizer {
             : level >= blLevels.length
               ? blLevels.length - 1
               : level;
-        this.#selectedBrightTex = blLevels[li];
+        this.#state.selectedBrightTex = blLevels[li];
       } else {
-        this.#selectedBrightTex = undefined;
+        this.#state.selectedBrightTex = undefined;
       }
     } else {
-      this.#selectedBrightTex = undefined;
+      this.#state.selectedBrightTex = undefined;
     }
 
     if (wireframe) {
       const packed = 0xff000000 | (flatB << 16) | (flatG << 8) | flatR;
       const depth16 =
-        (((this.#ndcZ0 + this.#ndcZ1 + this.#ndcZ2) / 3 + 1) * 32767.5 + 0.5) |
+        (((this.#state.ndcZ0 + this.#state.ndcZ1 + this.#state.ndcZ2) / 3 + 1) *
+          32767.5 +
+          0.5) |
         0;
       this.#wireframe.rasterize(
         x1,
@@ -1458,9 +619,9 @@ export class Rasterizer {
       );
     } else if (points) {
       const packed = 0xff000000 | (flatB << 16) | (flatG << 8) | flatR;
-      const z1 = ((this.#ndcZ0 + 1) * 32767.5 + 0.5) | 0;
-      const z2 = ((this.#ndcZ1 + 1) * 32767.5 + 0.5) | 0;
-      const z3 = ((this.#ndcZ2 + 1) * 32767.5 + 0.5) | 0;
+      const z1 = ((this.#state.ndcZ0 + 1) * 32767.5 + 0.5) | 0;
+      const z2 = ((this.#state.ndcZ1 + 1) * 32767.5 + 0.5) | 0;
+      const z3 = ((this.#state.ndcZ2 + 1) * 32767.5 + 0.5) | 0;
       this.#rasterizePoint(x1, y1, pointRadius, width, height, z1, packed);
       this.#rasterizePoint(x2, y2, pointRadius, width, height, z2, packed);
       this.#rasterizePoint(x3, y3, pointRadius, width, height, z3, packed);
@@ -1483,115 +644,11 @@ export class Rasterizer {
     depth16: number,
     packed: number,
   ): void {
-    const yMin = Math.max(0, Math.ceil(cy - radius));
-    const yMax = Math.min(height - 1, Math.floor(cy + radius));
-    const dbData = this.#dbData;
-    const dbWidth = this.#dbWidth;
-    const fbU32 = this.#fbU32;
-    const depthTest = this.#depthTest;
-    const depthWrite = this.#depthWrite;
-
-    if (!this.#blend) {
-      if (radius === 1) {
-        for (let y = yMin; y <= yMax; y++) {
-          const dy = y - cy;
-          const xMin = Math.max(0, Math.ceil(cx - 1));
-          const xMax = Math.min(width - 1, Math.floor(cx + 1));
-          for (let x = xMin; x <= xMax; x++) {
-            const dx = x - cx;
-            if (dx * dx + dy * dy > 1) continue;
-            const idx = y * dbWidth + x;
-            if (depthTest && depth16 > dbData[idx]) continue;
-            if (depthWrite) dbData[idx] = depth16;
-            fbU32[idx] = packed;
-          }
-        }
-        return;
-      }
-
-      const r2 = radius * radius;
-      for (let y = yMin; y <= yMax; y++) {
-        const dy = y - cy;
-        const halfWidth = Math.sqrt(Math.max(0, r2 - dy * dy));
-        const xMin = Math.max(0, Math.ceil(cx - halfWidth));
-        const xMax = Math.min(width - 1, Math.floor(cx + halfWidth));
-        let idx = y * dbWidth + xMin;
-        for (let x = xMin; x <= xMax; x++, idx++) {
-          if (depthTest && depth16 > dbData[idx]) continue;
-          if (depthWrite) dbData[idx] = depth16;
-          fbU32[idx] = packed;
-        }
-      }
-      return;
-    }
-
-    const sw = this.#srcWeight;
-    const dw = 1 - sw;
-    const srcR = packed & 0xff;
-    const srcG = (packed >> 8) & 0xff;
-    const srcB = (packed >> 16) & 0xff;
-
-    if (radius === 1) {
-      for (let y = yMin; y <= yMax; y++) {
-        const dy = y - cy;
-        const xMin = Math.max(0, Math.ceil(cx - 1));
-        const xMax = Math.min(width - 1, Math.floor(cx + 1));
-        for (let x = xMin; x <= xMax; x++) {
-          const dx = x - cx;
-          if (dx * dx + dy * dy > 1) continue;
-          const idx = y * dbWidth + x;
-          if (depthTest && depth16 > dbData[idx]) continue;
-          if (depthWrite) dbData[idx] = depth16;
-          const dstPx = fbU32[idx];
-          fbU32[idx] =
-            0xff000000 |
-            (((srcB * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-            (((srcG * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-            ((srcR * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-        }
-      }
-      return;
-    }
-
-    const r2 = radius * radius;
-    for (let y = yMin; y <= yMax; y++) {
-      const dy = y - cy;
-      const halfW = Math.sqrt(Math.max(0, r2 - dy * dy));
-      const xMin = Math.max(0, Math.ceil(cx - halfW));
-      const xMax = Math.min(width - 1, Math.floor(cx + halfW));
-      let idx = y * dbWidth + xMin;
-      for (let x = xMin; x <= xMax; x++, idx++) {
-        if (depthTest && depth16 > dbData[idx]) continue;
-        if (depthWrite) dbData[idx] = depth16;
-        const dstPx = fbU32[idx];
-        fbU32[idx] =
-          0xff000000 |
-          (((srcB * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-          (((srcG * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-          ((srcR * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-      }
-    }
+    rasterizePoint(this.#state, cx, cy, radius, width, height, depth16, packed);
   }
 
   #writePoint(px: number, py: number, depth16: number, packed: number): void {
-    const idx = py * this.#dbWidth + px;
-    if (this.#depthTest && depth16 > this.#dbData[idx]) return;
-    if (this.#depthWrite) this.#dbData[idx] = depth16;
-    if (!this.#blend) {
-      this.#fbU32[idx] = packed;
-      return;
-    }
-    const dstPx = this.#fbU32[idx];
-    const sw = this.#srcWeight;
-    const dw = 1 - sw;
-    const r = packed & 0xff;
-    const g = (packed >> 8) & 0xff;
-    const b = (packed >> 16) & 0xff;
-    this.#fbU32[idx] =
-      0xff000000 |
-      (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-      (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-      ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+    writePoint(this.#state, px, py, depth16, packed);
   }
 
   /** Selects the scanline callback for the current triangle's shading mode. */
@@ -1602,11 +659,11 @@ export class Rasterizer {
   ): ScanlineCallback {
     if (hasTexture) {
       if (isGouraud) {
-        if (this.#hasTextureColorTint)
+        if (this.#state.hasTextureColorTint)
           return this.#fillGouraudTexUniformTint.bind(this);
-        if (this.#hasCombinedTextureTint)
+        if (this.#state.hasCombinedTextureTint)
           return this.#fillGouraudTexCombinedTint.bind(this);
-        if (this.#vertexTintData !== undefined)
+        if (this.#state.vertexTintData !== undefined)
           return this.#fillGouraudTexVertexTint.bind(this);
         return this.#fillGouraudTexNoTint.bind(this);
       }
