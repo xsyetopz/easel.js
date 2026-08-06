@@ -9,7 +9,7 @@ import { LineSegments } from "../objects/LineSegments.ts";
 /** Mesh-like object whose prepared geometry and world matrix feed a tangent helper. */
 export interface VertexTangentsHelperObject {
   /** Geometry supplying position and tangent channels. */
-  readonly geometry?: Geometry;
+  readonly geometry: Geometry | undefined;
   /** Prepared world transform used when writing helper endpoints. */
   readonly matrixWorld: Matrix4;
   /** Updates this object and optionally its ancestors/descendants. */
