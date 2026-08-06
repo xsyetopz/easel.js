@@ -35,56 +35,50 @@ To install from JSR instead:
 bunx jsr add @xsyetopz/easel
 ```
 
-## Example
-
-```html
-<canvas id="scene"></canvas>
-<script type="module" src="/src/main.ts"></script>
-```
+### Example
 
 ```ts
-import {
-    AmbientLight,
-    BoxGeometry,
-    LambertMaterial,
-    Mesh,
-    OrthographicCamera,
-    Renderer,
-    Scene,
-} from "@xsyetopz/easel";
+import * as EASEL from "@xsyetopz/easel";
 
-const canvas = document.querySelector<HTMLCanvasElement>("#scene");
-if (!canvas) throw new Error("Missing #scene canvas");
+const width = globalThis.innerWidth, height = globalThis.innerHeight;
 
-const renderer = new Renderer({ canvas, width: 640, height: 360 });
-const scene = new Scene();
-scene.background = 0x18_1c_24;
+// init
 
-const camera = new OrthographicCamera({
-    left: -3.2,
-    right: 3.2,
-    top: 1.8,
-    bottom: -1.8,
-    near: 0.1,
-    far: 100,
+const camera = new EASEL.PerspectiveCamera({
+  fov: 70,
+  aspect: width / height,
+  near: 0.01,
+  far: 10,
 });
-camera.position.set(0, 0, 5);
+camera.position.z = 1;
 
-scene.add(new AmbientLight(0xff_ff_ff, 0.6));
-const cube = new Mesh(
-    new BoxGeometry(1, 1, 1),
-    new LambertMaterial({ color: 0xff_55_44 }),
-);
-scene.add(cube);
+const scene = new EASEL.Scene();
 
-function frame(): void {
-    cube.rotation.y += 0.01;
-    renderer.prepare(scene, camera);
-    renderer.render(scene, camera);
-    requestAnimationFrame(frame);
+const geometry = new EASEL.BoxGeometry(0.2, 0.2, 0.2);
+const material = new EASEL.BasicMaterial();
+
+const mesh = new EASEL.Mesh(geometry, material);
+scene.add(mesh);
+
+const renderer = new EASEL.Renderer({ width, height });
+document.body.appendChild(renderer.domElement);
+
+// animation
+
+function animate(time) {
+  mesh.rotation.x = time / 2000;
+  mesh.rotation.y = time / 1000;
+  renderer.render(scene, camera);
+
+  requestAnimationFrame(animate);
 }
-frame();
+
+requestAnimationFrame(animate);
 ```
+
+If done right, you'll see a [white rotating square](https://jsfiddle.net/v34j18zf/1/)
+
+See [migration-0.7.md](references/migration-0.7.md) for upgrades from 0.6 to 0.7.
 
 ## Renderer limits
 
