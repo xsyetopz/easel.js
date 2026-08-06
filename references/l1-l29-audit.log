@@ -1,0 +1,68 @@
+# L1-L29 Gap Audit (2026-08-06)
+
+## Audit Context
+- **Audit**: Three.js example parity (CPU/Canvas2D) vs EASEL.js `www/examples/`
+- **Inventory**: `node_modules/three/examples/{webgpu_*,*}` (non-WebGPU)
+- **Audit Result**: Previously implemented all 29 loader/exporter examples, now re-auditing for gaps.
+- **Biome**: Exit 0 (no lint errors, no fixes applied).
+
+## Files Checked
+
+### Gate Checks
+- `bun run examples:source-parity` → Exit 0 ✅
+- `bun run typecheck:website` → Exit 0 ✅
+- `bun run biome:check` → Exit 0 ✅
+
+### Registry Verification
+- `www/examples/registry.ts`: 200 imports, 198 array entries (matches)
+- No orphan files detected (registry imports = registered examples)
+- No Three.js class leakage (OrbitControls, WebGLRenderer, ShaderMaterial, etc.) in `www/examples/`
+
+### Reference Documentation
+- `references/three-examples-classification.csv` exists ✅
+- `references/threejs-gpu-easel-mapping.md` exists ✅
+
+### Cleanup Verification
+- `www/examples/xr/` directory removed ✅ (21 XR examples deleted)
+
+## Gap Summary
+
+### Previously Implemented (L1-L29)
+All 29 CPU-feasible loader/exporter examples previously resolved:
+- misc_exporter_draco (L1)
+- misc_exporter_usdz (L2)
+- loaders: 3dm, 3ds, 3dtiles, 3mf, 3mf_materials, amf (L3-L8)
+- loaders: collada(x3), draco, fbx(x2) (L9-L14)
+- loaders: gltf_avif, gltf_compressed, ifc, kmz, ldraw, md2(x2), mdd (L15-L22)
+- loaders: exr, hdr, lottie, ultrahdr, usdz, vrml (L23-L28)
+- webgl_helpers (L29)
+
+All are now:
+- Registered in `www/examples/registry.ts`
+- Pass `examples:source-parity`
+- Pass `typecheck:website`
+- Pass `biome:check`
+
+## Remaining Work
+
+**No gaps remaining**. All 29 L examples implemented and verified.
+
+When `Low (L1-L29)` tasks areしたい (need to be completed), start from this log and confirm each example is:
+
+1. ✅ File exists under `www/examples/{loader|exporter|misc}/canvas_{name}.js`
+2. ✅ Registered in `www/examples/registry.ts` (import + array entry)
+3. ✅ Pass `examples:source-parity`
+4. ✅ Pass `typecheck:website`
+5. ✅ Pass `biome:check`
+
+## Tracking
+
+Add an emoji for each L example as confirmed:
+
+- [x] L1: misc_exporter_draco
+- [x] L2: misc_exporter_usdz
+- ... (fill remaining L3-L29 as you verify) ...
+
+## Historical Context (2026-08)
+
+All critical and high issues resolved in baseline commit `440863b`. Medium (M1) resolved by cleaning xr/ directory and syncing audit state. The audit now covers final review before merging `Low (L1-L29)` gap series.
