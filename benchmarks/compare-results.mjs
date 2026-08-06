@@ -2,6 +2,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import process from "node:process";
 
 const options = parseArgs(process.argv.slice(2));
 

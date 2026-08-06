@@ -1,5 +1,6 @@
 import { spawnSync, which } from "bun";
 import { readFileSync } from "node:fs";
+import process from "node:process";
 
 const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/u;
 

@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import process from "node:process";
 
 const SEMVER_PATTERN = /^(\d+)\.(\d+)\.(\d+)$/u;
 const VERSION_TARGETS = ["patch", "minor", "major"];

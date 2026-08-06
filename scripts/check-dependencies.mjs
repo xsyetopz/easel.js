@@ -1,4 +1,5 @@
 import { spawnSync } from "bun";
+import process from "node:process";
 
 const OUTDATED_ROW_PATTERN = /^\|\s+[^\s|-][^|]*\|/u;
 const ALLOWED_OUTDATED_ROWS = [

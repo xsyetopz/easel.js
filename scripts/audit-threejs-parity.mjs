@@ -15,16 +15,16 @@ const THREE_EXAMPLES_ROOT = "node_modules/three/examples/jsm";
 
 // GPU-only patterns and categories
 const GPU_PATTERNS = [
-  /\beffects\b/,
-  /\bshaders\b/,
-  /\btsl\b/,
-  /\bcsm\b/,
-  /\bbloom\b/,
-  /\bpostprocessing\b/,
-  /\bxr\b/,
-  /\bwebxr\b/,
-  /\bgpgpu\b/,
-  /\bwebgpu\b/,
+  /\beffects\b/u,
+  /\bshaders\b/u,
+  /\btsl\b/u,
+  /\bcsm\b/u,
+  /\bbloom\b/u,
+  /\bpostprocessing\b/u,
+  /\bxr\b/u,
+  /\bwebxr\b/u,
+  /\bgpgpu\b/u,
+  /\bwebgpu\b/u,
 ];
 
 // GPU-only reasons
@@ -122,7 +122,7 @@ function walkAndClassify(rootPath, label) {
  * Extract meta.id from EASEL example
  */
 function extractMetaId(content) {
-  const match = content.match(/id:\s*["']([^"']+)["']/);
+  const match = content.match(/id:\s*["']([^"']+)["']/u);
   return match ? match[1] : null;
 }
 

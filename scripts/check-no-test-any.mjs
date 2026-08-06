@@ -1,10 +1,11 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import process from "node:process";
 
 const roots = ["tests"];
-const anyPattern = /\bany\b/;
-const testFilePattern = /\.ts$/;
-const lineBreakPattern = /\r?\n/;
+const anyPattern = /\bany\b/u;
+const testFilePattern = /\.ts$/u;
+const lineBreakPattern = /\r?\n/u;
 const matches = [];
 
 async function walk(dir) {

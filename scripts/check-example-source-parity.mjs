@@ -1,16 +1,17 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import process from "node:process";
 
 const examplesRoot = "www/examples";
-const jsFilePattern = /\.js$/;
+const jsFilePattern = /\.js$/u;
 const sourcePattern =
-  /export const (easelSource|threeSource) = (`([\s\S]*?)`|undefined);/g;
+  /export const (easelSource|threeSource) = (`([\s\S]*?)`|undefined);/gu;
 const metaIdPattern =
-  /export const meta\s*=\s*\{[\s\S]*?\bid:\s*["']([^"']+)["']/;
-const adapterIdPattern = /export const threeAdapterId\s*=\s*meta\.id;/;
-const noThreeReasonPattern = /export const noThreeReason =\s*"([^"]+)";/;
-const commentPattern = /\/\/.*|\/\*[\s\S]*?\*\//g;
-const whitespacePattern = /\s+/g;
+  /export const meta\s*=\s*\{[\s\S]*?\bid:\s*["']([^"']+)["']/u;
+const adapterIdPattern = /export const threeAdapterId\s*=\s*meta\.id;/u;
+const noThreeReasonPattern = /export const noThreeReason =\s*"([^"]+)";/u;
+const commentPattern = /\/\/.*|\/\*[\s\S]*?\*\//gu;
+const whitespacePattern = /\s+/gu;
 const failures = [];
 
 function normalizeComment(comment) {
