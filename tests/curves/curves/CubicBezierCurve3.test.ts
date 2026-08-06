@@ -2,7 +2,7 @@ import { describe } from "bun:test";
 import * as THREE from "three";
 import { CubicBezierCurve3 } from "@/curves/curves/CubicBezierCurve3.js";
 import { Vector3 } from "@/math/Vector3.js";
-import { expectCurveParity } from "../../_helpers/curves.js";
+import { expectCurveParity } from "../../_helpers/curves.ts";
 
 describe("CubicBezierCurve3 vs THREE", () => {
   const ev0 = new Vector3(0, 0, 0);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 import { Cylindrical as TCylindrical } from "three";
 import { Cylindrical } from "@/math/Cylindrical.js";
 

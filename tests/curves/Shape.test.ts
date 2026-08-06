@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
 import { Path } from "@/curves/Path.js";
 import { Shape } from "@/curves/Shape.ts";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 
 function makeSquare(x: number, y: number, size: number) {
   const s = new Shape();

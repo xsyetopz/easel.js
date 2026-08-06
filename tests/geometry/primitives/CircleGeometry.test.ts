@@ -4,7 +4,7 @@ import { CircleGeometry } from "@/geometry/primitives/CircleGeometry.js";
 import {
   expectAttributeArraysClose,
   expectIndexLengthMatches,
-} from "../../_helpers/geometry.js";
+} from "../../_helpers/geometry.ts";
 
 describe("CircleGeometry vs THREE.CircleGeometry", () => {
   it("matches default positions, normals, UVs, and indices", () => {

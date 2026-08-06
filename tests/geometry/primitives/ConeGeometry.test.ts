@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { ConeGeometry } from "@/geometry/primitives/ConeGeometry.js";
-import { defined } from "../../_helpers/defined.js";
-import { expectUnitNormals } from "../../_helpers/geometry.js";
+import { defined } from "../../_helpers/defined.ts";
+import { expectUnitNormals } from "../../_helpers/geometry.ts";
 
 describe("ConeGeometry", () => {
   it("default - has position, normal, uv, index", () => {

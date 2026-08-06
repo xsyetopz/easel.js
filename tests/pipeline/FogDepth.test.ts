@@ -4,8 +4,8 @@ import { Matrix4 } from "@/math/Matrix4.js";
 import { SceneTraversal } from "@/pipeline/SceneTraversal.js";
 import type { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 import { Fog, FogMode } from "@/scenes/Fog.js";
-import { defined } from "../_helpers/defined.js";
-import { makeTraversalScene as makeScene } from "../_helpers/scene-traversal.js";
+import { defined } from "../_helpers/defined.ts";
+import { makeTraversalScene as makeScene } from "../_helpers/scene-traversal.ts";
 
 describe("SceneTraversal fog depth", () => {
   const traversal = new SceneTraversal();

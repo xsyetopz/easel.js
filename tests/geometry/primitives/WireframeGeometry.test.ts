@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Geometry } from "@/geometry/Geometry.js";
 import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import { WireframeGeometry } from "@/geometry/primitives/WireframeGeometry.ts";
-import { defined } from "../../_helpers/defined.js";
+import { defined } from "../../_helpers/defined.ts";
 
 describe("WireframeGeometry", () => {
   it("produces positions attribute from a BoxGeometry", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { FogCuller } from "@/pipeline/FogCuller.js";
-import { makeDrawList } from "../_helpers/draw-calls.js";
+import { makeDrawList } from "../_helpers/draw-calls.ts";
 
 describe("FogCuller", () => {
   const culler = new FogCuller();

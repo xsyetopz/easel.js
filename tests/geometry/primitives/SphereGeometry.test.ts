@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
 import { SphereGeometry } from "@/geometry/primitives/SphereGeometry.js";
-import { defined } from "../../_helpers/defined.js";
-import { expectUnitNormals, maxVertexRadius } from "../../_helpers/geometry.js";
+import { defined } from "../../_helpers/defined.ts";
+import { expectUnitNormals, maxVertexRadius } from "../../_helpers/geometry.ts";
 
 describe("SphereGeometry vs THREE.SphereGeometry", () => {
   it("default - vertex count matches", () => {

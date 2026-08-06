@@ -6,7 +6,7 @@ import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";
 import { buildInstancedDrawCalls } from "@/pipeline/InstancedMeshBuilder.js";
 import { Rasterizer } from "@/pipeline/rasterizer/Rasterizer.js";
 import type { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
-import { appendCenterTriangle } from "../_helpers/rasterizer.js";
+import { appendCenterTriangle } from "../_helpers/rasterizer.ts";
 
 function makeCamera() {
   const m = new Matrix4();

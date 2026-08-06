@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import type { DrawCall } from "@/pipeline/DrawCall.js";
 import { DrawList } from "@/pipeline/DrawList.js";
-import { makeDrawCall } from "../_helpers/draw-calls.js";
+import { makeDrawCall } from "../_helpers/draw-calls.ts";
 
 describe("DrawList", () => {
   it("starts empty", () => {

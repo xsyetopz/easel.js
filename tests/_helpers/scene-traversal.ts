@@ -1,7 +1,7 @@
 import { Matrix4 } from "@/math/Matrix4.js";
 import type { SceneTraversal } from "@/pipeline/SceneTraversal.js";
 import type { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
-import { defined } from "./defined.js";
+import { defined } from "./defined.ts";
 
 type TraversalScene = Parameters<SceneTraversal["traverse"]>[0];
 type TraversalCamera = Parameters<SceneTraversal["traverse"]>[1];

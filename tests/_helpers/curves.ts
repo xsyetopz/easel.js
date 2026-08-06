@@ -1,6 +1,6 @@
 import { expect, it } from "bun:test";
-import { defined } from "./defined.js";
-import "./assertions.js";
+import { defined } from "./defined.ts";
+import "./assertions.ts";
 
 type VectorLike = Partial<Record<"x" | "y" | "z" | "w", number>>;
 

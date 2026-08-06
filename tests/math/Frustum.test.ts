@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 import { Frustum as TFrustum, Matrix4 as TMatrix4 } from "three";
 import { Box3 } from "@/math/Box3.js";
 import { Frustum } from "@/math/Frustum.js";

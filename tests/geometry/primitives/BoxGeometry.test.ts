@@ -4,7 +4,7 @@ import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import {
   expectAttributeArraysClose,
   expectIndexLengthMatches,
-} from "../../_helpers/geometry.js";
+} from "../../_helpers/geometry.ts";
 
 describe("BoxGeometry vs THREE.BoxGeometry", () => {
   it("default constructor - positions match", () => {

@@ -3,8 +3,8 @@ import * as THREE from "three";
 import { CapsuleGeometry } from "@/geometry/primitives/CapsuleGeometry.js";
 import { LatheGeometry } from "@/geometry/primitives/LatheGeometry.js";
 import { Vector2 } from "@/math/Vector2.js";
-import { defined } from "../../_helpers/defined.js";
-import { expectUnitNormals } from "../../_helpers/geometry.js";
+import { defined } from "../../_helpers/defined.ts";
+import { expectUnitNormals } from "../../_helpers/geometry.ts";
 
 const points = [new Vector2(0, -1), new Vector2(0.5, 0), new Vector2(0, 1)];
 const THREEPoints = points.map((p) => new THREE.Vector2(p.x, p.y));

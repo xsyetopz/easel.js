@@ -22,15 +22,15 @@ describe("OBJExporter and STLExporter", () => {
     expect(text).toContain("usemtl BoxMaterial");
     expect(text).toContain("# easel-material-color 336699");
     expect(text).toContain("v -0.5 -0.5 0.5 1 1 1");
-    expect((text.match(/^v /gm) ?? []).length).toBe(24);
-    expect((text.match(/^f /gm) ?? []).length).toBe(12);
+    expect((text.match(/^v /gmu) ?? []).length).toBe(24);
+    expect((text.match(/^f /gmu) ?? []).length).toBe(12);
   });
 
   it("serializes every indexed triangle to ASCII STL", () => {
     const mesh = new Mesh(new BoxGeometry(1, 1, 1), new BasicMaterial());
     const text = new STLExporter().parse(mesh, "Box");
     expect(text.startsWith("solid Box\n")).toBe(true);
-    expect((text.match(/^ facet normal /gm) ?? []).length).toBe(12);
+    expect((text.match(/^ facet normal /gmu) ?? []).length).toBe(12);
     expect(text.endsWith("endsolid Box\n")).toBe(true);
   });
 

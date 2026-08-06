@@ -4,7 +4,7 @@ import { CurvePath } from "@/curves/CurvePath.js";
 import { LineCurve } from "@/curves/curves/LineCurve.js";
 import { QuadraticBezierCurve } from "@/curves/curves/QuadraticBezierCurve.js";
 import { Vector2 } from "@/math/Vector2.js";
-import { expectCurveParity } from "../_helpers/curves.js";
+import { expectCurveParity } from "../_helpers/curves.ts";
 
 function makeEASELPath() {
   const path = new CurvePath();

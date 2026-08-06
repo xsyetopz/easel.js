@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
 import { CatmullRomCurve3 } from "@/curves/curves/CatmullRomCurve3.js";
 import { Vector3 } from "@/math/Vector3.js";
-import "../../_helpers/assertions.js";
+import "../../_helpers/assertions.ts";
 
 const epts = [
   new Vector3(0, 0, 0),

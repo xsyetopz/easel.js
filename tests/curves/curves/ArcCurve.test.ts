@@ -1,7 +1,7 @@
 import { describe } from "bun:test";
 import * as THREE from "three";
 import { ArcCurve } from "@/curves/curves/ArcCurve.js";
-import { expectCurveParity } from "../../_helpers/curves.js";
+import { expectCurveParity } from "../../_helpers/curves.ts";
 
 describe("ArcCurve vs THREE", () => {
   // (cx, cy, radius, startAngle, endAngle, clockwise)

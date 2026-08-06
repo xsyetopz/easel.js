@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 import {
   Box3 as TBox3,
   Line3 as TLine3,

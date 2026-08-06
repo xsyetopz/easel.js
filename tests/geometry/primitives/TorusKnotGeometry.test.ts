@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { TorusKnotGeometry } from "../../../src/geometry/primitives/TorusKnotGeometry.js";
-import { defined } from "../../_helpers/defined.js";
+import { TorusKnotGeometry } from "../../../src/geometry/primitives/TorusKnotGeometry.ts";
+import { defined } from "../../_helpers/defined.ts";
 
 describe("TorusKnotGeometry", () => {
   it("generates expected vertex count", () => {

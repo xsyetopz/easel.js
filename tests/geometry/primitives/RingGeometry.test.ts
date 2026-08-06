@@ -4,7 +4,7 @@ import { RingGeometry } from "@/geometry/primitives/RingGeometry.js";
 import {
   expectAttributeArraysClose,
   expectIndexLengthMatches,
-} from "../../_helpers/geometry.js";
+} from "../../_helpers/geometry.ts";
 
 describe("RingGeometry vs THREE.RingGeometry", () => {
   it("default - positions match", () => {

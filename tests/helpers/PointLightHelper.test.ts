@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { PointLightHelper } from "@/helpers/PointLightHelper.js";
 import { PointLight } from "@/lights/PointLight.js";
-import { LineMaterial } from "@/materials/LineMaterial.js";
+import type { LineMaterial } from "@/materials/LineMaterial.js";
 import { Vector3 } from "@/math/Vector3.js";
 
 describe("PointLightHelper", () => {

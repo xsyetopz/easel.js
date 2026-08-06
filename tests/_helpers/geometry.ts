@@ -1,5 +1,5 @@
-import { defined } from "./defined.js";
-import { compareArrays } from "./three-bridge.js";
+import { defined } from "./defined.ts";
+import { compareArrays } from "./three-bridge.ts";
 
 export type AttributeLike = {
   array: ArrayLike<number>;

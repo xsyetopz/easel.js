@@ -30,8 +30,8 @@ describe("GCodeExporter", () => {
     expect(first).toContain("; EASEL G-code export");
     expect(first).toContain("G21 ; millimeters");
     expect(first).toContain("M82 ; absolute extrusion");
-    expect(first).toMatch(/G0 X-0\.5 Y-0\.5 Z0 F3000/);
-    expect(first).toMatch(/G1 X0\.5 Y-0\.5 E[0-9.]+ F1200/);
+    expect(first).toMatch(/G0 X-0\.5 Y-0\.5 Z0 F3000/u);
+    expect(first).toMatch(/G1 X0\.5 Y-0\.5 E[0-9.]+ F1200/u);
     expect(first.endsWith("M2 ; end of program\n")).toBe(true);
   });
 

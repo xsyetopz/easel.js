@@ -2,7 +2,7 @@ import { describe } from "bun:test";
 import * as THREE from "three";
 import { SplineCurve } from "@/curves/curves/SplineCurve.js";
 import { Vector2 } from "@/math/Vector2.js";
-import { expectCurveParity } from "../../_helpers/curves.js";
+import { expectCurveParity } from "../../_helpers/curves.ts";
 
 describe("SplineCurve vs THREE", () => {
   const epts = [

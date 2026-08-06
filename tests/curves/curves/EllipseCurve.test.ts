@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
 import { EllipseCurve } from "@/curves/curves/EllipseCurve.js";
-import { expectCurveParity } from "../../_helpers/curves.js";
+import { expectCurveParity } from "../../_helpers/curves.ts";
 
 describe("EllipseCurve vs THREE", () => {
   // (cx, cy, xRadius, yRadius, startAngle, endAngle, clockwise, rotation)

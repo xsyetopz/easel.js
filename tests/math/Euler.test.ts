@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "bun:test";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 import {
   Euler as TEuler,
   Matrix4 as TMatrix4,

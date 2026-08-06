@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
 import { CapsuleGeometry } from "@/geometry/primitives/CapsuleGeometry.js";
-import { defined } from "../../_helpers/defined.js";
-import { expectUnitNormals } from "../../_helpers/geometry.js";
+import { defined } from "../../_helpers/defined.ts";
+import { expectUnitNormals } from "../../_helpers/geometry.ts";
 
 describe("CapsuleGeometry vs THREE.CapsuleGeometry", () => {
   it("default - vertex count matches", () => {

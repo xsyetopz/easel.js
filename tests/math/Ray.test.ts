@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 import { Box3 as TBox3, Ray as TRay, Vector3 as TVector3 } from "three";
 import { Box3 } from "@/math/Box3.js";
 import { Plane } from "@/math/Plane.js";
 import { Ray } from "@/math/Ray.js";
 import { Sphere } from "@/math/Sphere.js";
 import { Vector3 } from "@/math/Vector3.js";
-import { defined } from "../_helpers/defined.js";
+import { defined } from "../_helpers/defined.ts";
 
 describe("Ray", () => {
   it("constructor defaults", () => {

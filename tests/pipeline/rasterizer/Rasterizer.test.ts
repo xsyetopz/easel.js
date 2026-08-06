@@ -10,7 +10,7 @@ import {
   makeRasterDrawCall,
   makeRasterizerFixture,
   type RasterDrawCall,
-} from "../../_helpers/rasterizer.js";
+} from "../../_helpers/rasterizer.ts";
 
 describe("Rasterizer", () => {
   it("writes pixels for solid material", () => {

@@ -4,7 +4,7 @@ import { DirectionalLightHelper } from "@/helpers/DirectionalLightHelper.js";
 import { DirectionalLight } from "@/lights/DirectionalLight.js";
 import { LineMaterial } from "@/materials/LineMaterial.js";
 import { Vector3 } from "@/math/Vector3.js";
-import { Line } from "@/objects/Line.js";
+import type { Line } from "@/objects/Line.js";
 
 describe("DirectionalLightHelper", () => {
   it("performs no synchronization or matrix preparation in its constructor", () => {

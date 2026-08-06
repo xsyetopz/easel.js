@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 import { Box3 } from "@/math/Box3.js";
 import { Matrix3 } from "@/math/Matrix3.js";
 import { OBB } from "@/math/OBB.js";

@@ -11,7 +11,7 @@ import { LightBaker } from "@/pipeline/shading/LightBaker.js";
 import {
   makeTraversalCamera as makeCamera,
   makeTraversalScene as makeScene,
-} from "../_helpers/scene-traversal.js";
+} from "../_helpers/scene-traversal.ts";
 
 function makeMeshNode() {
   return {

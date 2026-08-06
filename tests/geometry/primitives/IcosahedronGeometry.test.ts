@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
 import { IcosahedronGeometry } from "@/geometry/primitives/IcosahedronGeometry.ts";
-import { defined } from "../../_helpers/defined.js";
-import { expectUnitNormals, maxVertexRadius } from "../../_helpers/geometry.js";
+import { defined } from "../../_helpers/defined.ts";
+import { expectUnitNormals, maxVertexRadius } from "../../_helpers/geometry.ts";
 
 describe("IcosahedronGeometry vs THREE.IcosahedronGeometry", () => {
   it("default - vertex count matches", () => {

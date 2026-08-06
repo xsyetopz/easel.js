@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test";
 import * as THREE from "three";
 import { PlaneGeometry } from "@/geometry/primitives/PlaneGeometry.js";
-import { defined } from "../../_helpers/defined.js";
+import { defined } from "../../_helpers/defined.ts";
 import {
   expectAttributeArraysClose,
   expectIndexLengthMatches,
   getAttributeCount,
-} from "../../_helpers/geometry.js";
+} from "../../_helpers/geometry.ts";
 
 describe("PlaneGeometry vs THREE.PlaneGeometry", () => {
   it("default - vertex count matches", () => {

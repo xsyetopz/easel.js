@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { LineCurve3 } from "@/curves/curves/LineCurve3.js";
 import { Vector3 } from "@/math/Vector3.js";
-import "../_helpers/assertions.js";
+import "../_helpers/assertions.ts";
 
 // Use LineCurve3 as a concrete subclass to test Curve base behaviour
 describe("Curve base (via LineCurve3)", () => {

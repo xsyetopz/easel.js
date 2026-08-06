@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { ConvexGeometry } from "@/geometry/primitives/ConvexGeometry.ts";
 import { Vector3 } from "@/math/Vector3.ts";
-import { defined } from "../../_helpers/defined.js";
-import { expectUnitNormals } from "../../_helpers/geometry.js";
+import { defined } from "../../_helpers/defined.ts";
+import { expectUnitNormals } from "../../_helpers/geometry.ts";
 
 function cubePoints(): Vector3[] {
   return [-1, 1].flatMap((x) =>
