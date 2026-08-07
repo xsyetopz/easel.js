@@ -72,6 +72,10 @@ export class Attribute {
 
   /** Optional channel name included in serialized output. */
   name: string = "";
+  /** Buffer usage hint retained for API parity; the CPU renderer does not use it. */
+  usage = 35044;
+  /** Optional callback invoked after attribute data is uploaded. */
+  onUploadCallback: (() => void) | undefined = undefined;
   /** Whether the latest channel writes have been published to geometry cache owners. */
   get needsUpdate(): boolean {
     return this.#needsUpdate;
@@ -285,6 +289,18 @@ export class Attribute {
     return this;
   }
 
+  /** Sets the upload callback and returns this attribute. */
+  onUpload(callback: () => void): this {
+    this.onUploadCallback = callback;
+    return this;
+  }
+
+  /** Sets the buffer usage hint and returns this attribute. */
+  setUsage(value: number): this {
+    this.usage = value;
+    return this;
+  }
+
   /** Returns an independent copy with cloned mutable state. */
   clone(): Attribute {
     return new Attribute(
@@ -321,6 +337,7 @@ export class Attribute {
 
   #copyMetadata(source: Attribute): this {
     this.name = source.name;
+    this.usage = source.usage;
     this.needsUpdate = source.needsUpdate;
     return this;
   }
@@ -359,4 +376,27 @@ function normalize(value: number, array: AttributeArray): number {
   if (array instanceof Int32Array) return Math.round(value * 2_147_483_647);
   if (array instanceof Int16Array) return Math.round(value * 32_767);
   return Math.round(value * 127);
+}
+
+const TYPED_ARRAY_MAP: Record<string, new (length: number) => AttributeArray> = {
+  Int8: Int8Array,
+  Uint8: Uint8Array,
+  Uint8Clamped: Uint8ClampedArray,
+  Int16: Int16Array,
+  Uint16: Uint16Array,
+  Int32: Int32Array,
+  Uint32: Uint32Array,
+  Float32: Float32Array,
+};
+
+/** Returns the typed-array constructor name without the `Array` suffix. */
+export function toNormalizedTypeName(typeName: string): string {
+  return typeName.replace(/Array$/u, "");
+}
+
+/** Returns the typed-array constructor for a normalized type name. */
+export function toType(
+  typeName: string,
+): (new (length: number) => AttributeArray) | undefined {
+  return TYPED_ARRAY_MAP[typeName];
 }

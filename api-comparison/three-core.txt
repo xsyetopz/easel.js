@@ -297,8 +297,11 @@
 <	Attribute.name	field	instance rw string	-
 <	Attribute.needsUpdate	accessor	instance rw boolean	-
 <	Attribute.normalized	accessor	instance r boolean	-
+<	Attribute.onUpload	method	instance (callback: () => void) => this	-
+<	Attribute.onUploadCallback	field	instance rw (() => void) | undefined	-
 <	Attribute.set	method	instance (values: ArrayLike<number>, offset: number = 0) => this	-
 <	Attribute.setComponent	method	instance (index: number, component: number, value: number) => this	-
+<	Attribute.setUsage	method	instance (value: number) => this	-
 <	Attribute.setW	method	instance (index: number, w: number) => this	-
 <	Attribute.setX	method	instance (index: number, x: number) => this	-
 <	Attribute.setXY	method	instance (index: number, x: number, y: number) => this	-
@@ -308,6 +311,7 @@
 <	Attribute.setZ	method	instance (index: number, z: number) => this	-
 <	Attribute.toJSON	method	instance () => { itemSize: number; type: string; array: number[]; normalized: boolean; name?: string; }	-
 <	Attribute.transformDirection	method	instance (matrix: Matrix4) => this	-
+<	Attribute.usage	field	instance rw number	-
 <	AttributeArray	record	type = | Float32Array | Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array	-
 !	Audio	class	class extends Node	class extends Object3D
 >	Audio._connected	field	-	instance rw boolean
@@ -942,7 +946,7 @@
 >	Clock.stop	method	-	instance () => void
 =	Color	class	class	class
 >	Color.NAMES	field	-	static rw Object
->	Color.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
+>	Color.__@iterator@5982	method	-	instance () => Generator<number, void, unknown>
 !	Color.add	method	instance (color: Color) => this	instance (color: Color) => Color
 !	Color.addColors	method	instance (color1: Color, color2: Color) => this	instance (color1: Color, color2: Color) => Color
 !	Color.addScalar	method	instance (scalar: number) => this	instance (s: number) => Color
@@ -1327,7 +1331,7 @@
 <	DrawCall.vertexColorItemSize	field	instance rw number	-
 <	DrawCall.worldPositions	field	instance rw Float32Array<ArrayBufferLike>	-
 <	DrawList	class	class	-
-<	DrawList.__@iterator@3126	method	instance () => Iterator<DrawCall, any, any>	-
+<	DrawList.__@iterator@3164	method	instance () => Iterator<DrawCall, any, any>	-
 <	DrawList.add	method	instance (drawCall: DrawCall) => void	-
 <	DrawList.calls	accessor	instance r DrawCall[]	-
 <	DrawList.clear	method	instance () => void	-
@@ -1389,7 +1393,7 @@
 >	EquirectangularRefractionMapping	const	-	const number
 =	Euler	class	class	class
 >	Euler.DEFAULT_ORDER	field	-	static rw string
->	Euler.__@iterator@5932	method	-	instance () => Generator<string | number, void, unknown>
+>	Euler.__@iterator@5982	method	-	instance () => Generator<string | number, void, unknown>
 >	Euler._onChange	method	-	instance (callback: any) => this
 >	Euler._onChangeCallback	method	-	instance () => void
 >	Euler._order	field	-	instance rw string
@@ -1399,7 +1403,7 @@
 =	Euler.clone	method	instance () => Euler	instance () => Euler
 !	Euler.constructor	constructor	instance (x: number = 0, y: number = 0, z: number = 0, order: EulerOrder = "XYZ") => Euler	instance (x: number = 0, y: number = 0, z: number = 0, order: string = Euler.DEFAULT_ORDER) => Euler
 !	Euler.copy	method	instance (euler: Euler) => this	instance (euler: Euler) => Euler
->	Euler.equals	method	-	instance (euler: Euler) => boolean
+=	Euler.equals	method	instance (euler: Euler) => boolean	instance (euler: Euler) => boolean
 !	Euler.fromArray	method	instance (array: [number, number, number, EulerOrder?]) => this	instance (array: Array<number,number,number,?string>) => Euler
 >	Euler.isEuler	field	-	instance ro boolean
 !	Euler.order	accessor	instance rw EulerOrder	instance rw string
@@ -1409,7 +1413,7 @@
 !	Euler.setFromRotationMatrix	method	instance (m: Matrix4 | { elements: number[] }, order?: EulerOrder) => this	instance (m: Matrix4, order: string = this._order, update: boolean = true) => Euler
 >	Euler.setFromVector3	method	-	instance (v: Vector3, order: string = this._order) => Euler
 <	Euler.setOnChangeCallback	method	instance (callback: () => void) => this	-
->	Euler.toArray	method	-	instance (array: Array<number,number,number,string> = [], offset: number = 0) => Array<number,number,number,string>
+!	Euler.toArray	method	instance (array: number[] = [], offset: number = 0) => number[]	instance (array: Array<number,number,number,string> = [], offset: number = 0) => Array<number,number,number,string>
 =	Euler.x	accessor	instance rw number	instance rw number
 =	Euler.y	accessor	instance rw number	instance rw number
 =	Euler.z	accessor	instance rw number	instance rw number
@@ -1674,8 +1678,11 @@
 <	Geometry.dispose	method	instance () => void	-
 <	Geometry.drawRange	field	instance rw { start: number; count: number; }	-
 <	Geometry.getAttribute	method	instance (name: string) => Attribute | undefined	-
+<	Geometry.hasAttribute	method	instance (name: string) => boolean	-
 <	Geometry.id	field	instance ro number	-
 <	Geometry.index	accessor	instance rw Uint16Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | undefined	-
+<	Geometry.lookAt	method	instance (v: Vector3) => this	-
+<	Geometry.mergeVertices	method	instance (mergeThreshold: number = 0.0001) => this	-
 <	Geometry.morphAttributes	field	instance rw Record<string, Attribute[]> | undefined	-
 <	Geometry.morphTargetsRelative	field	instance rw boolean	-
 <	Geometry.name	field	instance rw string	-
@@ -1691,6 +1698,7 @@
 <	Geometry.setPositions	method	instance (array: Float32Array | number[]) => this	-
 <	Geometry.setTangents	method	instance (array: Float32Array | number[]) => this	-
 <	Geometry.setUVs	method	instance (array: Float32Array | number[]) => this	-
+<	Geometry.toJSON	method	instance () => { metadata: { version: number; type: string; generator: string; }; id: number; type: string; name: string; data: { attributes: Record<string, ReturnType<Attribute["toJSON"]>>; index?: { type: string; array: number[]; }; drawRange: { start: number; count: number; }; morphAttributes?: Record<string, ReturnType<Attribute["toJSON"]>[]>; morphTargetsRelative?: boolean; boundingSphere?: { center: [number, number, number]; radius: number; }; }; parameters: Record<string, unknown>; userData: Record<string, unknown>; }	-
 <	Geometry.toNonIndexed	method	instance () => Geometry	-
 <	Geometry.translate	method	instance (x: number, y: number, z: number) => this	-
 <	Geometry.type	field	instance rw string	-
@@ -2167,7 +2175,7 @@
 !	Loader.load	method	instance (_url: string, _onLoad: ((data: unknown) => void) | undefined, _onProgress: ((event: ProgressEvent) => void) | undefined, _onError: ((err: unknown) => void) | undefined) => void	instance (url: string, onLoad: Function, onProgress?: onProgressCallback, onError?: onErrorCallback) => void
 !	Loader.loadAsync	method	instance (url: string, onProgress?: (event: ProgressEvent) => void) => Promise<unknown>	instance (url: string, onProgress?: onProgressCallback) => Promise
 !	Loader.manager	accessor/field	instance r LoadingManager	instance rw LoadingManager
->	Loader.parse	method	-	instance (data: any) => void
+!	Loader.parse	method	instance (_data: unknown) => unknown	instance (data: any) => void
 !	Loader.path	accessor/field	instance rw string	instance rw string
 !	Loader.requestHeader	accessor/field	instance rw Readonly<Record<string, string>>	instance rw Object<string, any>
 !	Loader.resourcePath	accessor/field	instance rw string	instance rw string
@@ -2399,7 +2407,7 @@
 !	Matrix2.identity	method	instance () => this	instance () => Matrix2
 !	Matrix2.set	method	instance (n11: number, n12: number, n21: number, n22: number) => this	instance (n11: number, n12: number, n21: number, n22: number) => Matrix2
 =	Matrix3	class	class	class
-<	Matrix3.__@iterator@3126	method	instance () => Generator<number, any, any>	-
+<	Matrix3.__@iterator@3164	method	instance () => Generator<number, any, any>	-
 =	Matrix3.clone	method	instance () => Matrix3	instance () => Matrix3
 <	Matrix3.compose	method	instance (position: Vector2, rotation: number, scale: Vector2) => this	-
 !	Matrix3.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix3	instance (n11?: number, n12?: number, n13?: number, n21?: number, n22?: number, n23?: number, n31?: number, n32?: number, n33?: number) => Matrix3
@@ -2434,7 +2442,7 @@
 <	Matrix3.transposeInto	method	instance (values: number[] | Float32Array<ArrayBufferLike>) => this	-
 >	Matrix3.transposeIntoArray	method	-	instance (r: Array<number>) => Matrix3
 =	Matrix4	class	class	class
-<	Matrix4.__@iterator@3126	method	instance () => Generator<number, any, any>	-
+<	Matrix4.__@iterator@3164	method	instance () => Generator<number, any, any>	-
 =	Matrix4.clone	method	instance () => Matrix4	instance () => Matrix4
 !	Matrix4.compose	method	instance (position: Vector3, q: Quaternion, scale: Vector3) => this	instance (position: Vector3, quaternion: Quaternion, scale: Vector3) => Matrix4
 !	Matrix4.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix4	instance (n11?: number, n12?: number, n13?: number, n14?: number, n21?: number, n22?: number, n23?: number, n24?: number, n31?: number, n32?: number, n33?: number, n34?: number, n41?: number, n42?: number, n43?: number, n44?: number) => Matrix4
@@ -3388,8 +3396,8 @@
 !	QuadraticBezierCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	QuadraticBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 =	Quaternion	class	class	class
-<	Quaternion.__@iterator@3126	method	instance () => Generator<number, any, any>	-
->	Quaternion.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
+<	Quaternion.__@iterator@3164	method	instance () => Generator<number, any, any>	-
+>	Quaternion.__@iterator@5982	method	-	instance () => Generator<number, void, unknown>
 >	Quaternion._onChange	method	-	instance (callback: any) => this
 >	Quaternion._onChangeCallback	method	-	instance () => void
 >	Quaternion._w	field	-	instance rw number
@@ -3415,12 +3423,14 @@
 !	Quaternion.multiplyQuaternions	method	instance (a: Quaternion, b: Quaternion) => this	instance (a: Quaternion, b: Quaternion) => Quaternion
 >	Quaternion.multiplyQuaternionsFlat	method	-	static (dst: Array<number>, dstOffset: number, src0: Array<number>, srcOffset0: number, src1: Array<number>, srcOffset1: number) => Array<number>
 !	Quaternion.normalize	method	instance () => this	instance () => Quaternion
+<	Quaternion.onChange	method	instance (callback: () => void) => this	-
 !	Quaternion.premultiply	method	instance (q: Quaternion) => this	instance (q: Quaternion) => Quaternion
 !	Quaternion.random	method	instance () => this	instance () => Quaternion
 !	Quaternion.rotateTowards	method	instance (q: Quaternion, step: number) => this	instance (q: Quaternion, step: number) => Quaternion
 !	Quaternion.set	method	instance (x: number, y: number, z: number, w: number) => this	instance (x: number, y: number, z: number, w: number) => Quaternion
 !	Quaternion.setFromAxisAngle	method	instance (axis: { x: number; y: number; z: number }, angle: number) => this	instance (axis: Vector3, angle: number) => Quaternion
 !	Quaternion.setFromEuler	method	instance (euler: { x: number; y: number; z: number; order: string; }) => this	instance (euler: Euler, update: boolean = true) => Quaternion
+<	Quaternion.setFromMatrix4	method	instance (m: { elements: ArrayLike<number> }) => this	-
 !	Quaternion.setFromRotationMatrix	method	instance (m: { elements: ArrayLike<number> }) => this	instance (m: Matrix4) => Quaternion
 !	Quaternion.setFromUnitVectors	method	instance (from: { x: number; y: number; z: number }, to: { x: number; y: number; z: number }) => this	instance (vFrom: Vector3, vTo: Vector3) => Quaternion
 !	Quaternion.slerp	method	instance (q: Quaternion, t: number) => this	instance (qb: Quaternion, t: number) => Quaternion
@@ -3676,12 +3686,12 @@
 <	Scene.clone	method	instance () => Scene	-
 !	Scene.constructor	constructor	instance ({ uuid = crypto.randomUUID() }: NodeOptions = {}) => Scene	instance () => Scene
 !	Scene.copy	method	instance (source: Scene, recursive: boolean = true) => this	instance (source: any, recursive: any) => this
->	Scene.environment	field	-	instance rw ?Texture
+!	Scene.environment	accessor/field	instance rw Texture | null	instance rw ?Texture
 >	Scene.environmentIntensity	field	-	instance rw number
 >	Scene.environmentRotation	field	-	instance rw Euler
 !	Scene.fog	accessor/field	instance rw Fog | undefined	instance rw ?(Fog|FogExp2)
 !	Scene.isScene	accessor/field	instance r true	instance ro boolean
->	Scene.overrideMaterial	field	-	instance rw ?Material
+!	Scene.overrideMaterial	accessor/field	instance rw Material | null	instance rw ?Material
 !	Scene.toJSON	method	instance (_meta?: object | string) => SceneJSON	instance (meta: any) => any
 =	Scene.type	field	instance rw string	instance rw string
 <	SceneJSON	record	interface extends NodeJSON { background?: number | TextureJSON; fog?: FogJSON }	-
@@ -4057,9 +4067,10 @@
 <	Texture.data	accessor	instance r ImageData | undefined	-
 !	Texture.depth	accessor	instance r number	instance r any
 =	Texture.dispose	method	instance () => void	instance () => void
+<	Texture.encoding	accessor	instance rw string	-
 =	Texture.flipY	field	instance rw boolean	instance rw boolean
 !	Texture.format	accessor/field	instance rw number	instance rw number
->	Texture.generateMipmaps	field	-	instance rw boolean
+=	Texture.generateMipmaps	field	instance rw boolean	instance rw boolean
 !	Texture.height	accessor	instance r number	instance r any
 <	Texture.id	field	instance ro number	-
 !	Texture.image	accessor	instance rw SourceImage	instance rw ?Object
@@ -4143,6 +4154,8 @@
 !	Timer.reset	method	instance (timestamp: number = now()) => this	instance () => Timer
 <	Timer.running	field	instance rw boolean	-
 >	Timer.setTimescale	method	-	instance (timescale: number) => Timer
+<	Timer.start	method	instance () => this	-
+<	Timer.stop	method	instance () => this	-
 <	Timer.timeScale	accessor	instance rw number	-
 !	Timer.update	method	instance (timestamp: number = now()) => this	instance (timestamp: number) => Timer
 >	TimestampQuery	const	-	const ConstantsTimestampQuery
@@ -4353,8 +4366,8 @@
 <	VOXVoxelVolume	record	interface { readonly size: VOXSize; readonly occupancy: Uint8Array; readonly colors: Uint8Array; readonly palette: readonly number[] }	-
 >	VSMShadowMap	const	-	const number
 =	Vector2	class	class	class
-<	Vector2.__@iterator@3126	method	instance () => Generator<number, any, any>	-
->	Vector2.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
+<	Vector2.__@iterator@3164	method	instance () => Generator<number, any, any>	-
+>	Vector2.__@iterator@5982	method	-	instance () => Generator<number, void, unknown>
 !	Vector2.add	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.addScaledVector	method	instance (v: Vector2, s: number) => this	instance (v: Vector2, s: number) => Vector2
@@ -4413,8 +4426,8 @@
 !	Vector2.x	accessor/field	instance rw number	instance rw number
 !	Vector2.y	accessor/field	instance rw number	instance rw number
 =	Vector3	class	class	class
-<	Vector3.__@iterator@3126	method	instance () => Generator<number, any, any>	-
->	Vector3.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
+<	Vector3.__@iterator@3164	method	instance () => Generator<number, any, any>	-
+>	Vector3.__@iterator@5982	method	-	instance () => Generator<number, void, unknown>
 !	Vector3.add	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.addScaledVector	method	instance (v: Vector3 | Vector4, s: number) => this	instance (v: Vector3|Vector4, s: number) => Vector3
@@ -4493,12 +4506,14 @@
 !	Vector3.y	accessor/field	instance rw number	instance rw number
 !	Vector3.z	accessor/field	instance rw number	instance rw number
 =	Vector4	class	class	class
-<	Vector4.__@iterator@3126	method	instance () => Generator<number, any, any>	-
->	Vector4.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
+<	Vector4.__@iterator@3164	method	instance () => Generator<number, any, any>	-
+>	Vector4.__@iterator@5982	method	-	instance () => Generator<number, void, unknown>
 !	Vector4.add	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.addScaledVector	method	instance (v: Vector4, s: number) => this	instance (v: Vector4, s: number) => Vector4
+<	Vector4.addScaledVectors	method	instance (a: Vector4, b: Vector4, scale: number) => this	-
 !	Vector4.addVectors	method	instance (a: Vector4, b: Vector4) => this	instance (a: Vector4, b: Vector4) => Vector4
+<	Vector4.angleTo	method	instance (v: Vector4) => number	-
 !	Vector4.applyMatrix4	method	instance (m: { elements: ArrayLike<number> }) => this	instance (m: Matrix4) => Vector4
 !	Vector4.ceil	method	instance () => this	instance () => Vector4
 !	Vector4.clamp	method	instance (min: Vector4, max: Vector4) => this	instance (min: Vector4, max: Vector4) => Vector4
@@ -4515,7 +4530,7 @@
 !	Vector4.fromArray	method	instance (a: ArrayLike<number>, offset: number = 0) => this	instance (array: Array<number>, offset: number = 0) => Vector4
 >	Vector4.fromBufferAttribute	method	-	instance (attribute: BufferAttribute, index: number) => Vector4
 =	Vector4.getComponent	method	instance (index: number) => number	instance (index: number) => number
->	Vector4.height	accessor	-	instance rw number
+=	Vector4.height	accessor	instance rw number	instance rw number
 !	Vector4.length	accessor/method	instance rw number	instance () => number
 !	Vector4.lengthSq	accessor/method	instance r number	instance () => number
 !	Vector4.lerp	method	instance (v: Vector4, alpha: number) => this	instance (v: Vector4, alpha: number) => Vector4
@@ -4546,7 +4561,7 @@
 !	Vector4.subVectors	method	instance (a: Vector4, b: Vector4) => this	instance (a: Vector4, b: Vector4) => Vector4
 !	Vector4.toArray	method	instance (out: number[] = [], offset: number = 0) => number[]	instance (array: Array<number> = [], offset: number = 0) => Array<number>
 !	Vector4.w	accessor/field	instance rw number	instance rw number
->	Vector4.width	accessor	-	instance rw number
+=	Vector4.width	accessor	instance rw number	instance rw number
 !	Vector4.x	accessor/field	instance rw number	instance rw number
 !	Vector4.y	accessor/field	instance rw number	instance rw number
 !	Vector4.z	accessor/field	instance rw number	instance rw number
@@ -4720,7 +4735,9 @@
 <	tileDistance	function	(a: { x: number; y: number }, b: { x: number; y: number }) => number	-
 <	toDegrees	function	(radians: number) => number	-
 <	toHalfFloat	function	(value: number) => number	-
+<	toNormalizedTypeName	function	(typeName: string) => string	-
 <	toRadians	function	(degrees: number) => number	-
+<	toType	function	(typeName: string) => (new (length: number) => AttributeArray) | undefined	-
 <	triangleBarycoord	function	(point: Vector3, a: Vector3, b: Vector3, c: Vector3, target: Vector3 = new Vector3()) => Vector3 | undefined	-
 <	triangleContainsPoint	function	(point: Vector3, a: Vector3, b: Vector3, c: Vector3) => boolean	-
 <	triangleNormal	function	(a: Vector3, b: Vector3, c: Vector3, target: Vector3 = new Vector3()) => Vector3	-

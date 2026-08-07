@@ -18,6 +18,8 @@ const _offset = new Vector3();
 const _tangent = new Vector3();
 const _matrix = new Matrix4();
 const _normalMatrix = new Matrix3();
+const _origin = new Vector3();
+const _up = new Vector3(0, 1, 0);
 
 type GeometryCacheInvalidator = () => void;
 
@@ -166,6 +168,11 @@ export class Geometry {
   /** Returns the named vertex channel, if present. */
   getAttribute(name: string): Attribute | undefined {
     return this.#attributes.get(name);
+  }
+
+  /** Returns whether a named vertex channel is present. */
+  hasAttribute(name: string): boolean {
+    return this.getAttribute(name) !== undefined;
   }
 
   /** Installs or replaces a named vertex channel. */
@@ -635,6 +642,140 @@ export class Geometry {
       Math.sqrt(maxRadiusSq),
     );
     return this;
+  }
+
+  /** Orients the geometry so its local -Z axis faces the target position. */
+  lookAt(v: Vector3): this {
+    _matrix.lookAt(_origin, v, _up);
+    return this.applyMatrix4(_matrix);
+  }
+
+  /** Merges vertices within `mergeThreshold` and creates an index buffer. */
+  mergeVertices(mergeThreshold = 0.0001): this {
+    const position = this.#attributes.get("position");
+    if (!position || this.#index) return this;
+
+    const thresholdSq = mergeThreshold * mergeThreshold;
+    const vertexCount = position.count;
+    const remap: number[] = [];
+    const uniqueOldIndices: number[] = [];
+
+    for (let i = 0; i < vertexCount; i++) {
+      const x = position.getX(i);
+      const y = position.getY(i);
+      const z = position.getZ(i);
+
+      let matchIndex = -1;
+      for (let j = 0; j < uniqueOldIndices.length; j++) {
+        const u = uniqueOldIndices[j]!;
+        const dx = position.getX(u) - x;
+        const dy = position.getY(u) - y;
+        const dz = position.getZ(u) - z;
+        if (dx * dx + dy * dy + dz * dz <= thresholdSq) {
+          matchIndex = j;
+          break;
+        }
+      }
+
+      if (matchIndex >= 0) {
+        remap.push(matchIndex);
+      } else {
+        remap.push(uniqueOldIndices.length);
+        uniqueOldIndices.push(i);
+      }
+    }
+
+    if (uniqueOldIndices.length === vertexCount) return this;
+
+    for (const [name, attribute] of this.#attributes) {
+      const itemSize = attribute.itemSize;
+      const newArray = new (
+        attribute.array.constructor as TypedArrayConstructor
+      )(uniqueOldIndices.length * itemSize);
+      const merged = new Attribute(newArray, itemSize, attribute.normalized);
+      merged.name = attribute.name;
+      for (let newIndex = 0; newIndex < uniqueOldIndices.length; newIndex++) {
+        merged.copyAt(newIndex, attribute, uniqueOldIndices[newIndex]!);
+      }
+      this.#publishInternalUpdate(merged);
+      this.#replaceAttribute(name, merged);
+    }
+
+    this.index = remap;
+    this.#invalidateDerivedData(true, false);
+    invalidateGeometryCaches(this);
+    return this;
+  }
+
+  /** Serializes geometry metadata, attributes, index, draw range, and bounds. */
+  toJSON(): {
+    metadata: { version: number; type: string; generator: string };
+    id: number;
+    type: string;
+    name: string;
+    data: {
+      attributes: Record<string, ReturnType<Attribute["toJSON"]>>;
+      index?: { type: string; array: number[] };
+      drawRange: { start: number; count: number };
+      morphAttributes?: Record<string, ReturnType<Attribute["toJSON"]>[]>;
+      morphTargetsRelative?: boolean;
+      boundingSphere?: { center: [number, number, number]; radius: number };
+    };
+    parameters: Record<string, unknown>;
+    userData: Record<string, unknown>;
+  } {
+    const data: {
+      attributes: Record<string, ReturnType<Attribute["toJSON"]>>;
+      index?: { type: string; array: number[] };
+      drawRange: { start: number; count: number };
+      morphAttributes?: Record<string, ReturnType<Attribute["toJSON"]>[]>;
+      morphTargetsRelative?: boolean;
+      boundingSphere?: { center: [number, number, number]; radius: number };
+    } = {
+      attributes: {},
+      drawRange: { ...this.drawRange },
+    };
+
+    for (const [name, attribute] of this.#attributes) {
+      data.attributes[name] = attribute.toJSON();
+    }
+
+    if (this.#index) {
+      data.index = {
+        type: this.#index.constructor.name,
+        array: Array.from(this.#index),
+      };
+    }
+
+    if (this.morphAttributes) {
+      data.morphAttributes = {};
+      data.morphTargetsRelative = this.morphTargetsRelative;
+      for (const [name, attrs] of Object.entries(this.morphAttributes)) {
+        data.morphAttributes[name] = attrs.map((attr) => attr.toJSON());
+      }
+    }
+
+    if (this.boundingSphere) {
+      const c = this.boundingSphere.center;
+      data.boundingSphere = {
+        center: [c.x, c.y, c.z],
+        radius: this.boundingSphere.radius,
+      };
+    }
+
+    return {
+      metadata: {
+        version: 0.6,
+        type: "Geometry",
+        generator: "Geometry.toJSON",
+      },
+      id: this.id,
+      type: this.type,
+      name: this.name,
+      data,
+      parameters: { ...this.parameters },
+      userData: { ...this.userData },
+    };
   }
 
   /** Releases channel storage, indices, bounds, and derived caches. */

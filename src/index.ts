@@ -289,7 +289,12 @@ export {
 } from "./exporters/PLYExporter.ts";
 export { STLExporter } from "./exporters/STLExporter.ts";
 // geometry
-export { Attribute, type AttributeArray } from "./geometry/Attribute.ts";
+export {
+	Attribute,
+	type AttributeArray,
+	toNormalizedTypeName,
+	toType,
+} from "./geometry/Attribute.ts";
 export { Geometry } from "./geometry/Geometry.ts";
 export { InterleavedAttribute } from "./geometry/InterleavedAttribute.ts";
 export { InterleavedBuffer } from "./geometry/InterleavedBuffer.ts";
