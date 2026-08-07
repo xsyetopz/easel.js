@@ -220,7 +220,7 @@ These are EASEL's CPU-specific additions that three.js doesn't have:
 `BindMode`, `AnimationBlend`, `AnimationClip`, `AnimationAction`,
 `AnimationLoader`, `Bone`, `Skeleton`, `SkeletonHelper`, `SkinnedMesh`,
 `InstancedMesh`, `LOD`, `Group`, `Scene`, `Fog`, `FogExp2`,
-`InterleavedAttribute`, `InterleavedBuffer`, `PropertyMixer`, `Loop`,
+`InterleavedAttribute`, `InterleavedData`, `PropertyMixer`, `Loop`,
 `Interpolation`, `InterpolationEnding`, `LightType`, `FogMode`, `Side`,
 `Wrapping`, `BindMode`
 
@@ -304,9 +304,10 @@ are closed.
 #### Phase 3: Method-level gaps on existing classes (3 slices — all closed)
 
 17. **Geometry/Attribute (2 classes):** `Geometry` — added `hasAttribute`,
-    `lookAt`, `mergeVertices`, `toJSON`. `Attribute` — added `usage` field,
-    `onUploadCallback` field, `onUpload` method, `setUsage`, exported
-    functions `toNormalizedTypeName`, `toType`.
+    `lookAt`, `mergeVertices`, `toJSON`. `Attribute` — added exported
+    functions `toNormalizedTypeName`, `toType` (GPU lifecycle fields `usage`,
+    `onUploadCallback`, `onUpload`, `setUsage` were added then removed in
+    phase 5).
 18. **Math (3 classes):** `Euler` — added `equals`, `toArray`. `Quaternion` —
     added `setFromMatrix4` (alias), `onChange` callback registration. `Vector4`
     — added `get width`/`set width` (alias for z), `get height`/`set height`
@@ -326,17 +327,18 @@ are closed.
     `fromBufferAttribute`, `get width`/`set width`, `get height`/`set height`.
     `Vector3` — added `setFromColor`. `SphericalHarmonics3` — added
     `addScaledSH`, `getAt`, `getBasisAt`, `getIrradianceAt`.
-21. **InterleavedBuffer/Camera/AudioAnalyser/TextureUtils:**
-    `InterleavedBuffer` — added `uuid`, `version`, `usage`, `updateRanges`,
-    `isInterleavedBuffer`, `onUploadCallback`, `copyAt`, `setUsage`,
-    `addUpdateRange`, `clearUpdateRanges`, `onUpload`, `toJSON`. `Camera` —
+21. **InterleavedData/Camera/AudioAnalyser/TextureUtils:**
+    `InterleavedData` — added `uuid`, `isInterleavedData`, `copyAt`, `toJSON`
+    (GPU lifecycle fields were added then removed in phase 5). `Camera` —
     added `isCamera`, `coordinateSystem`, `reversedDepth`, `updateWorldMatrix`.
     `TextureUtils` — added `contain`, `cover`, `fill`, `getByteLength`.
 22. **Texture/ObjectLoader/TubeGeometry/ShapeGeometry/EllipseCurve:**
     `Texture` — added `DEFAULT_IMAGE`, `DEFAULT_MAPPING` exported consts,
-    `mipmaps`, `updateRanges`, `addUpdateRange`, `clearUpdateRanges`,
-    `setValues`, `isArrayTexture`, `isRenderTargetTexture`, `needsPMREMUpdate`,
-    `pmremVersion`, `renderTarget`. `ObjectLoader` — implemented all parse
+    `setValues` (GPU lifecycle fields `mipmaps`, `updateRanges`,
+    `addUpdateRange`, `clearUpdateRanges`, `needsPMREMUpdate`, `pmremVersion`,
+    `isArrayTexture`, `renderTarget` were added then removed in phase 5;
+    `isRenderTargetTexture` kept only on `FramebufferTexture` as a CPU
+    render-target type marker). `ObjectLoader` — implemented all parse
     stubs (`parseGeometries`, `parseMaterials`, `parseAnimations`,
     `parseShapes`, `parseSkeletons`, `parseImages`, `parseImagesAsync`,
     `parseTextures`, `parseObject`) and bind methods (`bindSkeletons`,
@@ -346,7 +348,7 @@ are closed.
     `ShapeGeometry` — added `fromJSON`. `EllipseCurve` — added `aX`/`aY`/
     `aRotation`/`aStartAngle`/`aEndAngle`/`aClockwise` accessor aliases.
 
-#### Phase 5: CPU terminology cleanup (1 slice — closed)
+#### Phase 5: CPU terminology cleanup (2 slices — closed)
 
 23. **InterleavedBuffer → InterleavedData rename + GPU field removal:**
     Renamed `InterleavedBuffer` class to `InterleavedData` (file, class, field
@@ -358,6 +360,13 @@ are closed.
     Applied to both `Attribute` and `InterleavedData`. Kept CPU-relevant
     fields: `needsUpdate` (cache invalidation), `updateRange` (dirty
     tracking), `uuid`, `copyAt`, `toJSON`.
+24. **Texture GPU field removal:** Removed `mipmaps`, `generateMipmaps`,
+    `updateRanges`/`addUpdateRange`/`clearUpdateRanges`, `needsPMREMUpdate`,
+    `pmremVersion`, `isArrayTexture`, `renderTarget` from `Texture`. Moved
+    `isRenderTargetTexture` to `FramebufferTexture` only (CPU render-target
+    type marker, not a GPU field). Kept CPU-relevant: `needsUpdate`,
+    `version` (cache invalidation counter), `onUpdate` (CPU update callback),
+    `uuid`, `setValues`.
 
 #### Remaining gaps (out of scope)
 

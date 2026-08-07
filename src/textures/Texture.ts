@@ -99,14 +99,6 @@ export class Texture extends EventDispatcher {
   /** String marker identifying this concrete texture subtype. */
   readonly isTexture = true;
 
-  /** Marks an `ArrayTexture` (multiple image sources) which EASEL does not support. */
-  readonly isArrayTexture = false;
-
-  /** Marks a render-target texture attachment. */
-  get isRenderTargetTexture(): boolean {
-    return false;
-  }
-
   /** Numeric identifier. */
   readonly id = textureId++;
 
@@ -234,12 +226,6 @@ export class Texture extends EventDispatcher {
   /** Whether to flip V coordinates. */
   flipY = true;
 
-  /** Whether to generate mipmaps; ignored by the CPU nearest-neighbour sampler. */
-  generateMipmaps = true;
-
-  /** Mipmap levels retained for API parity; not sampled by the CPU rasterizer. */
-  mipmaps: unknown[] = [];
-
   /** Serialized row alignment for tightly packed RGBA inputs. */
   get unpackAlignment(): 1 | 4 {
     return this.#unpackAlignment;
@@ -281,20 +267,8 @@ export class Texture extends EventDispatcher {
   /** Number of requested texture updates. */
   version = 0;
 
-  /** Pending partial-update ranges for CPU upload tracking. */
-  updateRanges: Array<{ start: number; count: number }> = [];
-
   /** Optional callback invoked after a CPU update. */
   onUpdate: (() => void) | undefined = undefined;
-
-  /** Whether a PMREM prefilter pass is pending. */
-  needsPMREMUpdate: boolean = false;
-
-  /** PMREM generation version counter. */
-  pmremVersion: number = 0;
-
-  /** Associated render target, if this texture is a render-target attachment. */
-  renderTarget: unknown = undefined;
 
   /** Packed unsigned-byte samples are never normalized to floats. */
   get normalized(): false {
@@ -558,16 +532,6 @@ export class Texture extends EventDispatcher {
     this.#data = undefined;
     this.#brightnessLevels = undefined;
     this.#needsUpdate = false;
-  }
-
-  /** Adds a partial-update range for CPU upload tracking. */
-  addUpdateRange(start: number, count: number): void {
-    this.updateRanges.push({ start, count });
-  }
-
-  /** Clears all pending partial-update ranges. */
-  clearUpdateRanges(): void {
-    this.updateRanges = [];
   }
 
   /** Applies matrix, wrapping, and vertical flip to a UV vector in place. */

@@ -942,7 +942,7 @@
 >	Clock.stop	method	-	instance () => void
 =	Color	class	class	class
 >	Color.NAMES	field	-	static rw Object
->	Color.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
+>	Color.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
 !	Color.add	method	instance (color: Color) => this	instance (color: Color) => Color
 !	Color.addColors	method	instance (color1: Color, color2: Color) => this	instance (color1: Color, color2: Color) => Color
 !	Color.addScalar	method	instance (scalar: number) => this	instance (s: number) => Color
@@ -1392,7 +1392,7 @@
 >	EquirectangularRefractionMapping	const	-	const number
 =	Euler	class	class	class
 >	Euler.DEFAULT_ORDER	field	-	static rw string
->	Euler.__@iterator@6158	method	-	instance () => Generator<string | number, void, unknown>
+>	Euler.__@iterator@6145	method	-	instance () => Generator<string | number, void, unknown>
 >	Euler._onChange	method	-	instance (callback: any) => this
 >	Euler._onChangeCallback	method	-	instance () => void
 >	Euler._order	field	-	instance rw string
@@ -3409,7 +3409,7 @@
 !	QuadraticBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 =	Quaternion	class	class	class
 <	Quaternion.__@iterator@3184	method	instance () => Generator<number, any, any>	-
->	Quaternion.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
+>	Quaternion.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
 >	Quaternion._onChange	method	-	instance (callback: any) => this
 >	Quaternion._onChangeCallback	method	-	instance () => void
 >	Quaternion._w	field	-	instance rw number
@@ -4064,14 +4064,14 @@
 >	Texture.DEFAULT_ANISOTROPY	field	-	static rw number
 >	Texture.DEFAULT_IMAGE	field	-	static rw ?Image
 >	Texture.DEFAULT_MAPPING	field	-	static rw number
-=	Texture.addUpdateRange	method	instance (start: number, count: number) => void	instance (start: number, count: number) => void
+>	Texture.addUpdateRange	method	-	instance (start: number, count: number) => void
 !	Texture.anisotropy	accessor/field	instance rw number	instance rw number
 <	Texture.assign	method	instance (values: Record<string, unknown>) => this	-
 <	Texture.brightnessLevels	accessor	instance r Uint8ClampedArray<ArrayBufferLike>[] | undefined	-
 <	Texture.buildBrightnessLevels	method	instance () => this	-
 =	Texture.center	field	instance rw Vector2	instance rw Vector2
 =	Texture.channel	field	instance rw number	instance rw number
-=	Texture.clearUpdateRanges	method	instance () => void	instance () => void
+>	Texture.clearUpdateRanges	method	-	instance () => void
 =	Texture.clone	method	instance () => Texture	instance () => Texture
 !	Texture.colorSpace	accessor/field	instance rw ""	instance rw string
 !	Texture.constructor	constructor	instance (image?: TextureImageSource, mapping: number = UV_MAPPING, wrapS: WrappingMode = Wrapping.ClampToEdge, wrapT: WrappingMode = Wrapping.ClampToEdge, magFilter: number = DEFAULT_NEAREST_FILTER, minFilter: number = DEFAULT_NEAREST_FILTER, format: number = DEFAULT_RGBA_FORMAT, type: number = DEFAULT_UNSIGNED_BYTE_TYPE, anisotropy: number = DEFAULT_ANISOTROPY, colorSpace: string = DEFAULT_NO_COLOR_SPACE) => Texture	instance (image: ?Object = Texture.DEFAULT_IMAGE, mapping: number = Texture.DEFAULT_MAPPING, wrapS: number = ClampToEdgeWrapping, wrapT: number = ClampToEdgeWrapping, magFilter: number = LinearFilter, minFilter: number = LinearMipmapLinearFilter, format: number = RGBAFormat, type: number = UnsignedByteType, anisotropy: number = Texture.DEFAULT_ANISOTROPY, colorSpace: string = NoColorSpace) => Texture
@@ -4082,29 +4082,29 @@
 <	Texture.encoding	accessor	instance rw string	-
 =	Texture.flipY	field	instance rw boolean	instance rw boolean
 !	Texture.format	accessor/field	instance rw number	instance rw number
-=	Texture.generateMipmaps	field	instance rw boolean	instance rw boolean
+>	Texture.generateMipmaps	field	-	instance rw boolean
 !	Texture.height	accessor	instance r number	instance r any
 <	Texture.id	field	instance ro number	-
 !	Texture.image	accessor	instance rw SourceImage	instance rw ?Object
 !	Texture.internalFormat	field	instance ro undefined	instance rw ?string
-!	Texture.isArrayTexture	field	instance ro false	instance ro boolean
-!	Texture.isRenderTargetTexture	accessor/field	instance r boolean	instance ro boolean
+>	Texture.isArrayTexture	field	-	instance ro boolean
+>	Texture.isRenderTargetTexture	field	-	instance ro boolean
 !	Texture.isTexture	field	instance ro true	instance ro boolean
 !	Texture.magFilter	accessor/field	instance rw number	instance rw (NearestFilter|NearestMipmapNearestFilter|NearestMipmapLinearFilter|LinearFilter|LinearMipmapNearestFilter|LinearMipmapLinearFilter)
 !	Texture.mapping	field	instance rw number	instance rw (UVMapping|CubeReflectionMapping|CubeRefractionMapping|EquirectangularReflectionMapping|EquirectangularRefractionMapping|CubeUVReflectionMapping)
 =	Texture.matrix	field	instance rw Matrix3	instance rw Matrix3
 =	Texture.matrixAutoUpdate	field	instance rw boolean	instance rw boolean
 !	Texture.minFilter	accessor/field	instance rw number	instance rw (NearestFilter|NearestMipmapNearestFilter|NearestMipmapLinearFilter|LinearFilter|LinearMipmapNearestFilter|LinearMipmapLinearFilter)
-!	Texture.mipmaps	field	instance rw unknown[]	instance rw Array<Object>
+>	Texture.mipmaps	field	-	instance rw Array<Object>
 =	Texture.name	field	instance rw string	instance rw string
-!	Texture.needsPMREMUpdate	field/accessor	instance rw boolean	instance w boolean
+>	Texture.needsPMREMUpdate	accessor	-	instance w boolean
 !	Texture.needsUpdate	accessor	instance rw boolean	instance w boolean
 !	Texture.normalized	accessor/field	instance rw false	instance rw boolean
 =	Texture.offset	field	instance rw Vector2	instance rw Vector2
 !	Texture.onUpdate	field	instance rw (() => void) | undefined	instance rw ?Function
-!	Texture.pmremVersion	field	instance rw number	instance ro number
+>	Texture.pmremVersion	field	-	instance ro number
 !	Texture.premultiplyAlpha	accessor/field	instance rw false	instance rw boolean
-!	Texture.renderTarget	field	instance rw unknown	instance rw ?(RenderTarget|WebGLRenderTarget)
+>	Texture.renderTarget	field	-	instance rw ?(RenderTarget|WebGLRenderTarget)
 =	Texture.repeat	field	instance rw Vector2	instance rw Vector2
 =	Texture.rotation	field	instance rw number	instance rw number
 !	Texture.setValues	method	instance (values: Record<string, unknown>) => this	instance (values: Object) => void
@@ -4115,7 +4115,7 @@
 !	Texture.unpackAlignment	accessor/field	instance rw 1 | 4	instance rw number
 <	Texture.update	method	instance () => this	-
 =	Texture.updateMatrix	method	instance () => void	instance () => void
-!	Texture.updateRanges	field	instance rw { start: number; count: number; }[]	instance rw Array<Object>
+>	Texture.updateRanges	field	-	instance rw Array<Object>
 !	Texture.userData	field	instance rw Record<string, unknown>	instance rw Object
 !	Texture.uuid	field	instance ro `${string}-${string}-${string}-${string}-${string}`	instance ro string
 !	Texture.version	field	instance rw number	instance ro number
@@ -4379,7 +4379,7 @@
 >	VSMShadowMap	const	-	const number
 =	Vector2	class	class	class
 <	Vector2.__@iterator@3184	method	instance () => Generator<number, any, any>	-
->	Vector2.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
+>	Vector2.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
 !	Vector2.add	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.addScaledVector	method	instance (v: Vector2, s: number) => this	instance (v: Vector2, s: number) => Vector2
@@ -4439,7 +4439,7 @@
 !	Vector2.y	accessor/field	instance rw number	instance rw number
 =	Vector3	class	class	class
 <	Vector3.__@iterator@3184	method	instance () => Generator<number, any, any>	-
->	Vector3.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
+>	Vector3.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
 !	Vector3.add	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.addScaledVector	method	instance (v: Vector3 | Vector4, s: number) => this	instance (v: Vector3|Vector4, s: number) => Vector3
@@ -4519,7 +4519,7 @@
 !	Vector3.z	accessor/field	instance rw number	instance rw number
 =	Vector4	class	class	class
 <	Vector4.__@iterator@3184	method	instance () => Generator<number, any, any>	-
->	Vector4.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
+>	Vector4.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
 !	Vector4.add	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.addScaledVector	method	instance (v: Vector4, s: number) => this	instance (v: Vector4, s: number) => Vector4
