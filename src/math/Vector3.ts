@@ -1,3 +1,4 @@
+import type { Attribute } from "../geometry/Attribute.ts";
 import { clamp } from "./MathUtils.ts";
 
 /** Cross product of two 3D vectors, returned as a new Vector3. */
@@ -268,6 +269,22 @@ export class Vector3 {
     this.x = array[offset];
     this.y = array[offset + 1];
     this.z = array[offset + 2];
+    return this;
+  }
+
+  /** Reads x, y, z from an Attribute at the given vertex index. */
+  fromBufferAttribute(attribute: Attribute, index: number): this {
+    this.x = attribute.getX(index);
+    this.y = attribute.getY(index);
+    this.z = attribute.getZ(index);
+    return this;
+  }
+
+  /** Sets this vector from the r, g, b channels of a color-like object. */
+  setFromColor(color: { r: number; g: number; b: number }): this {
+    this.x = color.r;
+    this.y = color.g;
+    this.z = color.b;
     return this;
   }
 

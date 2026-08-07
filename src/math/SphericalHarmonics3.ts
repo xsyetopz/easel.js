@@ -92,6 +92,16 @@ export class SphericalHarmonics3 {
     return this.#evaluate(_basis, target);
   }
 
+  /** Evaluates the RGB radiance at `normal`; alias of `radianceAt`. */
+  getAt(normal: Readonly<Vector3>, target: Vector3): Vector3 {
+    return this.radianceAt(normal, target);
+  }
+
+  /** Writes the nine third-order spherical-harmonics basis values for `normal`. */
+  getBasisAt(normal: Readonly<Vector3>, target: SphericalHarmonicsBasis): void {
+    sphericalHarmonicsBasis(normal, target);
+  }
+
   /** Evaluates cosine-convolved RGB irradiance at unit `normal`. */
   irradianceAt(normal: Readonly<Vector3>, target: Vector3): Vector3 {
     const { x, y, z } = normal;
@@ -105,6 +115,11 @@ export class SphericalHarmonics3 {
     _basis[7] = 0.858086 * x * z;
     _basis[8] = 0.429043 * (x * x - y * y);
     return this.#evaluate(_basis, target);
+  }
+
+  /** Evaluates cosine-convolved RGB irradiance at `normal`; alias of `irradianceAt`. */
+  getIrradianceAt(normal: Readonly<Vector3>, target: Vector3): Vector3 {
+    return this.irradianceAt(normal, target);
   }
 
   /** Adds `source` coefficient vectors in place. */
@@ -124,6 +139,11 @@ export class SphericalHarmonics3 {
       );
     }
     return this;
+  }
+
+  /** Adds `sh * scale` to this spherical harmonics in place. */
+  addScaledSH(sh: SphericalHarmonics3, scale: number): this {
+    return this.addScaled(sh, scale);
   }
 
   /** Multiplies every coefficient vector by `scale` in place. */

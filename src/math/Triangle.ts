@@ -1,3 +1,4 @@
+import type { Attribute } from "../geometry/Attribute.ts";
 import { Plane } from "./Plane.ts";
 import { Vector3 } from "./Vector3.ts";
 
@@ -234,6 +235,34 @@ export class Triangle {
       .addScaledVector(ac, vc * inverseDenominator);
   }
 
+  /** Sets the triangle vertices from an `Attribute` at the given vertex indices. */
+  setFromAttributeAndIndices(
+    attribute: Attribute,
+    i0: number,
+    i1: number,
+    i2: number,
+  ): this {
+    this.#a.set(attribute.getX(i0), attribute.getY(i0), attribute.getZ(i0));
+    this.#b.set(attribute.getX(i1), attribute.getY(i1), attribute.getZ(i1));
+    this.#c.set(attribute.getX(i2), attribute.getY(i2), attribute.getZ(i2));
+    return this;
+  }
+
+  /** Sets the triangle from three points and their index labels. */
+  setFromPointsAndIndices(
+    p0: Vector3,
+    p1: Vector3,
+    p2: Vector3,
+    _i0: number,
+    _i1: number,
+    _i2: number,
+  ): this {
+    this.#a.copy(p0);
+    this.#b.copy(p1);
+    this.#c.copy(p2);
+    return this;
+  }
+
   /** Returns true when every stored component exactly matches the argument. */
   equals(triangle: Triangle): boolean {
     return (
@@ -261,6 +290,21 @@ export class Triangle {
       v3,
       target,
     );
+  }
+
+  /** Interpolates an attribute across the triangle using barycentric coordinates. */
+  getInterpolatedAttribute(
+    attr: Attribute,
+    i1: number,
+    i2: number,
+    i3: number,
+    barycoord: Vector3,
+    target: Vector3,
+  ): Vector3 {
+    target.x = attr.getX(i1) * barycoord.x + attr.getX(i2) * barycoord.y + attr.getX(i3) * barycoord.z;
+    target.y = attr.getY(i1) * barycoord.x + attr.getY(i2) * barycoord.y + attr.getY(i3) * barycoord.z;
+    target.z = attr.getZ(i1) * barycoord.x + attr.getZ(i2) * barycoord.y + attr.getZ(i3) * barycoord.z;
+    return target;
   }
 
   /** Writes the triangle centroid into `target`. */

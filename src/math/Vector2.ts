@@ -1,3 +1,4 @@
+import type { Attribute } from "../geometry/Attribute.ts";
 import { clamp } from "./MathUtils.ts";
 
 /** Cross product magnitude of two 2D vectors. */
@@ -42,6 +43,26 @@ export class Vector2 {
 
   /** Replaces the Cartesian y component. */
   set y(value: number) {
+    this.#y = value;
+  }
+
+  /** Alias for `x`. */
+  get width(): number {
+    return this.#x;
+  }
+
+  /** Sets the `x` component via the `width` alias. */
+  set width(value: number) {
+    this.#x = value;
+  }
+
+  /** Alias for `y`. */
+  get height(): number {
+    return this.#y;
+  }
+
+  /** Sets the `y` component via the `height` alias. */
+  set height(value: number) {
     this.#y = value;
   }
 
@@ -142,6 +163,13 @@ export class Vector2 {
   fromArray(array: ArrayLike<number>, offset: number = 0): this {
     this.x = array[offset];
     this.y = array[offset + 1];
+    return this;
+  }
+
+  /** Reads x, y from an Attribute at the given vertex index. */
+  fromBufferAttribute(attribute: Attribute, index: number): this {
+    this.x = attribute.getX(index);
+    this.y = attribute.getY(index);
     return this;
   }
 
