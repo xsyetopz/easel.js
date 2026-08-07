@@ -1,5 +1,10 @@
 /** Explicit root membership for applying one animation state to multiple objects. */
 export class AnimationGroup {
+  /** Type marker identifying AnimationGroup instances. */
+  readonly isAnimationObjectGroup: boolean = true;
+  /** Stable auto-generated identifier. */
+  readonly uuid: string = crypto.randomUUID();
+
   readonly #roots = new Set<object>();
 
   /** Creates a group and adds each supplied root to its membership set. */
@@ -38,5 +43,20 @@ export class AnimationGroup {
   /** Removes every root from the group. */
   clear(): void {
     this.#roots.clear();
+  }
+
+  /** Removes the supplied roots from the group (three.js-compatible alias). */
+  remove(...objects: object[]): void {
+    for (const object of objects) this.#roots.delete(object);
+  }
+
+  /** Removes the supplied roots and signals that their bindings should be rebuilt. */
+  uncache(...objects: object[]): void {
+    for (const object of objects) this.#roots.delete(object);
+  }
+
+  /** Summary statistics for the group. */
+  get stats(): { objects: number } {
+    return { objects: this.#roots.size };
   }
 }

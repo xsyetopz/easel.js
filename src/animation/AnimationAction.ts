@@ -1,3 +1,4 @@
+import type { Animator } from "./Animator.ts";
 import {
   AnimationBlend,
   type AnimationBlendMode,
@@ -40,6 +41,7 @@ export class AnimationAction {
   readonly #lifecycle: AnimationActionLifecycle | undefined;
   #active = false;
   #blendMode: AnimationBlendMode;
+  #mixer: Animator | undefined;
 
   /** Current clip position in seconds; callers may seek by assigning this value. */
   time = 0;
@@ -51,16 +53,22 @@ export class AnimationAction {
   clampWhenFinished: boolean = false;
   /** Pauses advancement while preserving the current time and enabled state. */
   paused: boolean = false;
+  /** Whether the start keyframe uses zero-slope interpolation. */
+  zeroSlopeAtStart: boolean = true;
+  /** Whether the end keyframe uses zero-slope interpolation. */
+  zeroSlopeAtEnd: boolean = true;
 
   /** Creates playback state for a clip and an optional local binding root. */
   constructor(
     clip: AnimationClip,
     localRoot: object | undefined = void 0,
     lifecycle: AnimationActionLifecycle | undefined = void 0,
+    mixer: Animator | undefined = void 0,
   ) {
     this.#clip = clip;
     this.#localRoot = localRoot;
     this.#lifecycle = lifecycle;
+    this.#mixer = mixer;
     this.#blendMode = clip.blendMode;
   }
 
@@ -72,6 +80,16 @@ export class AnimationAction {
   /** Optional object used as the binding root instead of the animator root. */
   get localRoot(): object | undefined {
     return this.#localRoot;
+  }
+
+  /** The Animator that owns this action, or `undefined`. */
+  get mixer(): Animator | undefined {
+    return this.#mixer;
+  }
+
+  /** Root object the mixer is bound to, or `undefined`. */
+  get root(): object | undefined {
+    return this.#mixer?.root;
   }
 
   /** Blend operation used when this action contributes track values. */
@@ -118,6 +136,12 @@ export class AnimationAction {
     return this.#enabled ? this.#weight : 0;
   }
 
+  /** Stores the weight, stops any active fade, and returns this action. */
+  set effectiveWeight(value: number) {
+    this.weight = value;
+    this.cancelFade();
+  }
+
   /** Playback speed multiplier; negative values play the clip backwards. */
   get timeScale(): number {
     return this.#timeScale;
@@ -133,6 +157,12 @@ export class AnimationAction {
   /** Playback speed after pausing is applied; paused actions report zero. */
   get effectiveTimeScale(): number {
     return this.paused ? 0 : this.#timeScale;
+  }
+
+  /** Stores the time scale, stops any active warp, and returns this action. */
+  set effectiveTimeScale(value: number) {
+    this.timeScale = value;
+    this.cancelWarp();
   }
 
   /** Effective playback duration in seconds, derived from clip duration and time scale. */
@@ -287,6 +317,33 @@ export class AnimationAction {
   syncWith(action: AnimationAction): this {
     this.time = action.time;
     this.timeScale = action.timeScale;
+    return this.cancelWarp();
+  }
+
+  /** Returns `true` when enabled, activated, unpaused, and non-zero weight/timeScale. */
+  isRunning(): boolean {
+    return this.running;
+  }
+
+  /** Returns `true` when this action is scheduled to start at a future time. */
+  isScheduled(): boolean {
+    return this.scheduled;
+  }
+
+  /** Schedules playback to start at the given mixer timeline time. */
+  startAt(time: number): this {
+    return this.schedule(time);
+  }
+
+  /** Cancels the active fade and freezes the weight at the current effective value. */
+  stopFading(): this {
+    this.#weight = this.effectiveWeight;
+    return this.cancelFade();
+  }
+
+  /** Cancels the active warp and freezes the time scale at the current effective value. */
+  stopWarping(): this {
+    this.#timeScale = this.effectiveTimeScale;
     return this.cancelWarp();
   }
 

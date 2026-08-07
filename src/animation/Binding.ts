@@ -249,6 +249,11 @@ export class Binding {
     writeComponents(property, sourceArray, offset);
   }
 
+  /** Returns `true` when the binding's resolved node is `node`. */
+  isBindingBoundBy(node: object): boolean {
+    return this.resolveNode() === node;
+  }
+
   #requireTarget(): Record<string, unknown> {
     if (!this.#target) {
       throw new Error(
@@ -257,6 +262,19 @@ export class Binding {
     }
     return this.#target;
   }
+}
+
+/** Parses a track-name binding path into its components. */
+export function parseTrackName(path: string): BindingPath {
+  return parseBindingPath(path);
+}
+
+/** Searches a root hierarchy for a node matching `nodeName`. */
+export function findNode(
+  root: object,
+  nodeName: string | number | undefined,
+): object | undefined {
+  return findBindingNode(root, nodeName);
 }
 
 const COMPONENT_KEYS = new Set(["x", "y", "z", "w", "r", "g", "b"]);

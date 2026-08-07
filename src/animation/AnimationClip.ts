@@ -98,6 +98,11 @@ export function animationClipFromJson(json: AnimationClipJSON): AnimationClip {
 
 /** Named collection of keyframe tracks representing one animation sequence. */
 export class AnimationClip {
+  /** Stable auto-generated identifier. */
+  readonly uuid: string = crypto.randomUUID();
+  /** Application metadata associated with this clip. */
+  userData: Record<string, unknown> = {};
+
   #name: string;
   #duration: number;
   #tracks: AnimationTrack[];
@@ -225,6 +230,109 @@ export class AnimationClip {
     }
     return max;
   }
+}
+
+/** Finds a named clip in an array or serialized animation collection. */
+export function findByName(
+  clips: readonly AnimationClip[] | object,
+  name: string,
+): AnimationClip | undefined {
+  return findAnimationClip(clips, name);
+}
+
+/** Builds an animation clip from a validated serialized payload. */
+export function parse(json: AnimationClipJSON): AnimationClip {
+  return animationClipFromJson(json);
+}
+
+/**
+ * Creates a clip from a morph-target sequence, generating one NumberTrack per
+ * morph target influence. Simplified for the CPU renderer — the tracks are
+ * created for API parity but EASEL's binding layer does not bind
+ * `morphTargetInfluences`.
+ */
+export function CreateFromMorphTargetSequence(
+  name: string,
+  morphTargetSequence: readonly { name: string }[],
+  fps: number = 6,
+  noLoop: boolean = false,
+): AnimationClip {
+  const numFrames = morphTargetSequence.length;
+  if (numFrames === 0) return new AnimationClip(name, 0, []);
+  const frameTime = 1 / fps;
+  const tracks: NumberTrack[] = [];
+
+  for (let i = 0; i < numFrames; i++) {
+    const times: number[] = [];
+    const values: number[] = [];
+    let time = 0;
+
+    for (let j = 0; j < numFrames; j++) {
+      if (j === i - 1) {
+        times.push(time);
+        values.push(0);
+      } else if (j === i) {
+        times.push(time);
+        values.push(1);
+      } else if (j === i + 1) {
+        times.push(time);
+        values.push(0);
+      }
+      time += frameTime;
+    }
+
+    if (!noLoop) {
+      times.push(time);
+      values.push(0);
+    } else if (times.length > 0) {
+      times.push(time - frameTime);
+      values.push(0);
+    }
+
+    if (times.length === 0) {
+      times.push(0);
+      values.push(0);
+    }
+
+    tracks.push(
+      new NumberTrack(
+        `${morphTargetSequence[i].name}.morphTargetInfluences[${i}]`,
+        times,
+        values,
+      ),
+    );
+  }
+
+  return new AnimationClip(name, -1, tracks);
+}
+
+/**
+ * Groups morph targets by name prefix (stripping trailing digits) and creates
+ * one clip per group via {@link CreateFromMorphTargetSequence}.
+ */
+export function CreateClipsFromMorphTargetSequences(
+  morphTargets: readonly { name: string }[],
+  fps: number = 6,
+): AnimationClip[] {
+  const groups = new Map<string, { name: string }[]>();
+  const pattern = /^([\w-]*?)(\d+)$/;
+
+  for (const morphTarget of morphTargets) {
+    const parts = pattern.exec(morphTarget.name);
+    const prefix = parts ? parts[1] : morphTarget.name;
+    let group = groups.get(prefix);
+    if (!group) {
+      group = [];
+      groups.set(prefix, group);
+    }
+    group.push(morphTarget);
+  }
+
+  const clips: AnimationClip[] = [];
+  for (const [prefix, group] of groups) {
+    clips.push(CreateFromMorphTargetSequence(prefix, group, fps));
+  }
+  return clips;
 }
 
 function trackFromJSON(

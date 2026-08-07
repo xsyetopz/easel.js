@@ -81,7 +81,7 @@ export class Animator {
     const existing = actionsForClip.get(localRoot);
     if (existing !== undefined) return existing;
 
-    const action = new AnimationAction(clip, localRoot, this.#actionLifecycle);
+    const action = new AnimationAction(clip, localRoot, this.#actionLifecycle, this);
     const mixers = this.#createMixers(action, clip.tracks);
     this.#actions.push(action);
     actionsForClip.set(localRoot, action);
@@ -167,6 +167,37 @@ export class Animator {
   stopAll(): this {
     while (this.#activeActions.length > 0) this.#activeActions.at(-1)?.stop();
     return this;
+  }
+
+  /** Stores the accumulated animator timeline in seconds. */
+  set time(value: number) {
+    if (!Number.isFinite(value)) {
+      throw new RangeError("time must be finite");
+    }
+    this.#time = value;
+  }
+
+  /** Stops every active action (three.js-compatible alias for `stopAll`). */
+  stopAllAction(): this {
+    return this.stopAll();
+  }
+
+  /** Removes every cached action and binding associated with `root`. */
+  uncacheRoot(root: object): void {
+    for (const [clip, actionsForClip] of [...this.#actionMap]) {
+      for (const localRoot of [...actionsForClip.keys()]) {
+        const actionRoot = localRoot ?? this.#root;
+        if (actionRoot === root) {
+          this.uncacheAction(clip, localRoot);
+        }
+      }
+    }
+    const entries = this.#entriesByRoot.get(root);
+    if (entries) {
+      for (const entry of [...entries.values()]) {
+        this.#releaseMixer(entry.mixer);
+      }
+    }
   }
 
   /** Recreates property mixers after an animation group’s roots change. */
