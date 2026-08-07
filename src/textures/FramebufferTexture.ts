@@ -6,7 +6,7 @@ export class FramebufferTexture extends Texture {
   readonly isFramebufferTexture = true;
 
   /** Whether this texture belongs to a CPU render target. */
-  get isRenderTargetTexture(): boolean {
+  override get isRenderTargetTexture(): boolean {
     return true;
   }
 

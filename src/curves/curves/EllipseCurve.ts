@@ -126,6 +126,66 @@ export class EllipseCurve extends Curve {
     this.updateArcLengths();
   }
 
+  /** Three.js-compatible alias for {@link cx}. */
+  get aX(): number {
+    return this.cx;
+  }
+
+  /** Three.js-compatible alias for {@link cx}. */
+  set aX(value: number) {
+    this.cx = value;
+  }
+
+  /** Three.js-compatible alias for {@link cy}. */
+  get aY(): number {
+    return this.cy;
+  }
+
+  /** Three.js-compatible alias for {@link cy}. */
+  set aY(value: number) {
+    this.cy = value;
+  }
+
+  /** Three.js-compatible alias for {@link rotation}. */
+  get aRotation(): number {
+    return this.rotation;
+  }
+
+  /** Three.js-compatible alias for {@link rotation}. */
+  set aRotation(value: number) {
+    this.rotation = value;
+  }
+
+  /** Three.js-compatible alias for {@link startAngle}. */
+  get aStartAngle(): number {
+    return this.startAngle;
+  }
+
+  /** Three.js-compatible alias for {@link startAngle}. */
+  set aStartAngle(value: number) {
+    this.startAngle = value;
+  }
+
+  /** Three.js-compatible alias for {@link endAngle}. */
+  get aEndAngle(): number {
+    return this.endAngle;
+  }
+
+  /** Three.js-compatible alias for {@link endAngle}. */
+  set aEndAngle(value: number) {
+    this.endAngle = value;
+  }
+
+  /** Three.js-compatible alias for {@link clockwise}. */
+  get aClockwise(): boolean {
+    return this.clockwise;
+  }
+
+  /** Three.js-compatible alias for {@link clockwise}. */
+  set aClockwise(value: boolean) {
+    this.clockwise = value;
+  }
+
   /** Evaluates the ellipse at normalized parameter `t` in `[0, 1]`. */
   override getPoint(t: number, target: Vector2 = new Vector2()): Vector2 {
     const delta = this.#endAngle - this.#startAngle;

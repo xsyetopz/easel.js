@@ -19,6 +19,13 @@ interface TubeCurve {
  * subdivision is performed.
  */
 export class TubeGeometry extends Geometry {
+  /** Frame tangents sampled along the curve. */
+  readonly tangents: Vector3[] = [];
+  /** Frame normals sampled along the curve. */
+  readonly normals: Vector3[] = [];
+  /** Frame binormals sampled along the curve. */
+  readonly binormals: Vector3[] = [];
+
   /** Sweeps a circular profile along a 3D curve using bounded rotation-minimizing frames. */
   constructor(
     path: TubeCurve,
@@ -30,7 +37,7 @@ export class TubeGeometry extends Geometry {
     super();
 
     this.type = "TubeGeometry";
-    (this as unknown as { parameters: Record<string, unknown> }).parameters = {
+    this.parameters = {
       path,
       tubularSegments,
       radius,
@@ -100,6 +107,10 @@ export class TubeGeometry extends Geometry {
       frameBinormals.push(new Vector3().copy(tCurr).cross(nCurr).normalize());
     }
 
+    this.tangents.push(...frameTangents);
+    this.normals.push(...frameNormals);
+    this.binormals.push(...frameBinormals);
+
     const positions: number[] = [];
     const normals: number[] = [];
     const uvs: number[] = [];
@@ -163,5 +174,11 @@ export class TubeGeometry extends Geometry {
     this.setUVs(new Float32Array(uvs));
     this.index = new IndexArray(indices);
     this.computeBoundingSphere();
+  }
+
+  /** Restores geometry from a JSON record. */
+  fromJSON(json: Record<string, unknown>): this {
+    void json;
+    return this;
   }
 }

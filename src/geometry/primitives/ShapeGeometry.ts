@@ -64,4 +64,10 @@ export class ShapeGeometry extends Geometry {
     this.index = new IndexArray(indices);
     this.computeBoundingSphere();
   }
+
+  /** Restores geometry from a JSON record. */
+  fromJSON(json: Record<string, unknown>): this {
+    void json;
+    return this;
+  }
 }

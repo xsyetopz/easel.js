@@ -784,6 +784,9 @@ export {
   type SourceSerializationMeta,
 } from "./textures/Source.ts";
 export {
+  DEFAULT_ANISOTROPY,
+  DEFAULT_IMAGE,
+  DEFAULT_MAPPING,
   TEXTURE_BRIGHTNESS_LEVELS,
   Texture,
   type TextureImageSource,

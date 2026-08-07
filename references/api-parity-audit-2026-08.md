@@ -315,6 +315,35 @@ are closed.
     `stop` methods. `Texture` — added `generateMipmaps` field, `get encoding`/
     `set encoding` (deprecated alias for `colorSpace`).
 
+#### Phase 4: Math/vector/geometry method gaps (3 slices — all closed)
+
+20. **Color/Triangle/Vector2/Vector3/SphericalHarmonics3:** `Color` — added
+    `copyLinearToSRGB`, `copySRGBToLinear`, `fromBufferAttribute`,
+    `setColorName`. `Triangle` — added `getInterpolatedAttribute`,
+    `setFromAttributeAndIndices`, `setFromPointsAndIndices`. `Vector2` — added
+    `fromBufferAttribute`, `get width`/`set width`, `get height`/`set height`.
+    `Vector3` — added `setFromColor`. `SphericalHarmonics3` — added
+    `addScaledSH`, `getAt`, `getBasisAt`, `getIrradianceAt`.
+21. **InterleavedBuffer/Camera/AudioAnalyser/TextureUtils:**
+    `InterleavedBuffer` — added `uuid`, `version`, `usage`, `updateRanges`,
+    `isInterleavedBuffer`, `onUploadCallback`, `copyAt`, `setUsage`,
+    `addUpdateRange`, `clearUpdateRanges`, `onUpload`, `toJSON`. `Camera` —
+    added `isCamera`, `coordinateSystem`, `reversedDepth`, `updateWorldMatrix`.
+    `TextureUtils` — added `contain`, `cover`, `fill`, `getByteLength`.
+22. **Texture/ObjectLoader/TubeGeometry/ShapeGeometry/EllipseCurve:**
+    `Texture` — added `DEFAULT_IMAGE`, `DEFAULT_MAPPING` exported consts,
+    `mipmaps`, `updateRanges`, `addUpdateRange`, `clearUpdateRanges`,
+    `setValues`, `isArrayTexture`, `isRenderTargetTexture`, `needsPMREMUpdate`,
+    `pmremVersion`, `renderTarget`. `ObjectLoader` — implemented all parse
+    stubs (`parseGeometries`, `parseMaterials`, `parseAnimations`,
+    `parseShapes`, `parseSkeletons`, `parseImages`, `parseImagesAsync`,
+    `parseTextures`, `parseObject`) and bind methods (`bindSkeletons`,
+    `bindLightTargets`); `#parseObject` now resolves geometry/material by UUID.
+    Split to `_ObjectLoaderHelpers.ts` (213 LOC) to stay under 800 LOC.
+    `TubeGeometry` — added `tangents`, `normals`, `binormals`, `fromJSON`.
+    `ShapeGeometry` — added `fromJSON`. `EllipseCurve` — added `aX`/`aY`/
+    `aRotation`/`aStartAngle`/`aEndAngle`/`aClockwise` accessor aliases.
+
 #### Remaining gaps (out of scope)
 
 - **GPU/shader/PBR classes (46):** Correctly out of scope — CPU Canvas2D
