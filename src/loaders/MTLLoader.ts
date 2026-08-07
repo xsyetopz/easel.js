@@ -563,7 +563,7 @@ export class MTLLoader extends Loader {
    * @param text Raw Wavefront MTL source.
    * @param path Base path used to resolve `map_Kd` references.
    */
-  parse(text: string, path = this.resourcePath): MTLMaterialTable {
+  override parse(text: string, path = this.resourcePath): MTLMaterialTable {
     if (typeof text !== "string") {
       throw new TypeError("MTLLoader.parse requires a string.");
     }

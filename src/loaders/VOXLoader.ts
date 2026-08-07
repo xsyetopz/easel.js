@@ -501,7 +501,7 @@ export class VOXLoader extends Loader {
   }
 
   /** Parses a VOX 150/200 ArrayBuffer or ArrayBufferView into CPU data. */
-  parse(input: ArrayBuffer | ArrayBufferView): VOXLoaderResult {
+  override parse(input: ArrayBuffer | ArrayBufferView): VOXLoaderResult {
     const bytes =
       input instanceof ArrayBuffer
         ? new Uint8Array(input)

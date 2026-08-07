@@ -83,7 +83,7 @@ export class SVGLoader extends Loader {
   /** Default CSS pixel unit used by this DOM-free parser. */
   readonly defaultUnit = "px";
   /** Parses supported SVG elements in document order without a DOM. */
-  parse(text: string): SVGLoaderResult {
+  override parse(text: string): SVGLoaderResult {
     if (typeof text !== "string")
       throw new TypeError("SVGLoader.parse requires SVG text");
 

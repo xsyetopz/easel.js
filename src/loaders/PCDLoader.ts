@@ -26,7 +26,7 @@ export class PCDLoader extends Loader {
   }
 
   /** Parses an ASCII PCD header and point rows into positions and colors. */
-  parse(text: string): Geometry {
+  override parse(text: string): Geometry {
     const lines = text.split(/\r?\n/u);
     let fields: string[] = [];
     let dataIndex = -1;

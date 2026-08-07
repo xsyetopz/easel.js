@@ -345,7 +345,7 @@ export class NRRDLoader extends Loader {
   }
 
   /** Parses an NRRD header and raw, ASCII, or hexadecimal scalar payload. */
-  parse(input: NRRDInput): NRRDVolume {
+  override parse(input: NRRDInput): NRRDVolume {
     const bytes = toBytes(input);
     const headerEnd = findHeaderEnd(bytes);
     if (headerEnd < 0) {

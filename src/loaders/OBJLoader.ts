@@ -115,7 +115,7 @@ export class OBJLoader extends Loader {
   }
 
   /** Parses Wavefront OBJ text into a group of meshes. */
-  parse(
+  override parse(
     text: string,
     options: OBJLoaderOptions | OBJMaterialTable = {},
   ): Group {

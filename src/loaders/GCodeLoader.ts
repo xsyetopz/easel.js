@@ -93,7 +93,7 @@ export class GCodeLoader extends Loader {
    * `userData.layers` metadata and select the next movement layer when
    * `splitLayer` is enabled.
    */
-  parse(data: string): Group {
+  override parse(data: string): Group {
     if (typeof data !== "string") {
       throw new TypeError("GCodeLoader.parse requires G-code text.");
     }

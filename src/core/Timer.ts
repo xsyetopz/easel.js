@@ -49,6 +49,26 @@ export class Timer {
     return this;
   }
 
+  /** Starts the timer, recording the baseline timestamp. */
+  start(): this {
+    this.#startTime = now();
+    this.oldTime = this.#startTime;
+    this.#currentTime = 0;
+    this.#delta = 0;
+    this.#elapsedTime = 0;
+    this.running = true;
+    this.autoStart = false;
+    return this;
+  }
+
+  /** Stops the timer after a final update and freezes accumulated state. */
+  stop(): this {
+    this.update();
+    this.running = false;
+    this.autoStart = false;
+    return this;
+  }
+
   /** Resets the timestamp baseline and zeroes the next delta without changing elapsed time. */
   reset(timestamp: number = now()): this {
     this.#currentTime = timestamp - this.#startTime;
@@ -56,4 +76,5 @@ export class Timer {
     this.oldTime = timestamp;
     this.running = false;
     return this;
-  }}
+  }
+}

@@ -358,7 +358,7 @@ export class PLYLoader extends Loader {
   }
 
   /** Parses ASCII text or binary PLY data into CPU geometry. */
-  parse(data: string | ArrayBuffer): Geometry {
+  override parse(data: string | ArrayBuffer): Geometry {
     const bytes =
       typeof data === "string"
         ? new TextEncoder().encode(data)

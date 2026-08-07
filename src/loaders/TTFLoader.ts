@@ -166,7 +166,7 @@ export class TTFLoader extends Loader {
   }
 
   /** Parses a regular TrueType sfnt into THREE-compatible font JSON. */
-  parse(data: ArrayBuffer | Uint8Array): TTFLoaderResult {
+  override parse(data: ArrayBuffer | Uint8Array): TTFLoaderResult {
     const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
     const font = new TrueTypeFontData(bytes);
     const scale = 100000 / (font.unitsPerEm * 72);

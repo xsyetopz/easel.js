@@ -234,7 +234,7 @@ export class GLTFLoader extends Loader {
   }
 
   /** Parses a glTF document using only CPU-accessible buffer data. */
-  parse(
+  override parse(
     documentOrJson: GLTFDocument | string,
     options: GLTFLoaderOptions = {},
   ): GLTFLoaderResult {

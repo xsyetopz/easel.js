@@ -34,7 +34,7 @@ export class GeometryLoader extends Loader {
   }
 
   /** Parses serialized input into the corresponding EASEL value. */
-  parse(json: GeometryJSON): Geometry {
+  override parse(json: GeometryJSON): Geometry {
     const geometry = new Geometry();
 
     for (const [name, attribData] of Object.entries(json.attributes ?? {})) {

@@ -1,4 +1,5 @@
 import { Color } from "../math/Color.ts";
+import type { Material } from "../materials/Material.ts";
 import type { Fog, FogJSON } from "../scenes/Fog.ts";
 import { Texture, type TextureJSON } from "../textures/Texture.ts";
 import { Node, type NodeJSON } from "./Node.ts";
@@ -18,6 +19,8 @@ export class Scene extends Node {
 
   #fog: Fog | undefined;
   #background: Color | number | Texture | undefined;
+  #environment: Texture | null = null;
+  #overrideMaterial: Material | null = null;
 
   /** Constant type guard identifying this node as a scene. */
   get isScene(): true {
@@ -48,6 +51,26 @@ export class Scene extends Node {
     this.#background = value;
   }
 
+  /** Environment map for PBR; retained for API parity and ignored by the CPU renderer. */
+  get environment(): Texture | null {
+    return this.#environment;
+  }
+
+  /** Assigns or clears the environment map. */
+  set environment(value: Texture | null) {
+    this.#environment = value;
+  }
+
+  /** Material that overrides all others during traversal, or `null` to disable. */
+  get overrideMaterial(): Material | null {
+    return this.#overrideMaterial;
+  }
+
+  /** Assigns or clears the traversal override material. */
+  set overrideMaterial(value: Material | null) {
+    this.#overrideMaterial = value;
+  }
+
   /** Returns a scene copy with cloned children, fog, and background state. */
   override clone(): Scene {
     return new Scene().copy(this);
@@ -62,6 +85,8 @@ export class Scene extends Node {
       background instanceof Color || background instanceof Texture
         ? background.clone()
         : background;
+    this.#environment = source.#environment;
+    this.#overrideMaterial = source.#overrideMaterial;
     return this;
   }
 

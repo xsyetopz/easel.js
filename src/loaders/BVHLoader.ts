@@ -129,7 +129,7 @@ export class BVHLoader extends Loader {
   }
 
   /** Parses BVH hierarchy and motion text into CPU animation objects. */
-  parse(text: string): BVHLoaderResult {
+  override parse(text: string): BVHLoaderResult {
     if (typeof text !== "string") {
       throw new TypeError("BVHLoader.parse expects a text string.");
     }

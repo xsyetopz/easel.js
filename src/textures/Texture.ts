@@ -219,6 +219,9 @@ export class Texture extends EventDispatcher {
   /** Whether to flip V coordinates. */
   flipY = true;
 
+  /** Whether to generate mipmaps; ignored by the CPU nearest-neighbour sampler. */
+  generateMipmaps = true;
+
   /** Serialized row alignment for tightly packed RGBA inputs. */
   get unpackAlignment(): 1 | 4 {
     return this.#unpackAlignment;
@@ -242,6 +245,16 @@ export class Texture extends EventDispatcher {
     if (value !== DEFAULT_NO_COLOR_SPACE) {
       throw new RangeError("Texture.colorSpace is fixed to no conversion.");
     }
+  }
+
+  /** Deprecated alias for {@link colorSpace}. */
+  get encoding(): string {
+    return this.colorSpace;
+  }
+
+  /** Delegates to {@link colorSpace}. */
+  set encoding(value: string) {
+    this.colorSpace = value;
   }
 
   /** User-owned serializable metadata. */

@@ -98,7 +98,7 @@ export class PDBLoader extends Loader {
   }
 
   /** Parses PDB ATOM/HETATM and CONECT records into CPU geometry. */
-  parse(text: string): PDBParseResult {
+  override parse(text: string): PDBParseResult {
     const atoms: PDBAtom[] = [];
     const bySerial = new Map<number, PDBAtom>();
     const connections: Array<readonly [number, number]> = [];

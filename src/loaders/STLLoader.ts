@@ -91,7 +91,7 @@ export class STLLoader extends Loader {
   }
 
   /** Parses ASCII text or binary STL data into triangle geometry. */
-  parse(data: string | ArrayBuffer): Geometry {
+  override parse(data: string | ArrayBuffer): Geometry {
     if (typeof data === "string") return parseAscii(data);
     const binary = parseBinary(data);
     if (binary !== undefined && binary.getAttribute("position")?.count !== 0) {

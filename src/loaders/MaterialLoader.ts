@@ -113,7 +113,7 @@ export class MaterialLoader extends Loader {
   }
 
   /** Parses a canonical material record into its concrete material class. */
-  parse(json: MaterialJSON | MaterialRecord): Material {
+  override parse(json: MaterialJSON | MaterialRecord): Material {
     const record = json as MaterialRecord;
     const type = optionalString(record, "type") ?? "Material";
     const common = commonOptions(record);

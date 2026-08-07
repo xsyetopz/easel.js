@@ -35,7 +35,7 @@ export class XYZLoader extends Loader {
   }
 
   /** Parses XYZ or XYZRGB text into point positions and optional colors. */
-  parse(text: string): Geometry {
+  override parse(text: string): Geometry {
     const vertices: number[] = [];
     const colors: number[] = [];
     for (const rawLine of text.split(linePattern)) {

@@ -45,7 +45,7 @@ export class DataTextureLoader extends Loader {
   }
 
   /** Decodes an ArrayBuffer into raw RGBA pixels; subclasses provide the format-specific implementation. */
-  parse(_data: ArrayBuffer): ParseResult | undefined {
+  override parse(_data: ArrayBuffer): ParseResult | undefined {
     return void 0 as ParseResult | undefined;
   }
 }

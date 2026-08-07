@@ -55,7 +55,7 @@ export class BufferGeometryLoader extends Loader {
   }
 
   /** Parses serialized input into the corresponding EASEL value. */
-  parse(json: BufferGeometryJSON): Geometry {
+  override parse(json: BufferGeometryJSON): Geometry {
     const geometry = new Geometry();
     const data = json.data;
 

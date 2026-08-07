@@ -84,6 +84,11 @@ export class Loader {
     this.#cache = value;
   }
 
+  /** Parses raw data into a runtime value; concrete loaders override this. */
+  parse(_data: unknown): unknown {
+    return _data;
+  }
+
   /** Starts a resource request; concrete loaders override this operation. */
   load(
     _url: string,

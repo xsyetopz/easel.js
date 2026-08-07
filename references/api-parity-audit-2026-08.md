@@ -299,6 +299,22 @@ are closed.
     `style` accessors serve as getters). `createCanvasElement` function added
     to `src/utils/Utils.ts`.
 
+#### Phase 3: Method-level gaps on existing classes (3 slices — all closed)
+
+17. **Geometry/Attribute (2 classes):** `Geometry` — added `hasAttribute`,
+    `lookAt`, `mergeVertices`, `toJSON`. `Attribute` — added `usage` field,
+    `onUploadCallback` field, `onUpload` method, `setUsage`, exported
+    functions `toNormalizedTypeName`, `toType`.
+18. **Math (3 classes):** `Euler` — added `equals`, `toArray`. `Quaternion` —
+    added `setFromMatrix4` (alias), `onChange` callback registration. `Vector4`
+    — added `get width`/`set width` (alias for z), `get height`/`set height`
+    (alias for w), `addScaledVectors`, `angleTo`.
+19. **Scene/Loader/Timer/Texture (4 classes):** `Scene` — added `environment`,
+    `overrideMaterial` fields. `Loader` — added base `parse` method, added
+    `override` keyword to 20 subclass `parse` methods. `Timer` — added `start`,
+    `stop` methods. `Texture` — added `generateMipmaps` field, `get encoding`/
+    `set encoding` (deprecated alias for `colorSpace`).
+
 #### Remaining gaps (out of scope)
 
 - **GPU/shader/PBR classes (46):** Correctly out of scope — CPU Canvas2D

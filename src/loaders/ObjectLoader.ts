@@ -198,7 +198,7 @@ export class ObjectLoader extends Loader {
   }
 
   /** Parses a canonical EASEL node record. */
-  parse(json: NodeJSON | ObjectRecord): Node {
+  override parse(json: NodeJSON | ObjectRecord): Node {
     return this.#parseObject(json as ObjectRecord);
   }
 

@@ -29,7 +29,7 @@ export class AnimationLoader extends Loader {
   }
 
   /** Parses serialized input into the corresponding EASEL value. */
-  parse(json: AnimationClipJSON[]): AnimationClip[] {
+  override parse(json: AnimationClipJSON[]): AnimationClip[] {
     return json.map(animationClipFromJson);
   }
 }
