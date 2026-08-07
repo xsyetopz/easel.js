@@ -82,10 +82,20 @@ export interface NodeJSON {
   children?: NodeJSON[];
 }
 
+/** Default up direction applied to new nodes. */
+export const DEFAULT_UP: Vector3 = new Vector3(0, 1, 0);
+/** Default `matrixAutoUpdate` value applied to new nodes. */
+export const DEFAULT_MATRIX_AUTO_UPDATE = true;
+/** Default `matrixWorldAutoUpdate` value applied to new nodes. */
+export const DEFAULT_MATRIX_WORLD_AUTO_UPDATE = true;
+
 /** Base scene graph node with transform, hierarchy, and traversal. */
 export class Node extends EventDispatcher {
   /** Monotonic numeric identifier assigned when the node is constructed. */
   id: number = _nodeId++;
+
+  /** Type-narrowing flag indicating this is a 3D scene-graph object. */
+  readonly isObject3D: boolean = true;
   /** Stable identifier supplied by the caller or generated for the node. */
   readonly uuid: string;
 

@@ -160,6 +160,15 @@ export class ArrowHelper extends Node {
       coneMaterial.color.copy(this.#color);
   }
 
+  /** Updates arrow dimensions with three.js-compatible defaults. */
+  setLength(length: number, headLength?: number, headWidth?: number): void {
+    this.length = length;
+    const resolvedHeadLength = headLength ?? length * 0.2;
+    const resolvedHeadWidth = headWidth ?? resolvedHeadLength * 0.2;
+    this.headLength = resolvedHeadLength;
+    this.headWidth = resolvedHeadWidth;
+  }
+
   /** Returns an independent helper with independently owned geometry and materials. */
   override clone(): ArrowHelper {
     return new ArrowHelper().copy(this);

@@ -58,6 +58,17 @@ function clampChannel(value: number): number {
   return clamp(value, 0, 1);
 }
 
+function srgbToLinearChannel(value: number): number {
+  return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+}
+
+function linearToSrgbChannel(value: number): number {
+  const clamped = clamp(value, 0, 1);
+  return clamped <= 0.0031308
+    ? clamped * 12.92
+    : 1.055 * clamped ** (1 / 2.4) - 0.055;
+}
+
 /** RGB color with channel values in [0, 1]. */
 export class Color {
   /** Red channel. */
@@ -186,6 +197,30 @@ export class Color {
     target.s = s;
     target.l = l;
     return target;
+  }
+
+  /** Copies normalized r, g, b channels into `target` and returns it. */
+  getRGB(target: RGB = { r: 0, g: 0, b: 0 }): RGB {
+    target.r = this.r;
+    target.g = this.g;
+    target.b = this.b;
+    return target;
+  }
+
+  /** Converts the color in place from sRGB to linear-light space. */
+  convertSRGBToLinear(): this {
+    this.r = srgbToLinearChannel(this.r);
+    this.g = srgbToLinearChannel(this.g);
+    this.b = srgbToLinearChannel(this.b);
+    return this;
+  }
+
+  /** Converts the color in place from linear-light space to sRGB. */
+  convertLinearToSRGB(): this {
+    this.r = linearToSrgbChannel(this.r);
+    this.g = linearToSrgbChannel(this.g);
+    this.b = linearToSrgbChannel(this.b);
+    return this;
   }
 
   /** Sets this color to the RGB interpolation between `c1` and `c2`. */

@@ -10,6 +10,13 @@ export class Timer {
   #elapsedTime = 0;
   #timeScale = 1;
 
+  /** Last timestamp at which the timer was sampled, in milliseconds. */
+  oldTime = 0;
+  /** Whether the Clock-compatible timer is running. */
+  running = false;
+  /** Whether `delta` automatically starts the timer on first call. */
+  autoStart = true;
+
   /** Delta from the most recent explicit update, in seconds. */
   get delta(): number {
     return this.#delta;
@@ -46,6 +53,7 @@ export class Timer {
   reset(timestamp: number = now()): this {
     this.#currentTime = timestamp - this.#startTime;
     this.#delta = 0;
+    this.oldTime = timestamp;
+    this.running = false;
     return this;
-  }
-}
+  }}

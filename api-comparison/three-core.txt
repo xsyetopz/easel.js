@@ -55,12 +55,12 @@
 <	AnimationAction.cancelWarp	method	instance () => this	-
 =	AnimationAction.clampWhenFinished	field	instance rw boolean	instance rw boolean
 <	AnimationAction.clip	accessor	instance r AnimationClip	-
-!	AnimationAction.constructor	constructor	instance (clip: AnimationClip, localRoot: object | undefined = void 0, lifecycle: AnimationActionLifecycle | undefined = void 0) => AnimationAction	instance (mixer: AnimationMixer, clip: AnimationClip, localRoot: ?Object3D = null, blendMode: (NormalAnimationBlendMode|AdditiveAnimationBlendMode) = clip.blendMode) => AnimationAction
+!	AnimationAction.constructor	constructor	instance (clip: AnimationClip, localRoot: object | undefined = void 0, lifecycle: AnimationActionLifecycle | undefined = void 0, mixer: Animator | undefined = void 0) => AnimationAction	instance (mixer: AnimationMixer, clip: AnimationClip, localRoot: ?Object3D = null, blendMode: (NormalAnimationBlendMode|AdditiveAnimationBlendMode) = clip.blendMode) => AnimationAction
 !	AnimationAction.crossFadeFrom	method	instance (fadeOutAction: AnimationAction, duration: number, warp: boolean = false) => this	instance (fadeOutAction: AnimationAction, duration: number, warp: boolean = false) => AnimationAction
 =	AnimationAction.crossFadeTo	method	instance (fadeInAction: AnimationAction, duration: number, warp: boolean = false) => AnimationAction	instance (fadeInAction: AnimationAction, duration: number, warp: boolean = false) => AnimationAction
 <	AnimationAction.duration	accessor	instance rw number	-
-<	AnimationAction.effectiveTimeScale	accessor	instance r number	-
-<	AnimationAction.effectiveWeight	accessor	instance r number	-
+<	AnimationAction.effectiveTimeScale	accessor	instance rw number	-
+<	AnimationAction.effectiveWeight	accessor	instance rw number	-
 !	AnimationAction.enabled	accessor/field	instance rw boolean	instance rw boolean
 !	AnimationAction.fadeIn	method	instance (duration: number) => this	instance (duration: number) => AnimationAction
 !	AnimationAction.fadeOut	method	instance (duration: number) => this	instance (duration: number) => AnimationAction
@@ -70,14 +70,16 @@
 >	AnimationAction.getMixer	method	-	instance () => AnimationMixer
 >	AnimationAction.getRoot	method	-	instance () => Object3D
 !	AnimationAction.halt	method	instance (duration: number) => this	instance (duration: number) => AnimationAction
->	AnimationAction.isRunning	method	-	instance () => boolean
->	AnimationAction.isScheduled	method	-	instance () => boolean
+=	AnimationAction.isRunning	method	instance () => boolean	instance () => boolean
+=	AnimationAction.isScheduled	method	instance () => boolean	instance () => boolean
 <	AnimationAction.localRoot	accessor	instance r object | undefined	-
 !	AnimationAction.loop	field	instance rw LoopMode	instance rw (LoopRepeat|LoopOnce|LoopPingPong)
+<	AnimationAction.mixer	accessor	instance r Animator | undefined	-
 =	AnimationAction.paused	field	instance rw boolean	instance rw boolean
 !	AnimationAction.play	method	instance () => this	instance () => AnimationAction
 =	AnimationAction.repetitions	field	instance rw number	instance rw number
 !	AnimationAction.reset	method	instance (enable: boolean = true) => this	instance () => AnimationAction
+<	AnimationAction.root	accessor	instance r object | undefined	-
 <	AnimationAction.running	accessor	instance r boolean	-
 <	AnimationAction.schedule	method	instance (time: number) => this	-
 <	AnimationAction.scheduled	accessor	instance r boolean	-
@@ -85,17 +87,17 @@
 >	AnimationAction.setEffectiveTimeScale	method	-	instance (timeScale: number) => AnimationAction
 >	AnimationAction.setEffectiveWeight	method	-	instance (weight: number) => AnimationAction
 !	AnimationAction.setLoop	method	instance (mode: LoopMode, repetitions: number) => this	instance (mode: (LoopRepeat|LoopOnce|LoopPingPong), repetitions: number) => AnimationAction
->	AnimationAction.startAt	method	-	instance (time: number) => AnimationAction
+!	AnimationAction.startAt	method	instance (time: number) => this	instance (time: number) => AnimationAction
 !	AnimationAction.stop	method	instance () => this	instance () => AnimationAction
->	AnimationAction.stopFading	method	-	instance () => AnimationAction
->	AnimationAction.stopWarping	method	-	instance () => AnimationAction
+!	AnimationAction.stopFading	method	instance () => this	instance () => AnimationAction
+!	AnimationAction.stopWarping	method	instance () => this	instance () => AnimationAction
 !	AnimationAction.syncWith	method	instance (action: AnimationAction) => this	instance (action: AnimationAction) => AnimationAction
 =	AnimationAction.time	field	instance rw number	instance rw number
 !	AnimationAction.timeScale	accessor/field	instance rw number	instance rw number
 !	AnimationAction.warp	method	instance (startTimeScale: number, endTimeScale: number, duration: number) => this	instance (startTimeScale: number, endTimeScale: number, duration: number) => AnimationAction
 !	AnimationAction.weight	accessor/field	instance rw number	instance rw number
->	AnimationAction.zeroSlopeAtEnd	field	-	instance rw boolean
->	AnimationAction.zeroSlopeAtStart	field	-	instance rw boolean
+=	AnimationAction.zeroSlopeAtEnd	field	instance rw boolean	instance rw boolean
+=	AnimationAction.zeroSlopeAtStart	field	instance rw boolean	instance rw boolean
 <	AnimationBlend	const	const { readonly Normal: 2500; readonly Additive: 2501; }	-
 <	AnimationBlendMode	record	type = (typeof AnimationBlend)[keyof typeof AnimationBlend]	-
 =	AnimationClip	class	class	class
@@ -114,8 +116,8 @@
 >	AnimationClip.toJSON	method	-	static (clip: AnimationClip) => Object
 !	AnimationClip.tracks	accessor/field	instance r AnimationTrack<TrackValue>[]	instance rw Array<KeyframeTrack>
 !	AnimationClip.trim	method	instance () => this	instance () => AnimationClip
->	AnimationClip.userData	field	-	instance rw Object
->	AnimationClip.uuid	field	-	instance ro string
+!	AnimationClip.userData	field	instance rw Record<string, unknown>	instance rw Object
+=	AnimationClip.uuid	field	instance ro string	instance ro string
 =	AnimationClip.validate	method	instance () => boolean	instance () => boolean
 <	AnimationClipJSON	record	interface { readonly name?: string; readonly duration?: number; readonly tracks?: AnimationClipTrackJSON[]; readonly fps?: number; readonly blendMode?: AnimationBlendMode }	-
 <	AnimationClipTrackJSON	record	interface { readonly type: | "boolean" | "bool" | "color" | "number" | "quaternion" | "string" | "vector"; readonly name: string; readonly times: number[]; readonly values: Array<boolean | number | string>; readonly itemSize?: number; readonly interpolation?: InterpolationMode; readonly inTangents?: number[]; readonly outTangents?: number[]; readonly endingStart?: InterpolationEndingMode; readonly endingEnd?: InterpolationEndingMode }	-
@@ -125,8 +127,13 @@
 <	AnimationGroup.constructor	constructor	instance (...roots: object[]) => AnimationGroup	-
 <	AnimationGroup.delete	method	instance (...roots: object[]) => boolean	-
 <	AnimationGroup.has	method	instance (root: object) => boolean	-
+<	AnimationGroup.isAnimationObjectGroup	field	instance ro boolean	-
+<	AnimationGroup.remove	method	instance (...objects: object[]) => void	-
 <	AnimationGroup.roots	accessor	instance r readonly object[]	-
 <	AnimationGroup.size	accessor	instance r number	-
+<	AnimationGroup.stats	accessor	instance r { objects: number; }	-
+<	AnimationGroup.uncache	method	instance (...objects: object[]) => void	-
+<	AnimationGroup.uuid	field	instance ro string	-
 =	AnimationLoader	class	class extends Loader	class extends Loader
 !	AnimationLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => AnimationLoader	instance (manager?: LoadingManager) => AnimationLoader
 !	AnimationLoader.load	method	instance (url: string, onLoad?: (clips: AnimationClip[]) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	instance (url: string, onLoad: function(Array<AnimationClip>), onProgress: onProgressCallback, onError: onErrorCallback) => void
@@ -206,10 +213,12 @@
 <	Animator.root	accessor	instance r object	-
 <	Animator.seek	method	instance (time: number) => this	-
 <	Animator.stopAll	method	instance () => this	-
-<	Animator.time	accessor	instance r number	-
+<	Animator.stopAllAction	method	instance () => this	-
+<	Animator.time	accessor	instance rw number	-
 <	Animator.timeScale	accessor	instance rw number	-
 <	Animator.uncacheAction	method	instance (clip: AnimationClip, localRoot: object | undefined = void 0) => void	-
 <	Animator.uncacheClip	method	instance (clip: AnimationClip) => void	-
+<	Animator.uncacheRoot	method	instance (root: object) => void	-
 <	Animator.update	method	instance (delta: number) => this	-
 =	ArcCurve	class	class extends EllipseCurve	class extends EllipseCurve
 <	ArcCurve.clone	method	instance () => ArcCurve	-
@@ -264,7 +273,7 @@
 !	ArrowHelper.line	field	instance ro Line	instance rw Line
 >	ArrowHelper.setColor	method	-	instance (color: number|Color|string) => void
 >	ArrowHelper.setDirection	method	-	instance (dir: Vector3) => void
->	ArrowHelper.setLength	method	-	instance (length: number, headLength: number = length * 0.2, headWidth: number = headLength * 0.2) => void
+!	ArrowHelper.setLength	method	instance (length: number, headLength?: number, headWidth?: number) => void	instance (length: number, headLength: number = length * 0.2, headWidth: number = headLength * 0.2) => void
 =	ArrowHelper.type	field	instance rw string	instance rw string
 <	ArrowHelperOptions	record	interface { readonly direction?: ArrowDirection; readonly origin?: ArrowDirection; readonly length?: number; readonly color?: ColorValue; readonly headLength?: number; readonly headWidth?: number }	-
 >	AttachedBindMode	const	-	const string
@@ -343,16 +352,16 @@
 !	Audio.play	method	instance (delay: number = 0) => this | undefined	instance (delay: number = 0) => Audio|undefined
 !	Audio.playbackRate	field	instance rw number	instance ro number
 !	Audio.setBuffer	method	instance (audioBuffer: AudioBufferLike) => this	instance (audioBuffer: AudioBuffer) => Audio
->	Audio.setDetune	method	-	instance (value: number) => Audio
->	Audio.setFilter	method	-	instance (filter?: AudioNode) => Audio
+!	Audio.setDetune	method	instance (value: number) => this	instance (value: number) => Audio
+!	Audio.setFilter	method	instance (filter?: AudioNodeLike) => this	instance (filter?: AudioNode) => Audio
 !	Audio.setFilters	method	instance (value: AudioNodeLike[] = []) => this	instance (value?: Array<AudioNode>) => Audio
->	Audio.setLoop	method	-	instance (value: boolean) => Audio|undefined
->	Audio.setLoopEnd	method	-	instance (value: number) => Audio
->	Audio.setLoopStart	method	-	instance (value: number) => Audio
+!	Audio.setLoop	method	instance (value: boolean) => this	instance (value: boolean) => Audio|undefined
+!	Audio.setLoopEnd	method	instance (value: number) => this	instance (value: number) => Audio
+!	Audio.setLoopStart	method	instance (value: number) => this	instance (value: number) => Audio
 !	Audio.setMediaElementSource	method	instance (mediaElement: HTMLMediaElement) => this	instance (mediaElement: HTMLMediaElement) => Audio
 !	Audio.setMediaStreamSource	method	instance (mediaStream: MediaStream) => this	instance (mediaStream: MediaStream) => Audio
 !	Audio.setNodeSource	method	instance (audioNode: AudioNodeLike) => this	instance (audioNode: AudioNode) => Audio
->	Audio.setPlaybackRate	method	-	instance (value?: number) => Audio|undefined
+!	Audio.setPlaybackRate	method	instance (value: number) => this	instance (value?: number) => Audio|undefined
 >	Audio.setVolume	method	-	instance (value: number) => Audio
 !	Audio.source	field	instance rw AudioNodeLike | AudioBufferSourceNodeLike | undefined	instance ro ?AudioNode
 !	Audio.sourceType	field	instance rw AudioSourceType	instance ro ('empty'|'audioNode'|'mediaNode'|'mediaStreamNode'|'buffer')
@@ -425,7 +434,7 @@
 !	AudioLoader.load	method	instance (url: string, onLoad?: (buffer: AudioBufferLike) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	instance (url: string, onLoad: function(AudioBuffer), onProgress: onProgressCallback, onError: onErrorCallback) => void
 <	AudioNodeLike	record	interface { connect: (destination: AudioNodeLike | AudioParamLike) => unknown; disconnect?: (destination?: AudioNodeLike | AudioParamLike) => void }	-
 <	AudioParamLike	record	interface { value: number; setValueAtTime?: (value: number, time: number) => AudioParamLike; linearRampToValueAtTime?: (value: number, time: number) => AudioParamLike; setTargetAtTime?: (value: number, time: number, tau: number) => void }	-
-<	AudioSourceType	record	type = "empty" | "audioNode" | "mediaNode" | "mediaStreamNode" | "buffer"	-
+<	AudioSourceType	record	type = | "empty" | "audioNode" | "mediaNode" | "mediaStreamNode" | "buffer"	-
 <	AudioVisualizerOptions	record	interface { x?: number; y?: number; width?: number; height?: number; background?: string; foreground?: string; bars?: number; gap?: number; lineWidth?: number }	-
 =	AxesHelper	class	class extends LineSegments	class extends LineSegments
 <	AxesHelper.clone	method	instance () => AxesHelper	-
@@ -535,6 +544,7 @@
 <	Binding.bind	method	instance () => this	-
 <	Binding.constructor	constructor	instance (root: object, path: string, parsedPath?: BindingPath) => Binding	-
 <	Binding.getValue	method	instance (targetArray: TrackValue[] | Float64Array, offset: number) => void	-
+<	Binding.isBindingBoundBy	method	instance (node: object) => boolean	-
 <	Binding.isBound	accessor	instance r boolean	-
 <	Binding.parsedPath	accessor	instance r BindingPath	-
 <	Binding.path	accessor	instance r string	-
@@ -932,7 +942,7 @@
 >	Clock.stop	method	-	instance () => void
 =	Color	class	class	class
 >	Color.NAMES	field	-	static rw Object
->	Color.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
+>	Color.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
 !	Color.add	method	instance (color: Color) => this	instance (color: Color) => Color
 !	Color.addColors	method	instance (color1: Color, color2: Color) => this	instance (color1: Color, color2: Color) => Color
 !	Color.addScalar	method	instance (scalar: number) => this	instance (s: number) => Color
@@ -940,8 +950,8 @@
 =	Color.b	field	instance rw number	instance rw number
 =	Color.clone	method	instance () => Color	instance () => Color
 !	Color.constructor	constructor	instance () => Color | (value: ColorValue) => Color | (r: number, g: number, b: number) => Color	instance (r?: (number|string|Color), g?: number, b?: number) => Color
->	Color.convertLinearToSRGB	method	-	instance () => Color
->	Color.convertSRGBToLinear	method	-	instance () => Color
+!	Color.convertLinearToSRGB	method	instance () => this	instance () => Color
+!	Color.convertSRGBToLinear	method	instance () => this	instance () => Color
 !	Color.copy	method	instance (source: Color) => this	instance (color: Color) => Color
 >	Color.copyLinearToSRGB	method	-	instance (color: Color) => Color
 >	Color.copySRGBToLinear	method	-	instance (color: Color) => Color
@@ -952,7 +962,7 @@
 !	Color.getHSL	method	instance (target: HSL = { h: 0, s: 0, l: 0 }) => HSL	instance (target: {h:number,s:number,l:number}, colorSpace: string = ColorManagement.workingColorSpace) => {h:number,s:number,l:number}
 >	Color.getHex	method	-	instance (colorSpace: string = SRGBColorSpace) => number
 >	Color.getHexString	method	-	instance (colorSpace: string = SRGBColorSpace) => string
->	Color.getRGB	method	-	instance (target: Color, colorSpace: string = ColorManagement.workingColorSpace) => Color
+!	Color.getRGB	method	instance (target: RGB = { r: 0, g: 0, b: 0 }) => RGB	instance (target: Color, colorSpace: string = ColorManagement.workingColorSpace) => Color
 >	Color.getStyle	method	-	instance (colorSpace: string = SRGBColorSpace) => string
 <	Color.hex	accessor	instance rw number	-
 <	Color.hexString	accessor	instance r string	-
@@ -1033,6 +1043,8 @@
 <	ConvexGeometry.constructor	constructor	instance (points: readonly Vector3[] = []) => ConvexGeometry	-
 <	ConvexGeometry.parameters	field	instance rw Record<string, unknown>	-
 <	ConvexGeometry.type	field	instance rw string	-
+<	CreateClipsFromMorphTargetSequences	function	(morphTargets: readonly { name: string }[], fps: number = 6) => AnimationClip[]	-
+<	CreateFromMorphTargetSequence	function	(name: string, morphTargetSequence: readonly { name: string }[], fps: number = 6, noLoop: boolean = false) => AnimationClip	-
 >	CubeCamera	class	-	class extends Object3D
 >	CubeCamera.activeMipmapLevel	field	-	instance rw number
 >	CubeCamera.constructor	constructor	-	instance (near: number, far: number, renderTarget: WebGLCubeRenderTarget) => CubeCamera
@@ -1163,6 +1175,9 @@
 <	DDSMipmap	record	interface { readonly data: Uint8ClampedArray; readonly width: number; readonly height: number }	-
 <	DDSParseResult	record	interface { readonly data: Uint8ClampedArray; readonly width: number; readonly height: number; readonly mipmaps: readonly DDSMipmap[]; readonly mipmapCount: number; readonly isCubemap: boolean; readonly pixelFormat: DDSPixelFormat; readonly compressed: false }	-
 <	DDSPixelFormat	record	type = "rgba8" | "bgra8" | "rgb8" | "bgr8"	-
+<	DEFAULT_MATRIX_AUTO_UPDATE	const	const true	-
+<	DEFAULT_MATRIX_WORLD_AUTO_UPDATE	const	const true	-
+<	DEFAULT_UP	const	const Vector3	-
 <	DEG2RAD	const	const 0.017453292519943295	-
 <	DashedLineMaterial	class	class extends LineMaterial	-
 <	DashedLineMaterial.clone	method	instance () => DashedLineMaterial	-
@@ -1312,7 +1327,7 @@
 <	DrawCall.vertexColorItemSize	field	instance rw number	-
 <	DrawCall.worldPositions	field	instance rw Float32Array<ArrayBufferLike>	-
 <	DrawList	class	class	-
-<	DrawList.__@iterator@3073	method	instance () => Iterator<DrawCall, any, any>	-
+<	DrawList.__@iterator@3126	method	instance () => Iterator<DrawCall, any, any>	-
 <	DrawList.add	method	instance (drawCall: DrawCall) => void	-
 <	DrawList.calls	accessor	instance r DrawCall[]	-
 <	DrawList.clear	method	instance () => void	-
@@ -1374,7 +1389,7 @@
 >	EquirectangularRefractionMapping	const	-	const number
 =	Euler	class	class	class
 >	Euler.DEFAULT_ORDER	field	-	static rw string
->	Euler.__@iterator@5876	method	-	instance () => Generator<string | number, void, unknown>
+>	Euler.__@iterator@5932	method	-	instance () => Generator<string | number, void, unknown>
 >	Euler._onChange	method	-	instance (callback: any) => this
 >	Euler._onChangeCallback	method	-	instance () => void
 >	Euler._order	field	-	instance rw string
@@ -2384,7 +2399,7 @@
 !	Matrix2.identity	method	instance () => this	instance () => Matrix2
 !	Matrix2.set	method	instance (n11: number, n12: number, n21: number, n22: number) => this	instance (n11: number, n12: number, n21: number, n22: number) => Matrix2
 =	Matrix3	class	class	class
-<	Matrix3.__@iterator@3073	method	instance () => Generator<number, any, any>	-
+<	Matrix3.__@iterator@3126	method	instance () => Generator<number, any, any>	-
 =	Matrix3.clone	method	instance () => Matrix3	instance () => Matrix3
 <	Matrix3.compose	method	instance (position: Vector2, rotation: number, scale: Vector2) => this	-
 !	Matrix3.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix3	instance (n11?: number, n12?: number, n13?: number, n21?: number, n22?: number, n23?: number, n31?: number, n32?: number, n33?: number) => Matrix3
@@ -2419,7 +2434,7 @@
 <	Matrix3.transposeInto	method	instance (values: number[] | Float32Array<ArrayBufferLike>) => this	-
 >	Matrix3.transposeIntoArray	method	-	instance (r: Array<number>) => Matrix3
 =	Matrix4	class	class	class
-<	Matrix4.__@iterator@3073	method	instance () => Generator<number, any, any>	-
+<	Matrix4.__@iterator@3126	method	instance () => Generator<number, any, any>	-
 =	Matrix4.clone	method	instance () => Matrix4	instance () => Matrix4
 !	Matrix4.compose	method	instance (position: Vector3, q: Quaternion, scale: Vector3) => this	instance (position: Vector3, quaternion: Quaternion, scale: Vector3) => Matrix4
 !	Matrix4.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix4	instance (n11?: number, n12?: number, n13?: number, n14?: number, n21?: number, n22?: number, n23?: number, n24?: number, n31?: number, n32?: number, n33?: number, n34?: number, n41?: number, n42?: number, n43?: number, n44?: number) => Matrix4
@@ -2675,6 +2690,7 @@
 <	Node.getWorldQuaternion	method	instance (target: Quaternion) => Quaternion	-
 <	Node.getWorldScale	method	instance (target: Vector3) => Vector3	-
 <	Node.id	field	instance rw number	-
+<	Node.isObject3D	field	instance ro boolean	-
 <	Node.layers	field	instance rw Layers	-
 <	Node.localToWorld	method	instance (vector: Vector3) => Vector3	-
 <	Node.lookAt	method	instance (target: Vector3 | number, y?: number, z?: number) => this	-
@@ -3272,6 +3288,7 @@
 !	PositionalAudio.setDirectionalCone	method	instance (coneInnerAngle: number, coneOuterAngle: number, coneOuterGain: number) => this	instance (coneInnerAngle: number, coneOuterAngle: number, coneOuterGain: number) => PositionalAudio
 >	PositionalAudio.setDistanceModel	method	-	instance (value: ('linear'|'inverse'|'exponential')) => PositionalAudio
 >	PositionalAudio.setMaxDistance	method	-	instance (value: number) => PositionalAudio
+<	PositionalAudio.setPanningModel	method	instance (value: string) => this	-
 >	PositionalAudio.setRefDistance	method	-	instance (value: number) => PositionalAudio
 >	PositionalAudio.setRolloffFactor	method	-	instance (value: number) => PositionalAudio
 !	PositionalAudio.updateMatrixWorld	method	instance (force: boolean = false) => void	instance (force: any) => void
@@ -3371,8 +3388,8 @@
 !	QuadraticBezierCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	QuadraticBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 =	Quaternion	class	class	class
-<	Quaternion.__@iterator@3073	method	instance () => Generator<number, any, any>	-
->	Quaternion.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
+<	Quaternion.__@iterator@3126	method	instance () => Generator<number, any, any>	-
+>	Quaternion.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
 >	Quaternion._onChange	method	-	instance (callback: any) => this
 >	Quaternion._onChangeCallback	method	-	instance () => void
 >	Quaternion._w	field	-	instance rw number
@@ -4112,6 +4129,7 @@
 >	Timer._previousTime	field	-	instance rw number
 >	Timer._startTime	field	-	instance rw number
 >	Timer._timescale	field	-	instance rw number
+<	Timer.autoStart	field	instance rw boolean	-
 >	Timer.connect	method	-	instance (document: Document) => void
 =	Timer.constructor	constructor	instance () => Timer	instance () => Timer
 <	Timer.delta	accessor	instance r number	-
@@ -4121,7 +4139,9 @@
 >	Timer.getDelta	method	-	instance () => number
 >	Timer.getElapsed	method	-	instance () => number
 >	Timer.getTimescale	method	-	instance () => number
+<	Timer.oldTime	field	instance rw number	-
 !	Timer.reset	method	instance (timestamp: number = now()) => this	instance () => Timer
+<	Timer.running	field	instance rw boolean	-
 >	Timer.setTimescale	method	-	instance (timescale: number) => Timer
 <	Timer.timeScale	accessor	instance rw number	-
 !	Timer.update	method	instance (timestamp: number = now()) => this	instance (timestamp: number) => Timer
@@ -4333,8 +4353,8 @@
 <	VOXVoxelVolume	record	interface { readonly size: VOXSize; readonly occupancy: Uint8Array; readonly colors: Uint8Array; readonly palette: readonly number[] }	-
 >	VSMShadowMap	const	-	const number
 =	Vector2	class	class	class
-<	Vector2.__@iterator@3073	method	instance () => Generator<number, any, any>	-
->	Vector2.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
+<	Vector2.__@iterator@3126	method	instance () => Generator<number, any, any>	-
+>	Vector2.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
 !	Vector2.add	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.addScaledVector	method	instance (v: Vector2, s: number) => this	instance (v: Vector2, s: number) => Vector2
@@ -4393,8 +4413,8 @@
 !	Vector2.x	accessor/field	instance rw number	instance rw number
 !	Vector2.y	accessor/field	instance rw number	instance rw number
 =	Vector3	class	class	class
-<	Vector3.__@iterator@3073	method	instance () => Generator<number, any, any>	-
->	Vector3.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
+<	Vector3.__@iterator@3126	method	instance () => Generator<number, any, any>	-
+>	Vector3.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
 !	Vector3.add	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.addScaledVector	method	instance (v: Vector3 | Vector4, s: number) => this	instance (v: Vector3|Vector4, s: number) => Vector3
@@ -4473,8 +4493,8 @@
 !	Vector3.y	accessor/field	instance rw number	instance rw number
 !	Vector3.z	accessor/field	instance rw number	instance rw number
 =	Vector4	class	class	class
-<	Vector4.__@iterator@3073	method	instance () => Generator<number, any, any>	-
->	Vector4.__@iterator@5876	method	-	instance () => Generator<number, void, unknown>
+<	Vector4.__@iterator@3126	method	instance () => Generator<number, any, any>	-
+>	Vector4.__@iterator@5932	method	-	instance () => Generator<number, void, unknown>
 !	Vector4.add	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.addScaledVector	method	instance (v: Vector4, s: number) => this	instance (v: Vector4, s: number) => Vector4
@@ -4659,6 +4679,8 @@
 <	fastTrunc	function	(x: number) => number	-
 <	findAnimationClip	function	(clips: readonly AnimationClip[] | object, name: string) => AnimationClip | undefined	-
 <	findBindingNode	function	(root: object, nodeName: string | number | undefined) => object | undefined	-
+<	findByName	function	(clips: readonly AnimationClip[] | object, name: string) => AnimationClip | undefined	-
+<	findNode	function	(root: object, nodeName: string | number | undefined) => object | undefined	-
 <	findSpan	function	(degree: number, u: number, knots: number[]) => number	-
 <	flattenJSON	function	(jsonKeys: readonly FlatKeyframe[], times: number[], values: TrackValue[], valuePropertyName: string) => void	-
 <	fromHalfFloat	function	(value: number) => number	-
@@ -4676,9 +4698,11 @@
 <	makeClipAdditive	function	(clip: AnimationClip, referenceFrame: number = 0, referenceClip: AnimationClip = clip, fps: number = 30) => AnimationClip	-
 <	multiplyQuaternionsFlat	function	<Destination extends QuaternionArray>(destination: Destination, destinationOffset: number, left: ArrayLike<number>, leftOffset: number, right: ArrayLike<number>, rightOffset: number) => Destination	-
 <	nextPowerOf2	function	(n: number) => number	-
+<	parse	function	(json: AnimationClipJSON) => AnimationClip	-
 <	parseBindingPath	function	(path: string) => BindingPath	-
 <	parsePath	const	const (data: string) => ShapePath	-
 <	parseSVGPath	function	(data: string) => ShapePath	-
+<	parseTrackName	function	(path: string) => BindingPath	-
 <	pathToSVG	const	const (path: CurvePath, options?: SVGPathSerializerOptions) => string	-
 <	resolveUrl	function	(url: string, path: string) => string	-
 <	safeAsin	function	(value: number) => number	-

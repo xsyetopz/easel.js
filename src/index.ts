@@ -23,6 +23,10 @@ export {
   type AnimationClipTrackJSON,
   animationClipFromJson,
   findAnimationClip,
+  findByName,
+  parse,
+  CreateFromMorphTargetSequence,
+  CreateClipsFromMorphTargetSequences,
 } from "./animation/AnimationClip.ts";
 export { AnimationGroup } from "./animation/AnimationGroup.ts";
 export {
@@ -42,7 +46,9 @@ export {
   Binding,
   type BindingPath,
   findBindingNode,
+  findNode,
   parseBindingPath,
+  parseTrackName,
   sanitizeBindingNodeName,
 } from "./animation/Binding.ts";
 export { PropertyMixer } from "./animation/PropertyMixer.ts";
@@ -172,7 +178,14 @@ export {
 } from "./core/Constants.ts";
 export { EventDispatcher } from "./core/EventDispatcher.ts";
 export { Layers } from "./core/Layers.ts";
-export { Node, type NodeJSON, type NodeOptions } from "./core/Node.ts";
+export {
+  DEFAULT_UP,
+  DEFAULT_MATRIX_AUTO_UPDATE,
+  DEFAULT_MATRIX_WORLD_AUTO_UPDATE,
+  Node,
+  type NodeJSON,
+  type NodeOptions,
+} from "./core/Node.ts";
 export {
   type Intersection,
   type RaycastCamera,

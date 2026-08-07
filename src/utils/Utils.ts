@@ -67,6 +67,20 @@ export const TextureUtils = {
   },
 };
 
+/** Creates a canvas element in environments that support the DOM. */
+export function createCanvasElement(): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  return canvas;
+}
+
+/** Utility namespace for general-purpose helpers. */
+export const Utils = {
+  /** Creates a canvas element in environments that support the DOM. */
+  createCanvasElement(): HTMLCanvasElement {
+    return createCanvasElement();
+  },
+};
+
 /** Utility namespace for data format conversions. */
 export const DataUtils = {
   /** Encodes a JavaScript number as an IEEE 754 binary16 value. */
