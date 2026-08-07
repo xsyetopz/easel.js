@@ -53,6 +53,43 @@ testing, then framebuffer upload. Preserve these constraints:
 
 Reject rendering features that do not fit this CPU/Canvas2D model.
 
+## Three.js API parity rules
+
+EASEL matches the three.js public API surface where it makes sense on a CPU
+Canvas2D rasterizer, but does not blindly copy GPU-only concepts. Follow
+these rules when filling API parity gaps:
+
+- **Drop GPU prefixes from class names.** three.js uses `BufferGeometry`,
+  `BufferAttribute`, `InterleavedBuffer`, `InterleavedBufferAttribute` because
+  they wrap WebGL buffer objects. EASEL uses `Geometry`, `Attribute`,
+  `InterleavedData`, `InterleavedAttribute` — no GPU buffer, just typed arrays.
+- **Do not add GPU lifecycle fields.** Fields like `usage` (`gl.STATIC_DRAW`),
+  `onUploadCallback`/`onUpload()`, `updateRanges`/`addUpdateRange()`/
+  `clearUpdateRanges()`, `version`, and `setUsage()` exist for GPU buffer
+  upload and partial-update tracking. They have no CPU meaning and must not
+  appear on `Attribute`, `InterleavedData`, `Texture`, or any other class.
+- **Keep CPU-relevant lifecycle fields.** `needsUpdate` (cache invalidation)
+  and `updateRange` (singular, dirty-region tracking) are CPU operations and
+  are fine.
+- **Use ES6+ accessors, not three.js getFoo()/setFoo() methods.** The modern
+  API policy (`scripts/check-modern-api.ts`) rejects parameterless `getFoo()`
+  methods and `setFoo(value)` methods when a `get foo()`/`set foo()` accessor
+  exists. When three.js has `getHex()`, EASEL uses `get hex()`.
+- **No static class members.** Convert three.js static methods (e.g.
+  `AnimationClip.findByName`) to exported standalone functions.
+- **Use `undefined`, not `null`, for absence.** The only exception is DOM API
+  returns (e.g. `canvas.getContext("2d")` returns `CanvasRenderingContext2D |
+  null`).
+- **Check the CPU relevance of every field before adding it.** If a three.js
+  field exists solely for GPU state (blending modes, depth/stencil, shader
+  uniforms, PBR material properties, render targets), it is out of scope.
+  Fields that hold scene-graph data (e.g. `Scene.environment`,
+  `Scene.overrideMaterial`) are fine even if the CPU renderer ignores them at
+  render time — loaders and exporters may set them.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full parity tables with ✅/❌
+examples.
+
 ## Docs and examples
 
 - Edit API docs in `www/docs/classes/*.ts`, then regenerate Markdown with

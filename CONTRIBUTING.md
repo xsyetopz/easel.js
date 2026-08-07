@@ -52,6 +52,59 @@ programs, PBR materials, shadow maps, and environment maps do not belong in its
 rendering pipeline. See [AGENTS.md](AGENTS.md) for repository ownership and
 renderer constraints.
 
+## Three.js API parity
+
+EASEL matches the three.js public API surface where it makes sense on a CPU
+Canvas2D rasterizer, but does not blindly copy GPU-only concepts. When adding
+three.js-parity methods or classes, follow these rules:
+
+### Class naming
+
+| three.js | EASEL | Reason |
+| --- | --- | --- |
+| `BufferGeometry` | `Geometry` | No GPU buffer; typed arrays |
+| `BufferAttribute` | `Attribute` | No GPU buffer; typed array |
+| `InterleavedBuffer` | `InterleavedData` | No GPU buffer; interleaved typed-array data |
+| `InterleavedBufferAttribute` | `InterleavedAttribute` | No GPU buffer |
+| `Object3D` | `Node` | Scene graph node, not "3D object" |
+| `Clock` | `Timer` | ES6 naming |
+| `MeshBasicMaterial` | `BasicMaterial` | Dropped `Mesh` prefix |
+
+Drop the `Buffer` prefix and the `Mesh` material prefix — these refer to WebGL
+buffer objects and shader-based material pipelines that EASEL does not have.
+
+### What to add vs what to reject
+
+| three.js field/method | EASEL? | Reason |
+| --- | --- | --- |
+| `needsUpdate` | ✅ Add | CPU cache invalidation — triggers geometry re-upload |
+| `updateRange` (singular) | ✅ Add | CPU dirty-region tracking |
+| `uuid`, `name`, `userData` | ✅ Add | Generic identifiers, no GPU dependency |
+| `Scene.environment` | ✅ Add | Scene-graph data; loaders/exporters may set it even if renderer ignores it |
+| `usage = 35044` (`gl.STATIC_DRAW`) | ❌ Reject | WebGL usage hint; no CPU meaning |
+| `onUploadCallback` / `onUpload()` | ❌ Reject | GPU buffer upload callback |
+| `updateRanges` / `addUpdateRange()` / `clearUpdateRanges()` | ❌ Reject | GPU partial buffer update tracking |
+| `version` (on buffers) | ❌ Reject | GPU buffer revision counter |
+| `setUsage()` | ❌ Reject | Sets GPU usage hint |
+| PBR fields (`alphaTest`, `clearcoat`, `anisotropy`, `aoMap`, `bumpMap`) | ❌ Reject | GPU shader inputs; CPU renderer uses baked lighting |
+
+### API style
+
+- **Use accessors, not `getFoo()`/`setFoo()` methods.** The modern API policy
+  (`scripts/check-modern-api.ts`) rejects parameterless `getFoo()` methods and
+  `setFoo(value)` when a `get foo()`/`set foo()` accessor exists.
+  - ✅ `get hex(): number` — EASEL accessor
+  - ❌ `getHex(): number` — three.js style, rejected by policy
+- **No static class members.** Convert three.js static methods to exported
+  standalone functions.
+  - ✅ `export function findByName(clips, name)` — EASEL pattern
+  - ❌ `static findByName(clips, name)` — three.js pattern, rejected by policy
+- **Use `undefined`, not `null`, for absence.** The only exception is DOM API
+  returns (e.g. `canvas.getContext("2d")` returns `CanvasRenderingContext2D |
+  null`).
+  - ✅ `renderTarget: unknown = undefined`
+  - ❌ `renderTarget: unknown = null`
+
 ## Releases
 
 Releases run only through `.github/workflows/release.yml`. Do not publish npm or
