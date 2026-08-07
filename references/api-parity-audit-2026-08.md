@@ -79,41 +79,41 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 | `QuaternionLinearInterpolant` | (inlined in `Track`) | ⚠️ No standalone class |
 | `PropertyBinding` | `Binding` | ✅ Exists (renamed) |
 
-### 4. Genuinely missing — CPU-feasible (11 classes)
+### 4. Genuinely missing — CPU-feasible (15 classes) — ALL CLOSED
 
-| three.js | EASEL status | Priority |
-| ---------- | ------------- | ---------- |
-| `Audio` | Missing — EASEL has `AudioGraph` (different design) | Medium |
-| `AudioContext` | Missing — EASEL has `createBrowserAudioContext()` | Low |
-| `AudioListener` | Missing | Medium |
-| `AudioLoader` | Missing | Low |
-| `PositionalAudio` | Missing | Low |
-| `ArrayCamera` | Missing | Low |
-| `Controls` (base class) | Missing — each control extends `EventDispatcher` | Low |
-| `RectAreaLight` | Missing | Medium |
-| `SpriteMaterial` | Missing — `Sprite` exists but no material | Medium |
-| `StereoCamera` | Missing — anaglyph example exists ad hoc | Low |
-| `ShapeUtils` | Missing — `earcut` function exists but no class | Low |
-| `ImageUtils` | Missing | Low |
-| `TextureUtils` | Missing | Low |
-| `DataUtils` | Missing | Low |
-| `BufferGeometryLoader` | Missing | Low |
+| three.js | EASEL status | Closed |
+| ---------- | ------------- | ------ |
+| `Audio` | ✅ Implemented — `src/audio/Audio.ts` | 2026-08-07 |
+| `AudioContext` | ✅ Implemented — `getAudioContext`/`setAudioContext` functions | 2026-08-07 |
+| `AudioListener` | ✅ Implemented — `src/audio/AudioListener.ts` | 2026-08-07 |
+| `AudioLoader` | ✅ Implemented — `src/loaders/AudioLoader.ts` | 2026-08-07 |
+| `PositionalAudio` | ✅ Implemented — `src/audio/PositionalAudio.ts` | 2026-08-07 |
+| `ArrayCamera` | ✅ Implemented — `src/cameras/ArrayCamera.ts` | 2026-08-07 |
+| `Controls` (base class) | ✅ Implemented — `src/controls/Controls.ts` | 2026-08-07 |
+| `RectAreaLight` | ✅ Implemented — `src/lights/RectAreaLight.ts` | 2026-08-07 |
+| `SpriteMaterial` | ✅ Implemented — `src/materials/SpriteMaterial.ts` | 2026-08-07 |
+| `StereoCamera` | ✅ Implemented — `src/cameras/StereoCamera.ts` | 2026-08-07 |
+| `ShapeUtils` | ✅ Implemented — `src/math/ShapeUtils.ts` | 2026-08-07 |
+| `ImageUtils` | ✅ Implemented — `src/utils/Utils.ts` namespace | 2026-08-07 |
+| `TextureUtils` | ✅ Implemented — `src/utils/Utils.ts` namespace | 2026-08-07 |
+| `DataUtils` | ✅ Implemented — `src/utils/Utils.ts` namespace | 2026-08-07 |
+| `BufferGeometryLoader` | ✅ Implemented — `src/loaders/BufferGeometryLoader.ts` | 2026-08-07 |
 
-### 5. Functions — THREE-only (11 functions)
+### 5. Functions — THREE-only (11 functions) — ALL CLOSED
 
-| three.js | EASEL status |
-| ---------- | ------------- |
-| `AudioLoader.load` | Missing (no AudioLoader) |
-| `BufferGeometryLoader.load` | Missing (no BufferGeometryLoader) |
-| `CompressedTextureLoader.load` | Out of scope (GPU) |
-| `CubeTextureLoader.load` | Out of scope (GPU) |
-| `createCanvasElement` | Missing |
-| `error` | Missing (console wrapper) |
-| `getConsoleFunction` | Missing (console wrapper) |
-| `log` | Missing (console wrapper) |
-| `setConsoleFunction` | Missing (console wrapper) |
-| `warn` | Missing (console wrapper) |
-| `warnOnce` | Missing (console wrapper) |
+| three.js | EASEL status | Closed |
+| ---------- | ------------- | ------ |
+| `AudioLoader.load` | ✅ Implemented | 2026-08-07 |
+| `BufferGeometryLoader.load` | ✅ Implemented | 2026-08-07 |
+| `CompressedTextureLoader.load` | Out of scope (GPU) | — |
+| `CubeTextureLoader.load` | Out of scope (GPU) | — |
+| `createCanvasElement` | ✅ Implemented — `src/utils/Utils.ts` | 2026-08-07 |
+| `error` | ✅ Implemented — `src/utils/ConsoleUtils.ts` | 2026-08-07 |
+| `getConsoleFunction` | ✅ Implemented — `src/utils/ConsoleUtils.ts` | 2026-08-07 |
+| `log` | ✅ Implemented — `src/utils/ConsoleUtils.ts` | 2026-08-07 |
+| `setConsoleFunction` | ✅ Implemented — `src/utils/ConsoleUtils.ts` | 2026-08-07 |
+| `warn` | ✅ Implemented — `src/utils/ConsoleUtils.ts` | 2026-08-07 |
+| `warnOnce` | ✅ Implemented — `src/utils/ConsoleUtils.ts` | 2026-08-07 |
 
 ---
 
@@ -234,13 +234,14 @@ because the names differ.
 
 **Previously missing, now implemented (2026-08-07):** 15 classes + 14 constants
 
-+ 6 functions — all slices below are closed.
++ 6 functions + ~60 methods across 13 existing classes — all slices below
+are closed.
 
 **Correctly out of scope (GPU-bound):** 46 classes + ~280 constants
 
 ### Gap closure log (2026-08-07)
 
-All 13 slices from the original audit have been implemented:
+#### Phase 1: Class and constant gaps (13 slices — all closed)
 
 1. **Audio (5 classes):** `Audio`, `AudioListener`, `AudioLoader`,
    `PositionalAudio`, `AudioContext` (as `getAudioContext`/`setAudioContext`
@@ -269,3 +270,45 @@ All 13 slices from the original audit have been implemented:
 12. **Animation sampling (2):** `InterpolationSamplingMode`,
     `InterpolationSamplingType` — `src/core/Constants.ts`
 13. **Misc (1):** `Compatibility` flag — `src/core/Constants.ts`
+
+#### Phase 2: Method-level gaps on existing classes (3 slices — all closed)
+
+14. **Animation (5 classes):** `AnimationAction` — added `get clip`/`get mixer`/
+    `get root` accessors, `set effectiveTimeScale`/`set effectiveWeight`
+    accessors, `startAt`, `stopFading`, `stopWarping`, `zeroSlopeAtStart`/End
+    fields. `Animator` — added `stopAllAction`, `set time` accessor,
+    `uncacheRoot`. `AnimationClip` — added `uuid`, `userData`, exported
+    functions `findByName`, `parse`, `CreateFromMorphTargetSequence`,
+    `CreateClipsFromMorphTargetSequences`. `AnimationGroup` — added
+    `isAnimationObjectGroup`, `uuid`, `remove`, `uncache`, `stats`. `Binding` —
+    exported functions `parseTrackName`, `findNode`, added `isBindingBoundBy`.
+    All three.js-style `getFoo()`/`setFoo()` methods converted to EASEL
+    accessors per modern API policy; static methods converted to exported
+    functions.
+15. **Audio (3 classes):** `Audio` — added `setDetune`, `setFilter`, `setLoop`,
+    `setLoopStart`, `setLoopEnd`, `setPlaybackRate` (real-time source updates).
+    `PositionalAudio` — added `setPanningModel`. `AudioListener` — existing
+    `masterVolume` accessor serves as getter/setter. Redundant `getFoo()`
+    methods removed (accessors already existed).
+16. **Misc (5 classes/functions):** `ArrowHelper` — added `setLength` (existing
+    `direction`/`color` accessors serve as setters). `Node` — added
+    `isObject3D` flag, `DEFAULT_UP`/`DEFAULT_MATRIX_AUTO_UPDATE`/
+    `DEFAULT_MATRIX_WORLD_AUTO_UPDATE` as module-level consts. `Timer` —
+    added `oldTime`, `running`, `autoStart` fields. `Color` — added
+    `convertSRGBToLinear`, `convertLinearToSRGB` (existing `hex`/`hexString`/
+    `style` accessors serve as getters). `createCanvasElement` function added
+    to `src/utils/Utils.ts`.
+
+#### Remaining gaps (out of scope)
+
+- **GPU/shader/PBR classes (46):** Correctly out of scope — CPU Canvas2D
+  renderer.
+- **GPU constants (~280):** Blending, tone mapping, depth/stencil, wrapping,
+  filtering, format, type, encoding, color space, shadow map, GLSL — all GPU
+  render-state enums with no CPU equivalent.
+- **Material PBR fields (113):** `alphaTest`, `anisotropy`, `clearcoat`,
+  `bumpMap`, `aoMap`, etc. — correctly out of scope for CPU baked lighting.
+- **Interpolant classes (6):** `Interpolant`, `LinearInterpolant`,
+  `CubicInterpolant`, `DiscreteInterpolant`, `BezierInterpolant`,
+  `QuaternionLinearInterpolant` — inlined in `Track`; standalone classes not
+  needed for CPU animation.
