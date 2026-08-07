@@ -54,38 +54,32 @@
 <	AnimationAction.cancelFade	method	instance () => this	-
 <	AnimationAction.cancelWarp	method	instance () => this	-
 =	AnimationAction.clampWhenFinished	field	instance rw boolean	instance rw boolean
-<	AnimationAction.clip	accessor	instance r AnimationClip	-
+!	AnimationAction.clip	accessor	instance r AnimationClip	instance () => AnimationClip
 !	AnimationAction.constructor	constructor	instance (clip: AnimationClip, localRoot: object | undefined = void 0, lifecycle: AnimationActionLifecycle | undefined = void 0, mixer: Animator | undefined = void 0) => AnimationAction	instance (mixer: AnimationMixer, clip: AnimationClip, localRoot: ?Object3D = null, blendMode: (NormalAnimationBlendMode|AdditiveAnimationBlendMode) = clip.blendMode) => AnimationAction
 !	AnimationAction.crossFadeFrom	method	instance (fadeOutAction: AnimationAction, duration: number, warp: boolean = false) => this	instance (fadeOutAction: AnimationAction, duration: number, warp: boolean = false) => AnimationAction
 =	AnimationAction.crossFadeTo	method	instance (fadeInAction: AnimationAction, duration: number, warp: boolean = false) => AnimationAction	instance (fadeInAction: AnimationAction, duration: number, warp: boolean = false) => AnimationAction
-<	AnimationAction.duration	accessor	instance rw number	-
-<	AnimationAction.effectiveTimeScale	accessor	instance rw number	-
-<	AnimationAction.effectiveWeight	accessor	instance rw number	-
+!	AnimationAction.duration	accessor	instance rw number	instance (duration: number) => AnimationAction
+!	AnimationAction.effectiveTimeScale	accessor	instance rw number	instance () => number
+>	AnimationAction.effectiveTimeScale	accessor	-	instance (timeScale: number) => AnimationAction
+!	AnimationAction.effectiveWeight	accessor	instance rw number	instance () => number
+>	AnimationAction.effectiveWeight	accessor	-	instance (weight: number) => AnimationAction
 !	AnimationAction.enabled	accessor/field	instance rw boolean	instance rw boolean
 !	AnimationAction.fadeIn	method	instance (duration: number) => this	instance (duration: number) => AnimationAction
 !	AnimationAction.fadeOut	method	instance (duration: number) => this	instance (duration: number) => AnimationAction
->	AnimationAction.getClip	method	-	instance () => AnimationClip
->	AnimationAction.getEffectiveTimeScale	method	-	instance () => number
->	AnimationAction.getEffectiveWeight	method	-	instance () => number
->	AnimationAction.getMixer	method	-	instance () => AnimationMixer
->	AnimationAction.getRoot	method	-	instance () => Object3D
 !	AnimationAction.halt	method	instance (duration: number) => this	instance (duration: number) => AnimationAction
 =	AnimationAction.isRunning	method	instance () => boolean	instance () => boolean
 =	AnimationAction.isScheduled	method	instance () => boolean	instance () => boolean
 <	AnimationAction.localRoot	accessor	instance r object | undefined	-
 !	AnimationAction.loop	field	instance rw LoopMode	instance rw (LoopRepeat|LoopOnce|LoopPingPong)
-<	AnimationAction.mixer	accessor	instance r Animator | undefined	-
+!	AnimationAction.mixer	accessor	instance r Animator | undefined	instance () => AnimationMixer
 =	AnimationAction.paused	field	instance rw boolean	instance rw boolean
 !	AnimationAction.play	method	instance () => this	instance () => AnimationAction
 =	AnimationAction.repetitions	field	instance rw number	instance rw number
 !	AnimationAction.reset	method	instance (enable: boolean = true) => this	instance () => AnimationAction
-<	AnimationAction.root	accessor	instance r object | undefined	-
+!	AnimationAction.root	accessor	instance r object | undefined	instance () => Object3D
 <	AnimationAction.running	accessor	instance r boolean	-
 <	AnimationAction.schedule	method	instance (time: number) => this	-
 <	AnimationAction.scheduled	accessor	instance r boolean	-
->	AnimationAction.setDuration	method	-	instance (duration: number) => AnimationAction
->	AnimationAction.setEffectiveTimeScale	method	-	instance (timeScale: number) => AnimationAction
->	AnimationAction.setEffectiveWeight	method	-	instance (weight: number) => AnimationAction
 !	AnimationAction.setLoop	method	instance (mode: LoopMode, repetitions: number) => this	instance (mode: (LoopRepeat|LoopOnce|LoopPingPong), repetitions: number) => AnimationAction
 !	AnimationAction.startAt	method	instance (time: number) => this	instance (time: number) => AnimationAction
 !	AnimationAction.stop	method	instance () => this	instance () => AnimationAction
@@ -121,80 +115,32 @@
 =	AnimationClip.validate	method	instance () => boolean	instance () => boolean
 <	AnimationClipJSON	record	interface { readonly name?: string; readonly duration?: number; readonly tracks?: AnimationClipTrackJSON[]; readonly fps?: number; readonly blendMode?: AnimationBlendMode }	-
 <	AnimationClipTrackJSON	record	interface { readonly type: | "boolean" | "bool" | "color" | "number" | "quaternion" | "string" | "vector"; readonly name: string; readonly times: number[]; readonly values: Array<boolean | number | string>; readonly itemSize?: number; readonly interpolation?: InterpolationMode; readonly inTangents?: number[]; readonly outTangents?: number[]; readonly endingStart?: InterpolationEndingMode; readonly endingEnd?: InterpolationEndingMode }	-
-<	AnimationGroup	class	class	-
-<	AnimationGroup.add	method	instance (...roots: object[]) => this	-
+=	AnimationGroup	class	class	class
+>	AnimationGroup._bindings	field	-	instance rw any[]
+>	AnimationGroup._bindingsIndicesByPath	field	-	instance rw {}
+>	AnimationGroup._indicesByUUID	field	-	instance rw {}
+>	AnimationGroup._objects	field	-	instance rw any
+>	AnimationGroup._parsedPaths	field	-	instance rw any[]
+>	AnimationGroup._paths	field	-	instance rw any[]
+!	AnimationGroup.add	method	instance (...roots: object[]) => this	instance (...arguments: ...Object3D) => void
 <	AnimationGroup.clear	method	instance () => void	-
-<	AnimationGroup.constructor	constructor	instance (...roots: object[]) => AnimationGroup	-
+!	AnimationGroup.constructor	constructor	instance (...roots: object[]) => AnimationGroup	instance (...arguments: ...Object3D) => AnimationObjectGroup
 <	AnimationGroup.delete	method	instance (...roots: object[]) => boolean	-
 <	AnimationGroup.has	method	instance (root: object) => boolean	-
-<	AnimationGroup.isAnimationObjectGroup	field	instance ro boolean	-
-<	AnimationGroup.remove	method	instance (...objects: object[]) => void	-
+=	AnimationGroup.isAnimationObjectGroup	field	instance ro boolean	instance ro boolean
+>	AnimationGroup.nCachedObjects_	field	-	instance rw number
+!	AnimationGroup.remove	method	instance (...objects: object[]) => void	instance (...arguments: ...Object3D) => void
 <	AnimationGroup.roots	accessor	instance r readonly object[]	-
 <	AnimationGroup.size	accessor	instance r number	-
-<	AnimationGroup.stats	accessor	instance r { objects: number; }	-
-<	AnimationGroup.uncache	method	instance (...objects: object[]) => void	-
-<	AnimationGroup.uuid	field	instance ro string	-
+!	AnimationGroup.stats	accessor/field	instance r { objects: number; }	instance rw { objects: { readonly total: any; readonly inUse: number; }; readonly bindingsPerObject: number; }
+>	AnimationGroup.subscribe_	method	-	instance (path: any, parsedPath: any) => any
+!	AnimationGroup.uncache	method	instance (...objects: object[]) => void	instance (...arguments: ...Object3D) => void
+>	AnimationGroup.unsubscribe_	method	-	instance (path: any) => void
+=	AnimationGroup.uuid	field	instance ro string	instance ro string
 =	AnimationLoader	class	class extends Loader	class extends Loader
 !	AnimationLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => AnimationLoader	instance (manager?: LoadingManager) => AnimationLoader
 !	AnimationLoader.load	method	instance (url: string, onLoad?: (clips: AnimationClip[]) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	instance (url: string, onLoad: function(Array<AnimationClip>), onProgress: onProgressCallback, onError: onErrorCallback) => void
 !	AnimationLoader.parse	method	instance (json: AnimationClipJSON[]) => AnimationClip[]	instance (json: Object) => Array<AnimationClip>
->	AnimationMixer	class	-	class extends EventDispatcher
->	AnimationMixer._accuIndex	field	-	instance rw number
->	AnimationMixer._actions	field	-	instance rw any[] | undefined
->	AnimationMixer._actionsByClip	field	-	instance rw {} | undefined
->	AnimationMixer._activateAction	method	-	instance (action: any) => void
->	AnimationMixer._addInactiveAction	method	-	instance (action: any, clipUuid: any, rootUuid: any) => void
->	AnimationMixer._addInactiveBinding	method	-	instance (binding: any, rootUuid: any, trackName: any) => void
->	AnimationMixer._bindAction	method	-	instance (action: any, prototypeAction: any) => void
->	AnimationMixer._bindings	field	-	instance rw any[] | undefined
->	AnimationMixer._bindingsByRootAndName	field	-	instance rw {} | undefined
->	AnimationMixer._controlInterpolants	field	-	instance rw any[] | undefined
->	AnimationMixer._deactivateAction	method	-	instance (action: any) => void
->	AnimationMixer._initMemoryManager	method	-	instance () => void
->	AnimationMixer._isActiveAction	method	-	instance (action: any) => boolean
->	AnimationMixer._lendAction	method	-	instance (action: any) => void
->	AnimationMixer._lendBinding	method	-	instance (binding: any) => void
->	AnimationMixer._lendControlInterpolant	method	-	instance () => any
->	AnimationMixer._nActiveActions	field	-	instance rw number | undefined
->	AnimationMixer._nActiveBindings	field	-	instance rw number | undefined
->	AnimationMixer._nActiveControlInterpolants	field	-	instance rw number | undefined
->	AnimationMixer._removeInactiveAction	method	-	instance (action: any) => void
->	AnimationMixer._removeInactiveBinding	method	-	instance (binding: any) => void
->	AnimationMixer._removeInactiveBindingsForAction	method	-	instance (action: any) => void
->	AnimationMixer._root	field	-	instance rw Object3D
->	AnimationMixer._takeBackAction	method	-	instance (action: any) => void
->	AnimationMixer._takeBackBinding	method	-	instance (binding: any) => void
->	AnimationMixer._takeBackControlInterpolant	method	-	instance (interpolant: any) => void
->	AnimationMixer.clipAction	method	-	instance (clip: AnimationClip|string, optionalRoot?: Object3D, blendMode?: (NormalAnimationBlendMode|AdditiveAnimationBlendMode)) => ?AnimationAction
->	AnimationMixer.constructor	constructor	-	instance (root: Object3D) => AnimationMixer
->	AnimationMixer.existingAction	method	-	instance (clip: AnimationClip|string, optionalRoot?: Object3D) => ?AnimationAction
->	AnimationMixer.getRoot	method	-	instance () => Object3D
->	AnimationMixer.setTime	method	-	instance (time: number) => AnimationMixer
->	AnimationMixer.stats	field	-	instance rw { actions: { readonly total: number; readonly inUse: number | undefined; }; bindings: { readonly total: number; readonly inUse: number | undefined; }; controlInterpolants: { readonly total: number; readonly inUse: number | undefined; }; } | undefined
->	AnimationMixer.stopAllAction	method	-	instance () => AnimationMixer
->	AnimationMixer.time	field	-	instance rw number
->	AnimationMixer.timeScale	field	-	instance rw number
->	AnimationMixer.uncacheAction	method	-	instance (clip: AnimationClip|string, optionalRoot?: Object3D) => void
->	AnimationMixer.uncacheClip	method	-	instance (clip: AnimationClip) => void
->	AnimationMixer.uncacheRoot	method	-	instance (root: Object3D) => void
->	AnimationMixer.update	method	-	instance (deltaTime: number) => AnimationMixer
->	AnimationObjectGroup	class	-	class
->	AnimationObjectGroup._bindings	field	-	instance rw any[]
->	AnimationObjectGroup._bindingsIndicesByPath	field	-	instance rw {}
->	AnimationObjectGroup._indicesByUUID	field	-	instance rw {}
->	AnimationObjectGroup._objects	field	-	instance rw any
->	AnimationObjectGroup._parsedPaths	field	-	instance rw any[]
->	AnimationObjectGroup._paths	field	-	instance rw any[]
->	AnimationObjectGroup.add	method	-	instance (...arguments: ...Object3D) => void
->	AnimationObjectGroup.constructor	constructor	-	instance (...arguments: ...Object3D) => AnimationObjectGroup
->	AnimationObjectGroup.isAnimationObjectGroup	field	-	instance ro boolean
->	AnimationObjectGroup.nCachedObjects_	field	-	instance rw number
->	AnimationObjectGroup.remove	method	-	instance (...arguments: ...Object3D) => void
->	AnimationObjectGroup.stats	field	-	instance rw { objects: { readonly total: any; readonly inUse: number; }; readonly bindingsPerObject: number; }
->	AnimationObjectGroup.subscribe_	method	-	instance (path: any, parsedPath: any) => any
->	AnimationObjectGroup.uncache	method	-	instance (...arguments: ...Object3D) => void
->	AnimationObjectGroup.unsubscribe_	method	-	instance (path: any) => void
->	AnimationObjectGroup.uuid	field	-	instance ro string
 <	AnimationTrack	record	interface<Value extends TrackValue = TrackValue> { readonly name: string; readonly times: Float32Array; readonly values: Float32Array | readonly Value[]; readonly itemSize: number; readonly interpolation: InterpolationMode; readonly valueType: TrackValueType; getValueAtTime(time: number): Value[]; clone(): AnimationTrack<Value>; shift(timeOffset: number): AnimationTrack<Value>; scale(timeScale: number): AnimationTrack<Value>; trim(startTime: number, endTime: number): AnimationTrack<Value>; validate(): boolean; optimize(): AnimationTrack<Value> }	-
 >	AnimationUtils	class	-	class
 >	AnimationUtils.constructor	constructor	-	instance () => AnimationUtils
@@ -205,21 +151,49 @@
 >	AnimationUtils.makeClipAdditive	method	-	static (targetClip: AnimationClip, referenceFrame: number = 0, referenceClip: AnimationClip = targetClip, fps: number = 30) => AnimationClip
 >	AnimationUtils.sortedArray	method	-	static (values: Array<number>, stride: number, order: Array<number>) => Array<number>
 >	AnimationUtils.subclip	method	-	static (sourceClip: AnimationClip, name: string, startFrame: number, endFrame: number, fps: number = 30) => AnimationClip
-<	Animator	class	class	-
-<	Animator.clipAction	method	instance (clip: AnimationClip, localRoot: object | undefined = void 0) => AnimationAction	-
-<	Animator.constructor	constructor	instance (root: object) => Animator	-
-<	Animator.existingAction	method	instance (clip: AnimationClip, localRoot: object | undefined = void 0) => AnimationAction | undefined	-
+!	Animator	class	class	class extends EventDispatcher
+>	Animator._accuIndex	field	-	instance rw number
+>	Animator._actions	field	-	instance rw any[] | undefined
+>	Animator._actionsByClip	field	-	instance rw {} | undefined
+>	Animator._activateAction	method	-	instance (action: any) => void
+>	Animator._addInactiveAction	method	-	instance (action: any, clipUuid: any, rootUuid: any) => void
+>	Animator._addInactiveBinding	method	-	instance (binding: any, rootUuid: any, trackName: any) => void
+>	Animator._bindAction	method	-	instance (action: any, prototypeAction: any) => void
+>	Animator._bindings	field	-	instance rw any[] | undefined
+>	Animator._bindingsByRootAndName	field	-	instance rw {} | undefined
+>	Animator._controlInterpolants	field	-	instance rw any[] | undefined
+>	Animator._deactivateAction	method	-	instance (action: any) => void
+>	Animator._initMemoryManager	method	-	instance () => void
+>	Animator._isActiveAction	method	-	instance (action: any) => boolean
+>	Animator._lendAction	method	-	instance (action: any) => void
+>	Animator._lendBinding	method	-	instance (binding: any) => void
+>	Animator._lendControlInterpolant	method	-	instance () => any
+>	Animator._nActiveActions	field	-	instance rw number | undefined
+>	Animator._nActiveBindings	field	-	instance rw number | undefined
+>	Animator._nActiveControlInterpolants	field	-	instance rw number | undefined
+>	Animator._removeInactiveAction	method	-	instance (action: any) => void
+>	Animator._removeInactiveBinding	method	-	instance (binding: any) => void
+>	Animator._removeInactiveBindingsForAction	method	-	instance (action: any) => void
+>	Animator._root	field	-	instance rw Object3D
+>	Animator._takeBackAction	method	-	instance (action: any) => void
+>	Animator._takeBackBinding	method	-	instance (binding: any) => void
+>	Animator._takeBackControlInterpolant	method	-	instance (interpolant: any) => void
+!	Animator.clipAction	method	instance (clip: AnimationClip, localRoot: object | undefined = void 0) => AnimationAction	instance (clip: AnimationClip|string, optionalRoot?: Object3D, blendMode?: (NormalAnimationBlendMode|AdditiveAnimationBlendMode)) => ?AnimationAction
+!	Animator.constructor	constructor	instance (root: object) => Animator	instance (root: Object3D) => AnimationMixer
+!	Animator.existingAction	method	instance (clip: AnimationClip, localRoot: object | undefined = void 0) => AnimationAction | undefined	instance (clip: AnimationClip|string, optionalRoot?: Object3D) => ?AnimationAction
 <	Animator.rebuildBindings	method	instance () => void	-
-<	Animator.root	accessor	instance r object	-
+!	Animator.root	accessor	instance r object	instance () => Object3D
 <	Animator.seek	method	instance (time: number) => this	-
+>	Animator.stats	field	-	instance rw { actions: { readonly total: number; readonly inUse: number | undefined; }; bindings: { readonly total: number; readonly inUse: number | undefined; }; controlInterpolants: { readonly total: number; readonly inUse: number | undefined; }; } | undefined
 <	Animator.stopAll	method	instance () => this	-
-<	Animator.stopAllAction	method	instance () => this	-
-<	Animator.time	accessor	instance rw number	-
-<	Animator.timeScale	accessor	instance rw number	-
-<	Animator.uncacheAction	method	instance (clip: AnimationClip, localRoot: object | undefined = void 0) => void	-
-<	Animator.uncacheClip	method	instance (clip: AnimationClip) => void	-
-<	Animator.uncacheRoot	method	instance (root: object) => void	-
-<	Animator.update	method	instance (delta: number) => this	-
+!	Animator.stopAllAction	method	instance () => this	instance () => AnimationMixer
+!	Animator.time	accessor	instance rw number	instance (time: number) => AnimationMixer
+>	Animator.time	field	-	instance rw number
+!	Animator.timeScale	accessor/field	instance rw number	instance rw number
+!	Animator.uncacheAction	method	instance (clip: AnimationClip, localRoot: object | undefined = void 0) => void	instance (clip: AnimationClip|string, optionalRoot?: Object3D) => void
+=	Animator.uncacheClip	method	instance (clip: AnimationClip) => void	instance (clip: AnimationClip) => void
+!	Animator.uncacheRoot	method	instance (root: object) => void	instance (root: Object3D) => void
+!	Animator.update	method	instance (delta: number) => this	instance (deltaTime: number) => AnimationMixer
 =	ArcCurve	class	class extends EllipseCurve	class extends EllipseCurve
 <	ArcCurve.clone	method	instance () => ArcCurve	-
 !	ArcCurve.constructor	constructor	instance (cx: number = 0, cy: number = 0, radius: number = 1, startAngle: number = 0, endAngle: number = Math.PI * 2, clockwise: boolean = false) => ArcCurve	instance (aX: number = 0, aY: number = 0, aRadius: number = 1, aStartAngle: number = 0, aEndAngle: number = Math.PI*2, aClockwise: boolean = false) => ArcCurve
@@ -260,54 +234,63 @@
 <	ArrowDirection	record	interface { readonly x: number; readonly y: number; readonly z: number }	-
 !	ArrowHelper	class	class extends Node	class extends Object3D
 <	ArrowHelper.clone	method	instance () => ArrowHelper	-
-<	ArrowHelper.color	accessor	instance rw Color	-
+!	ArrowHelper.color	accessor	instance rw Color	instance (color: number|Color|string) => void
 !	ArrowHelper.cone	field	instance ro Mesh	instance rw Mesh
 !	ArrowHelper.constructor	constructor	instance (options: ArrowHelperOptions = {}) => ArrowHelper	instance (dir: Vector3 = new Vector3( 0, 0, 1 ), origin: Vector3 = new Vector3( 0, 0, 0 ), length: number = 1, color: (number|Color|string) = 0xffff00, headLength: number = length * 0.2, headWidth: number = headLength * 0.2) => ArrowHelper
 !	ArrowHelper.copy	method	instance (source: ArrowHelper) => this	instance (source: any) => this
-<	ArrowHelper.direction	accessor	instance rw ArrowDirection	-
+!	ArrowHelper.direction	accessor	instance rw ArrowDirection	instance (dir: Vector3) => void
 =	ArrowHelper.dispose	method	instance () => void	instance () => void
 <	ArrowHelper.headLength	accessor	instance rw number	-
 <	ArrowHelper.headWidth	accessor	instance rw number	-
 <	ArrowHelper.isArrowHelper	accessor	instance r true	-
-<	ArrowHelper.length	accessor	instance rw number	-
+!	ArrowHelper.length	accessor	instance rw number	instance (length: number, headLength: number = length * 0.2, headWidth: number = headLength * 0.2) => void
 !	ArrowHelper.line	field	instance ro Line	instance rw Line
->	ArrowHelper.setColor	method	-	instance (color: number|Color|string) => void
->	ArrowHelper.setDirection	method	-	instance (dir: Vector3) => void
-!	ArrowHelper.setLength	method	instance (length: number, headLength?: number, headWidth?: number) => void	instance (length: number, headLength: number = length * 0.2, headWidth: number = headLength * 0.2) => void
+<	ArrowHelper.setLength	method	instance (length: number, headLength?: number, headWidth?: number) => void	-
 =	ArrowHelper.type	field	instance rw string	instance rw string
 <	ArrowHelperOptions	record	interface { readonly direction?: ArrowDirection; readonly origin?: ArrowDirection; readonly length?: number; readonly color?: ColorValue; readonly headLength?: number; readonly headWidth?: number }	-
 >	AttachedBindMode	const	-	const string
-<	Attribute	class	class	-
-<	Attribute.applyMatrix3	method	instance (matrix: Matrix3) => this	-
-<	Attribute.applyMatrix4	method	instance (matrix: Matrix4) => this	-
-<	Attribute.applyNormalMatrix	method	instance (matrix: Matrix3) => this	-
-<	Attribute.array	accessor	instance r AttributeArray	-
-<	Attribute.clone	method	instance () => Attribute	-
-<	Attribute.constructor	constructor	instance (array: AttributeArray | number[], itemSize: number, normalized: boolean = false) => Attribute	-
-<	Attribute.copy	method	instance (source: Attribute) => this	-
-<	Attribute.copyArray	method	instance (values: ArrayLike<number>) => this	-
-<	Attribute.copyAt	method	instance (destinationIndex: number, source: Attribute, sourceIndex: number) => this	-
-<	Attribute.count	accessor	instance r number	-
-<	Attribute.getComponent	method	instance (index: number, component: number) => number	-
-<	Attribute.getW	method	instance (index: number) => number	-
-<	Attribute.getX	method	instance (index: number) => number	-
-<	Attribute.getY	method	instance (index: number) => number	-
-<	Attribute.getZ	method	instance (index: number) => number	-
-<	Attribute.itemSize	accessor	instance r number	-
-<	Attribute.name	field	instance rw string	-
-<	Attribute.needsUpdate	accessor	instance rw boolean	-
-<	Attribute.normalized	accessor	instance r boolean	-
-<	Attribute.set	method	instance (values: ArrayLike<number>, offset: number = 0) => this	-
-<	Attribute.setComponent	method	instance (index: number, component: number, value: number) => this	-
-<	Attribute.setW	method	instance (index: number, w: number) => this	-
-<	Attribute.setX	method	instance (index: number, x: number) => this	-
-<	Attribute.setXY	method	instance (index: number, x: number, y: number) => this	-
-<	Attribute.setXYZ	method	instance (index: number, x: number, y: number, z: number) => this	-
-<	Attribute.setXYZW	method	instance (index: number, x: number, y: number, z: number, w: number) => this	-
-<	Attribute.setY	method	instance (index: number, y: number) => this	-
-<	Attribute.setZ	method	instance (index: number, z: number) => this	-
-<	Attribute.toJSON	method	instance () => { itemSize: number; type: string; array: number[]; normalized: boolean; name?: string; }	-
-<	Attribute.transformDirection	method	instance (matrix: Matrix4) => this	-
+!	Attribute	class	class	class extends EventDispatcher
+>	Attribute.addUpdateRange	method	-	instance (start: number, count: number) => void
+!	Attribute.applyMatrix3	method	instance (matrix: Matrix3) => this	instance (m: Matrix3) => BufferAttribute
+!	Attribute.applyMatrix4	method	instance (matrix: Matrix4) => this	instance (m: Matrix4) => BufferAttribute
+!	Attribute.applyNormalMatrix	method	instance (matrix: Matrix3) => this	instance (m: Matrix3) => BufferAttribute
+!	Attribute.array	accessor/field	instance r AttributeArray	instance rw TypedArray
+>	Attribute.clearUpdateRanges	method	-	instance () => void
+!	Attribute.clone	method	instance () => Attribute	instance () => BufferAttribute
+!	Attribute.constructor	constructor	instance (array: AttributeArray | number[], itemSize: number, normalized: boolean = false) => Attribute	instance (array: TypedArray, itemSize: number, normalized: boolean = false) => BufferAttribute
+!	Attribute.copy	method	instance (source: Attribute) => this	instance (source: BufferAttribute) => BufferAttribute
+!	Attribute.copyArray	method	instance (values: ArrayLike<number>) => this	instance (array: (TypedArray|Array)) => BufferAttribute
+!	Attribute.copyAt	method	instance (destinationIndex: number, source: Attribute, sourceIndex: number) => this	instance (index1: number, attribute: BufferAttribute, index2: number) => BufferAttribute
+!	Attribute.count	accessor/field	instance r number	instance ro number
+>	Attribute.dispose	method	-	instance () => void
+=	Attribute.getComponent	method	instance (index: number, component: number) => number	instance (index: number, component: number) => number
+=	Attribute.getW	method	instance (index: number) => number	instance (index: number) => number
+=	Attribute.getX	method	instance (index: number) => number	instance (index: number) => number
+=	Attribute.getY	method	instance (index: number) => number	instance (index: number) => number
+=	Attribute.getZ	method	instance (index: number) => number	instance (index: number) => number
+>	Attribute.gpuType	field	-	instance rw (FloatType|IntType)
+>	Attribute.isBufferAttribute	field	-	instance ro boolean
+!	Attribute.itemSize	accessor/field	instance r number	instance rw number
+=	Attribute.name	field	instance rw string	instance rw string
+!	Attribute.needsUpdate	accessor	instance rw boolean	instance w number
+!	Attribute.normalized	accessor/field	instance r boolean	instance rw boolean
+>	Attribute.onUpload	method	-	instance (callback: Function) => BufferAttribute
+>	Attribute.onUploadCallback	method	-	instance () => void
+!	Attribute.set	method	instance (values: ArrayLike<number>, offset: number = 0) => this	instance (value: (TypedArray|Array), offset: number = 0) => BufferAttribute
+!	Attribute.setComponent	method	instance (index: number, component: number, value: number) => this	instance (index: number, component: number, value: number) => BufferAttribute
+>	Attribute.setUsage	method	-	instance (value: (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)) => BufferAttribute
+!	Attribute.setW	method	instance (index: number, w: number) => this	instance (index: number, w: number) => BufferAttribute
+!	Attribute.setX	method	instance (index: number, x: number) => this	instance (index: number, x: number) => BufferAttribute
+!	Attribute.setXY	method	instance (index: number, x: number, y: number) => this	instance (index: number, x: number, y: number) => BufferAttribute
+!	Attribute.setXYZ	method	instance (index: number, x: number, y: number, z: number) => this	instance (index: number, x: number, y: number, z: number) => BufferAttribute
+!	Attribute.setXYZW	method	instance (index: number, x: number, y: number, z: number, w: number) => this	instance (index: number, x: number, y: number, z: number, w: number) => BufferAttribute
+!	Attribute.setY	method	instance (index: number, y: number) => this	instance (index: number, y: number) => BufferAttribute
+!	Attribute.setZ	method	instance (index: number, z: number) => this	instance (index: number, z: number) => BufferAttribute
+!	Attribute.toJSON	method	instance () => { itemSize: number; type: string; array: number[]; normalized: boolean; name?: string; }	instance () => Object
+!	Attribute.transformDirection	method	instance (matrix: Matrix4) => this	instance (m: Matrix4) => BufferAttribute
+>	Attribute.updateRanges	field	-	instance rw Array<Object>
+>	Attribute.usage	field	-	instance rw (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)
+>	Attribute.version	field	-	instance rw number
 <	AttributeArray	record	type = | Float32Array | Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array	-
 !	Audio	class	class extends Node	class extends Object3D
 >	Audio._connected	field	-	instance rw boolean
@@ -329,17 +312,15 @@
 !	Audio.detune	field	instance rw number	instance ro number
 !	Audio.disconnect	method	instance () => this | undefined	instance () => Audio|undefined
 !	Audio.duration	field	instance rw number | undefined	instance rw undefined|number
-<	Audio.filter	accessor	instance r AudioNodeLike | undefined	-
+!	Audio.filter	accessor	instance r AudioNodeLike | undefined	instance () => AudioNode|undefined
+>	Audio.filter	accessor	-	instance (filter?: AudioNode) => Audio
 !	Audio.filters	field	instance rw AudioNodeLike[]	instance ro Array<AudioNode>
 <	Audio.firstFilter	accessor	instance r AudioNodeLike | undefined	-
 !	Audio.gain	field	instance ro AudioNodeLike | undefined	instance ro GainNode
 >	Audio.getDetune	method	-	instance () => number
->	Audio.getFilter	method	-	instance () => AudioNode|undefined
 >	Audio.getFilters	method	-	instance () => Array<AudioNode>
 >	Audio.getLoop	method	-	instance () => boolean
->	Audio.getOutput	method	-	instance () => GainNode
 >	Audio.getPlaybackRate	method	-	instance () => number
->	Audio.getVolume	method	-	instance () => number
 !	Audio.hasPlaybackControl	field	instance rw boolean	instance ro boolean
 !	Audio.isPlaying	field	instance rw boolean	instance ro boolean
 =	Audio.listener	field	instance ro AudioListener	instance ro AudioListener
@@ -348,13 +329,12 @@
 =	Audio.loopStart	field	instance rw number	instance rw number
 =	Audio.offset	field	instance rw number	instance rw number
 =	Audio.onEnded	method	instance () => void	instance () => void
-<	Audio.output	accessor	instance r AudioNodeLike | undefined	-
+!	Audio.output	accessor	instance r AudioNodeLike | undefined	instance () => GainNode
 !	Audio.pause	method	instance () => this | undefined	instance () => Audio|undefined
 !	Audio.play	method	instance (delay: number = 0) => this | undefined	instance (delay: number = 0) => Audio|undefined
 !	Audio.playbackRate	field	instance rw number	instance ro number
 !	Audio.setBuffer	method	instance (audioBuffer: AudioBufferLike) => this	instance (audioBuffer: AudioBuffer) => Audio
 !	Audio.setDetune	method	instance (value: number) => this	instance (value: number) => Audio
->	Audio.setFilter	method	-	instance (filter?: AudioNode) => Audio
 !	Audio.setFilters	method	instance (value: AudioNodeLike[] = []) => this	instance (value?: Array<AudioNode>) => Audio
 !	Audio.setLoop	method	instance (value: boolean) => this	instance (value: boolean) => Audio|undefined
 !	Audio.setLoopEnd	method	instance (value: number) => this	instance (value: number) => Audio
@@ -363,27 +343,23 @@
 !	Audio.setMediaStreamSource	method	instance (mediaStream: MediaStream) => this	instance (mediaStream: MediaStream) => Audio
 !	Audio.setNodeSource	method	instance (audioNode: AudioNodeLike) => this	instance (audioNode: AudioNode) => Audio
 !	Audio.setPlaybackRate	method	instance (value: number) => this	instance (value?: number) => Audio|undefined
->	Audio.setVolume	method	-	instance (value: number) => Audio
 !	Audio.source	field	instance rw AudioNodeLike | AudioBufferSourceNodeLike | undefined	instance ro ?AudioNode
 !	Audio.sourceType	field	instance rw AudioSourceType	instance ro ('empty'|'audioNode'|'mediaNode'|'mediaStreamNode'|'buffer')
 !	Audio.stop	method	instance (delay: number = 0) => this | undefined	instance (delay: number = 0) => Audio|undefined
 =	Audio.type	field	instance rw string	instance rw string
-<	Audio.volume	accessor	instance rw number	-
->	AudioAnalyser	class	-	class
->	AudioAnalyser.analyser	field	-	instance rw AnalyserNode
->	AudioAnalyser.constructor	constructor	-	instance (audio: Audio, fftSize: number = 2048) => AudioAnalyser
->	AudioAnalyser.data	field	-	instance rw Uint8Array
->	AudioAnalyser.getAverageFrequency	method	-	instance () => number
->	AudioAnalyser.getFrequencyData	method	-	instance () => Uint8Array
-<	AudioAnalyzer	class	class	-
+!	Audio.volume	accessor	instance rw number	instance () => number
+>	Audio.volume	accessor	-	instance (value: number) => Audio
+=	AudioAnalyzer	class	class	class
+>	AudioAnalyzer.analyser	field	-	instance rw AnalyserNode
 <	AudioAnalyzer.attach	method	instance (source: AudioNodeLike | AudioNode | null) => this	-
 <	AudioAnalyzer.available	accessor	instance r boolean	-
-<	AudioAnalyzer.averageFrequency	accessor	instance r number	-
-<	AudioAnalyzer.constructor	constructor	instance (source: | AudioContextLike | AudioContext | AnalyserNodeLike | AnalyserNode | null, options: AudioAnalyzerOptions = {}) => AudioAnalyzer	-
+!	AudioAnalyzer.averageFrequency	accessor	instance r number	instance () => number
+!	AudioAnalyzer.constructor	constructor	instance (source: | AudioContextLike | AudioContext | AnalyserNodeLike | AnalyserNode | null, options: AudioAnalyzerOptions = {}) => AudioAnalyzer	instance (audio: Audio, fftSize: number = 2048) => AudioAnalyser
+>	AudioAnalyzer.data	field	-	instance rw Uint8Array
 <	AudioAnalyzer.dispose	method	instance () => void	-
 <	AudioAnalyzer.fftSize	accessor	instance r number	-
 <	AudioAnalyzer.frequencyBinCount	accessor	instance r number	-
-<	AudioAnalyzer.frequencyData	accessor	instance r Uint8Array<ArrayBufferLike>	-
+!	AudioAnalyzer.frequencyData	accessor	instance r Uint8Array<ArrayBufferLike>	instance () => Uint8Array
 <	AudioAnalyzer.getFrequencyData	method	instance (target: Uint8Array = this.#frequencyData) => Uint8Array<ArrayBufferLike>	-
 <	AudioAnalyzer.getTimeDomainData	method	instance (target: Uint8Array = this.#timeDomainData) => Uint8Array<ArrayBufferLike>	-
 <	AudioAnalyzer.timeDomainData	accessor	instance r Uint8Array<ArrayBufferLike>	-
@@ -417,16 +393,14 @@
 =	AudioListener.constructor	constructor	instance () => AudioListener	instance () => AudioListener
 !	AudioListener.context	field	instance ro AudioContextLike | undefined	instance ro AudioContext
 <	AudioListener.currentFilter	accessor	instance r AudioNodeLike | undefined	-
-!	AudioListener.filter	accessor/field	instance rw AudioNodeLike | undefined	instance ro ?AudioNode
+!	AudioListener.filter	accessor	instance rw AudioNodeLike | undefined	instance () => ?AudioNode
+>	AudioListener.filter	accessor	-	instance (value: AudioNode) => AudioListener
+>	AudioListener.filter	field	-	instance ro ?AudioNode
 !	AudioListener.gain	field	instance ro AudioNodeLike | undefined	instance ro GainNode
->	AudioListener.getFilter	method	-	instance () => ?AudioNode
->	AudioListener.getInput	method	-	instance () => GainNode
->	AudioListener.getMasterVolume	method	-	instance () => number
-<	AudioListener.input	accessor	instance r AudioNodeLike | undefined	-
-<	AudioListener.masterVolume	accessor	instance rw number	-
+!	AudioListener.input	accessor	instance r AudioNodeLike | undefined	instance () => GainNode
+!	AudioListener.masterVolume	accessor	instance rw number	instance () => number
+>	AudioListener.masterVolume	accessor	-	instance (value: number) => AudioListener
 !	AudioListener.removeFilter	method	instance () => this	instance () => AudioListener
->	AudioListener.setFilter	method	-	instance (value: AudioNode) => AudioListener
->	AudioListener.setMasterVolume	method	-	instance (value: number) => AudioListener
 !	AudioListener.timeDelta	field	instance rw number	instance ro number
 =	AudioListener.type	field	instance rw string	instance rw string
 !	AudioListener.updateMatrixWorld	method	instance (force: boolean = false) => void	instance (force: any) => void
@@ -439,12 +413,11 @@
 <	AudioVisualizerOptions	record	interface { x?: number; y?: number; width?: number; height?: number; background?: string; foreground?: string; bars?: number; gap?: number; lineWidth?: number }	-
 =	AxesHelper	class	class extends LineSegments	class extends LineSegments
 <	AxesHelper.clone	method	instance () => AxesHelper	-
-<	AxesHelper.colors	accessor	instance rw AxisColors	-
+!	AxesHelper.colors	accessor	instance rw AxisColors	instance (xAxisColor: number|Color|string, yAxisColor: number|Color|string, zAxisColor: number|Color|string) => AxesHelper
 =	AxesHelper.constructor	constructor	instance (size: number = 1) => AxesHelper	instance (size: number = 1) => AxesHelper
 <	AxesHelper.copy	method	instance (source: AxesHelper) => this	-
 =	AxesHelper.dispose	method	instance () => void	instance () => void
 <	AxesHelper.isAxesHelper	accessor	instance r true	-
->	AxesHelper.setColors	method	-	instance (xAxisColor: number|Color|string, yAxisColor: number|Color|string, zAxisColor: number|Color|string) => AxesHelper
 =	AxesHelper.type	field	instance rw string	instance rw string
 <	AxesHelper.updateColors	method	instance () => this	-
 <	AxisColorValues	record	interface { readonly x: ColorValue; readonly y: ColorValue; readonly z: ColorValue }	-
@@ -460,15 +433,17 @@
 <	BVHLoaderResult	record	interface { readonly skeleton: Skeleton; readonly clip: AnimationClip; readonly root: Bone; readonly bones: readonly Bone[]; readonly frameCount: number; readonly frameTime: number }	-
 >	BackSide	const	-	const number
 >	BasicDepthPacking	const	-	const number
-<	BasicMaterial	class	class extends Material	-
+=	BasicMaterial	class	class extends Material	class extends Material
 <	BasicMaterial.clone	method	instance () => BasicMaterial	-
-<	BasicMaterial.color	field	instance rw Color	-
-<	BasicMaterial.constructor	constructor	instance (options: BasicMaterialOptions = {}) => BasicMaterial	-
-<	BasicMaterial.copy	method	instance (source: BasicMaterial) => this	-
+=	BasicMaterial.color	field	instance rw Color	instance rw Color
+!	BasicMaterial.constructor	constructor	instance (options: BasicMaterialOptions = {}) => BasicMaterial	instance (parameters?: Object) => MeshBasicMaterial
+!	BasicMaterial.copy	method	instance (source: BasicMaterial) => this	instance (source: any) => this
+>	BasicMaterial.envMapRotation	field	-	instance rw Euler
 <	BasicMaterial.isBasicMaterial	accessor	instance r true	-
+>	BasicMaterial.isMeshBasicMaterial	field	-	instance ro boolean
 <	BasicMaterial.map	field	instance rw Texture | undefined	-
 <	BasicMaterial.toJSON	method	instance () => BasicMaterialJSON	-
-<	BasicMaterial.type	field	instance rw string	-
+=	BasicMaterial.type	field	instance rw string	instance rw string
 <	BasicMaterialJSON	record	interface extends MaterialJSON { color: number; map?: string }	-
 <	BasicMaterialOptions	record	interface extends MaterialOptions { readonly color?: Color | number | string; readonly map?: Texture | undefined }	-
 >	BasicShadowMap	const	-	const number
@@ -536,23 +511,54 @@
 >	BatchedMesh.unusedVertexCount	accessor	-	instance r number
 >	BatchedMesh.validateGeometryId	method	-	instance (geometryId: number) => void
 >	BatchedMesh.validateInstanceId	method	-	instance (instanceId: number) => void
->	BezierInterpolant	class	-	class extends Interpolant
->	BezierInterpolant.constructor	constructor	-	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: any) => BezierInterpolant
->	BezierInterpolant.interpolate_	method	-	instance (i1: any, t0: any, t: any, t1: any) => TypedArray
+=	BezierInterpolant	class	class extends Interpolant	class extends Interpolant
+!	BezierInterpolant.constructor	constructor	instance (positions: ArrayLike<number>, values: ArrayLike<number>, stride: number, inTangents: ArrayLike<number>, outTangents: ArrayLike<number>, result?: number[]) => BezierInterpolant	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: any) => BezierInterpolant
+!	BezierInterpolant.interpolate_	method	instance (i1: number, t0: number, t: number, t1: number) => number[]	instance (i1: any, t0: any, t: any, t1: any) => TypedArray
 <	BindMode	const	const { readonly Attached: "attached"; readonly Detached: "detached"; }	-
 <	BindMode	record	type = (typeof BindMode)[keyof typeof BindMode]	-
-<	Binding	class	class	-
-<	Binding.bind	method	instance () => this	-
-<	Binding.constructor	constructor	instance (root: object, path: string, parsedPath?: BindingPath) => Binding	-
-<	Binding.getValue	method	instance (targetArray: TrackValue[] | Float64Array, offset: number) => void	-
+=	Binding	class	class	class
+>	Binding.Composite	field	-	static rw typeof Composite
+>	Binding._getValue_array	method	-	instance (buffer: any, offset: any) => void
+>	Binding._getValue_arrayElement	method	-	instance (buffer: any, offset: any) => void
+>	Binding._getValue_direct	method	-	instance (buffer: any, offset: any) => void
+>	Binding._getValue_toArray	method	-	instance (buffer: any, offset: any) => void
+>	Binding._getValue_unavailable	method	-	instance () => void
+>	Binding._getValue_unbound	method	-	instance (targetArray: any, offset: any) => void
+>	Binding._setValue_array	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_arrayElement	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_arrayElement_setMatrixWorldNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_arrayElement_setNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_array_setMatrixWorldNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_array_setNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_direct	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_direct_setMatrixWorldNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_direct_setNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_fromArray	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_fromArray_setMatrixWorldNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_fromArray_setNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
+>	Binding._setValue_unavailable	method	-	instance () => void
+>	Binding._setValue_unbound	method	-	instance (sourceArray: any, offset: any) => void
+!	Binding.bind	method	instance () => this	instance () => void
+!	Binding.constructor	constructor	instance (root: object, path: string, parsedPath?: BindingPath) => Binding	instance (rootNode: Object, path: string, parsedPath?: ?Object) => PropertyBinding
+>	Binding.create	method	-	static (root: Object, path: string, parsedPath?: ?Object) => PropertyBinding|Composite
+>	Binding.findNode	method	-	static (root: Object, nodeName: string|number) => ?Object
+!	Binding.getValue	method/field	instance (targetArray: TrackValue[] | Float64Array, offset: number) => void	instance rw (targetArray: any, offset: any) => void
 <	Binding.isBindingBoundBy	method	instance (node: object) => boolean	-
 <	Binding.isBound	accessor	instance r boolean	-
-<	Binding.parsedPath	accessor	instance r BindingPath	-
-<	Binding.path	accessor	instance r string	-
+>	Binding.node	field	-	instance rw ?Object
+>	Binding.parseTrackName	method	-	static (trackName: string) => Object
+!	Binding.parsedPath	accessor/field	instance r BindingPath	instance rw Object
+!	Binding.path	accessor/field	instance r string	instance rw string
+>	Binding.propertyIndex	field	-	instance rw any
+>	Binding.propertyName	field	-	instance rw any
 <	Binding.resolveNode	method	instance () => object | undefined	-
+>	Binding.resolvedProperty	field	-	instance rw any
 <	Binding.root	accessor	instance r object	-
-<	Binding.setValue	method	instance (sourceArray: readonly TrackValue[] | Float64Array, offset: number) => void	-
-<	Binding.unbind	method	instance () => this	-
+>	Binding.rootNode	field	-	instance rw Object3D|Skeleton
+>	Binding.sanitizeNodeName	method	-	static (name: string) => string
+!	Binding.setValue	method/field	instance (sourceArray: readonly TrackValue[] | Float64Array, offset: number) => void	instance rw (sourceArray: any, offset: any) => void
+>	Binding.targetObject	field	-	instance rw any
+!	Binding.unbind	method	instance () => this	instance () => void
 <	BindingPath	record	interface { readonly nodeName: string | undefined; readonly objectName: "bones" | "material" | undefined; readonly objectIndex: string | number | undefined; readonly propertyName: string; readonly propertyIndex: string | number | undefined }	-
 !	Bone	class	class extends Node	class extends Object3D
 <	Bone.clone	method	instance () => Bone	-
@@ -613,7 +619,7 @@
 !	Box3.getCenter	method	instance (out: Vector3) => Vector3	instance (target: Vector3) => Vector3
 <	Box3.getCentre	method	instance (out: Vector3) => Vector3	-
 !	Box3.getParameter	method	instance (point: Vector3, out: Vector3) => Vector3	instance (point: Vector3, target: Vector3) => Vector3
-!	Box3.getSize	method	instance (out: Vector3) => Vector3	instance (target: Vector3) => Vector3
+<	Box3.getSize	method	instance (out: Vector3) => Vector3	-
 <	Box3.height	accessor	instance r number	-
 !	Box3.intersect	method	instance (box: Box3) => this	instance (box: Box3) => Box3
 =	Box3.intersectsBox	method	instance (box: Box3) => boolean	instance (box: Box3) => boolean
@@ -632,7 +638,7 @@
 <	Box3.setFromCentreAndSize	method	instance (centre: Vector3, size: Vector3) => this	-
 !	Box3.setFromObject	method	instance (object: SceneNode) => this	instance (object: Object3D, precise: boolean = false) => Box3
 !	Box3.setFromPoints	method	instance (points: readonly Vector3[]) => this	instance (points: Array<Vector3>) => Box3
-<	Box3.size	accessor	instance r Vector3	-
+!	Box3.size	accessor	instance r Vector3	instance (target: Vector3) => Vector3
 !	Box3.toJSON	method	instance () => { min: number[]; max: number[]; }	instance () => Object
 !	Box3.translate	method	instance (offset: Vector3) => this	instance (offset: Vector3) => Box3
 !	Box3.union	method	instance (box: Box3) => this	instance (box: Box3) => Box3
@@ -667,96 +673,6 @@
 !	BoxHelper.update	method	instance () => this	instance () => void
 <	BoxHelperObject	record	interface { readonly geometry?: { readonly boundingBox?: Box3; } }	-
 <	BoxHelperSource	record	type = Box3 | BoxHelperObject	-
->	BufferAttribute	class	-	class extends EventDispatcher
->	BufferAttribute.addUpdateRange	method	-	instance (start: number, count: number) => void
->	BufferAttribute.applyMatrix3	method	-	instance (m: Matrix3) => BufferAttribute
->	BufferAttribute.applyMatrix4	method	-	instance (m: Matrix4) => BufferAttribute
->	BufferAttribute.applyNormalMatrix	method	-	instance (m: Matrix3) => BufferAttribute
->	BufferAttribute.array	field	-	instance rw TypedArray
->	BufferAttribute.clearUpdateRanges	method	-	instance () => void
->	BufferAttribute.clone	method	-	instance () => BufferAttribute
->	BufferAttribute.constructor	constructor	-	instance (array: TypedArray, itemSize: number, normalized: boolean = false) => BufferAttribute
->	BufferAttribute.copy	method	-	instance (source: BufferAttribute) => BufferAttribute
->	BufferAttribute.copyArray	method	-	instance (array: (TypedArray|Array)) => BufferAttribute
->	BufferAttribute.copyAt	method	-	instance (index1: number, attribute: BufferAttribute, index2: number) => BufferAttribute
->	BufferAttribute.count	field	-	instance ro number
->	BufferAttribute.dispose	method	-	instance () => void
->	BufferAttribute.getComponent	method	-	instance (index: number, component: number) => number
->	BufferAttribute.getW	method	-	instance (index: number) => number
->	BufferAttribute.getX	method	-	instance (index: number) => number
->	BufferAttribute.getY	method	-	instance (index: number) => number
->	BufferAttribute.getZ	method	-	instance (index: number) => number
->	BufferAttribute.gpuType	field	-	instance rw (FloatType|IntType)
->	BufferAttribute.isBufferAttribute	field	-	instance ro boolean
->	BufferAttribute.itemSize	field	-	instance rw number
->	BufferAttribute.name	field	-	instance rw string
->	BufferAttribute.needsUpdate	accessor	-	instance w number
->	BufferAttribute.normalized	field	-	instance rw boolean
->	BufferAttribute.onUpload	method	-	instance (callback: Function) => BufferAttribute
->	BufferAttribute.onUploadCallback	method	-	instance () => void
->	BufferAttribute.set	method	-	instance (value: (TypedArray|Array), offset: number = 0) => BufferAttribute
->	BufferAttribute.setComponent	method	-	instance (index: number, component: number, value: number) => BufferAttribute
->	BufferAttribute.setUsage	method	-	instance (value: (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)) => BufferAttribute
->	BufferAttribute.setW	method	-	instance (index: number, w: number) => BufferAttribute
->	BufferAttribute.setX	method	-	instance (index: number, x: number) => BufferAttribute
->	BufferAttribute.setXY	method	-	instance (index: number, x: number, y: number) => BufferAttribute
->	BufferAttribute.setXYZ	method	-	instance (index: number, x: number, y: number, z: number) => BufferAttribute
->	BufferAttribute.setXYZW	method	-	instance (index: number, x: number, y: number, z: number, w: number) => BufferAttribute
->	BufferAttribute.setY	method	-	instance (index: number, y: number) => BufferAttribute
->	BufferAttribute.setZ	method	-	instance (index: number, z: number) => BufferAttribute
->	BufferAttribute.toJSON	method	-	instance () => Object
->	BufferAttribute.transformDirection	method	-	instance (m: Matrix4) => BufferAttribute
->	BufferAttribute.updateRanges	field	-	instance rw Array<Object>
->	BufferAttribute.usage	field	-	instance rw (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)
->	BufferAttribute.version	field	-	instance rw number
->	BufferGeometry	class	-	class extends EventDispatcher
->	BufferGeometry.addGroup	method	-	instance (start: number, count: number, materialIndex: number = 0) => void
->	BufferGeometry.applyMatrix4	method	-	instance (matrix: Matrix4) => BufferGeometry
->	BufferGeometry.applyQuaternion	method	-	instance (q: Quaternion) => BufferGeometry
->	BufferGeometry.attributes	field	-	instance rw Object<string,(BufferAttribute|InterleavedBufferAttribute)>
->	BufferGeometry.boundingBox	field	-	instance rw ?Box3
->	BufferGeometry.boundingSphere	field	-	instance rw ?Sphere
->	BufferGeometry.center	method	-	instance () => BufferGeometry
->	BufferGeometry.clearGroups	method	-	instance () => void
->	BufferGeometry.clone	method	-	instance () => BufferGeometry
->	BufferGeometry.computeBoundingBox	method	-	instance () => void
->	BufferGeometry.computeBoundingSphere	method	-	instance () => void
->	BufferGeometry.computeTangents	method	-	instance () => void
->	BufferGeometry.computeVertexNormals	method	-	instance () => void
->	BufferGeometry.constructor	constructor	-	instance () => BufferGeometry
->	BufferGeometry.copy	method	-	instance (source: BufferGeometry) => BufferGeometry
->	BufferGeometry.deleteAttribute	method	-	instance (name: string) => BufferGeometry
->	BufferGeometry.dispose	method	-	instance () => void
->	BufferGeometry.drawRange	field	-	instance rw {start:number,count:number}
->	BufferGeometry.getAttribute	method	-	instance (name: string) => BufferAttribute|InterleavedBufferAttribute|undefined
->	BufferGeometry.getIndex	method	-	instance () => ?BufferAttribute
->	BufferGeometry.getIndirect	method	-	instance () => ?BufferAttribute
->	BufferGeometry.groups	field	-	instance rw Array<Object>
->	BufferGeometry.hasAttribute	method	-	instance (name: string) => boolean
->	BufferGeometry.index	field	-	instance rw ?BufferAttribute
->	BufferGeometry.indirect	field	-	instance rw ?BufferAttribute
->	BufferGeometry.indirectOffset	field	-	instance rw number|Array<number>
->	BufferGeometry.isBufferGeometry	field	-	instance ro boolean
->	BufferGeometry.lookAt	method	-	instance (vector: Vector3) => BufferGeometry
->	BufferGeometry.morphAttributes	field	-	instance rw Object
->	BufferGeometry.morphTargetsRelative	field	-	instance rw boolean
->	BufferGeometry.name	field	-	instance rw string
->	BufferGeometry.normalizeNormals	method	-	instance () => void
->	BufferGeometry.rotateX	method	-	instance (angle: number) => BufferGeometry
->	BufferGeometry.rotateY	method	-	instance (angle: number) => BufferGeometry
->	BufferGeometry.rotateZ	method	-	instance (angle: number) => BufferGeometry
->	BufferGeometry.scale	method	-	instance (x: number, y: number, z: number) => BufferGeometry
->	BufferGeometry.setAttribute	method	-	instance (name: string, attribute: BufferAttribute|InterleavedBufferAttribute) => BufferGeometry
->	BufferGeometry.setDrawRange	method	-	instance (start: number, count: number) => void
->	BufferGeometry.setFromPoints	method	-	instance (points: Array<Vector2>|Array<Vector3>) => BufferGeometry
->	BufferGeometry.setIndex	method	-	instance (index: Array<number>|BufferAttribute) => BufferGeometry
->	BufferGeometry.setIndirect	method	-	instance (indirect: BufferAttribute, indirectOffset: number|Array<number> = 0) => BufferGeometry
->	BufferGeometry.toJSON	method	-	instance () => Object
->	BufferGeometry.toNonIndexed	method	-	instance () => BufferGeometry
->	BufferGeometry.translate	method	-	instance (x: number, y: number, z: number) => BufferGeometry
->	BufferGeometry.type	field	-	instance rw string
->	BufferGeometry.userData	field	-	instance rw Object
->	BufferGeometry.uuid	field	-	instance ro string
 =	BufferGeometryLoader	class	class extends Loader	class extends Loader
 !	BufferGeometryLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => BufferGeometryLoader	instance (manager?: LoadingManager) => BufferGeometryLoader
 !	BufferGeometryLoader.load	method	instance (url: string, onLoad?: (geometry: Geometry) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	instance (url: string, onLoad: function(BufferGeometry), onProgress: onProgressCallback, onError: onErrorCallback) => void
@@ -828,7 +744,7 @@
 =	CameraHelper	class	class extends LineSegments	class extends LineSegments
 !	CameraHelper.camera	accessor/field	instance rw Camera	instance rw Camera
 <	CameraHelper.clone	method	instance () => CameraHelper	-
-<	CameraHelper.colors	accessor	instance rw CameraHelperColors	-
+!	CameraHelper.colors	accessor	instance rw CameraHelperColors	instance (frustum: Color, cone: Color, up: Color, target: Color, cross: Color) => CameraHelper
 =	CameraHelper.constructor	constructor	instance (camera: Camera) => CameraHelper	instance (camera: Camera) => CameraHelper
 <	CameraHelper.copy	method	instance (source: CameraHelper) => this	-
 =	CameraHelper.dispose	method	instance () => void	instance () => void
@@ -836,7 +752,6 @@
 >	CameraHelper.matrix	field	-	instance rw Matrix4
 >	CameraHelper.matrixAutoUpdate	field	-	instance rw boolean
 >	CameraHelper.pointMap	field	-	instance rw Object<string,Array<number>>
->	CameraHelper.setColors	method	-	instance (frustum: Color, cone: Color, up: Color, target: Color, cross: Color) => CameraHelper
 =	CameraHelper.type	field	instance rw string	instance rw string
 !	CameraHelper.update	method	instance () => this	instance () => void
 <	CameraHelper.updateColors	method	instance () => this	-
@@ -930,20 +845,9 @@
 <	CircleShape.radius	field	instance ro number	-
 <	CircleShape.type	field	instance ro "circle"	-
 >	ClampToEdgeWrapping	const	-	const number
->	Clock	class	-	class
->	Clock.autoStart	field	-	instance rw boolean
->	Clock.constructor	constructor	-	instance (autoStart: boolean = true) => Clock
->	Clock.elapsedTime	field	-	instance rw number
->	Clock.getDelta	method	-	instance () => number
->	Clock.getElapsedTime	method	-	instance () => number
->	Clock.oldTime	field	-	instance rw number
->	Clock.running	field	-	instance rw boolean
->	Clock.start	method	-	instance () => void
->	Clock.startTime	field	-	instance rw number
->	Clock.stop	method	-	instance () => void
 =	Color	class	class	class
 >	Color.NAMES	field	-	static rw Object
->	Color.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
+>	Color.__@iterator@6208	method	-	instance () => Generator<number, void, unknown>
 !	Color.add	method	instance (color: Color) => this	instance (color: Color) => Color
 !	Color.addColors	method	instance (color1: Color, color2: Color) => this	instance (color1: Color, color2: Color) => Color
 !	Color.addScalar	method	instance (scalar: number) => this	instance (s: number) => Color
@@ -961,12 +865,10 @@
 !	Color.fromBufferAttribute	method	instance (attribute: Attribute, index: number) => this	instance (attribute: BufferAttribute, index: number) => Color
 =	Color.g	field	instance rw number	instance rw number
 !	Color.getHSL	method	instance (target: HSL = { h: 0, s: 0, l: 0 }) => HSL	instance (target: {h:number,s:number,l:number}, colorSpace: string = ColorManagement.workingColorSpace) => {h:number,s:number,l:number}
->	Color.getHex	method	-	instance (colorSpace: string = SRGBColorSpace) => number
->	Color.getHexString	method	-	instance (colorSpace: string = SRGBColorSpace) => string
 !	Color.getRGB	method	instance (target: RGB = { r: 0, g: 0, b: 0 }) => RGB	instance (target: Color, colorSpace: string = ColorManagement.workingColorSpace) => Color
->	Color.getStyle	method	-	instance (colorSpace: string = SRGBColorSpace) => string
-<	Color.hex	accessor	instance rw number	-
-<	Color.hexString	accessor	instance r string	-
+!	Color.hex	accessor	instance rw number	instance (colorSpace: string = SRGBColorSpace) => number
+>	Color.hex	accessor	-	instance (hex: number, colorSpace: string = SRGBColorSpace) => Color
+!	Color.hexString	accessor	instance r string	instance (colorSpace: string = SRGBColorSpace) => string
 <	Color.hsl	accessor	instance r HSL	-
 <	Color.hsl16	accessor	instance r number	-
 <	Color.hslString	accessor	instance r string	-
@@ -982,11 +884,10 @@
 !	Color.setColorName	method	instance (name: string) => this	instance (style: string, colorSpace: string = SRGBColorSpace) => Color
 !	Color.setFromVector3	method	instance (vector: Vector3) => this	instance (v: Vector3) => Color
 !	Color.setHSL	method	instance (h: number, s: number, l: number) => this	instance (h: number, s: number, l: number, colorSpace: string = ColorManagement.workingColorSpace) => Color
->	Color.setHex	method	-	instance (hex: number, colorSpace: string = SRGBColorSpace) => Color
 !	Color.setRGB	method	instance (r: number, g: number, b: number) => this	instance (r: number, g: number, b: number, colorSpace: string = ColorManagement.workingColorSpace) => Color
 !	Color.setScalar	method	instance (scalar: number) => this	instance (scalar: number) => Color
->	Color.setStyle	method	-	instance (style: string, colorSpace: string = SRGBColorSpace) => Color
-<	Color.style	accessor	instance rw string	-
+!	Color.style	accessor	instance rw string	instance (colorSpace: string = SRGBColorSpace) => string
+>	Color.style	accessor	-	instance (style: string, colorSpace: string = SRGBColorSpace) => Color
 !	Color.sub	method	instance (color: Color) => this	instance (color: Color) => Color
 !	Color.toArray	method	instance (values: number[] = [], offset: number = 0) => number[]	instance (array: Array<number> = [], offset: number = 0) => Array<number>
 =	Color.toJSON	method	instance () => number	instance () => number
@@ -1096,14 +997,14 @@
 !	CubicBezierCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	CubicBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 !	CubicBezierCurve3.v3	accessor/field	instance rw Vector3	instance rw Vector3
->	CubicInterpolant	class	-	class extends Interpolant
+=	CubicInterpolant	class	class extends Interpolant	class extends Interpolant
 >	CubicInterpolant.DefaultSettings_	field	-	instance rw { endingStart: number; endingEnd: number; }
 >	CubicInterpolant._offsetNext	field	-	instance rw number
 >	CubicInterpolant._offsetPrev	field	-	instance rw number
 >	CubicInterpolant._weightNext	field	-	instance rw number
 >	CubicInterpolant._weightPrev	field	-	instance rw number
->	CubicInterpolant.constructor	constructor	-	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => CubicInterpolant
->	CubicInterpolant.interpolate_	method	-	instance (i1: any, t0: any, t: any, t1: any) => TypedArray
+!	CubicInterpolant.constructor	constructor	instance (positions: ArrayLike<number>, values: ArrayLike<number>, stride: number, result?: number[] | undefined) => CubicInterpolant	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => CubicInterpolant
+!	CubicInterpolant.interpolate_	method	instance (i1: number, t0: number, t: number, t1: number) => number[]	instance (i1: any, t0: any, t: any, t1: any) => TypedArray
 >	CubicInterpolant.intervalChanged_	method	-	instance (i1: any, t0: any, t1: any) => void
 >	CullFaceBack	const	-	const number
 >	CullFaceFront	const	-	const number
@@ -1116,7 +1017,6 @@
 =	Curve.constructor	constructor	instance () => Curve	instance () => Curve
 !	Curve.copy	method	instance (source: Curve) => this	instance (source: Curve) => Curve
 !	Curve.fromJSON	method	instance (json: Record<string, unknown>) => this	instance (json: Object) => Curve
->	Curve.getLength	method	-	instance () => number
 !	Curve.getLengths	method	instance (divisions: number = this.arcLengthDivisions) => number[]	instance (divisions: number = this.arcLengthDivisions) => Array<number>
 !	Curve.getPoint	method	instance (_t: number, _target?: CurvePoint) => CurvePoint | undefined	instance (t: number, optionalTarget?: (Vector2|Vector3)) => (Vector2|Vector3)
 !	Curve.getPointAt	method	instance (u: number, target?: CurvePoint) => CurvePoint | undefined	instance (u: number, optionalTarget?: (Vector2|Vector3)) => (Vector2|Vector3)
@@ -1125,7 +1025,7 @@
 !	Curve.getTangent	method	instance (t: number, target?: CurvePoint) => CurvePoint | undefined	instance (t: number, optionalTarget?: (Vector2|Vector3)) => (Vector2|Vector3)
 !	Curve.getTangentAt	method	instance (u: number, target?: CurvePoint) => CurvePoint | undefined	instance (u: number, optionalTarget?: (Vector2|Vector3)) => (Vector2|Vector3)
 !	Curve.getUtoTmapping	method	instance (u: number, distance?: number) => number	instance (u: number, distance: ?number = null) => number
-<	Curve.length	accessor	instance r number	-
+!	Curve.length	accessor	instance r number	instance () => number
 !	Curve.needsUpdate	accessor/field	instance rw boolean	instance rw boolean
 !	Curve.toJSON	method	instance () => Record<string, unknown>	instance () => Object
 !	Curve.type	field	instance rw string	instance ro string
@@ -1138,15 +1038,13 @@
 !	CurvePath.closePath	method	instance () => this	instance () => CurvePath
 =	CurvePath.constructor	constructor	instance () => CurvePath	instance () => CurvePath
 !	CurvePath.copy	method	instance (source: CurvePath) => this	instance (source: any) => this
-<	CurvePath.curveLengths	accessor	instance r number[]	-
+!	CurvePath.curveLengths	accessor	instance r number[]	instance () => Array<number>
 !	CurvePath.curves	accessor/field	instance rw Curve[]	instance rw Array<Curve>
 !	CurvePath.fromJSON	method	instance (json: Record<string, unknown>) => this	instance (json: any) => this
->	CurvePath.getCurveLengths	method	-	instance () => Array<number>
->	CurvePath.getLength	method	-	instance () => number
 !	CurvePath.getPoint	method	instance (t: number, target?: { x: number; y: number; z?: number }) => { x: number; y: number; z?: number; } | undefined	instance (t: number, optionalTarget?: (Vector2|Vector3)) => ?(Vector2|Vector3)
 !	CurvePath.getPoints	method	instance (divisions: number = 12) => ({ x: number; y: number; z?: number; } | undefined)[]	instance (divisions: number = 12) => (Vector3 | Vector2)[]
 !	CurvePath.getSpacedPoints	method	instance (divisions: number = 40) => ({ x: number; y: number; z?: number; } | undefined)[]	instance (divisions: number = 40) => any[]
-<	CurvePath.length	accessor	instance r number	-
+!	CurvePath.length	accessor	instance r number	instance () => number
 !	CurvePath.toJSON	method	instance () => Record<string, unknown>	instance () => any
 =	CurvePath.type	field	instance rw string	instance rw string
 =	CurvePath.updateArcLengths	method	instance () => void	instance () => void
@@ -1183,15 +1081,16 @@
 <	DEFAULT_MATRIX_WORLD_AUTO_UPDATE	const	const true	-
 <	DEFAULT_UP	const	const Vector3	-
 <	DEG2RAD	const	const 0.017453292519943295	-
-<	DashedLineMaterial	class	class extends LineMaterial	-
+!	DashedLineMaterial	class	class extends LineMaterial	class extends LineBasicMaterial
 <	DashedLineMaterial.clone	method	instance () => DashedLineMaterial	-
-<	DashedLineMaterial.constructor	constructor	instance (options: DashedLineMaterialOptions = {}) => DashedLineMaterial	-
-<	DashedLineMaterial.copy	method	instance (source: DashedLineMaterial) => this	-
+!	DashedLineMaterial.constructor	constructor	instance (options: DashedLineMaterialOptions = {}) => DashedLineMaterial	instance (parameters?: Object) => LineDashedMaterial
+!	DashedLineMaterial.copy	method	instance (source: DashedLineMaterial) => this	instance (source: any) => this
 <	DashedLineMaterial.dashSize	accessor	instance rw number	-
 <	DashedLineMaterial.gapSize	accessor	instance rw number	-
 <	DashedLineMaterial.isDashedLineMaterial	accessor	instance r true	-
+>	DashedLineMaterial.isLineDashedMaterial	field	-	instance ro boolean
 <	DashedLineMaterial.toJSON	method	instance () => DashedLineMaterialJSON	-
-<	DashedLineMaterial.type	field	instance rw string	-
+=	DashedLineMaterial.type	field	instance rw string	instance rw string
 <	DashedLineMaterialJSON	record	interface extends LineMaterialJSON { dashSize: number; gapSize: number }	-
 <	DashedLineMaterialOptions	record	interface extends LineMaterialOptions { readonly dashSize?: number; readonly gapSize?: number }	-
 >	Data3DTexture	class	-	class extends Texture
@@ -1271,9 +1170,9 @@
 >	DirectionalLightHelper.targetLine	field	-	instance rw Line
 =	DirectionalLightHelper.type	field	instance rw string	instance rw string
 !	DirectionalLightHelper.update	method	instance () => this	instance () => void
->	DiscreteInterpolant	class	-	class extends Interpolant
->	DiscreteInterpolant.constructor	constructor	-	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => DiscreteInterpolant
->	DiscreteInterpolant.interpolate_	method	-	instance (i1: any) => TypedArray
+=	DiscreteInterpolant	class	class extends Interpolant	class extends Interpolant
+!	DiscreteInterpolant.constructor	constructor	instance (positions: ArrayLike<number>, values: ArrayLike<number>, stride: number, result?: number[] | undefined) => DiscreteInterpolant	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => DiscreteInterpolant
+!	DiscreteInterpolant.interpolate_	method	instance (i1: number) => number[]	instance (i1: any) => TypedArray
 <	DistanceConstraint	class	class	-
 <	DistanceConstraint.constructor	constructor	instance (particleA: Particle, particleB: Particle, options: DistanceConstraintOptions = {}) => DistanceConstraint	-
 <	DistanceConstraint.currentLength	accessor	instance r number	-
@@ -1331,7 +1230,7 @@
 <	DrawCall.vertexColorItemSize	field	instance rw number	-
 <	DrawCall.worldPositions	field	instance rw Float32Array<ArrayBufferLike>	-
 <	DrawList	class	class	-
-<	DrawList.__@iterator@3198	method	instance () => Iterator<DrawCall, any, any>	-
+<	DrawList.__@iterator@3245	method	instance () => Iterator<DrawCall, any, any>	-
 <	DrawList.add	method	instance (drawCall: DrawCall) => void	-
 <	DrawList.calls	accessor	instance r DrawCall[]	-
 <	DrawList.clear	method	instance () => void	-
@@ -1393,7 +1292,7 @@
 >	EquirectangularRefractionMapping	const	-	const number
 =	Euler	class	class	class
 >	Euler.DEFAULT_ORDER	field	-	static rw string
->	Euler.__@iterator@6164	method	-	instance () => Generator<string | number, void, unknown>
+>	Euler.__@iterator@6208	method	-	instance () => Generator<string | number, void, unknown>
 >	Euler._onChange	method	-	instance (callback: any) => this
 >	Euler._onChangeCallback	method	-	instance () => void
 >	Euler._order	field	-	instance rw string
@@ -1441,10 +1340,10 @@
 <	FileLoader.cacheKey	method	instance (url: string) => string	-
 !	FileLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => FileLoader	instance (manager?: LoadingManager) => FileLoader
 !	FileLoader.load	method	instance (url: string, onLoad?: ((data: unknown) => void) | undefined, onProgress?: ((event: ProgressEvent) => void) | undefined, onError?: ((err: unknown) => void) | undefined) => void	instance (url: string, onLoad: function(any), onProgress?: onProgressCallback, onError?: onErrorCallback) => void
-!	FileLoader.mimeType	accessor/field	instance rw string	instance rw string
-!	FileLoader.responseType	accessor/field	instance rw FileResponseType	instance rw ('arraybuffer'|'blob'|'document'|'json'|'')
->	FileLoader.setMimeType	method	-	instance (value: string) => FileLoader
->	FileLoader.setResponseType	method	-	instance (value: ('arraybuffer'|'blob'|'document'|'json'|'')) => FileLoader
+!	FileLoader.mimeType	accessor	instance rw string	instance (value: string) => FileLoader
+>	FileLoader.mimeType	field	-	instance rw string
+!	FileLoader.responseType	accessor	instance rw FileResponseType	instance (value: ('arraybuffer'|'blob'|'document'|'json'|'')) => FileLoader
+>	FileLoader.responseType	field	-	instance rw ('arraybuffer'|'blob'|'document'|'json'|'')
 <	FileResponseType	record	type = | "" | "arraybuffer" | "blob" | "document" | "json" | "text"	-
 <	FirstPersonControls	class	class extends EventDispatcher	-
 <	FirstPersonControls.activeLook	field	instance rw boolean	-
@@ -1660,49 +1559,62 @@
 <	GLTFTextureReference	record	interface { readonly index: number; readonly texCoord: number; readonly source: number | undefined; readonly uri: string | undefined; readonly bufferView: number | undefined; readonly mimeType: string | undefined }	-
 <	GLTFVariantInfo	record	interface { readonly index: number; readonly name: string }	-
 <	GLTFVariantMapping	record	interface { readonly mesh: number; readonly primitive: number; readonly material: number; readonly variants: readonly number[] }	-
-<	Geometry	class	class	-
-<	Geometry.applyMatrix4	method	instance (matrix: Matrix4) => this	-
-<	Geometry.applyQuaternion	method	instance (quaternion: Quaternion) => this	-
-<	Geometry.attributes	accessor	instance r ReadonlyMap<string, Attribute>	-
-<	Geometry.boundingBox	field	instance rw Box3 | undefined	-
-<	Geometry.boundingSphere	field	instance rw Sphere | undefined	-
-<	Geometry.center	method	instance () => this	-
-<	Geometry.clone	method	instance () => Geometry	-
-<	Geometry.computeBoundingBox	method	instance () => this	-
-<	Geometry.computeBoundingSphere	method	instance () => this	-
-<	Geometry.computeTangents	method	instance () => this	-
-<	Geometry.computeVertexNormals	method	instance () => this	-
-<	Geometry.constructor	constructor	instance () => Geometry	-
-<	Geometry.copy	method	instance (source: Geometry) => this	-
-<	Geometry.deleteAttribute	method	instance (name: string) => boolean	-
-<	Geometry.dispose	method	instance () => void	-
-<	Geometry.drawRange	field	instance rw { start: number; count: number; }	-
-<	Geometry.getAttribute	method	instance (name: string) => Attribute | undefined	-
-<	Geometry.hasAttribute	method	instance (name: string) => boolean	-
+!	Geometry	class	class	class extends EventDispatcher
+>	Geometry.addGroup	method	-	instance (start: number, count: number, materialIndex: number = 0) => void
+!	Geometry.applyMatrix4	method	instance (matrix: Matrix4) => this	instance (matrix: Matrix4) => BufferGeometry
+!	Geometry.applyQuaternion	method	instance (quaternion: Quaternion) => this	instance (q: Quaternion) => BufferGeometry
+!	Geometry.attributes	accessor/field	instance r ReadonlyMap<string, Attribute>	instance rw Object<string,(BufferAttribute|InterleavedBufferAttribute)>
+!	Geometry.boundingBox	field	instance rw Box3 | undefined	instance rw ?Box3
+!	Geometry.boundingSphere	field	instance rw Sphere | undefined	instance rw ?Sphere
+!	Geometry.center	method	instance () => this	instance () => BufferGeometry
+>	Geometry.clearGroups	method	-	instance () => void
+!	Geometry.clone	method	instance () => Geometry	instance () => BufferGeometry
+!	Geometry.computeBoundingBox	method	instance () => this	instance () => void
+!	Geometry.computeBoundingSphere	method	instance () => this	instance () => void
+!	Geometry.computeTangents	method	instance () => this	instance () => void
+!	Geometry.computeVertexNormals	method	instance () => this	instance () => void
+!	Geometry.constructor	constructor	instance () => Geometry	instance () => BufferGeometry
+!	Geometry.copy	method	instance (source: Geometry) => this	instance (source: BufferGeometry) => BufferGeometry
+!	Geometry.deleteAttribute	method	instance (name: string) => boolean	instance (name: string) => BufferGeometry
+=	Geometry.dispose	method	instance () => void	instance () => void
+!	Geometry.drawRange	field	instance rw { start: number; count: number; }	instance rw {start:number,count:number}
+!	Geometry.getAttribute	method	instance (name: string) => Attribute | undefined	instance (name: string) => BufferAttribute|InterleavedBufferAttribute|undefined
+>	Geometry.getIndirect	method	-	instance () => ?BufferAttribute
+>	Geometry.groups	field	-	instance rw Array<Object>
+=	Geometry.hasAttribute	method	instance (name: string) => boolean	instance (name: string) => boolean
 <	Geometry.id	field	instance ro number	-
-<	Geometry.index	accessor	instance rw Uint16Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | undefined	-
-<	Geometry.lookAt	method	instance (v: Vector3) => this	-
+!	Geometry.index	accessor	instance rw Uint16Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | undefined	instance () => ?BufferAttribute
+>	Geometry.index	accessor	-	instance (index: Array<number>|BufferAttribute) => BufferGeometry
+>	Geometry.index	field	-	instance rw ?BufferAttribute
+>	Geometry.indirect	field	-	instance rw ?BufferAttribute
+>	Geometry.indirectOffset	field	-	instance rw number|Array<number>
+>	Geometry.isBufferGeometry	field	-	instance ro boolean
+!	Geometry.lookAt	method	instance (v: Vector3) => this	instance (vector: Vector3) => BufferGeometry
 <	Geometry.mergeVertices	method	instance (mergeThreshold: number = 0.0001) => this	-
-<	Geometry.morphAttributes	field	instance rw Record<string, Attribute[]> | undefined	-
-<	Geometry.morphTargetsRelative	field	instance rw boolean	-
-<	Geometry.name	field	instance rw string	-
+!	Geometry.morphAttributes	field	instance rw Record<string, Attribute[]> | undefined	instance rw Object
+=	Geometry.morphTargetsRelative	field	instance rw boolean	instance rw boolean
+=	Geometry.name	field	instance rw string	instance rw string
+>	Geometry.normalizeNormals	method	-	instance () => void
 <	Geometry.parameters	field	instance rw Record<string, unknown>	-
-<	Geometry.rotateX	method	instance (angle: number) => this	-
-<	Geometry.rotateY	method	instance (angle: number) => this	-
-<	Geometry.rotateZ	method	instance (angle: number) => this	-
-<	Geometry.scale	method	instance (x: number, y: number, z: number) => this	-
-<	Geometry.setAttribute	method	instance (name: string, attribute: Attribute) => this	-
+!	Geometry.rotateX	method	instance (angle: number) => this	instance (angle: number) => BufferGeometry
+!	Geometry.rotateY	method	instance (angle: number) => this	instance (angle: number) => BufferGeometry
+!	Geometry.rotateZ	method	instance (angle: number) => this	instance (angle: number) => BufferGeometry
+!	Geometry.scale	method	instance (x: number, y: number, z: number) => this	instance (x: number, y: number, z: number) => BufferGeometry
+!	Geometry.setAttribute	method	instance (name: string, attribute: Attribute) => this	instance (name: string, attribute: BufferAttribute|InterleavedBufferAttribute) => BufferGeometry
 <	Geometry.setColors	method	instance (array: Float32Array | number[]) => this	-
-<	Geometry.setDrawRange	method	instance (start: number, count: number) => this	-
+!	Geometry.setDrawRange	method	instance (start: number, count: number) => this	instance (start: number, count: number) => void
+>	Geometry.setFromPoints	method	-	instance (points: Array<Vector2>|Array<Vector3>) => BufferGeometry
+>	Geometry.setIndirect	method	-	instance (indirect: BufferAttribute, indirectOffset: number|Array<number> = 0) => BufferGeometry
 <	Geometry.setNormals	method	instance (array: Float32Array | number[]) => this	-
 <	Geometry.setPositions	method	instance (array: Float32Array | number[]) => this	-
 <	Geometry.setTangents	method	instance (array: Float32Array | number[]) => this	-
 <	Geometry.setUVs	method	instance (array: Float32Array | number[]) => this	-
-<	Geometry.toJSON	method	instance () => { metadata: { version: number; type: string; generator: string; }; id: number; type: string; name: string; data: { attributes: Record<string, ReturnType<Attribute["toJSON"]>>; index?: { type: string; array: number[]; }; drawRange: { start: number; count: number; }; morphAttributes?: Record<string, ReturnType<Attribute["toJSON"]>[]>; morphTargetsRelative?: boolean; boundingSphere?: { center: [number, number, number]; radius: number; }; }; parameters: Record<string, unknown>; userData: Record<string, unknown>; }	-
-<	Geometry.toNonIndexed	method	instance () => Geometry	-
-<	Geometry.translate	method	instance (x: number, y: number, z: number) => this	-
-<	Geometry.type	field	instance rw string	-
-<	Geometry.userData	field	instance rw Record<string, unknown>	-
+!	Geometry.toJSON	method	instance () => { metadata: { version: number; type: string; generator: string; }; id: number; type: string; name: string; data: { attributes: Record<string, ReturnType<Attribute["toJSON"]>>; index?: { type: string; array: number[]; }; drawRange: { start: number; count: number; }; morphAttributes?: Record<string, ReturnType<Attribute["toJSON"]>[]>; morphTargetsRelative?: boolean; boundingSphere?: { center: [number, number, number]; radius: number; }; }; parameters: Record<string, unknown>; userData: Record<string, unknown>; }	instance () => Object
+!	Geometry.toNonIndexed	method	instance () => Geometry	instance () => BufferGeometry
+!	Geometry.translate	method	instance (x: number, y: number, z: number) => this	instance (x: number, y: number, z: number) => BufferGeometry
+=	Geometry.type	field	instance rw string	instance rw string
+!	Geometry.userData	field	instance rw Record<string, unknown>	instance rw Object
+>	Geometry.uuid	field	-	instance ro string
 <	GeometryLoader	class	class extends Loader	-
 <	GeometryLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => GeometryLoader	-
 <	GeometryLoader.load	method	instance (url: string, onLoad?: (geometry: Geometry) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	-
@@ -1861,103 +1773,82 @@
 >	Int8BufferAttribute	class	-	class extends BufferAttribute
 >	Int8BufferAttribute.constructor	constructor	-	instance (array: (Array<number>|Int8Array), itemSize: number, normalized: boolean = false) => Int8BufferAttribute
 >	IntType	const	-	const number
-<	InterleavedAttribute	class	class	-
-<	InterleavedAttribute.array	accessor	instance r Float32Array<ArrayBufferLike> | Uint16Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | Int32Array<ArrayBufferLike>	-
-<	InterleavedAttribute.constructor	constructor	instance (data: InterleavedData, itemSize: number, offset: number) => InterleavedAttribute	-
-<	InterleavedAttribute.count	accessor	instance r number	-
-<	InterleavedAttribute.data	accessor	instance r InterleavedData	-
-<	InterleavedAttribute.getW	method	instance (index: number) => number	-
-<	InterleavedAttribute.getX	method	instance (index: number) => number	-
-<	InterleavedAttribute.getY	method	instance (index: number) => number	-
-<	InterleavedAttribute.getZ	method	instance (index: number) => number	-
-<	InterleavedAttribute.itemSize	accessor	instance r number	-
-<	InterleavedAttribute.needsUpdate	field	instance rw boolean	-
-<	InterleavedAttribute.offset	accessor	instance r number	-
-<	InterleavedAttribute.setW	method	instance (index: number, w: number) => this	-
-<	InterleavedAttribute.setX	method	instance (index: number, x: number) => this	-
-<	InterleavedAttribute.setY	method	instance (index: number, y: number) => this	-
-<	InterleavedAttribute.setZ	method	instance (index: number, z: number) => this	-
->	InterleavedBuffer	class	-	class
->	InterleavedBuffer.addUpdateRange	method	-	instance (start: number, count: number) => void
->	InterleavedBuffer.array	field	-	instance rw TypedArray
->	InterleavedBuffer.clearUpdateRanges	method	-	instance () => void
->	InterleavedBuffer.clone	method	-	instance (data?: Object) => InterleavedBuffer
->	InterleavedBuffer.constructor	constructor	-	instance (array: TypedArray, stride: number) => InterleavedBuffer
->	InterleavedBuffer.copy	method	-	instance (source: InterleavedBuffer) => InterleavedBuffer
->	InterleavedBuffer.copyAt	method	-	instance (index1: number, interleavedBuffer: InterleavedBuffer, index2: number) => InterleavedBuffer
->	InterleavedBuffer.count	field	-	instance ro number
->	InterleavedBuffer.isInterleavedBuffer	field	-	instance ro boolean
->	InterleavedBuffer.needsUpdate	accessor	-	instance w number
->	InterleavedBuffer.onUpload	method	-	instance (callback: Function) => InterleavedBuffer
->	InterleavedBuffer.onUploadCallback	method	-	instance () => void
->	InterleavedBuffer.set	method	-	instance (value: (TypedArray|Array), offset: number = 0) => InterleavedBuffer
->	InterleavedBuffer.setUsage	method	-	instance (value: (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)) => InterleavedBuffer
->	InterleavedBuffer.stride	field	-	instance rw number
->	InterleavedBuffer.toJSON	method	-	instance (data?: Object) => Object
->	InterleavedBuffer.updateRanges	field	-	instance rw Array<Object>
->	InterleavedBuffer.usage	field	-	instance rw (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)
->	InterleavedBuffer.uuid	field	-	instance ro string
->	InterleavedBuffer.version	field	-	instance rw number
->	InterleavedBufferAttribute	class	-	class
->	InterleavedBufferAttribute.applyMatrix4	method	-	instance (m: Matrix4) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.applyNormalMatrix	method	-	instance (m: Matrix3) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.array	accessor	-	instance r TypedArray
->	InterleavedBufferAttribute.clone	method	-	instance (data?: Object) => BufferAttribute|InterleavedBufferAttribute
->	InterleavedBufferAttribute.constructor	constructor	-	instance (interleavedBuffer: InterleavedBuffer, itemSize: number, offset: number, normalized: boolean = false) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.count	accessor	-	instance r number
->	InterleavedBufferAttribute.data	field	-	instance rw InterleavedBuffer
->	InterleavedBufferAttribute.getComponent	method	-	instance (index: number, component: number) => number
->	InterleavedBufferAttribute.getW	method	-	instance (index: number) => number
->	InterleavedBufferAttribute.getX	method	-	instance (index: number) => number
->	InterleavedBufferAttribute.getY	method	-	instance (index: number) => number
->	InterleavedBufferAttribute.getZ	method	-	instance (index: number) => number
->	InterleavedBufferAttribute.isInterleavedBufferAttribute	field	-	instance ro boolean
->	InterleavedBufferAttribute.itemSize	field	-	instance rw number
->	InterleavedBufferAttribute.name	field	-	instance rw string
->	InterleavedBufferAttribute.needsUpdate	accessor	-	instance w number
->	InterleavedBufferAttribute.normalized	field	-	instance rw InterleavedBuffer
->	InterleavedBufferAttribute.offset	field	-	instance rw number
->	InterleavedBufferAttribute.setComponent	method	-	instance (index: number, component: number, value: number) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.setW	method	-	instance (index: number, w: number) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.setX	method	-	instance (index: number, x: number) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.setXY	method	-	instance (index: number, x: number, y: number) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.setXYZ	method	-	instance (index: number, x: number, y: number, z: number) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.setXYZW	method	-	instance (index: number, x: number, y: number, z: number, w: number) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.setY	method	-	instance (index: number, y: number) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.setZ	method	-	instance (index: number, z: number) => InterleavedBufferAttribute
->	InterleavedBufferAttribute.toJSON	method	-	instance (data?: Object) => Object
->	InterleavedBufferAttribute.transformDirection	method	-	instance (m: Matrix4) => InterleavedBufferAttribute
-<	InterleavedData	class	class	-
-<	InterleavedData.array	accessor	instance r TypedArray	-
-<	InterleavedData.clone	method	instance () => InterleavedData	-
-<	InterleavedData.constructor	constructor	instance (array: TypedArray, stride: number) => InterleavedData	-
-<	InterleavedData.copy	method	instance (source: InterleavedData) => this	-
-<	InterleavedData.copyAt	method	instance (index: number, attribute: InterleavedData, offset: number) => this	-
-<	InterleavedData.count	accessor	instance r number	-
+=	InterleavedAttribute	class	class	class
+>	InterleavedAttribute.applyMatrix4	method	-	instance (m: Matrix4) => InterleavedBufferAttribute
+>	InterleavedAttribute.applyNormalMatrix	method	-	instance (m: Matrix3) => InterleavedBufferAttribute
+!	InterleavedAttribute.array	accessor	instance r Float32Array<ArrayBufferLike> | Uint16Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | Int32Array<ArrayBufferLike>	instance r TypedArray
+>	InterleavedAttribute.clone	method	-	instance (data?: Object) => BufferAttribute|InterleavedBufferAttribute
+!	InterleavedAttribute.constructor	constructor	instance (data: InterleavedData, itemSize: number, offset: number) => InterleavedAttribute	instance (interleavedBuffer: InterleavedBuffer, itemSize: number, offset: number, normalized: boolean = false) => InterleavedBufferAttribute
+=	InterleavedAttribute.count	accessor	instance r number	instance r number
+!	InterleavedAttribute.data	accessor/field	instance r InterleavedData	instance rw InterleavedBuffer
+>	InterleavedAttribute.getComponent	method	-	instance (index: number, component: number) => number
+=	InterleavedAttribute.getW	method	instance (index: number) => number	instance (index: number) => number
+=	InterleavedAttribute.getX	method	instance (index: number) => number	instance (index: number) => number
+=	InterleavedAttribute.getY	method	instance (index: number) => number	instance (index: number) => number
+=	InterleavedAttribute.getZ	method	instance (index: number) => number	instance (index: number) => number
+>	InterleavedAttribute.isInterleavedBufferAttribute	field	-	instance ro boolean
+!	InterleavedAttribute.itemSize	accessor/field	instance r number	instance rw number
+>	InterleavedAttribute.name	field	-	instance rw string
+!	InterleavedAttribute.needsUpdate	field/accessor	instance rw boolean	instance w number
+>	InterleavedAttribute.normalized	field	-	instance rw InterleavedBuffer
+!	InterleavedAttribute.offset	accessor/field	instance r number	instance rw number
+>	InterleavedAttribute.setComponent	method	-	instance (index: number, component: number, value: number) => InterleavedBufferAttribute
+!	InterleavedAttribute.setW	method	instance (index: number, w: number) => this	instance (index: number, w: number) => InterleavedBufferAttribute
+!	InterleavedAttribute.setX	method	instance (index: number, x: number) => this	instance (index: number, x: number) => InterleavedBufferAttribute
+>	InterleavedAttribute.setXY	method	-	instance (index: number, x: number, y: number) => InterleavedBufferAttribute
+>	InterleavedAttribute.setXYZ	method	-	instance (index: number, x: number, y: number, z: number) => InterleavedBufferAttribute
+>	InterleavedAttribute.setXYZW	method	-	instance (index: number, x: number, y: number, z: number, w: number) => InterleavedBufferAttribute
+!	InterleavedAttribute.setY	method	instance (index: number, y: number) => this	instance (index: number, y: number) => InterleavedBufferAttribute
+!	InterleavedAttribute.setZ	method	instance (index: number, z: number) => this	instance (index: number, z: number) => InterleavedBufferAttribute
+>	InterleavedAttribute.toJSON	method	-	instance (data?: Object) => Object
+>	InterleavedAttribute.transformDirection	method	-	instance (m: Matrix4) => InterleavedBufferAttribute
+=	InterleavedData	class	class	class
+>	InterleavedData.addUpdateRange	method	-	instance (start: number, count: number) => void
+!	InterleavedData.array	accessor/field	instance r TypedArray	instance rw TypedArray
+>	InterleavedData.clearUpdateRanges	method	-	instance () => void
+!	InterleavedData.clone	method	instance () => InterleavedData	instance (data?: Object) => InterleavedBuffer
+!	InterleavedData.constructor	constructor	instance (array: TypedArray, stride: number) => InterleavedData	instance (array: TypedArray, stride: number) => InterleavedBuffer
+!	InterleavedData.copy	method	instance (source: InterleavedData) => this	instance (source: InterleavedBuffer) => InterleavedBuffer
+!	InterleavedData.copyAt	method	instance (index: number, attribute: InterleavedData, offset: number) => this	instance (index1: number, interleavedBuffer: InterleavedBuffer, index2: number) => InterleavedBuffer
+!	InterleavedData.count	accessor/field	instance r number	instance ro number
 <	InterleavedData.getW	method	instance (index: number) => number	-
 <	InterleavedData.getX	method	instance (index: number) => number	-
 <	InterleavedData.getY	method	instance (index: number) => number	-
 <	InterleavedData.getZ	method	instance (index: number) => number	-
+>	InterleavedData.isInterleavedBuffer	field	-	instance ro boolean
 <	InterleavedData.isInterleavedData	field	instance ro true	-
-<	InterleavedData.needsUpdate	field	instance rw boolean	-
-<	InterleavedData.set	method	instance (value: ArrayLike<number>, offset: number) => this	-
-<	InterleavedData.stride	accessor	instance r number	-
-<	InterleavedData.toJSON	method	instance () => { array: number[]; stride: number; type: string; }	-
+!	InterleavedData.needsUpdate	field/accessor	instance rw boolean	instance w number
+>	InterleavedData.onUpload	method	-	instance (callback: Function) => InterleavedBuffer
+>	InterleavedData.onUploadCallback	method	-	instance () => void
+!	InterleavedData.set	method	instance (value: ArrayLike<number>, offset: number) => this	instance (value: (TypedArray|Array), offset: number = 0) => InterleavedBuffer
+>	InterleavedData.setUsage	method	-	instance (value: (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)) => InterleavedBuffer
+!	InterleavedData.stride	accessor/field	instance r number	instance rw number
+!	InterleavedData.toJSON	method	instance () => { array: number[]; stride: number; type: string; }	instance (data?: Object) => Object
 <	InterleavedData.updateRange	field	instance rw { offset: number; count: number; }	-
-<	InterleavedData.uuid	field	instance ro string	-
->	Interpolant	class	-	class
+>	InterleavedData.updateRanges	field	-	instance rw Array<Object>
+>	InterleavedData.usage	field	-	instance rw (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)
+=	InterleavedData.uuid	field	instance ro string	instance ro string
+>	InterleavedData.version	field	-	instance rw number
+=	Interpolant	class	class	class
 >	Interpolant.DefaultSettings_	field	-	instance rw Object
->	Interpolant.constructor	constructor	-	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => Interpolant
+!	Interpolant.constructor	constructor	instance (positions: ArrayLike<number>, values: ArrayLike<number>, stride: number, result?: number[]) => Interpolant	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => Interpolant
 >	Interpolant.copySampleValue_	method	-	instance (index: number) => TypedArray
->	Interpolant.evaluate	method	-	instance (t: number) => TypedArray
+<	Interpolant.endingEnd	accessor	instance r InterpolationEndingMode	-
+<	Interpolant.endingStart	accessor	instance r InterpolationEndingMode	-
+!	Interpolant.evaluate	method	instance (time: number) => number[]	instance (t: number) => TypedArray
 >	Interpolant.getSettings_	method	-	instance () => Object
->	Interpolant.interpolate_	method	-	instance (i1: number, t0: number, t: number, t1: number) => TypedArray
+!	Interpolant.interpolate_	method	instance (_i1: number, _t0: number, _t: number, _t1: number) => number[]	instance (i1: number, t0: number, t: number, t1: number) => TypedArray
 >	Interpolant.intervalChanged_	method	-	instance (i1: number, t0: number, t: number) => void
 >	Interpolant.parameterPositions	field	-	instance rw TypedArray
+<	Interpolant.positions	accessor	instance r ArrayLike<number>	-
+<	Interpolant.result	accessor	instance r number[]	-
 >	Interpolant.resultBuffer	field	-	instance rw TypedArray
 >	Interpolant.sampleValues	field	-	instance rw TypedArray
+<	Interpolant.setEndings	method	instance (start: InterpolationEndingMode, end: InterpolationEndingMode) => void	-
 >	Interpolant.settings	field	-	instance rw ?Object
+<	Interpolant.stride	accessor	instance r number	-
 >	Interpolant.valueSize	field	-	instance rw TypedArray
+<	Interpolant.values	accessor	instance r ArrayLike<number>	-
 >	InterpolateBezier	const	-	const number
 >	InterpolateDiscrete	const	-	const number
 >	InterpolateLinear	const	-	const number
@@ -1973,34 +1864,13 @@
 <	Intersection	record	interface { distance: number; point: Vector3; face?: | { a: number; b: number; c: number; normal: Vector3 | undefined } | undefined; index?: number | undefined; object: RaycastObject }	-
 >	InvertStencilOp	const	-	const number
 >	KeepStencilOp	const	-	const number
->	KeyframeTrack	class	-	class
->	KeyframeTrack.InterpolantFactoryMethodBezier	method	-	instance (result?: TypedArray) => BezierInterpolant
->	KeyframeTrack.InterpolantFactoryMethodDiscrete	method	-	instance (result?: TypedArray) => DiscreteInterpolant
->	KeyframeTrack.InterpolantFactoryMethodLinear	method	-	instance (result?: TypedArray) => LinearInterpolant
->	KeyframeTrack.InterpolantFactoryMethodSmooth	method	-	instance (result?: TypedArray) => CubicInterpolant
->	KeyframeTrack.clone	method	-	instance () => KeyframeTrack
->	KeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<number|string|boolean>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth|InterpolateBezier)) => KeyframeTrack
->	KeyframeTrack.createInterpolant	field	-	instance rw ((result?: TypedArray) => LinearInterpolant) | ((result?: TypedArray) => CubicInterpolant) | undefined
->	KeyframeTrack.getInterpolation	method	-	instance () => (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth|InterpolateBezier)
->	KeyframeTrack.getValueSize	method	-	instance () => number
->	KeyframeTrack.name	field	-	instance rw string
->	KeyframeTrack.optimize	method	-	instance () => KeyframeTrack
->	KeyframeTrack.scale	method	-	instance (timeScale: number) => KeyframeTrack
->	KeyframeTrack.setInterpolation	method	-	instance (interpolation: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth|InterpolateBezier)) => KeyframeTrack
->	KeyframeTrack.shift	method	-	instance (timeOffset: number) => KeyframeTrack
->	KeyframeTrack.times	field	-	instance rw Float32Array
->	KeyframeTrack.toJSON	method	-	static (track: KeyframeTrack) => Object
->	KeyframeTrack.trim	method	-	instance (startTime: number, endTime: number) => KeyframeTrack
->	KeyframeTrack.validate	method	-	instance () => boolean
->	KeyframeTrack.values	field	-	instance rw Float32Array
 !	LOD	class	class extends Node	class extends Object3D
 !	LOD.addLevel	method	instance (object: Node, distance: number = 0, hysteresis: number = 0) => this	instance (object: Object3D, distance: number = 0, hysteresis: number = 0) => LOD
 >	LOD.autoUpdate	field	-	instance rw boolean
 <	LOD.clone	method	instance () => LOD	-
 !	LOD.constructor	constructor	instance ({ uuid = crypto.randomUUID() }: NodeOptions = {}) => LOD	instance () => LOD
 !	LOD.copy	method	instance (source: LOD) => this	instance (source: any) => this
-<	LOD.currentLevel	accessor	instance r number	-
->	LOD.getCurrentLevel	method	-	instance () => number
+!	LOD.currentLevel	accessor	instance r number	instance () => number
 !	LOD.getObjectForDistance	method	instance (distance: number) => Node | undefined	instance (distance: number) => ?Object3D
 !	LOD.isLOD	accessor/field	instance r true	instance ro boolean
 <	LOD.levels	accessor	instance r readonly LODLevel[]	-
@@ -2010,15 +1880,18 @@
 =	LOD.type	field	instance rw string	instance rw string
 !	LOD.update	method	instance (camera: Camera) => this	instance (camera: Camera) => void
 <	LODLevel	record	interface { readonly object: Node; readonly distance: number; readonly hysteresis: number }	-
-<	LambertMaterial	class	class extends Material	-
+=	LambertMaterial	class	class extends Material	class extends Material
 <	LambertMaterial.clone	method	instance () => LambertMaterial	-
-<	LambertMaterial.color	field	instance rw Color	-
-<	LambertMaterial.constructor	constructor	instance (options: LambertMaterialOptions = {}) => LambertMaterial	-
-<	LambertMaterial.copy	method	instance (source: LambertMaterial) => this	-
+=	LambertMaterial.color	field	instance rw Color	instance rw Color
+!	LambertMaterial.constructor	constructor	instance (options: LambertMaterialOptions = {}) => LambertMaterial	instance (parameters?: Object) => MeshLambertMaterial
+!	LambertMaterial.copy	method	instance (source: LambertMaterial) => this	instance (source: any) => this
+>	LambertMaterial.emissive	field	-	instance rw Color
+>	LambertMaterial.envMapRotation	field	-	instance rw Euler
 <	LambertMaterial.isLambertMaterial	accessor	instance r true	-
+>	LambertMaterial.isMeshLambertMaterial	field	-	instance ro boolean
 <	LambertMaterial.map	field	instance rw Texture | undefined	-
 <	LambertMaterial.toJSON	method	instance () => LambertMaterialJSON	-
-<	LambertMaterial.type	field	instance rw string	-
+=	LambertMaterial.type	field	instance rw string	instance rw string
 <	LambertMaterialJSON	record	interface extends MaterialJSON { color: number; map?: string }	-
 <	LambertMaterialOptions	record	interface extends MaterialOptions { readonly color?: Color | number | string; readonly map?: Texture | undefined }	-
 !	LatheGeometry	class	class extends Geometry	class extends BufferGeometry
@@ -2103,14 +1976,6 @@
 <	Line3.lengthSq	accessor	instance r number	-
 =	Line3.set	method	instance (start: Vector3, end: Vector3) => Line3	instance (start: Vector3, end: Vector3) => Line3
 !	Line3.start	accessor/field	instance rw Vector3	instance rw Vector3
->	LineBasicMaterial	class	-	class extends Material
->	LineBasicMaterial.color	field	-	instance rw Color
->	LineBasicMaterial.constructor	constructor	-	instance (parameters?: Object) => LineBasicMaterial
->	LineBasicMaterial.copy	method	-	instance (source: any) => this
->	LineBasicMaterial.isLineBasicMaterial	field	-	instance ro boolean
->	LineBasicMaterial.linecap	field	-	instance rw ('butt'|'round'|'square')
->	LineBasicMaterial.linejoin	field	-	instance rw ('round'|'bevel'|'miter')
->	LineBasicMaterial.type	field	-	instance rw string
 =	LineCurve	class	class extends Curve	class extends Curve
 <	LineCurve.clone	method	instance () => LineCurve	-
 =	LineCurve.constructor	constructor	instance (v1: Vector2 = new Vector2(), v2: Vector2 = new Vector2()) => LineCurve	instance (v1: Vector2 = new Vector2(), v2: Vector2 = new Vector2()) => LineCurve
@@ -2141,25 +2006,23 @@
 =	LineCurve3.type	field	instance rw string	instance rw string
 !	LineCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	LineCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector2
->	LineDashedMaterial	class	-	class extends LineBasicMaterial
->	LineDashedMaterial.constructor	constructor	-	instance (parameters?: Object) => LineDashedMaterial
->	LineDashedMaterial.copy	method	-	instance (source: any) => this
->	LineDashedMaterial.isLineDashedMaterial	field	-	instance ro boolean
->	LineDashedMaterial.type	field	-	instance rw string
 =	LineLoop	class	class extends Line	class extends Line
 <	LineLoop.clone	method	instance () => LineLoop	-
 !	LineLoop.constructor	constructor	instance (geometry: Geometry | undefined = void 0, material: LineMaterial | undefined = void 0) => LineLoop	instance (geometry?: BufferGeometry, material?: Material|Array<Material>) => LineLoop
 !	LineLoop.isLineLoop	accessor/field	instance r true	instance ro boolean
 =	LineLoop.type	field	instance rw string	instance rw string
-<	LineMaterial	class	class extends Material	-
+=	LineMaterial	class	class extends Material	class extends Material
 <	LineMaterial.clone	method	instance () => LineMaterial	-
-<	LineMaterial.color	field	instance rw Color	-
-<	LineMaterial.constructor	constructor	instance (options: LineMaterialOptions = {}) => LineMaterial	-
-<	LineMaterial.copy	method	instance (source: LineMaterial) => this	-
+=	LineMaterial.color	field	instance rw Color	instance rw Color
+!	LineMaterial.constructor	constructor	instance (options: LineMaterialOptions = {}) => LineMaterial	instance (parameters?: Object) => LineBasicMaterial
+!	LineMaterial.copy	method	instance (source: LineMaterial) => this	instance (source: any) => this
+>	LineMaterial.isLineBasicMaterial	field	-	instance ro boolean
 <	LineMaterial.isLineMaterial	accessor	instance r true	-
+>	LineMaterial.linecap	field	-	instance rw ('butt'|'round'|'square')
+>	LineMaterial.linejoin	field	-	instance rw ('round'|'bevel'|'miter')
 <	LineMaterial.linewidth	accessor	instance rw number	-
 <	LineMaterial.toJSON	method	instance () => LineMaterialJSON	-
-<	LineMaterial.type	field	instance rw string	-
+=	LineMaterial.type	field	instance rw string	instance rw string
 <	LineMaterialJSON	record	interface extends MaterialJSON { color: number; linewidth: number }	-
 <	LineMaterialOptions	record	interface extends MaterialOptions { readonly color?: Color | number | string; readonly linewidth?: number }	-
 =	LineSegments	class	class extends Line	class extends Line
@@ -2169,9 +2032,9 @@
 !	LineSegments.isLineSegments	accessor/field	instance r true	instance ro boolean
 =	LineSegments.type	field	instance rw string	instance rw string
 >	LinearFilter	const	-	const number
->	LinearInterpolant	class	-	class extends Interpolant
->	LinearInterpolant.constructor	constructor	-	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => LinearInterpolant
->	LinearInterpolant.interpolate_	method	-	instance (i1: any, t0: any, t: any, t1: any) => TypedArray
+=	LinearInterpolant	class	class extends Interpolant	class extends Interpolant
+!	LinearInterpolant.constructor	constructor	instance (positions: ArrayLike<number>, values: ArrayLike<number>, stride: number, result?: number[] | undefined) => LinearInterpolant	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => LinearInterpolant
+!	LinearInterpolant.interpolate_	method	instance (i1: number, t0: number, t: number, t1: number) => number[]	instance (i1: any, t0: any, t: any, t1: any) => TypedArray
 >	LinearMipMapLinearFilter	const	-	const 1008
 >	LinearMipMapNearestFilter	const	-	const 1007
 >	LinearMipmapLinearFilter	const	-	const number
@@ -2184,20 +2047,20 @@
 !	Loader.abort	method	instance () => this	instance () => Loader
 <	Loader.cache	accessor	instance rw Cache<string, unknown> | undefined	-
 !	Loader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => Loader	instance (manager?: LoadingManager) => Loader
-!	Loader.crossOrigin	accessor/field	instance rw string	instance rw string
+!	Loader.crossOrigin	accessor	instance rw string	instance (crossOrigin: string) => Loader
+>	Loader.crossOrigin	field	-	instance rw string
 !	Loader.load	method	instance (_url: string, _onLoad: ((data: unknown) => void) | undefined, _onProgress: ((event: ProgressEvent) => void) | undefined, _onError: ((err: unknown) => void) | undefined) => void	instance (url: string, onLoad: Function, onProgress?: onProgressCallback, onError?: onErrorCallback) => void
 !	Loader.loadAsync	method	instance (url: string, onProgress?: (event: ProgressEvent) => void) => Promise<unknown>	instance (url: string, onProgress?: onProgressCallback) => Promise
 !	Loader.manager	accessor/field	instance r LoadingManager	instance rw LoadingManager
 !	Loader.parse	method	instance (_data: unknown) => unknown	instance (data: any) => void
-!	Loader.path	accessor/field	instance rw string	instance rw string
-!	Loader.requestHeader	accessor/field	instance rw Readonly<Record<string, string>>	instance rw Object<string, any>
-!	Loader.resourcePath	accessor/field	instance rw string	instance rw string
->	Loader.setCrossOrigin	method	-	instance (crossOrigin: string) => Loader
->	Loader.setPath	method	-	instance (path: string) => Loader
->	Loader.setRequestHeader	method	-	instance (requestHeader: Object) => Loader
->	Loader.setResourcePath	method	-	instance (resourcePath: string) => Loader
->	Loader.setWithCredentials	method	-	instance (value: boolean) => Loader
-!	Loader.withCredentials	accessor/field	instance rw boolean	instance rw boolean
+!	Loader.path	accessor	instance rw string	instance (path: string) => Loader
+>	Loader.path	field	-	instance rw string
+!	Loader.requestHeader	accessor	instance rw Readonly<Record<string, string>>	instance (requestHeader: Object) => Loader
+>	Loader.requestHeader	field	-	instance rw Object<string, any>
+!	Loader.resourcePath	accessor	instance rw string	instance (resourcePath: string) => Loader
+>	Loader.resourcePath	field	-	instance rw string
+!	Loader.withCredentials	accessor	instance rw boolean	instance (value: boolean) => Loader
+>	Loader.withCredentials	field	-	instance rw boolean
 <	LoaderHandler	record	type = Loader	-
 >	LoaderUtils	class	-	class
 >	LoaderUtils.constructor	constructor	-	instance () => LoaderUtils
@@ -2409,8 +2272,8 @@
 !	MaterialLoader.load	method	instance (url: string, onLoad?: ((material: Material) => void) | undefined, onProgress?: ((event: ProgressEvent) => void) | undefined, onError?: ((err: unknown) => void) | undefined) => void	instance (url: string, onLoad: function(Material), onProgress: onProgressCallback, onError: onErrorCallback) => void
 !	MaterialLoader.parse	method	instance (json: MaterialJSON | MaterialRecord) => Material	instance (json: Object) => Material
 >	MaterialLoader.registerMaterial	method	-	static (type: string, materialClass: Material.constructor) => void
->	MaterialLoader.setTextures	method	-	instance (value: Object) => MaterialLoader
-!	MaterialLoader.textures	accessor/field	instance rw ReadonlyMap<string, Texture>	instance rw Object<string,Texture>
+!	MaterialLoader.textures	accessor	instance rw ReadonlyMap<string, Texture>	instance (value: Object) => MaterialLoader
+>	MaterialLoader.textures	field	-	instance rw Object<string,Texture>
 <	MaterialOptions	record	interface { readonly name?: string; readonly layer?: number; readonly opacity?: number; readonly transparent?: boolean; readonly depthTest?: boolean; readonly depthWrite?: boolean; readonly shading?: number; readonly side?: number; readonly visible?: boolean; readonly wireframe?: boolean; readonly vertexColors?: boolean }	-
 >	MathUtils	const	-	const { DEG2RAD: number; RAD2DEG: number; generateUUID: () => string; clamp: (value: number, min: number, max: number) => number; euclideanModulo: (n: number, m: number) => number; mapLinear: (x: number, a1: number, a2: number, b1: number, b2: number) => number; inverseLerp: (x: number, y: number, value: number) => number; lerp: (x: number, y: number, t: number) => number; damp: (x: number, y: number, lambda: number, dt: number) => number; pingpong: (x: number, length?: number) => number; smoothstep: (x: number, min: number, max: number) => number; smootherstep: (x: number, min: number, max: number) => number; randInt: (low: number, high: number) => number; randFloat: (low: number, high: number) => number; randFloatSpread: (range: number) => number; seededRandom: (s?: number) => number; degToRad: (degrees: number) => number; radToDeg: (radians: number) => number; isPowerOfTwo: (value: number) => boolean; ceilPowerOfTwo: (value: number) => number; floorPowerOfTwo: (value: number) => number; setQuaternionFromProperEuler: (q: Quaternion, a: number, b: number, c: number, order: ("XYX" | "XZX" | "YXY" | "YZY" | "ZXZ" | "ZYZ")) => void; normalize: (value: number, array: TypedArray) => number; denormalize: (value: number, array: TypedArray) => number; }
 =	Matrix2	class	class	class
@@ -2420,7 +2283,7 @@
 !	Matrix2.identity	method	instance () => this	instance () => Matrix2
 !	Matrix2.set	method	instance (n11: number, n12: number, n21: number, n22: number) => this	instance (n11: number, n12: number, n21: number, n22: number) => Matrix2
 =	Matrix3	class	class	class
-<	Matrix3.__@iterator@3198	method	instance () => Generator<number, any, any>	-
+<	Matrix3.__@iterator@3245	method	instance () => Generator<number, any, any>	-
 =	Matrix3.clone	method	instance () => Matrix3	instance () => Matrix3
 <	Matrix3.compose	method	instance (position: Vector2, rotation: number, scale: Vector2) => this	-
 !	Matrix3.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix3	instance (n11?: number, n12?: number, n13?: number, n21?: number, n22?: number, n23?: number, n31?: number, n32?: number, n33?: number) => Matrix3
@@ -2455,7 +2318,7 @@
 <	Matrix3.transposeInto	method	instance (values: number[] | Float32Array<ArrayBufferLike>) => this	-
 >	Matrix3.transposeIntoArray	method	-	instance (r: Array<number>) => Matrix3
 =	Matrix4	class	class	class
-<	Matrix4.__@iterator@3198	method	instance () => Generator<number, any, any>	-
+<	Matrix4.__@iterator@3245	method	instance () => Generator<number, any, any>	-
 =	Matrix4.clone	method	instance () => Matrix4	instance () => Matrix4
 !	Matrix4.compose	method	instance (position: Vector3, q: Quaternion, scale: Vector3) => this	instance (position: Vector3, quaternion: Quaternion, scale: Vector3) => Matrix4
 !	Matrix4.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix4	instance (n11?: number, n12?: number, n13?: number, n14?: number, n21?: number, n22?: number, n23?: number, n24?: number, n31?: number, n32?: number, n33?: number, n34?: number, n41?: number, n42?: number, n43?: number, n44?: number) => Matrix4
@@ -2471,7 +2334,6 @@
 !	Matrix4.extractRotation	method	instance (m: Matrix4) => this	instance (m: Matrix4) => Matrix4
 <	Matrix4.extractScale	method	instance (scale: Vector3) => this	-
 !	Matrix4.fromArray	method	instance (values: ArrayLike<number>, offset: number = 0) => this	instance (array: Array<number>, offset: number = 0) => Matrix4
->	Matrix4.getMaxScaleOnAxis	method	-	instance () => number
 !	Matrix4.identity	method	instance () => this	instance () => Matrix4
 !	Matrix4.invert	method	instance () => this	instance () => Matrix4
 !	Matrix4.lookAt	method	instance (eye: Vector3, target: Vector3, up: Vector3) => this	instance (eye: Vector3, target: Vector3, up: Vector3) => Matrix4
@@ -2487,7 +2349,7 @@
 !	Matrix4.makeScale	method	instance (x: number, y: number, z: number) => this	instance (x: number, y: number, z: number) => Matrix4
 !	Matrix4.makeShear	method	instance (xy: number, xz: number, yx: number, yz: number, zx: number, zy: number) => this	instance (xy: number, xz: number, yx: number, yz: number, zx: number, zy: number) => Matrix4
 !	Matrix4.makeTranslation	method	instance (x: number, y: number, z: number) => this	instance (x: number|Vector3, y: number, z: number) => Matrix4
-<	Matrix4.maxScaleOnAxis	accessor	instance r number	-
+!	Matrix4.maxScaleOnAxis	accessor	instance r number	instance () => number
 !	Matrix4.multiply	method	instance (m: Matrix4) => this	instance (m: Matrix4) => Matrix4
 !	Matrix4.multiplyMatrices	method	instance (a: Matrix4, b: Matrix4) => this	instance (a: Matrix4, b: Matrix4) => Matrix4
 <	Matrix4.multiplyMatricesAffine	method	instance (a: Matrix4, b: Matrix4) => this	-
@@ -2515,13 +2377,6 @@
 !	Mesh.raycast	method	instance (raycaster: Raycaster, intersects: Intersection[]) => void	instance (raycaster: Raycaster, intersects: Array<Object>) => void
 =	Mesh.type	field	instance rw string	instance rw string
 =	Mesh.updateMorphTargets	method	instance () => void	instance () => void
->	MeshBasicMaterial	class	-	class extends Material
->	MeshBasicMaterial.color	field	-	instance rw Color
->	MeshBasicMaterial.constructor	constructor	-	instance (parameters?: Object) => MeshBasicMaterial
->	MeshBasicMaterial.copy	method	-	instance (source: any) => this
->	MeshBasicMaterial.envMapRotation	field	-	instance rw Euler
->	MeshBasicMaterial.isMeshBasicMaterial	field	-	instance ro boolean
->	MeshBasicMaterial.type	field	-	instance rw string
 >	MeshDepthMaterial	class	-	class extends Material
 >	MeshDepthMaterial.constructor	constructor	-	instance (parameters?: Object) => MeshDepthMaterial
 >	MeshDepthMaterial.copy	method	-	instance (source: any) => this
@@ -2533,14 +2388,6 @@
 >	MeshDistanceMaterial.copy	method	-	instance (source: any) => this
 >	MeshDistanceMaterial.isMeshDistanceMaterial	field	-	instance ro boolean
 >	MeshDistanceMaterial.type	field	-	instance rw string
->	MeshLambertMaterial	class	-	class extends Material
->	MeshLambertMaterial.color	field	-	instance rw Color
->	MeshLambertMaterial.constructor	constructor	-	instance (parameters?: Object) => MeshLambertMaterial
->	MeshLambertMaterial.copy	method	-	instance (source: any) => this
->	MeshLambertMaterial.emissive	field	-	instance rw Color
->	MeshLambertMaterial.envMapRotation	field	-	instance rw Euler
->	MeshLambertMaterial.isMeshLambertMaterial	field	-	instance ro boolean
->	MeshLambertMaterial.type	field	-	instance rw string
 >	MeshMatcapMaterial	class	-	class extends Material
 >	MeshMatcapMaterial.color	field	-	instance rw Color
 >	MeshMatcapMaterial.constructor	constructor	-	instance (parameters?: Object) => MeshMatcapMaterial
@@ -2691,69 +2538,85 @@
 >	NoColorSpace	const	-	const string
 !	NoNormalPacking	const	const ""	const string
 >	NoToneMapping	const	-	const number
-<	Node	class	class extends EventDispatcher	-
-<	Node.add	method	instance (...objects: Node[]) => this	-
-<	Node.applyMatrix4	method	instance (matrix: Matrix4) => this	-
-<	Node.applyQuaternion	method	instance (quaternion: Quaternion) => this	-
-<	Node.attach	method	instance (object: Node) => this	-
-<	Node.children	field	instance rw Node[]	-
-<	Node.clear	method	instance () => this	-
-<	Node.clone	method	instance () => Node	-
-<	Node.constructor	constructor	instance ({ uuid = crypto.randomUUID() }: NodeOptions = {}) => Node	-
-<	Node.copy	method	instance (source: Node, recursive: boolean = true) => this	-
-<	Node.frustumCulled	field	instance rw boolean	-
-<	Node.getObjectById	method	instance (id: number) => Node | undefined	-
-<	Node.getObjectByName	method	instance (name: string) => Node | undefined	-
-<	Node.getObjectByProperty	method	instance <K extends keyof Node>(property: K, value: Node[K]) => Node | undefined	-
-<	Node.getObjectsByProperty	method	instance <K extends keyof Node>(property: K, value: Node[K], result: Node[] = []) => Node[]	-
-<	Node.getWorldDirection	method	instance (target: Vector3) => Vector3	-
-<	Node.getWorldPosition	method	instance (target: Vector3) => Vector3	-
-<	Node.getWorldQuaternion	method	instance (target: Quaternion) => Quaternion	-
-<	Node.getWorldScale	method	instance (target: Vector3) => Vector3	-
+=	Node	class	class extends EventDispatcher	class extends EventDispatcher
+>	Node.DEFAULT_MATRIX_AUTO_UPDATE	field	-	static rw boolean
+>	Node.DEFAULT_MATRIX_WORLD_AUTO_UPDATE	field	-	static rw boolean
+>	Node.DEFAULT_UP	field	-	static rw Vector3
+!	Node.add	method	instance (...objects: Node[]) => this	instance (object: Object3D, ...args: any[]) => Object3D
+>	Node.animations	field	-	instance rw Array<AnimationClip>
+!	Node.applyMatrix4	method	instance (matrix: Matrix4) => this	instance (matrix: Matrix4) => void
+!	Node.applyQuaternion	method	instance (quaternion: Quaternion) => this	instance (q: Quaternion) => Object3D
+!	Node.attach	method	instance (object: Node) => this	instance (object: Object3D) => Object3D
+>	Node.castShadow	field	-	instance rw boolean
+!	Node.children	field	instance rw Node[]	instance rw Array<Object3D>
+!	Node.clear	method	instance () => this	instance () => Object3D
+!	Node.clone	method	instance () => Node	instance (recursive: boolean = true) => Object3D
+!	Node.constructor	constructor	instance ({ uuid = crypto.randomUUID() }: NodeOptions = {}) => Node	instance () => Object3D
+!	Node.copy	method	instance (source: Node, recursive: boolean = true) => this	instance (source: Object3D, recursive: boolean = true) => Object3D
+>	Node.customDepthMaterial	field	-	instance rw (Material|undefined)
+>	Node.customDistanceMaterial	field	-	instance rw (Material|undefined)
+=	Node.frustumCulled	field	instance rw boolean	instance rw boolean
+!	Node.getObjectById	method	instance (id: number) => Node | undefined	instance (id: number) => Object3D|undefined
+!	Node.getObjectByName	method	instance (name: string) => Node | undefined	instance (name: string) => Object3D|undefined
+!	Node.getObjectByProperty	method	instance <K extends keyof Node>(property: K, value: Node[K]) => Node | undefined	instance (name: string, value: any) => Object3D|undefined
+!	Node.getObjectsByProperty	method	instance <K extends keyof Node>(property: K, value: Node[K], result: Node[] = []) => Node[]	instance (name: string, value: any, result: Array<Object3D> = []) => Array<Object3D>
+=	Node.getWorldDirection	method	instance (target: Vector3) => Vector3	instance (target: Vector3) => Vector3
+=	Node.getWorldPosition	method	instance (target: Vector3) => Vector3	instance (target: Vector3) => Vector3
+=	Node.getWorldQuaternion	method	instance (target: Quaternion) => Quaternion	instance (target: Quaternion) => Quaternion
+=	Node.getWorldScale	method	instance (target: Vector3) => Vector3	instance (target: Vector3) => Vector3
 <	Node.id	field	instance rw number	-
-<	Node.isObject3D	field	instance ro boolean	-
-<	Node.layers	field	instance rw Layers	-
-<	Node.localToWorld	method	instance (vector: Vector3) => Vector3	-
-<	Node.lookAt	method	instance (target: Vector3 | number, y?: number, z?: number) => this	-
-<	Node.matrix	field	instance rw Matrix4	-
-<	Node.matrixAutoUpdate	accessor	instance rw boolean	-
-<	Node.matrixWorld	field	instance rw Matrix4	-
-<	Node.matrixWorldAutoUpdate	field	instance rw boolean	-
-<	Node.matrixWorldNeedsUpdate	field	instance rw boolean	-
-<	Node.name	field	instance rw string	-
-<	Node.parent	field	instance rw Node | undefined	-
-<	Node.pivot	field	instance rw Vector3 | undefined	-
+=	Node.isObject3D	field	instance ro boolean	instance ro boolean
+=	Node.layers	field	instance rw Layers	instance rw Layers
+=	Node.localToWorld	method	instance (vector: Vector3) => Vector3	instance (vector: Vector3) => Vector3
+!	Node.lookAt	method	instance (target: Vector3 | number, y?: number, z?: number) => this	instance (x: number|Vector3, y?: number, z?: number) => void
+=	Node.matrix	field	instance rw Matrix4	instance rw Matrix4
+!	Node.matrixAutoUpdate	accessor/field	instance rw boolean	instance rw boolean
+=	Node.matrixWorld	field	instance rw Matrix4	instance rw Matrix4
+=	Node.matrixWorldAutoUpdate	field	instance rw boolean	instance rw boolean
+=	Node.matrixWorldNeedsUpdate	field	instance rw boolean	instance rw boolean
+=	Node.name	field	instance rw string	instance rw string
+>	Node.onAfterRender	method	-	instance (renderer: Renderer|WebGLRenderer, object: Object3D, camera: Camera, geometry: BufferGeometry, material: Material, group: Object) => void
+>	Node.onAfterShadow	method	-	instance (renderer: Renderer|WebGLRenderer, object: Object3D, camera: Camera, shadowCamera: Camera, geometry: BufferGeometry, depthMaterial: Material, group: Object) => void
+>	Node.onBeforeRender	method	-	instance (renderer: Renderer|WebGLRenderer, object: Object3D, camera: Camera, geometry: BufferGeometry, material: Material, group: Object) => void
+>	Node.onBeforeShadow	method	-	instance (renderer: Renderer|WebGLRenderer, object: Object3D, camera: Camera, shadowCamera: Camera, geometry: BufferGeometry, depthMaterial: Material, group: Object) => void
+!	Node.parent	field	instance rw Node | undefined	instance rw ?Object3D
+!	Node.pivot	field	instance rw Vector3 | undefined	instance rw ?Vector3
 <	Node.position	field	instance rw Vector3	-
 <	Node.quaternion	accessor	instance rw Quaternion	-
-<	Node.remove	method	instance (...objects: Node[]) => this	-
-<	Node.removeFromParent	method	instance () => this	-
-<	Node.rotateOnAxis	method	instance (axis: Vector3, angle: number) => this	-
-<	Node.rotateOnWorldAxis	method	instance (axis: Vector3, angle: number) => this	-
-<	Node.rotateX	method	instance (angle: number) => this	-
-<	Node.rotateY	method	instance (angle: number) => this	-
-<	Node.rotateZ	method	instance (angle: number) => this	-
+>	Node.raycast	method	-	instance (raycaster: Raycaster, intersects: Array<Object>) => void
+>	Node.receiveShadow	field	-	instance rw boolean
+!	Node.remove	method	instance (...objects: Node[]) => this	instance (object: Object3D, ...args: any[]) => Object3D
+!	Node.removeFromParent	method	instance () => this	instance () => Object3D
+>	Node.renderOrder	field	-	instance rw number
+!	Node.rotateOnAxis	method	instance (axis: Vector3, angle: number) => this	instance (axis: Vector3, angle: number) => Object3D
+!	Node.rotateOnWorldAxis	method	instance (axis: Vector3, angle: number) => this	instance (axis: Vector3, angle: number) => Object3D
+!	Node.rotateX	method	instance (angle: number) => this	instance (angle: number) => Object3D
+!	Node.rotateY	method	instance (angle: number) => this	instance (angle: number) => Object3D
+!	Node.rotateZ	method	instance (angle: number) => this	instance (angle: number) => Object3D
 <	Node.rotation	accessor	instance rw Euler	-
 <	Node.scale	field	instance rw Vector3	-
-<	Node.setRotationFromAxisAngle	method	instance (axis: Vector3, angle: number) => this	-
-<	Node.setRotationFromEuler	method	instance (euler: Euler) => this	-
-<	Node.setRotationFromMatrix	method	instance (matrix: Matrix4) => this	-
-<	Node.setRotationFromQuaternion	method	instance (quaternion: Quaternion) => this	-
-<	Node.toJSON	method	instance () => NodeJSON	-
-<	Node.translateOnAxis	method	instance (axis: Vector3, distance: number) => this	-
-<	Node.translateX	method	instance (distance: number) => this	-
-<	Node.translateY	method	instance (distance: number) => this	-
-<	Node.translateZ	method	instance (distance: number) => this	-
-<	Node.traverse	method	instance (callback: (node: Node) => void) => void	-
-<	Node.traverseAncestors	method	instance (callback: (node: Node) => void) => void	-
-<	Node.traverseVisible	method	instance (callback: (node: Node) => void) => void	-
-<	Node.type	field	instance rw string	-
-<	Node.up	field	instance rw Vector3	-
-<	Node.updateMatrix	method	instance () => void	-
-<	Node.updateMatrixWorld	method	instance (updateParents: boolean = false, updateChildren: boolean = true, force: boolean = false) => void	-
-<	Node.userData	field	instance rw Record<string, unknown>	-
-<	Node.uuid	field	instance ro string	-
-<	Node.visible	field	instance rw boolean	-
-<	Node.worldToLocal	method	instance (vector: Vector3) => Vector3	-
+!	Node.setRotationFromAxisAngle	method	instance (axis: Vector3, angle: number) => this	instance (axis: Vector3, angle: number) => void
+!	Node.setRotationFromEuler	method	instance (euler: Euler) => this	instance (euler: Euler) => void
+!	Node.setRotationFromMatrix	method	instance (matrix: Matrix4) => this	instance (m: Matrix4) => void
+!	Node.setRotationFromQuaternion	method	instance (quaternion: Quaternion) => this	instance (q: Quaternion) => void
+>	Node.static	field	-	instance rw boolean
+!	Node.toJSON	method	instance () => NodeJSON	instance (meta: ?(Object|string)) => Object
+!	Node.translateOnAxis	method	instance (axis: Vector3, distance: number) => this	instance (axis: Vector3, distance: number) => Object3D
+!	Node.translateX	method	instance (distance: number) => this	instance (distance: number) => Object3D
+!	Node.translateY	method	instance (distance: number) => this	instance (distance: number) => Object3D
+!	Node.translateZ	method	instance (distance: number) => this	instance (distance: number) => Object3D
+!	Node.traverse	method	instance (callback: (node: Node) => void) => void	instance (callback: Function) => void
+!	Node.traverseAncestors	method	instance (callback: (node: Node) => void) => void	instance (callback: Function) => void
+!	Node.traverseVisible	method	instance (callback: (node: Node) => void) => void	instance (callback: Function) => void
+!	Node.type	field	instance rw string	instance ro string
+=	Node.up	field	instance rw Vector3	instance rw Vector3
+=	Node.updateMatrix	method	instance () => void	instance () => void
+!	Node.updateMatrixWorld	method	instance (updateParents: boolean = false, updateChildren: boolean = true, force: boolean = false) => void	instance (force: boolean = false) => void
+>	Node.updateWorldMatrix	method	-	instance (updateParents: boolean = false, updateChildren: boolean = false, force: boolean = false) => void
+!	Node.userData	field	instance rw Record<string, unknown>	instance rw Object
+=	Node.uuid	field	instance ro string	instance ro string
+=	Node.visible	field	instance rw boolean	instance rw boolean
+=	Node.worldToLocal	method	instance (vector: Vector3) => Vector3	instance (vector: Vector3) => Vector3
 <	NodeJSON	record	interface { uuid: string; type: string; name?: string; visible?: false; userData?: Record<string, unknown>; position: [number, number, number]; quaternion: [number, number, number, number]; scale: [number, number, number]; up: [number, number, number]; pivot?: [number, number, number]; children?: NodeJSON[] }	-
 <	NodeOptions	record	interface { uuid?: string }	-
 >	NormalAnimationBlendMode	const	-	const number
@@ -2800,80 +2663,6 @@
 <	OBJLoader.setMaterials	method	instance (value: OBJMaterialTable | undefined) => this	-
 <	OBJLoaderOptions	record	interface { readonly materials?: OBJMaterialTable }	-
 <	OBJMaterialTable	record	type = | Readonly<Record<string, Material>> | Pick<MTLLoaderResult, "materials" | "definitions">	-
->	Object3D	class	-	class extends EventDispatcher
->	Object3D.DEFAULT_MATRIX_AUTO_UPDATE	field	-	static rw boolean
->	Object3D.DEFAULT_MATRIX_WORLD_AUTO_UPDATE	field	-	static rw boolean
->	Object3D.DEFAULT_UP	field	-	static rw Vector3
->	Object3D.add	method	-	instance (object: Object3D, ...args: any[]) => Object3D
->	Object3D.animations	field	-	instance rw Array<AnimationClip>
->	Object3D.applyMatrix4	method	-	instance (matrix: Matrix4) => void
->	Object3D.applyQuaternion	method	-	instance (q: Quaternion) => Object3D
->	Object3D.attach	method	-	instance (object: Object3D) => Object3D
->	Object3D.castShadow	field	-	instance rw boolean
->	Object3D.children	field	-	instance rw Array<Object3D>
->	Object3D.clear	method	-	instance () => Object3D
->	Object3D.clone	method	-	instance (recursive: boolean = true) => Object3D
->	Object3D.constructor	constructor	-	instance () => Object3D
->	Object3D.copy	method	-	instance (source: Object3D, recursive: boolean = true) => Object3D
->	Object3D.customDepthMaterial	field	-	instance rw (Material|undefined)
->	Object3D.customDistanceMaterial	field	-	instance rw (Material|undefined)
->	Object3D.frustumCulled	field	-	instance rw boolean
->	Object3D.getObjectById	method	-	instance (id: number) => Object3D|undefined
->	Object3D.getObjectByName	method	-	instance (name: string) => Object3D|undefined
->	Object3D.getObjectByProperty	method	-	instance (name: string, value: any) => Object3D|undefined
->	Object3D.getObjectsByProperty	method	-	instance (name: string, value: any, result: Array<Object3D> = []) => Array<Object3D>
->	Object3D.getWorldDirection	method	-	instance (target: Vector3) => Vector3
->	Object3D.getWorldPosition	method	-	instance (target: Vector3) => Vector3
->	Object3D.getWorldQuaternion	method	-	instance (target: Quaternion) => Quaternion
->	Object3D.getWorldScale	method	-	instance (target: Vector3) => Vector3
->	Object3D.isObject3D	field	-	instance ro boolean
->	Object3D.layers	field	-	instance rw Layers
->	Object3D.localToWorld	method	-	instance (vector: Vector3) => Vector3
->	Object3D.lookAt	method	-	instance (x: number|Vector3, y?: number, z?: number) => void
->	Object3D.matrix	field	-	instance rw Matrix4
->	Object3D.matrixAutoUpdate	field	-	instance rw boolean
->	Object3D.matrixWorld	field	-	instance rw Matrix4
->	Object3D.matrixWorldAutoUpdate	field	-	instance rw boolean
->	Object3D.matrixWorldNeedsUpdate	field	-	instance rw boolean
->	Object3D.name	field	-	instance rw string
->	Object3D.onAfterRender	method	-	instance (renderer: Renderer|WebGLRenderer, object: Object3D, camera: Camera, geometry: BufferGeometry, material: Material, group: Object) => void
->	Object3D.onAfterShadow	method	-	instance (renderer: Renderer|WebGLRenderer, object: Object3D, camera: Camera, shadowCamera: Camera, geometry: BufferGeometry, depthMaterial: Material, group: Object) => void
->	Object3D.onBeforeRender	method	-	instance (renderer: Renderer|WebGLRenderer, object: Object3D, camera: Camera, geometry: BufferGeometry, material: Material, group: Object) => void
->	Object3D.onBeforeShadow	method	-	instance (renderer: Renderer|WebGLRenderer, object: Object3D, camera: Camera, shadowCamera: Camera, geometry: BufferGeometry, depthMaterial: Material, group: Object) => void
->	Object3D.parent	field	-	instance rw ?Object3D
->	Object3D.pivot	field	-	instance rw ?Vector3
->	Object3D.raycast	method	-	instance (raycaster: Raycaster, intersects: Array<Object>) => void
->	Object3D.receiveShadow	field	-	instance rw boolean
->	Object3D.remove	method	-	instance (object: Object3D, ...args: any[]) => Object3D
->	Object3D.removeFromParent	method	-	instance () => Object3D
->	Object3D.renderOrder	field	-	instance rw number
->	Object3D.rotateOnAxis	method	-	instance (axis: Vector3, angle: number) => Object3D
->	Object3D.rotateOnWorldAxis	method	-	instance (axis: Vector3, angle: number) => Object3D
->	Object3D.rotateX	method	-	instance (angle: number) => Object3D
->	Object3D.rotateY	method	-	instance (angle: number) => Object3D
->	Object3D.rotateZ	method	-	instance (angle: number) => Object3D
->	Object3D.setRotationFromAxisAngle	method	-	instance (axis: Vector3, angle: number) => void
->	Object3D.setRotationFromEuler	method	-	instance (euler: Euler) => void
->	Object3D.setRotationFromMatrix	method	-	instance (m: Matrix4) => void
->	Object3D.setRotationFromQuaternion	method	-	instance (q: Quaternion) => void
->	Object3D.static	field	-	instance rw boolean
->	Object3D.toJSON	method	-	instance (meta: ?(Object|string)) => Object
->	Object3D.translateOnAxis	method	-	instance (axis: Vector3, distance: number) => Object3D
->	Object3D.translateX	method	-	instance (distance: number) => Object3D
->	Object3D.translateY	method	-	instance (distance: number) => Object3D
->	Object3D.translateZ	method	-	instance (distance: number) => Object3D
->	Object3D.traverse	method	-	instance (callback: Function) => void
->	Object3D.traverseAncestors	method	-	instance (callback: Function) => void
->	Object3D.traverseVisible	method	-	instance (callback: Function) => void
->	Object3D.type	field	-	instance ro string
->	Object3D.up	field	-	instance rw Vector3
->	Object3D.updateMatrix	method	-	instance () => void
->	Object3D.updateMatrixWorld	method	-	instance (force: boolean = false) => void
->	Object3D.updateWorldMatrix	method	-	instance (updateParents: boolean = false, updateChildren: boolean = false, force: boolean = false) => void
->	Object3D.userData	field	-	instance rw Object
->	Object3D.uuid	field	-	instance ro string
->	Object3D.visible	field	-	instance rw boolean
->	Object3D.worldToLocal	method	-	instance (vector: Vector3) => Vector3
 =	ObjectLoader	class	class extends Loader	class extends Loader
 !	ObjectLoader.bindLightTargets	method	instance (object: Node, lights: Map<string, Light> | Node[]) => void	instance (object: any) => void
 !	ObjectLoader.bindSkeletons	method	instance (object: Node, skeletons: Map<string, Skeleton>) => void	instance (object: any, skeletons: any) => void
@@ -3063,24 +2852,20 @@
 <	PerspectiveCamera.clone	method	instance () => PerspectiveCamera	-
 !	PerspectiveCamera.constructor	constructor	instance ({ fov = 45, aspect = 1, near = 0.1, far = 2000, tileSize = 1, zoom = 1, }: PerspectiveCameraOptions = {}) => PerspectiveCamera	instance (fov: number = 50, aspect: number = 1, near: number = 0.1, far: number = 2000) => PerspectiveCamera
 !	PerspectiveCamera.copy	method	instance (source: Camera, recursive: boolean = true) => this	instance (source: any, recursive: any) => this
-<	PerspectiveCamera.effectiveFOV	accessor	instance r number	-
+!	PerspectiveCamera.effectiveFOV	accessor	instance r number	instance () => number
 >	PerspectiveCamera.far	field	-	instance rw number
 =	PerspectiveCamera.filmGauge	field	instance rw number	instance rw number
-<	PerspectiveCamera.filmHeight	accessor	instance r number	-
+!	PerspectiveCamera.filmHeight	accessor	instance r number	instance () => number
 =	PerspectiveCamera.filmOffset	field	instance rw number	instance rw number
-<	PerspectiveCamera.filmWidth	accessor	instance r number	-
-<	PerspectiveCamera.focalLength	accessor	instance rw number	-
+!	PerspectiveCamera.filmWidth	accessor	instance r number	instance () => number
+!	PerspectiveCamera.focalLength	accessor	instance rw number	instance () => number
+>	PerspectiveCamera.focalLength	accessor	-	instance (focalLength: number) => void
 =	PerspectiveCamera.focus	field	instance rw number	instance rw number
 !	PerspectiveCamera.fov	accessor/field	instance rw number	instance rw number
->	PerspectiveCamera.getEffectiveFOV	method	-	instance () => number
->	PerspectiveCamera.getFilmHeight	method	-	instance () => number
->	PerspectiveCamera.getFilmWidth	method	-	instance () => number
->	PerspectiveCamera.getFocalLength	method	-	instance () => number
 >	PerspectiveCamera.getViewBounds	method	-	instance (distance: number, minTarget: Vector2, maxTarget: Vector2) => void
 >	PerspectiveCamera.getViewSize	method	-	instance (distance: number, target: Vector2) => Vector2
 !	PerspectiveCamera.isPerspectiveCamera	field	instance ro true	instance ro boolean
 >	PerspectiveCamera.near	field	-	instance rw number
->	PerspectiveCamera.setFocalLength	method	-	instance (focalLength: number) => void
 !	PerspectiveCamera.setViewOffset	method	instance (fullWidth: number, fullHeight: number, offsetX: number, offsetY: number, width: number, height: number) => this	instance (fullWidth: number, fullHeight: number, x: number, y: number, width: number, height: number) => void
 !	PerspectiveCamera.toJSON	method	instance () => PerspectiveCameraJSON	instance (meta: any) => any
 =	PerspectiveCamera.type	field	instance rw string	instance rw string
@@ -3295,63 +3080,19 @@
 =	PositionalAudio.connect	method	instance () => this	instance () => this
 =	PositionalAudio.constructor	constructor	instance (listener: AudioListener) => PositionalAudio	instance (listener: AudioListener) => PositionalAudio
 !	PositionalAudio.disconnect	method	instance () => this | undefined	instance () => this
-<	PositionalAudio.distanceModel	accessor	instance rw string	-
->	PositionalAudio.getDistanceModel	method	-	instance () => ('linear'|'inverse'|'exponential')
->	PositionalAudio.getMaxDistance	method	-	instance () => number
->	PositionalAudio.getOutput	method	-	instance () => PannerNode
->	PositionalAudio.getRefDistance	method	-	instance () => number
->	PositionalAudio.getRolloffFactor	method	-	instance () => number
-<	PositionalAudio.maxDistance	accessor	instance rw number	-
-<	PositionalAudio.output	accessor	instance r AudioNodeLike | undefined	-
+!	PositionalAudio.distanceModel	accessor	instance rw string	instance () => ('linear'|'inverse'|'exponential')
+>	PositionalAudio.distanceModel	accessor	-	instance (value: ('linear'|'inverse'|'exponential')) => PositionalAudio
+!	PositionalAudio.maxDistance	accessor	instance rw number	instance () => number
+>	PositionalAudio.maxDistance	accessor	-	instance (value: number) => PositionalAudio
+!	PositionalAudio.output	accessor	instance r AudioNodeLike | undefined	instance () => PannerNode
 !	PositionalAudio.panner	field	instance ro PannerNodeLike | undefined	instance ro PannerNode
 <	PositionalAudio.panningModel	accessor	instance rw string	-
-<	PositionalAudio.refDistance	accessor	instance rw number	-
-<	PositionalAudio.rolloffFactor	accessor	instance rw number	-
+!	PositionalAudio.refDistance	accessor	instance rw number	instance () => number
+>	PositionalAudio.refDistance	accessor	-	instance (value: number) => PositionalAudio
+!	PositionalAudio.rolloffFactor	accessor	instance rw number	instance () => number
+>	PositionalAudio.rolloffFactor	accessor	-	instance (value: number) => PositionalAudio
 !	PositionalAudio.setDirectionalCone	method	instance (coneInnerAngle: number, coneOuterAngle: number, coneOuterGain: number) => this	instance (coneInnerAngle: number, coneOuterAngle: number, coneOuterGain: number) => PositionalAudio
->	PositionalAudio.setDistanceModel	method	-	instance (value: ('linear'|'inverse'|'exponential')) => PositionalAudio
->	PositionalAudio.setMaxDistance	method	-	instance (value: number) => PositionalAudio
->	PositionalAudio.setRefDistance	method	-	instance (value: number) => PositionalAudio
->	PositionalAudio.setRolloffFactor	method	-	instance (value: number) => PositionalAudio
 !	PositionalAudio.updateMatrixWorld	method	instance (force: boolean = false) => void	instance (force: any) => void
->	PropertyBinding	class	-	class
->	PropertyBinding.Composite	field	-	static rw typeof Composite
->	PropertyBinding._getValue_array	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._getValue_arrayElement	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._getValue_direct	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._getValue_toArray	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._getValue_unavailable	method	-	instance () => void
->	PropertyBinding._getValue_unbound	method	-	instance (targetArray: any, offset: any) => void
->	PropertyBinding._setValue_array	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_arrayElement	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_arrayElement_setMatrixWorldNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_arrayElement_setNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_array_setMatrixWorldNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_array_setNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_direct	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_direct_setMatrixWorldNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_direct_setNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_fromArray	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_fromArray_setMatrixWorldNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_fromArray_setNeedsUpdate	method	-	instance (buffer: any, offset: any) => void
->	PropertyBinding._setValue_unavailable	method	-	instance () => void
->	PropertyBinding._setValue_unbound	method	-	instance (sourceArray: any, offset: any) => void
->	PropertyBinding.bind	method	-	instance () => void
->	PropertyBinding.constructor	constructor	-	instance (rootNode: Object, path: string, parsedPath?: ?Object) => PropertyBinding
->	PropertyBinding.create	method	-	static (root: Object, path: string, parsedPath?: ?Object) => PropertyBinding|Composite
->	PropertyBinding.findNode	method	-	static (root: Object, nodeName: string|number) => ?Object
->	PropertyBinding.getValue	field	-	instance rw (targetArray: any, offset: any) => void
->	PropertyBinding.node	field	-	instance rw ?Object
->	PropertyBinding.parseTrackName	method	-	static (trackName: string) => Object
->	PropertyBinding.parsedPath	field	-	instance rw Object
->	PropertyBinding.path	field	-	instance rw string
->	PropertyBinding.propertyIndex	field	-	instance rw any
->	PropertyBinding.propertyName	field	-	instance rw any
->	PropertyBinding.resolvedProperty	field	-	instance rw any
->	PropertyBinding.rootNode	field	-	instance rw Object3D|Skeleton
->	PropertyBinding.sanitizeNodeName	method	-	static (name: string) => string
->	PropertyBinding.setValue	field	-	instance rw (sourceArray: any, offset: any) => void
->	PropertyBinding.targetObject	field	-	instance rw any
->	PropertyBinding.unbind	method	-	instance () => void
 =	PropertyMixer	class	class	class
 >	PropertyMixer._addIndex	field	-	instance rw number
 >	PropertyMixer._lerp	method	-	instance (buffer: any, dstOffset: any, srcOffset: any, t: any, stride: any) => void
@@ -3409,8 +3150,8 @@
 !	QuadraticBezierCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	QuadraticBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 =	Quaternion	class	class	class
-<	Quaternion.__@iterator@3198	method	instance () => Generator<number, any, any>	-
->	Quaternion.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
+<	Quaternion.__@iterator@3245	method	instance () => Generator<number, any, any>	-
+>	Quaternion.__@iterator@6208	method	-	instance () => Generator<number, void, unknown>
 >	Quaternion._onChange	method	-	instance (callback: any) => this
 >	Quaternion._onChangeCallback	method	-	instance () => void
 >	Quaternion._w	field	-	instance rw number
@@ -3459,12 +3200,11 @@
 >	QuaternionKeyframeTrack	class	-	class extends KeyframeTrack
 >	QuaternionKeyframeTrack.InterpolantFactoryMethodLinear	method	-	instance (result?: TypedArray) => QuaternionLinearInterpolant
 >	QuaternionKeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => QuaternionKeyframeTrack
->	QuaternionLinearInterpolant	class	-	class extends Interpolant
->	QuaternionLinearInterpolant.constructor	constructor	-	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => QuaternionLinearInterpolant
->	QuaternionLinearInterpolant.interpolate_	method	-	instance (i1: any, t0: any, t: any, t1: any) => TypedArray
+=	QuaternionLinearInterpolant	class	class extends Interpolant	class extends Interpolant
+!	QuaternionLinearInterpolant.constructor	constructor	instance (positions: ArrayLike<number>, values: ArrayLike<number>, stride: number, result?: number[] | undefined) => QuaternionLinearInterpolant	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => QuaternionLinearInterpolant
+!	QuaternionLinearInterpolant.interpolate_	method	instance (i1: number, t0: number, t: number, t1: number) => number[]	instance (i1: any, t0: any, t: any, t1: any) => TypedArray
 <	QuaternionTrack	class	class extends Track<"quaternion">	-
 <	QuaternionTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: Omit<TrackOptions, "itemSize"> = {}) => QuaternionTrack	-
-<	QuaternionTrack.interpolate	method	instance (index: number, t0: number, t: number, t1: number) => number[]	-
 <	QuaternionTrack.valueType	accessor	instance r "quaternion"	-
 >	R11_EAC_Format	const	-	const number
 <	RAD2DEG	const	const 57.29577951308232	-
@@ -3798,7 +3538,7 @@
 =	SkeletonHelper	class	class extends LineSegments	class extends LineSegments
 !	SkeletonHelper.bones	accessor/field	instance r readonly Bone[]	instance rw Array<Bone>
 <	SkeletonHelper.clone	method	instance () => SkeletonHelper	-
-<	SkeletonHelper.colors	accessor	instance rw SkeletonHelperColors	-
+!	SkeletonHelper.colors	accessor	instance rw SkeletonHelperColors	instance (color1: Color, color2: Color) => SkeletonHelper
 !	SkeletonHelper.constructor	constructor	instance (bonesOrRoot: readonly Bone[] | Node) => SkeletonHelper	instance (object: Object3D) => SkeletonHelper
 <	SkeletonHelper.copy	method	instance (source: SkeletonHelper) => this	-
 =	SkeletonHelper.dispose	method	instance () => void	instance () => void
@@ -3806,7 +3546,6 @@
 >	SkeletonHelper.matrix	field	-	instance rw any
 >	SkeletonHelper.matrixAutoUpdate	field	-	instance rw boolean
 !	SkeletonHelper.root	accessor/field	instance r Node | undefined	instance rw Object3D
->	SkeletonHelper.setColors	method	-	instance (color1: Color, color2: Color) => SkeletonHelper
 =	SkeletonHelper.type	field	instance rw string	instance rw string
 <	SkeletonHelper.update	method	instance () => this	-
 <	SkeletonHelper.updateColors	method	instance () => this	-
@@ -4145,6 +3884,7 @@
 <	TileDistanceSorter.constructor	constructor	instance () => TileDistanceSorter	-
 <	TileDistanceSorter.sort	method	instance (drawList: SortableDrawList, cameraPosition: { x: number; y: number }) => void	-
 =	Timer	class	class	class
+>	Timer	class	-	class
 >	Timer._currentTime	field	-	instance rw number
 >	Timer._delta	field	-	instance rw number
 >	Timer._document	field	-	instance rw Document | null
@@ -4153,22 +3893,25 @@
 >	Timer._previousTime	field	-	instance rw number
 >	Timer._startTime	field	-	instance rw number
 >	Timer._timescale	field	-	instance rw number
-<	Timer.autoStart	field	instance rw boolean	-
+=	Timer.autoStart	field	instance rw boolean	instance rw boolean
 !	Timer.connect	method	instance () => void	instance (document: Document) => void
 =	Timer.constructor	constructor	instance () => Timer	instance () => Timer
-<	Timer.delta	accessor	instance r number	-
+>	Timer.constructor	constructor	-	instance (autoStart: boolean = true) => Clock
+!	Timer.delta	accessor	instance r number	instance () => number
+>	Timer.delta	accessor	-	instance () => number
 =	Timer.disconnect	method	instance () => void	instance () => void
 =	Timer.dispose	method	instance () => void	instance () => void
-<	Timer.elapsedTime	accessor	instance r number	-
->	Timer.getDelta	method	-	instance () => number
+!	Timer.elapsedTime	accessor	instance r number	instance () => number
+>	Timer.elapsedTime	field	-	instance rw number
 >	Timer.getElapsed	method	-	instance () => number
 >	Timer.getTimescale	method	-	instance () => number
-<	Timer.oldTime	field	instance rw number	-
+=	Timer.oldTime	field	instance rw number	instance rw number
 !	Timer.reset	method	instance (timestamp: number = now()) => this	instance () => Timer
-<	Timer.running	field	instance rw boolean	-
+=	Timer.running	field	instance rw boolean	instance rw boolean
 >	Timer.setTimescale	method	-	instance (timescale: number) => Timer
-<	Timer.start	method	instance () => this	-
-<	Timer.stop	method	instance () => this	-
+!	Timer.start	method	instance () => this	instance () => void
+>	Timer.startTime	field	-	instance rw number
+!	Timer.stop	method	instance () => this	instance () => void
 <	Timer.timeScale	accessor	instance rw number	-
 !	Timer.update	method	instance (timestamp: number = now()) => this	instance (timestamp: number) => Timer
 >	TimestampQuery	const	-	const ConstantsTimestampQuery
@@ -4196,26 +3939,34 @@
 >	TorusKnotGeometry.fromJSON	method	-	static (data: Object) => TorusKnotGeometry
 !	TorusKnotGeometry.parameters	field	instance rw Record<string, unknown>	instance rw Object
 =	TorusKnotGeometry.type	field	instance rw string	instance rw string
-<	Track	class	class<ValueType extends TrackValueType = "number">	-
-<	Track.clone	method	instance () => this	-
-<	Track.constructor	constructor	instance (name: string, times: Float32Array | readonly number[], values: Float32Array | readonly number[], options: TrackOptions = {}) => Track<ValueType>	-
+!	Track	class	class<ValueType extends TrackValueType = "number">	class
+>	Track.InterpolantFactoryMethodBezier	method	-	instance (result?: TypedArray) => BezierInterpolant
+>	Track.InterpolantFactoryMethodDiscrete	method	-	instance (result?: TypedArray) => DiscreteInterpolant
+>	Track.InterpolantFactoryMethodLinear	method	-	instance (result?: TypedArray) => LinearInterpolant
+>	Track.InterpolantFactoryMethodSmooth	method	-	instance (result?: TypedArray) => CubicInterpolant
+!	Track.clone	method	instance () => this	instance () => KeyframeTrack
+!	Track.constructor	constructor	instance (name: string, times: Float32Array | readonly number[], values: Float32Array | readonly number[], options: TrackOptions = {}) => Track<ValueType>	instance (name: string, times: Array<number>, values: Array<number|string|boolean>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth|InterpolateBezier)) => KeyframeTrack
+>	Track.createInterpolant	field	-	instance rw ((result?: TypedArray) => LinearInterpolant) | ((result?: TypedArray) => CubicInterpolant) | undefined
 <	Track.endingEnd	accessor	instance r InterpolationEndingMode	-
 <	Track.endingStart	accessor	instance r InterpolationEndingMode	-
 <	Track.getValueAtTime	method	instance (time: number) => number[]	-
+>	Track.getValueSize	method	-	instance () => number
 <	Track.inTangents	accessor	instance r Float32Array<ArrayBufferLike> | undefined	-
 <	Track.interpolate	method	instance (index: number, t0: number, t: number, t1: number) => number[]	-
-<	Track.interpolation	accessor	instance r InterpolationMode	-
+!	Track.interpolation	accessor	instance r InterpolationMode	instance () => (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth|InterpolateBezier)
+>	Track.interpolation	accessor	-	instance (interpolation: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth|InterpolateBezier)) => KeyframeTrack
 <	Track.itemSize	accessor	instance r number	-
-<	Track.name	accessor	instance r string	-
-<	Track.optimize	method	instance () => this	-
+!	Track.name	accessor/field	instance r string	instance rw string
+!	Track.optimize	method	instance () => this	instance () => KeyframeTrack
 <	Track.outTangents	accessor	instance r Float32Array<ArrayBufferLike> | undefined	-
-<	Track.scale	method	instance (timeScale: number) => this	-
-<	Track.shift	method	instance (timeOffset: number) => this	-
-<	Track.times	accessor	instance r Float32Array<ArrayBufferLike>	-
-<	Track.trim	method	instance (startTime: number, endTime: number) => this	-
-<	Track.validate	method	instance () => boolean	-
+!	Track.scale	method	instance (timeScale: number) => this	instance (timeScale: number) => KeyframeTrack
+!	Track.shift	method	instance (timeOffset: number) => this	instance (timeOffset: number) => KeyframeTrack
+!	Track.times	accessor/field	instance r Float32Array<ArrayBufferLike>	instance rw Float32Array
+>	Track.toJSON	method	-	static (track: KeyframeTrack) => Object
+!	Track.trim	method	instance (startTime: number, endTime: number) => this	instance (startTime: number, endTime: number) => KeyframeTrack
+=	Track.validate	method	instance () => boolean	instance () => boolean
 <	Track.valueType	accessor	instance r ValueType	-
-<	Track.values	accessor	instance r Float32Array<ArrayBufferLike>	-
+!	Track.values	accessor/field	instance r Float32Array<ArrayBufferLike>	instance rw Float32Array
 <	TrackOptions	record	interface { readonly itemSize?: number; readonly interpolation?: InterpolationMode; readonly inTangents?: Float32Array | readonly number[]; readonly outTangents?: Float32Array | readonly number[]; readonly endingStart?: InterpolationEndingMode; readonly endingEnd?: InterpolationEndingMode }	-
 <	TrackValue	record	type = number | boolean | string	-
 <	TrackValueType	record	type = "number" | "quaternion" | "boolean" | "string"	-
@@ -4286,7 +4037,7 @@
 <	TranslucencyTable.constructor	constructor	instance () => TranslucencyTable	-
 =	Triangle	class	class	class
 !	Triangle.a	accessor/field	instance rw Vector3	instance rw Vector3
-<	Triangle.area	accessor	instance r number	-
+!	Triangle.area	accessor	instance r number	instance () => number
 !	Triangle.b	accessor/field	instance rw Vector3	instance rw Vector3
 !	Triangle.c	accessor/field	instance rw Vector3	instance rw Vector3
 =	Triangle.clone	method	instance () => Triangle	instance () => Triangle
@@ -4296,7 +4047,6 @@
 >	Triangle.containsPoint	method	-	static (point: Vector3, a: Vector3, b: Vector3, c: Vector3) => boolean
 !	Triangle.copy	method	instance (triangle: Triangle) => this	instance (triangle: Triangle) => Triangle
 =	Triangle.equals	method	instance (triangle: Triangle) => boolean	instance (triangle: Triangle) => boolean
->	Triangle.getArea	method	-	instance () => number
 !	Triangle.getBarycoord	method	instance (point: Vector3, target: Vector3 = new Vector3()) => Vector3 | undefined	instance (point: Vector3, target: Vector3) => ?Vector3
 >	Triangle.getBarycoord	method	-	static (point: Vector3, a: Vector3, b: Vector3, c: Vector3, target: Vector3) => ?Vector3
 !	Triangle.getInterpolatedAttribute	method	instance (attr: Attribute, i1: number, i2: number, i3: number, barycoord: Vector3, target: Vector3) => Vector3	static (attr: BufferAttribute, i1: number, i2: number, i3: number, barycoord: Vector3, target: Vector3) => Vector3
@@ -4379,8 +4129,8 @@
 <	VOXVoxelVolume	record	interface { readonly size: VOXSize; readonly occupancy: Uint8Array; readonly colors: Uint8Array; readonly palette: readonly number[] }	-
 >	VSMShadowMap	const	-	const number
 =	Vector2	class	class	class
-<	Vector2.__@iterator@3198	method	instance () => Generator<number, any, any>	-
->	Vector2.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
+<	Vector2.__@iterator@3245	method	instance () => Generator<number, any, any>	-
+>	Vector2.__@iterator@6208	method	-	instance () => Generator<number, void, unknown>
 !	Vector2.add	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.addScaledVector	method	instance (v: Vector2, s: number) => this	instance (v: Vector2, s: number) => Vector2
@@ -4407,7 +4157,8 @@
 !	Vector2.fromBufferAttribute	method	instance (attribute: Attribute, index: number) => this	instance (attribute: BufferAttribute, index: number) => Vector2
 =	Vector2.getComponent	method	instance (index: number) => number	instance (index: number) => number
 =	Vector2.height	accessor	instance rw number	instance rw number
-!	Vector2.length	accessor/method	instance rw number	instance () => number
+!	Vector2.length	accessor	instance rw number	instance (length: number) => Vector2
+>	Vector2.length	method	-	instance () => number
 !	Vector2.lengthSq	accessor/method	instance r number	instance () => number
 !	Vector2.lerp	method	instance (v: Vector2, alpha: number) => this	instance (v: Vector2, alpha: number) => Vector2
 !	Vector2.lerpVectors	method	instance (a: Vector2, b: Vector2, alpha: number) => this	instance (v1: Vector2, v2: Vector2, alpha: number) => Vector2
@@ -4426,21 +4177,20 @@
 !	Vector2.roundToZero	method	instance () => this	instance () => Vector2
 !	Vector2.set	method	instance (x: number, y: number) => this	instance (x: number, y: number) => Vector2
 !	Vector2.setComponent	method	instance (index: number, value: number) => this	instance (index: number, value: number) => Vector2
->	Vector2.setLength	method	-	instance (length: number) => Vector2
 !	Vector2.setScalar	method	instance (scalar: number) => this	instance (scalar: number) => Vector2
->	Vector2.setX	method	-	instance (x: number) => Vector2
->	Vector2.setY	method	-	instance (y: number) => Vector2
 !	Vector2.sub	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.subScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.subVectors	method	instance (a: Vector2, b: Vector2) => this	instance (a: Vector2, b: Vector2) => Vector2
 !	Vector2.toArray	method	instance (array: number[] = [], offset: number = 0) => number[]	instance (array: Array<number> = [], offset: number = 0) => Array<number>
 <	Vector2.trunc	method	instance () => this	-
 =	Vector2.width	accessor	instance rw number	instance rw number
-!	Vector2.x	accessor/field	instance rw number	instance rw number
-!	Vector2.y	accessor/field	instance rw number	instance rw number
+!	Vector2.x	accessor	instance rw number	instance (x: number) => Vector2
+>	Vector2.x	field	-	instance rw number
+!	Vector2.y	accessor	instance rw number	instance (y: number) => Vector2
+>	Vector2.y	field	-	instance rw number
 =	Vector3	class	class	class
-<	Vector3.__@iterator@3198	method	instance () => Generator<number, any, any>	-
->	Vector3.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
+<	Vector3.__@iterator@3245	method	instance () => Generator<number, any, any>	-
+>	Vector3.__@iterator@6208	method	-	instance () => Generator<number, void, unknown>
 !	Vector3.add	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.addScaledVector	method	instance (v: Vector3 | Vector4, s: number) => this	instance (v: Vector3|Vector4, s: number) => Vector3
@@ -4471,7 +4221,8 @@
 !	Vector3.fromArray	method	instance (array: ArrayLike<number>, offset: number = 0) => this	instance (array: Array<number>, offset: number = 0) => Vector3
 !	Vector3.fromBufferAttribute	method	instance (attribute: Attribute, index: number) => this	instance (attribute: BufferAttribute, index: number) => Vector3
 =	Vector3.getComponent	method	instance (index: number) => number	instance (index: number) => number
-!	Vector3.length	accessor/method	instance rw number	instance () => number
+!	Vector3.length	accessor	instance rw number	instance (length: number) => Vector3
+>	Vector3.length	method	-	instance () => number
 !	Vector3.lengthSq	accessor/method	instance r number	instance () => number
 !	Vector3.lerp	method	instance (v: Vector3, t: number) => this	instance (v: Vector3, alpha: number) => Vector3
 !	Vector3.lerpVectors	method	instance (a: Vector3, b: Vector3, t: number) => this	instance (v1: Vector3, v2: Vector3, alpha: number) => Vector3
@@ -4504,23 +4255,22 @@
 !	Vector3.setFromMatrixScale	method	instance (m: MatrixLike) => this	instance (m: Matrix4) => Vector3
 !	Vector3.setFromSpherical	method	instance (s: { radius: number; phi: number; theta: number }) => this	instance (s: Spherical) => Vector3
 !	Vector3.setFromSphericalCoords	method	instance (radius: number, phi: number, theta: number) => this	instance (radius: number, phi: number, theta: number) => Vector3
->	Vector3.setLength	method	-	instance (length: number) => Vector3
 !	Vector3.setScalar	method	instance (scalar: number) => this	instance (scalar: number) => Vector3
->	Vector3.setX	method	-	instance (x: number) => Vector3
->	Vector3.setY	method	-	instance (y: number) => Vector3
->	Vector3.setZ	method	-	instance (z: number) => Vector3
 !	Vector3.sub	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.subScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.subVectors	method	instance (a: Vector3, b: Vector3) => this	instance (a: Vector3, b: Vector3) => Vector3
 !	Vector3.toArray	method	instance (array: number[] = [], offset: number = 0) => number[]	instance (array: Array<number> = [], offset: number = 0) => Array<number>
 !	Vector3.transformDirection	method	instance (m: MatrixLike) => this	instance (m: Matrix4) => Vector3
 !	Vector3.unproject	method	instance (camera: CameraLike) => this	instance (camera: Camera) => Vector3
-!	Vector3.x	accessor/field	instance rw number	instance rw number
-!	Vector3.y	accessor/field	instance rw number	instance rw number
-!	Vector3.z	accessor/field	instance rw number	instance rw number
+!	Vector3.x	accessor	instance rw number	instance (x: number) => Vector3
+>	Vector3.x	field	-	instance rw number
+!	Vector3.y	accessor	instance rw number	instance (y: number) => Vector3
+>	Vector3.y	field	-	instance rw number
+!	Vector3.z	accessor	instance rw number	instance (z: number) => Vector3
+>	Vector3.z	field	-	instance rw number
 =	Vector4	class	class	class
-<	Vector4.__@iterator@3198	method	instance () => Generator<number, any, any>	-
->	Vector4.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
+<	Vector4.__@iterator@3245	method	instance () => Generator<number, any, any>	-
+>	Vector4.__@iterator@6208	method	-	instance () => Generator<number, void, unknown>
 !	Vector4.add	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.addScaledVector	method	instance (v: Vector4, s: number) => this	instance (v: Vector4, s: number) => Vector4
@@ -4544,7 +4294,8 @@
 >	Vector4.fromBufferAttribute	method	-	instance (attribute: BufferAttribute, index: number) => Vector4
 =	Vector4.getComponent	method	instance (index: number) => number	instance (index: number) => number
 =	Vector4.height	accessor	instance rw number	instance rw number
-!	Vector4.length	accessor/method	instance rw number	instance () => number
+!	Vector4.length	accessor	instance rw number	instance (length: number) => Vector4
+>	Vector4.length	method	-	instance () => number
 !	Vector4.lengthSq	accessor/method	instance r number	instance () => number
 !	Vector4.lerp	method	instance (v: Vector4, alpha: number) => this	instance (v: Vector4, alpha: number) => Vector4
 !	Vector4.lerpVectors	method	instance (v1: Vector4, v2: Vector4, alpha: number) => this	instance (v1: Vector4, v2: Vector4, alpha: number) => Vector4
@@ -4563,21 +4314,20 @@
 !	Vector4.setAxisAngleFromRotationMatrix	method	instance (m: { elements: ArrayLike<number> }) => this	instance (m: Matrix4) => Vector4
 !	Vector4.setComponent	method	instance (index: number, value: number) => this	instance (index: number, value: number) => Vector4
 !	Vector4.setFromMatrixPosition	method	instance (m: { elements: ArrayLike<number> }) => this	instance (m: Matrix4) => Vector4
->	Vector4.setLength	method	-	instance (length: number) => Vector4
 !	Vector4.setScalar	method	instance (scalar: number) => this	instance (scalar: number) => Vector4
->	Vector4.setW	method	-	instance (w: number) => Vector4
->	Vector4.setX	method	-	instance (x: number) => Vector4
->	Vector4.setY	method	-	instance (y: number) => Vector4
->	Vector4.setZ	method	-	instance (z: number) => Vector4
 !	Vector4.sub	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.subScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.subVectors	method	instance (a: Vector4, b: Vector4) => this	instance (a: Vector4, b: Vector4) => Vector4
 !	Vector4.toArray	method	instance (out: number[] = [], offset: number = 0) => number[]	instance (array: Array<number> = [], offset: number = 0) => Array<number>
-!	Vector4.w	accessor/field	instance rw number	instance rw number
+!	Vector4.w	accessor	instance rw number	instance (w: number) => Vector4
+>	Vector4.w	field	-	instance rw number
 =	Vector4.width	accessor	instance rw number	instance rw number
-!	Vector4.x	accessor/field	instance rw number	instance rw number
-!	Vector4.y	accessor/field	instance rw number	instance rw number
-!	Vector4.z	accessor/field	instance rw number	instance rw number
+!	Vector4.x	accessor	instance rw number	instance (x: number) => Vector4
+>	Vector4.x	field	-	instance rw number
+!	Vector4.y	accessor	instance rw number	instance (y: number) => Vector4
+>	Vector4.y	field	-	instance rw number
+!	Vector4.z	accessor	instance rw number	instance (z: number) => Vector4
+>	Vector4.z	field	-	instance rw number
 >	VectorKeyframeTrack	class	-	class extends KeyframeTrack
 >	VectorKeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => VectorKeyframeTrack
 <	VectorTrack	class	class extends Track	-

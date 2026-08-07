@@ -62,6 +62,78 @@ const THREE_SOURCE_ROOT = path.join(ROOT, "node_modules", "three", "src");
 const THREE_ENTRY = path.join(THREE_SOURCE_ROOT, "Three.Core.js");
 const OUTPUT = path.join(ROOT, "api-comparison", "three-core.txt");
 
+/**
+ * Maps three.js class names to EASEL class names so that members of a renamed
+ * class are compared against the EASEL equivalent rather than treated as gaps.
+ */
+const THREE_TO_EASEL_CLASS: Record<string, string> = {
+  AnimationMixer: "Animator",
+  AnimationObjectGroup: "AnimationGroup",
+  AudioAnalyser: "AudioAnalyzer",
+  BufferAttribute: "Attribute",
+  BufferGeometry: "Geometry",
+  Clock: "Timer",
+  InterleavedBuffer: "InterleavedData",
+  InterleavedBufferAttribute: "InterleavedAttribute",
+  KeyframeTrack: "Track",
+  LineBasicMaterial: "LineMaterial",
+  LineDashedMaterial: "DashedLineMaterial",
+  MeshBasicMaterial: "BasicMaterial",
+  MeshLambertMaterial: "LambertMaterial",
+  Object3D: "Node",
+  PropertyBinding: "Binding",
+};
+
+/** Splits a `Class.member` subject into its class and member parts. */
+function splitSubject(subject: string): { className: string; member: string } {
+  const dot = subject.indexOf(".");
+  if (dot < 0) return { className: subject, member: "" };
+  return {
+    className: subject.slice(0, dot),
+    member: subject.slice(dot + 1),
+  };
+}
+
+/**
+ * Normalizes a three.js fact so it can be compared against the EASEL fact with
+ * the same semantic meaning:
+ * 1. Renames the class via {@link THREE_TO_EASEL_CLASS}.
+ * 2. Converts `Class.getFoo()` / `Class.setFoo(value)` methods to `Class.foo`
+ *    accessors when the member name matches the getter/setter convention.
+ */
+function normalizeThreeFact(
+  fact: PublicFact,
+  easelAccessorSubjects: ReadonlySet<string>,
+): PublicFact {
+  const { className, member } = splitSubject(fact.subject);
+  const normalizedClass = THREE_TO_EASEL_CLASS[className] ?? className;
+
+  // Only rewrite method facts that have a member name (skip class/const facts).
+  if (fact.kind === "method" && member) {
+    const getMatch = /^get([A-Z].*)$/u.exec(member);
+    if (getMatch) {
+      const accessorMember =
+        getMatch[1]![0]!.toLowerCase() + getMatch[1]!.slice(1);
+      const accessorSubject = `${normalizedClass}.${accessorMember}`;
+      if (easelAccessorSubjects.has(accessorSubject)) {
+        return { ...fact, subject: accessorSubject, kind: "accessor" };
+      }
+    }
+    const setMatch = /^set([A-Z].*)$/u.exec(member);
+    if (setMatch) {
+      const accessorMember =
+        setMatch[1]![0]!.toLowerCase() + setMatch[1]!.slice(1);
+      const accessorSubject = `${normalizedClass}.${accessorMember}`;
+      if (easelAccessorSubjects.has(accessorSubject)) {
+        return { ...fact, subject: accessorSubject, kind: "accessor" };
+      }
+    }
+  }
+
+  if (normalizedClass === className) return fact;
+  return { ...fact, subject: member ? `${normalizedClass}.${member}` : normalizedClass };
+}
+
 const compilerOptions: ts.CompilerOptions = {
   allowJs: true,
   allowImportingTsExtensions: true,
@@ -957,7 +1029,18 @@ export function compareFacts(
   threeFacts: readonly PublicFact[],
 ): ComparisonRow[] {
   const easel = [...easelFacts].sort(factSort);
-  const three = [...threeFacts].sort(factSort);
+
+  // Collect EASEL accessor subjects so three.js getFoo()/setFoo() methods can
+  // be recognized as equivalent accessors.
+  const easelAccessorSubjects = new Set<string>();
+  for (const fact of easel) {
+    if (fact.kind === "accessor") easelAccessorSubjects.add(fact.subject);
+  }
+
+  const three = threeFacts
+    .map((fact) => normalizeThreeFact(fact, easelAccessorSubjects))
+    .sort(factSort);
+
   const bySubject = new Map<
     string,
     { easel: PublicFact[]; three: PublicFact[] }

@@ -63,6 +63,12 @@ export {
   type TrackValue,
   type TrackValueType,
 } from "./animation/Track.ts";
+export { Interpolant } from "./animation/interpolants/Interpolant.ts";
+export { LinearInterpolant } from "./animation/interpolants/LinearInterpolant.ts";
+export { DiscreteInterpolant } from "./animation/interpolants/DiscreteInterpolant.ts";
+export { CubicInterpolant } from "./animation/interpolants/CubicInterpolant.ts";
+export { BezierInterpolant } from "./animation/interpolants/BezierInterpolant.ts";
+export { QuaternionLinearInterpolant } from "./animation/interpolants/QuaternionLinearInterpolant.ts";
 export { BooleanTrack } from "./animation/tracks/BooleanTrack.ts";
 export { ColorTrack } from "./animation/tracks/ColorTrack.ts";
 export { NumberTrack } from "./animation/tracks/NumberTrack.ts";

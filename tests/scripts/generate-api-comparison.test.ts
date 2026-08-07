@@ -73,7 +73,8 @@ describe("generate-api-comparison", () => {
     const rows = reportRows(checkedReport());
     const row = (subject: string): string[] | undefined =>
       rows.find((parts) => parts[1] === subject);
-    expect(row("Vector3.length")?.[2]).toBe("accessor/method");
+    expect(row("Vector3.length")?.[2]).toBe("accessor");
+    expect(row("Vector3.lengthSq")?.[2]).toBe("accessor/method");
     expect(row("Vector3.distanceToSquared")?.[0]).toBe("=");
     expect(row("Vector3.multiply")?.[2]).toBe("method");
     expect(row("Matrix4.multiplyMatrices")?.[2]).toBe("method");
@@ -171,8 +172,8 @@ describe("generate-api-comparison", () => {
     );
     const untypedKeyword = ["an", "y"].join("");
     const untypedRest = `...args: ${untypedKeyword}[]`;
-    expect(row("Object3D.add")?.[4]).toContain(untypedRest);
-    expect(row("Object3D.remove")?.[4]).toContain(untypedRest);
+    expect(row("Node.add")?.[4]).toContain(untypedRest);
+    expect(row("Node.remove")?.[4]).toContain(untypedRest);
     expect(rows.some((parts) => privateNamePattern.test(parts[1] ?? ""))).toBe(
       false,
     );
@@ -201,7 +202,7 @@ describe("generate-api-comparison", () => {
       rows.some((parts) => parts[1] === "AffineUVSampler" && parts[0] === "<"),
     ).toBe(true);
     expect(
-      rows.some((parts) => parts[1] === "BufferGeometry" && parts[0] === ">"),
+      rows.some((parts) => parts[1] === "BatchedMesh" && parts[0] === ">"),
     ).toBe(true);
     expect(
       rows.some(

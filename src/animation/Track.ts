@@ -1,3 +1,11 @@
+import { BezierInterpolant } from "./interpolants/BezierInterpolant.ts";
+import { CubicInterpolant } from "./interpolants/CubicInterpolant.ts";
+import { DiscreteInterpolant } from "./interpolants/DiscreteInterpolant.ts";
+import { Interpolant } from "./interpolants/Interpolant.ts";
+import { LinearInterpolant } from "./interpolants/LinearInterpolant.ts";
+import { QuaternionLinearInterpolant } from "./interpolants/QuaternionLinearInterpolant.ts";
+
+
 /** Numeric keyframe interpolation modes supported by the track sampler. */
 export const Interpolation = {
   Discrete: 2300,
@@ -83,6 +91,7 @@ export class Track<ValueType extends TrackValueType = "number"> {
   readonly #outTangents: Float32Array | undefined;
   readonly #endingStart: InterpolationEndingMode;
   readonly #endingEnd: InterpolationEndingMode;
+  readonly #interpolant: Interpolant;
 
   /** Creates a numeric track from keyframe times, values, and interpolation options. */
   constructor(
@@ -102,6 +111,40 @@ export class Track<ValueType extends TrackValueType = "number"> {
       options.endingStart ?? InterpolationEnding.ZeroCurvature;
     this.#endingEnd = options.endingEnd ?? InterpolationEnding.ZeroCurvature;
     this.#validate();
+    this.#interpolant = this.#createInterpolant();
+  }
+
+  /** Creates the interpolant matching the track's interpolation mode and value type. */
+  #createInterpolant(): Interpolant {
+    if (this.#interpolation === Interpolation.Discrete) {
+      return new DiscreteInterpolant(this.#times, this.#values, this.#itemSize);
+    }
+    if (this.valueType === "quaternion") {
+      return new QuaternionLinearInterpolant(
+        this.#times,
+        this.#values,
+        this.#itemSize,
+      );
+    }
+    if (this.#interpolation === Interpolation.Smooth) {
+      const interpolant = new CubicInterpolant(
+        this.#times,
+        this.#values,
+        this.#itemSize,
+      );
+      interpolant.setEndings(this.#endingStart, this.#endingEnd);
+      return interpolant;
+    }
+    if (this.#interpolation === Interpolation.Bezier) {
+      return new BezierInterpolant(
+        this.#times,
+        this.#values,
+        this.#itemSize,
+        this.#inTangents!,
+        this.#outTangents!,
+      );
+    }
+    return new LinearInterpolant(this.#times, this.#values, this.#itemSize);
   }
 
   /** Name used to bind this track to an object property. */
@@ -156,28 +199,12 @@ export class Track<ValueType extends TrackValueType = "number"> {
 
   /** Interpolates the interval beginning at `index` for the supplied times. */
   interpolate(index: number, t0: number, t: number, t1: number): number[] {
-    if (this.#interpolation === Interpolation.Discrete) {
-      return this.#copyValue(index);
-    }
-    if (this.#interpolation === Interpolation.Smooth) {
-      return this.#interpolateSmooth(index, t0, t, t1);
-    }
-    if (this.#interpolation === Interpolation.Bezier) {
-      return this.#interpolateBezier(index, t0, t, t1);
-    }
-    return this.#interpolateLinear(index, t0, t, t1);
+    return this.#interpolant.interpolate_(index, t0, t, t1);
   }
 
   /** Samples interpolated values at `time` seconds using binary search. */
   getValueAtTime(time: number): number[] {
-    const times = this.#times;
-    const count = times.length;
-    if (count === 0) return new Array<number>(this.#itemSize).fill(0);
-    if (count === 1 || time <= times[0]) return this.#copyValue(0);
-    if (time >= times[count - 1]) return this.#copyValue(count - 1);
-
-    const index = this.#findKeyframe(time);
-    return this.interpolate(index, times[index], time, times[index + 1]);
+    return this.#interpolant.evaluate(time);
   }
 
   /** Returns an independent track with cloned keyframes and options. */
@@ -258,168 +285,6 @@ export class Track<ValueType extends TrackValueType = "number"> {
     }
     indices.push(this.#times.length - 1);
     return copyTrackAtIndices(this, indices) as this;
-  }
-
-  #interpolateLinear(
-    index: number,
-    t0: number,
-    t: number,
-    t1: number,
-  ): number[] {
-    const alpha = t1 === t0 ? 0 : (t - t0) / (t1 - t0);
-    const result = new Array<number>(this.#itemSize);
-    const base0 = index * this.#itemSize;
-    const base1 = base0 + this.#itemSize;
-    for (let component = 0; component < this.#itemSize; component++) {
-      result[component] =
-        this.#values[base0 + component] +
-        alpha *
-          (this.#values[base1 + component] - this.#values[base0 + component]);
-    }
-    return result;
-  }
-
-  #interpolateSmooth(
-    index: number,
-    t0: number,
-    t: number,
-    t1: number,
-  ): number[] {
-    const previous = this.#smoothPrevious(index, t0, t1);
-    const next = this.#smoothNext(index, t0, t1);
-    const halfDelta = (t1 - t0) * 0.5;
-    const weightPrevious = halfDelta / (t0 - previous.time);
-    const weightNext = halfDelta / (next.time - t1);
-    const p = (t - t0) / (t1 - t0);
-    const p2 = p * p;
-    const p3 = p2 * p;
-    const sPrevious =
-      -weightPrevious * p3 + 2 * weightPrevious * p2 - weightPrevious * p;
-    const s0 =
-      (1 + weightPrevious) * p3 +
-      (-1.5 - 2 * weightPrevious) * p2 +
-      (-0.5 + weightPrevious) * p +
-      1;
-    const s1 = (-1 - weightNext) * p3 + (1.5 + weightNext) * p2 + 0.5 * p;
-    const sNext = weightNext * p3 - weightNext * p2;
-    const result = new Array<number>(this.#itemSize);
-    for (let component = 0; component < this.#itemSize; component++) {
-      result[component] =
-        sPrevious * this.#values[previous.index * this.#itemSize + component] +
-        s0 * this.#values[index * this.#itemSize + component] +
-        s1 * this.#values[(index + 1) * this.#itemSize + component] +
-        sNext * this.#values[next.index * this.#itemSize + component];
-    }
-    return result;
-  }
-
-  #smoothPrevious(
-    index: number,
-    t0: number,
-    t1: number,
-  ): { index: number; time: number } {
-    if (index > 0) return { index: index - 1, time: this.#times[index - 1] };
-    if (this.#endingStart === InterpolationEnding.ZeroSlope) {
-      return { index: index + 1, time: 2 * t0 - t1 };
-    }
-    if (
-      this.#endingStart === InterpolationEnding.WrapAround &&
-      this.#times.length > 2
-    ) {
-      const previous = this.#times.length - 2;
-      return {
-        index: previous,
-        time: t0 + this.#times[previous] - this.#times[previous + 1],
-      };
-    }
-    return { index: index + 1, time: t1 };
-  }
-
-  #smoothNext(
-    index: number,
-    t0: number,
-    t1: number,
-  ): { index: number; time: number } {
-    const next = index + 2;
-    if (next < this.#times.length)
-      return { index: next, time: this.#times[next] };
-    if (this.#endingEnd === InterpolationEnding.ZeroSlope) {
-      return { index: index + 1, time: 2 * t1 - t0 };
-    }
-    if (
-      this.#endingEnd === InterpolationEnding.WrapAround &&
-      this.#times.length > 2
-    ) {
-      return {
-        index: 1,
-        time: t1 + this.#times[1] - this.#times[0],
-      };
-    }
-    return { index, time: t0 };
-  }
-
-  #interpolateBezier(
-    index: number,
-    t0: number,
-    t: number,
-    t1: number,
-  ): number[] {
-    const inTangents = this.#inTangents as Float32Array;
-    const outTangents = this.#outTangents as Float32Array;
-    const result = new Array<number>(this.#itemSize);
-    const tangentStride = this.#itemSize * 2;
-    for (let component = 0; component < this.#itemSize; component++) {
-      const value0 = this.#values[index * this.#itemSize + component];
-      const value1 = this.#values[(index + 1) * this.#itemSize + component];
-      const outOffset = index * tangentStride + component * 2;
-      const inOffset = (index + 1) * tangentStride + component * 2;
-      const control0Time = outTangents[outOffset];
-      const control0Value = outTangents[outOffset + 1];
-      const control1Time = inTangents[inOffset];
-      const control1Value = inTangents[inOffset + 1];
-      let parameter = (t - t0) / (t1 - t0);
-      for (let iteration = 0; iteration < 8; iteration++) {
-        const oneMinus = 1 - parameter;
-        const parameter2 = parameter * parameter;
-        const curveTime =
-          oneMinus * oneMinus * oneMinus * t0 +
-          3 * oneMinus * oneMinus * parameter * control0Time +
-          3 * oneMinus * parameter2 * control1Time +
-          parameter2 * parameter * t1;
-        const error = curveTime - t;
-        if (Math.abs(error) < 1e-10) break;
-        const derivative =
-          3 * oneMinus * oneMinus * (control0Time - t0) +
-          6 * oneMinus * parameter * (control1Time - control0Time) +
-          3 * parameter2 * (t1 - control1Time);
-        if (Math.abs(derivative) < 1e-10) break;
-        parameter = Math.max(0, Math.min(1, parameter - error / derivative));
-      }
-      const oneMinus = 1 - parameter;
-      const parameter2 = parameter * parameter;
-      result[component] =
-        oneMinus * oneMinus * oneMinus * value0 +
-        3 * oneMinus * oneMinus * parameter * control0Value +
-        3 * oneMinus * parameter2 * control1Value +
-        parameter2 * parameter * value1;
-    }
-    return result;
-  }
-
-  #copyValue(index: number): number[] {
-    const base = index * this.#itemSize;
-    return Array.from(this.#values.subarray(base, base + this.#itemSize));
-  }
-
-  #findKeyframe(time: number): number {
-    let low = 0;
-    let high = this.#times.length - 1;
-    while (low < high - 1) {
-      const middle = (low + high) >> 1;
-      if (this.#times[middle] <= time) low = middle;
-      else high = middle;
-    }
-    return low;
   }
 
   #validate(): void {

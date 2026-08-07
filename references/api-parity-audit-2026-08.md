@@ -73,12 +73,12 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 | `VectorKeyframeTrack` | `VectorTrack` | ✅ Exists |
 | `AnimationObjectGroup` | `AnimationGroup` | ✅ Exists |
 | `AnimationMixer` | `Animator` | ✅ Exists (renamed) |
-| `Interpolant` | (inlined in `Track`) | ⚠️ No standalone class |
-| `BezierInterpolant` | (inlined in `Track`) | ⚠️ No standalone class |
-| `CubicInterpolant` | (inlined in `Track`) | ⚠️ No standalone class |
-| `DiscreteInterpolant` | (inlined in `Track`) | ⚠️ No standalone class |
-| `LinearInterpolant` | (inlined in `Track`) | ⚠️ No standalone class |
-| `QuaternionLinearInterpolant` | (inlined in `Track`) | ⚠️ No standalone class |
+| `Interpolant` | `Interpolant` | ✅ Exists — `src/animation/interpolants/Interpolant.ts` |
+| `BezierInterpolant` | `BezierInterpolant` | ✅ Exists — `src/animation/interpolants/BezierInterpolant.ts` |
+| `CubicInterpolant` | `CubicInterpolant` | ✅ Exists — `src/animation/interpolants/CubicInterpolant.ts` |
+| `DiscreteInterpolant` | `DiscreteInterpolant` | ✅ Exists — `src/animation/interpolants/DiscreteInterpolant.ts` |
+| `LinearInterpolant` | `LinearInterpolant` | ✅ Exists — `src/animation/interpolants/LinearInterpolant.ts` |
+| `QuaternionLinearInterpolant` | `QuaternionLinearInterpolant` | ✅ Exists — `src/animation/interpolants/QuaternionLinearInterpolant.ts` |
 | `PropertyBinding` | `Binding` | ✅ Exists (renamed) |
 
 ### 4. Genuinely missing — CPU-feasible (15 classes) — ALL CLOSED
@@ -387,16 +387,36 @@ are closed.
     items on Audio, PositionalAudio, AudioListener are phantom gaps — EASEL
     accessors already exist.
 
+#### Phase 7: Interpolant separation + comparison tool fixes (1 slice — closed)
+
+28. **Interpolant class extraction + phantom gap resolution:**
+    Extracted interpolation logic from `Track` into 6 standalone classes under
+    `src/animation/interpolants/`: `Interpolant` (base, with `evaluate()`,
+    `interpolate_()`, `findKeyframe()`, `smoothPrevious`/`smoothNext` helpers),
+    `LinearInterpolant`, `DiscreteInterpolant`, `CubicInterpolant`,
+    `BezierInterpolant` (Newton-Raphson root solve), `QuaternionLinearInterpolant`
+    (SLERP). `Track` now creates the appropriate Interpolant based on
+    interpolation mode and value type; `getValueAtTime()` delegates to
+    `interpolant.evaluate()`. `QuaternionTrack` no longer overrides `interpolate()`.
+
+    Fixed `scripts/generate-api-comparison.ts` to resolve phantom gaps: added
+    `THREE_TO_EASEL_CLASS` alias map (Object3D→Node, BufferGeometry→Geometry,
+    etc.) and `normalizeThreeFact()` that converts three.js `getFoo()`/`setFoo()`
+    methods to `foo` accessors when EASEL has a matching accessor. Updated
+    comparison tests accordingly.
+
+    GPU field sweep confirmed clean: no `usage`, `onUpload`, `updateRanges`,
+    `generateMipmaps`, `needsPMREMUpdate`, `pmremVersion`, `castShadow`,
+    `receiveShadow`, `blending`, `stencil*`, or WebGL constants in `src/`.
+    `depthTest`/`depthWrite` on Material are CPU-relevant (used by CPU depth
+    buffer). `version` on Texture/Source is CPU cache invalidation.
+
 #### Remaining gaps (out of scope)
 
-- **GPU/shader/PBR classes (46):** Correctly out of scope — CPU Canvas2D
+- **GPU/shader/PBR classes (40):** Correctly out of scope — CPU Canvas2D
   renderer.
 - **GPU constants (~280):** Blending, tone mapping, depth/stencil, wrapping,
   filtering, format, type, encoding, color space, shadow map, GLSL — all GPU
   render-state enums with no CPU equivalent.
 - **Material PBR fields (113):** `alphaTest`, `anisotropy`, `clearcoat`,
   `bumpMap`, `aoMap`, etc. — correctly out of scope for CPU baked lighting.
-- **Interpolant classes (6):** `Interpolant`, `LinearInterpolant`,
-  `CubicInterpolant`, `DiscreteInterpolant`, `BezierInterpolant`,
-  `QuaternionLinearInterpolant` — inlined in `Track`; standalone classes not
-  needed for CPU animation.
