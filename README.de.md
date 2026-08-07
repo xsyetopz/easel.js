@@ -116,7 +116,7 @@ bunx skills add xsyetopz/easel.js --skill threejs-to-easeljs
 bun install
 bun test
 bun run typecheck
-bun run biome:check
+bun run biome:lint
 bun run www:build
 ```
 

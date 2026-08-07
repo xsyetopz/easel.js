@@ -109,7 +109,7 @@ bun run typecheck:tests
 bun run typecheck:website
 bun run tests:no-any
 bun run examples:source-parity
-bun run biome:check
+bun run biome:lint
 bun test
 bun run docs:generate
 bun run www:build

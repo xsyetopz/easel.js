@@ -25,7 +25,7 @@ bun test
 bun run typecheck
 bun run typecheck:tests
 bun run typecheck:website
-bun run biome:check
+bun run biome:lint
 bun run www:build
 ```
 

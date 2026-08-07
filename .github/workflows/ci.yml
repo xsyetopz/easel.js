@@ -106,7 +106,7 @@ jobs:
         with:
           bun-version: 1.3.14
       - run: bun install --frozen-lockfile
-      - run: bun run biome:check
+      - run: bun run biome:lint
 
   typecheck:
     name: TypeScript
