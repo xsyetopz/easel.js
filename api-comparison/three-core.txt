@@ -329,6 +329,7 @@
 !	Audio.detune	field	instance rw number	instance ro number
 !	Audio.disconnect	method	instance () => this | undefined	instance () => Audio|undefined
 !	Audio.duration	field	instance rw number | undefined	instance rw undefined|number
+<	Audio.filter	accessor	instance r AudioNodeLike | undefined	-
 !	Audio.filters	field	instance rw AudioNodeLike[]	instance ro Array<AudioNode>
 <	Audio.firstFilter	accessor	instance r AudioNodeLike | undefined	-
 !	Audio.gain	field	instance ro AudioNodeLike | undefined	instance ro GainNode
@@ -353,7 +354,7 @@
 !	Audio.playbackRate	field	instance rw number	instance ro number
 !	Audio.setBuffer	method	instance (audioBuffer: AudioBufferLike) => this	instance (audioBuffer: AudioBuffer) => Audio
 !	Audio.setDetune	method	instance (value: number) => this	instance (value: number) => Audio
-!	Audio.setFilter	method	instance (filter?: AudioNodeLike) => this	instance (filter?: AudioNode) => Audio
+>	Audio.setFilter	method	-	instance (filter?: AudioNode) => Audio
 !	Audio.setFilters	method	instance (value: AudioNodeLike[] = []) => this	instance (value?: Array<AudioNode>) => Audio
 !	Audio.setLoop	method	instance (value: boolean) => this	instance (value: boolean) => Audio|undefined
 !	Audio.setLoopEnd	method	instance (value: number) => this	instance (value: number) => Audio
@@ -416,7 +417,7 @@
 =	AudioListener.constructor	constructor	instance () => AudioListener	instance () => AudioListener
 !	AudioListener.context	field	instance ro AudioContextLike | undefined	instance ro AudioContext
 <	AudioListener.currentFilter	accessor	instance r AudioNodeLike | undefined	-
-!	AudioListener.filter	field	instance rw AudioNodeLike | undefined	instance ro ?AudioNode
+!	AudioListener.filter	accessor/field	instance rw AudioNodeLike | undefined	instance ro ?AudioNode
 !	AudioListener.gain	field	instance ro AudioNodeLike | undefined	instance ro GainNode
 >	AudioListener.getFilter	method	-	instance () => ?AudioNode
 >	AudioListener.getInput	method	-	instance () => GainNode
@@ -942,7 +943,7 @@
 >	Clock.stop	method	-	instance () => void
 =	Color	class	class	class
 >	Color.NAMES	field	-	static rw Object
->	Color.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
+>	Color.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
 !	Color.add	method	instance (color: Color) => this	instance (color: Color) => Color
 !	Color.addColors	method	instance (color1: Color, color2: Color) => this	instance (color1: Color, color2: Color) => Color
 !	Color.addScalar	method	instance (scalar: number) => this	instance (s: number) => Color
@@ -1330,7 +1331,7 @@
 <	DrawCall.vertexColorItemSize	field	instance rw number	-
 <	DrawCall.worldPositions	field	instance rw Float32Array<ArrayBufferLike>	-
 <	DrawList	class	class	-
-<	DrawList.__@iterator@3184	method	instance () => Iterator<DrawCall, any, any>	-
+<	DrawList.__@iterator@3198	method	instance () => Iterator<DrawCall, any, any>	-
 <	DrawList.add	method	instance (drawCall: DrawCall) => void	-
 <	DrawList.calls	accessor	instance r DrawCall[]	-
 <	DrawList.clear	method	instance () => void	-
@@ -1392,7 +1393,7 @@
 >	EquirectangularRefractionMapping	const	-	const number
 =	Euler	class	class	class
 >	Euler.DEFAULT_ORDER	field	-	static rw string
->	Euler.__@iterator@6145	method	-	instance () => Generator<string | number, void, unknown>
+>	Euler.__@iterator@6164	method	-	instance () => Generator<string | number, void, unknown>
 >	Euler._onChange	method	-	instance (callback: any) => this
 >	Euler._onChangeCallback	method	-	instance () => void
 >	Euler._order	field	-	instance rw string
@@ -1431,7 +1432,7 @@
 !	ExtrudeGeometry	class	class extends Geometry	class extends BufferGeometry
 !	ExtrudeGeometry.constructor	constructor	instance (shapes: ExtrudeShape | ExtrudeShape[], options: ExtrudeOptions = {}) => ExtrudeGeometry	instance (shapes: Shape|Array<Shape> = new Shape( [ new Vector2( 0.5, 0.5 ), new Vector2( - 0.5, 0.5 ), new Vector2( - 0.5, - 0.5 ), new Vector2( 0.5, - 0.5 ) ] ), options: ExtrudeGeometry~Options = {}) => ExtrudeGeometry
 >	ExtrudeGeometry.copy	method	-	instance (source: any) => this
->	ExtrudeGeometry.fromJSON	method	-	static (data: Object, shapes: Array<Shape>) => ExtrudeGeometry
+!	ExtrudeGeometry.fromJSON	method	instance (json: Record<string, unknown>) => this	static (data: Object, shapes: Array<Shape>) => ExtrudeGeometry
 >	ExtrudeGeometry.parameters	field	-	instance rw Object
 >	ExtrudeGeometry.toJSON	method	-	instance () => any
 >	ExtrudeGeometry.type	field	-	instance rw string
@@ -2197,7 +2198,7 @@
 >	Loader.setResourcePath	method	-	instance (resourcePath: string) => Loader
 >	Loader.setWithCredentials	method	-	instance (value: boolean) => Loader
 !	Loader.withCredentials	accessor/field	instance rw boolean	instance rw boolean
-<	LoaderHandler	record	interface { load(...args: unknown[]): unknown }	-
+<	LoaderHandler	record	type = Loader	-
 >	LoaderUtils	class	-	class
 >	LoaderUtils.constructor	constructor	-	instance () => LoaderUtils
 >	LoaderUtils.extractUrlBase	method	-	static (url: string) => string
@@ -2205,10 +2206,10 @@
 =	LoadingManager	class	class	class
 !	LoadingManager.abort	method/field	instance () => this	instance rw typeof abort
 =	LoadingManager.abortController	accessor	instance r AbortController	instance r AbortController
->	LoadingManager.addHandler	field	-	instance rw (regex: string, loader: { registry: Map<string, { key: string; state: number; fetch: Promise<any>; instantiate: Promise<any>; satisfy: Promise<any>; dependencies: Array<(typeof Loader)["registry"] extends Map<any, infer V> ? V : any>; module: { dependenciesMap: (typeof Loader)["registry"]; }; linkError?: any; linkSucceeded: boolean; evaluated: boolean; then?: any; isAsync: boolean; }>; dependencyKeysIfEvaluated: (specifier: string) => string[]; resolve: (specifier: string, referrer: string) => string; }) => LoadingManager
+!	LoadingManager.addHandler	method/field	instance (regex: RegExp, loader: Loader) => void	instance rw (regex: string, loader: { registry: Map<string, { key: string; state: number; fetch: Promise<any>; instantiate: Promise<any>; satisfy: Promise<any>; dependencies: Array<(typeof Loader)["registry"] extends Map<any, infer V> ? V : any>; module: { dependenciesMap: (typeof Loader)["registry"]; }; linkError?: any; linkSucceeded: boolean; evaluated: boolean; then?: any; isAsync: boolean; }>; dependencyKeysIfEvaluated: (specifier: string) => string[]; resolve: (specifier: string, referrer: string) => string; }) => LoadingManager
 !	LoadingManager.constructor	constructor	instance (onLoad?: () => void, onProgress?: (url: string, loaded: number, total: number) => void, onError?: (url: string) => void) => LoadingManager	instance (onLoad?: Function, onProgress?: Function, onError?: Function) => LoadingManager
->	LoadingManager.getHandler	field	-	instance rw (file: string) => { registry: Map<string, { key: string; state: number; fetch: Promise<any>; instantiate: Promise<any>; satisfy: Promise<any>; dependencies: Array<(typeof Loader)["registry"] extends Map<any, infer V> ? V : any>; module: { dependenciesMap: (typeof Loader)["registry"]; }; linkError?: any; linkSucceeded: boolean; evaluated: boolean; then?: any; isAsync: boolean; }>; dependencyKeysIfEvaluated: (specifier: string) => string[]; resolve: (specifier: string, referrer: string) => string; } | null
-<	LoadingManager.handlerFor	method	instance (file: string) => LoaderHandler | undefined	-
+!	LoadingManager.getHandler	method/field	instance (url: string) => Loader | undefined	instance rw (file: string) => { registry: Map<string, { key: string; state: number; fetch: Promise<any>; instantiate: Promise<any>; satisfy: Promise<any>; dependencies: Array<(typeof Loader)["registry"] extends Map<any, infer V> ? V : any>; module: { dependenciesMap: (typeof Loader)["registry"]; }; linkError?: any; linkSucceeded: boolean; evaluated: boolean; then?: any; isAsync: boolean; }>; dependencyKeysIfEvaluated: (specifier: string) => string[]; resolve: (specifier: string, referrer: string) => string; } | null
+<	LoadingManager.handlerFor	method	instance (file: string) => Loader | undefined	-
 <	LoadingManager.isLoading	accessor	instance r boolean	-
 !	LoadingManager.itemEnd	method/field	instance (url: string) => void	instance rw (url: string) => void
 !	LoadingManager.itemError	method/field	instance (url: string) => void	instance rw (url: string) => void
@@ -2217,12 +2218,12 @@
 !	LoadingManager.onLoad	accessor/field	instance rw (() => void) | undefined	instance rw Function|undefined
 !	LoadingManager.onProgress	accessor/field	instance rw ((url: string, loaded: number, total: number) => void) | undefined	instance rw Function|undefined
 !	LoadingManager.onStart	accessor/field	instance rw ((url: string, loaded: number, total: number) => void) | undefined	instance rw Function|undefined
-<	LoadingManager.registerHandler	method	instance (pattern: RegExp, loader: LoaderHandler) => this	-
->	LoadingManager.removeHandler	field	-	instance rw (regex: string) => LoadingManager
->	LoadingManager.resolveURL	field	-	instance rw (url: string) => string
+<	LoadingManager.registerHandler	method	instance (regex: RegExp, loader: Loader) => this	-
+!	LoadingManager.removeHandler	method/field	instance (regex: RegExp) => void	instance rw (regex: string) => LoadingManager
+!	LoadingManager.resolveURL	method/field	instance (url: string) => string	instance rw (url: string) => string
 <	LoadingManager.resolveUrl	method	instance (url: string) => string	-
->	LoadingManager.setURLModifier	field	-	instance rw (transform: (arg0: string) => string) => LoadingManager
-<	LoadingManager.unregisterHandler	method	instance (pattern: RegExp) => boolean	-
+!	LoadingManager.setURLModifier	method/field	instance (callback: ((url: string) => string) | undefined) => this	instance rw (transform: (arg0: string) => string) => LoadingManager
+<	LoadingManager.unregisterHandler	method	instance (regex: RegExp) => boolean	-
 <	LoadingManager.urlModifier	accessor	instance rw ((url: string) => string) | undefined	-
 <	Loop	const	const { readonly Once: 2200; readonly Repeat: 2201; readonly PingPong: 2202; }	-
 <	LoopMode	record	type = (typeof Loop)[keyof typeof Loop]	-
@@ -2419,7 +2420,7 @@
 !	Matrix2.identity	method	instance () => this	instance () => Matrix2
 !	Matrix2.set	method	instance (n11: number, n12: number, n21: number, n22: number) => this	instance (n11: number, n12: number, n21: number, n22: number) => Matrix2
 =	Matrix3	class	class	class
-<	Matrix3.__@iterator@3184	method	instance () => Generator<number, any, any>	-
+<	Matrix3.__@iterator@3198	method	instance () => Generator<number, any, any>	-
 =	Matrix3.clone	method	instance () => Matrix3	instance () => Matrix3
 <	Matrix3.compose	method	instance (position: Vector2, rotation: number, scale: Vector2) => this	-
 !	Matrix3.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix3	instance (n11?: number, n12?: number, n13?: number, n21?: number, n22?: number, n23?: number, n31?: number, n32?: number, n33?: number) => Matrix3
@@ -2454,7 +2455,7 @@
 <	Matrix3.transposeInto	method	instance (values: number[] | Float32Array<ArrayBufferLike>) => this	-
 >	Matrix3.transposeIntoArray	method	-	instance (r: Array<number>) => Matrix3
 =	Matrix4	class	class	class
-<	Matrix4.__@iterator@3184	method	instance () => Generator<number, any, any>	-
+<	Matrix4.__@iterator@3198	method	instance () => Generator<number, any, any>	-
 =	Matrix4.clone	method	instance () => Matrix4	instance () => Matrix4
 !	Matrix4.compose	method	instance (position: Vector3, q: Quaternion, scale: Vector3) => this	instance (position: Vector3, quaternion: Quaternion, scale: Vector3) => Matrix4
 !	Matrix4.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix4	instance (n11?: number, n12?: number, n13?: number, n14?: number, n21?: number, n22?: number, n23?: number, n24?: number, n31?: number, n32?: number, n33?: number, n34?: number, n41?: number, n42?: number, n43?: number, n44?: number) => Matrix4
@@ -3077,7 +3078,7 @@
 >	PerspectiveCamera.getFocalLength	method	-	instance () => number
 >	PerspectiveCamera.getViewBounds	method	-	instance (distance: number, minTarget: Vector2, maxTarget: Vector2) => void
 >	PerspectiveCamera.getViewSize	method	-	instance (distance: number, target: Vector2) => Vector2
->	PerspectiveCamera.isPerspectiveCamera	field	-	instance ro boolean
+!	PerspectiveCamera.isPerspectiveCamera	field	instance ro true	instance ro boolean
 >	PerspectiveCamera.near	field	-	instance rw number
 >	PerspectiveCamera.setFocalLength	method	-	instance (focalLength: number) => void
 !	PerspectiveCamera.setViewOffset	method	instance (fullWidth: number, fullHeight: number, offsetX: number, offsetY: number, width: number, height: number) => this	instance (fullWidth: number, fullHeight: number, x: number, y: number, width: number, height: number) => void
@@ -3303,12 +3304,12 @@
 <	PositionalAudio.maxDistance	accessor	instance rw number	-
 <	PositionalAudio.output	accessor	instance r AudioNodeLike | undefined	-
 !	PositionalAudio.panner	field	instance ro PannerNodeLike | undefined	instance ro PannerNode
+<	PositionalAudio.panningModel	accessor	instance rw string	-
 <	PositionalAudio.refDistance	accessor	instance rw number	-
 <	PositionalAudio.rolloffFactor	accessor	instance rw number	-
 !	PositionalAudio.setDirectionalCone	method	instance (coneInnerAngle: number, coneOuterAngle: number, coneOuterGain: number) => this	instance (coneInnerAngle: number, coneOuterAngle: number, coneOuterGain: number) => PositionalAudio
 >	PositionalAudio.setDistanceModel	method	-	instance (value: ('linear'|'inverse'|'exponential')) => PositionalAudio
 >	PositionalAudio.setMaxDistance	method	-	instance (value: number) => PositionalAudio
-<	PositionalAudio.setPanningModel	method	instance (value: string) => this	-
 >	PositionalAudio.setRefDistance	method	-	instance (value: number) => PositionalAudio
 >	PositionalAudio.setRolloffFactor	method	-	instance (value: number) => PositionalAudio
 !	PositionalAudio.updateMatrixWorld	method	instance (force: boolean = false) => void	instance (force: any) => void
@@ -3408,8 +3409,8 @@
 !	QuadraticBezierCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	QuadraticBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 =	Quaternion	class	class	class
-<	Quaternion.__@iterator@3184	method	instance () => Generator<number, any, any>	-
->	Quaternion.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
+<	Quaternion.__@iterator@3198	method	instance () => Generator<number, any, any>	-
+>	Quaternion.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
 >	Quaternion._onChange	method	-	instance (callback: any) => this
 >	Quaternion._onChangeCallback	method	-	instance () => void
 >	Quaternion._w	field	-	instance rw number
@@ -3692,15 +3693,15 @@
 <	ScanlineFill.fill	method	instance (x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, width: number, height: number, callback: ScanlineCallback) => void	-
 !	Scene	class	class extends Node	class extends Object3D
 !	Scene.background	accessor/field	instance rw number | Color | Texture | undefined	instance rw ?(Color|Texture)
->	Scene.backgroundBlurriness	field	-	instance rw number
->	Scene.backgroundIntensity	field	-	instance rw number
->	Scene.backgroundRotation	field	-	instance rw Euler
+=	Scene.backgroundBlurriness	field	instance rw number	instance rw number
+=	Scene.backgroundIntensity	field	instance rw number	instance rw number
+=	Scene.backgroundRotation	field	instance rw Euler	instance rw Euler
 <	Scene.clone	method	instance () => Scene	-
 !	Scene.constructor	constructor	instance ({ uuid = crypto.randomUUID() }: NodeOptions = {}) => Scene	instance () => Scene
 !	Scene.copy	method	instance (source: Scene, recursive: boolean = true) => this	instance (source: any, recursive: any) => this
 !	Scene.environment	accessor/field	instance rw Texture | null	instance rw ?Texture
->	Scene.environmentIntensity	field	-	instance rw number
->	Scene.environmentRotation	field	-	instance rw Euler
+=	Scene.environmentIntensity	field	instance rw number	instance rw number
+=	Scene.environmentRotation	field	instance rw Euler	instance rw Euler
 !	Scene.fog	accessor/field	instance rw Fog | undefined	instance rw ?(Fog|FogExp2)
 !	Scene.isScene	accessor/field	instance r true	instance ro boolean
 !	Scene.overrideMaterial	accessor/field	instance rw Material | null	instance rw ?Material
@@ -4153,11 +4154,11 @@
 >	Timer._startTime	field	-	instance rw number
 >	Timer._timescale	field	-	instance rw number
 <	Timer.autoStart	field	instance rw boolean	-
->	Timer.connect	method	-	instance (document: Document) => void
+!	Timer.connect	method	instance () => void	instance (document: Document) => void
 =	Timer.constructor	constructor	instance () => Timer	instance () => Timer
 <	Timer.delta	accessor	instance r number	-
->	Timer.disconnect	method	-	instance () => void
->	Timer.dispose	method	-	instance () => void
+=	Timer.disconnect	method	instance () => void	instance () => void
+=	Timer.dispose	method	instance () => void	instance () => void
 <	Timer.elapsedTime	accessor	instance r number	-
 >	Timer.getDelta	method	-	instance () => number
 >	Timer.getElapsed	method	-	instance () => number
@@ -4186,7 +4187,7 @@
 !	TorusGeometry	class	class extends Geometry	class extends BufferGeometry
 !	TorusGeometry.constructor	constructor	instance (radius: number = 1, tube: number = 0.4, radialSegments: number = 12, tubularSegments: number = 48, arc: number = Math.PI * 2) => TorusGeometry	instance (radius: number = 1, tube: number = 0.4, radialSegments: number = 12, tubularSegments: number = 48, arc: number = Math.PI * 2, thetaStart: number = 0, thetaLength: number = Math.PI * 2) => TorusGeometry
 >	TorusGeometry.copy	method	-	instance (source: any) => this
->	TorusGeometry.fromJSON	method	-	static (data: Object) => TorusGeometry
+!	TorusGeometry.fromJSON	method	instance (json: Record<string, unknown>) => this	static (data: Object) => TorusGeometry
 >	TorusGeometry.parameters	field	-	instance rw Object
 >	TorusGeometry.type	field	-	instance rw string
 !	TorusKnotGeometry	class	class extends Geometry	class extends BufferGeometry
@@ -4378,8 +4379,8 @@
 <	VOXVoxelVolume	record	interface { readonly size: VOXSize; readonly occupancy: Uint8Array; readonly colors: Uint8Array; readonly palette: readonly number[] }	-
 >	VSMShadowMap	const	-	const number
 =	Vector2	class	class	class
-<	Vector2.__@iterator@3184	method	instance () => Generator<number, any, any>	-
->	Vector2.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
+<	Vector2.__@iterator@3198	method	instance () => Generator<number, any, any>	-
+>	Vector2.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
 !	Vector2.add	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.addScaledVector	method	instance (v: Vector2, s: number) => this	instance (v: Vector2, s: number) => Vector2
@@ -4438,8 +4439,8 @@
 !	Vector2.x	accessor/field	instance rw number	instance rw number
 !	Vector2.y	accessor/field	instance rw number	instance rw number
 =	Vector3	class	class	class
-<	Vector3.__@iterator@3184	method	instance () => Generator<number, any, any>	-
->	Vector3.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
+<	Vector3.__@iterator@3198	method	instance () => Generator<number, any, any>	-
+>	Vector3.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
 !	Vector3.add	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.addScaledVector	method	instance (v: Vector3 | Vector4, s: number) => this	instance (v: Vector3|Vector4, s: number) => Vector3
@@ -4518,8 +4519,8 @@
 !	Vector3.y	accessor/field	instance rw number	instance rw number
 !	Vector3.z	accessor/field	instance rw number	instance rw number
 =	Vector4	class	class	class
-<	Vector4.__@iterator@3184	method	instance () => Generator<number, any, any>	-
->	Vector4.__@iterator@6145	method	-	instance () => Generator<number, void, unknown>
+<	Vector4.__@iterator@3198	method	instance () => Generator<number, any, any>	-
+>	Vector4.__@iterator@6164	method	-	instance () => Generator<number, void, unknown>
 !	Vector4.add	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.addScaledVector	method	instance (v: Vector4, s: number) => this	instance (v: Vector4, s: number) => Vector4

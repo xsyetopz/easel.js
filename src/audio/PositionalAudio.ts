@@ -102,10 +102,14 @@ export class PositionalAudio extends Audio {
     if (this.panner) this.panner.maxDistance = value;
   }
 
+  /** Panner's panning model name. */
+  get panningModel(): string {
+    return this.panner?.panningModel ?? "HRTF";
+  }
+
   /** Sets the panner's panning model. */
-  setPanningModel(value: string): this {
+  set panningModel(value: string) {
     if (this.panner) this.panner.panningModel = value;
-    return this;
   }
 
   /** Sets the directional cone for volume attenuation. */

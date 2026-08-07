@@ -57,6 +57,9 @@ export class PerspectiveCamera extends Camera {
   /** Runtime class label used by serialization and camera dispatch. */
   override type: string = "PerspectiveCamera";
 
+  /** Constant type guard identifying this camera as perspective. */
+  readonly isPerspectiveCamera = true;
+
   #fov: number;
   #aspect: number;
   #zoom: number;

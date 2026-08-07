@@ -287,6 +287,11 @@ export class Audio extends Node {
     return this.filters[0];
   }
 
+  /** First filter in the chain, or `undefined`. */
+  get filter(): AudioNodeLike | undefined {
+    return this.filters[0];
+  }
+
   /** Replaces the filter chain with a single filter. */
   applyFilter(filter: AudioNodeLike | undefined): this {
     return this.setFilters(filter ? [filter] : []);
@@ -381,11 +386,6 @@ export class Audio extends Node {
       }
     }
     return this;
-  }
-
-  /** Replaces the filter chain with a single filter (or clears it). */
-  setFilter(filter?: AudioNodeLike): this {
-    return this.setFilters(filter ? [filter] : []);
   }
 
   /** Sets the loop flag and applies it to a playing source. */

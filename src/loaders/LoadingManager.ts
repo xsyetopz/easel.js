@@ -1,8 +1,10 @@
-/** Loader interface selected by LoadingManager URL-pattern handlers. */
-export interface LoaderHandler {
-  /** Starts loading through the registered handler. */
-  load(...args: unknown[]): unknown;
-}
+import type { Loader } from "./Loader.ts";
+
+/**
+ * Loader interface selected by LoadingManager URL-pattern handlers.
+ * @deprecated Use {@link Loader} instead; retained for API compatibility.
+ */
+export type LoaderHandler = Loader;
 
 /** Tracks loading state and cancellation across multiple assets. */
 export class LoadingManager {
@@ -16,7 +18,7 @@ export class LoadingManager {
   #itemsLoaded = 0;
   #itemsTotal = 0;
   #urlModifier: ((url: string) => string) | undefined;
-  #handlers: Array<{ pattern: RegExp; loader: LoaderHandler }> = [];
+  #handlers: Array<{ regex: RegExp; loader: Loader }> = [];
   #abortController: AbortController | undefined;
 
   /** Constructs a loading manager with optional lifecycle callbacks. */
@@ -133,28 +135,61 @@ export class LoadingManager {
   }
 
   /** Registers a loader selected by a regular-expression match. */
-  registerHandler(pattern: RegExp, loader: LoaderHandler): this {
-    this.#handlers.push({ pattern, loader });
+  registerHandler(regex: RegExp, loader: Loader): this {
+    this.#handlers.push({ regex, loader });
     return this;
   }
 
   /** Returns the first registered loader matching a file name. */
-  handlerFor(file: string): LoaderHandler | undefined {
-    for (const { pattern, loader } of this.#handlers) {
-      if (pattern.global) pattern.lastIndex = 0;
-      if (pattern.test(file)) return loader;
+  handlerFor(file: string): Loader | undefined {
+    for (const { regex, loader } of this.#handlers) {
+      if (regex.global) regex.lastIndex = 0;
+      if (regex.test(file)) return loader;
     }
-    return void 0 as LoaderHandler | undefined;
+    return void 0 as Loader | undefined;
   }
 
   /** Removes an exact registered regular-expression object. */
-  unregisterHandler(pattern: RegExp): boolean {
+  unregisterHandler(regex: RegExp): boolean {
     const index = this.#handlers.findIndex(
-      (entry) => entry.pattern === pattern,
+      (entry) => entry.regex === regex,
     );
     if (index === -1) return false;
     this.#handlers.splice(index, 1);
     return true;
+  }
+
+  /** Registers a loader for URLs matching a regular expression. */
+  addHandler(regex: RegExp, loader: Loader): void {
+    this.#handlers.push({ regex, loader });
+  }
+
+  /** Returns the loader registered for the URL, or `undefined`. */
+  getHandler(url: string): Loader | undefined {
+    for (const { regex, loader } of this.#handlers) {
+      if (regex.global) regex.lastIndex = 0;
+      if (regex.test(url)) return loader;
+    }
+    return void 0 as Loader | undefined;
+  }
+
+  /** Removes the handler registered for the given regular expression. */
+  removeHandler(regex: RegExp): void {
+    const index = this.#handlers.findIndex(
+      (entry) => entry.regex === regex,
+    );
+    if (index !== -1) this.#handlers.splice(index, 1);
+  }
+
+  /** Applies the URL modifier if set and returns the (possibly modified) URL. */
+  resolveURL(url: string): string {
+    return this.resolveUrl(url);
+  }
+
+  /** Sets a URL modifier callback and returns this manager. */
+  setURLModifier(callback: ((url: string) => string) | undefined): this {
+    this.#urlModifier = callback;
+    return this;
   }
 
   /** Aborts current requests; later requests receive a fresh signal. */

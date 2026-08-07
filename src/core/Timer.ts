@@ -9,6 +9,7 @@ export class Timer {
   #delta = 0;
   #elapsedTime = 0;
   #timeScale = 1;
+  #visibilityHandler: (() => void) | undefined;
 
   /** Last timestamp at which the timer was sampled, in milliseconds. */
   oldTime = 0;
@@ -76,5 +77,38 @@ export class Timer {
     this.oldTime = timestamp;
     this.running = false;
     return this;
+  }
+
+  /** Connects the timer to document visibility events for auto-pause. */
+  connect(): void {
+    if (this.#visibilityHandler) return;
+    if (typeof document === "undefined") return;
+    this.#visibilityHandler = (): void => {
+      if (document.hidden) {
+        this.stop();
+      } else {
+        this.start();
+      }
+    };
+    document.addEventListener("visibilitychange", this.#visibilityHandler);
+  }
+
+  /** Removes the document visibility event listener. */
+  disconnect(): void {
+    if (!this.#visibilityHandler) return;
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", this.#visibilityHandler);
+    }
+    this.#visibilityHandler = undefined;
+  }
+
+  /** Disconnects the timer and resets internal state. */
+  dispose(): void {
+    this.disconnect();
+    this.running = false;
+    this.autoStart = false;
+    this.#delta = 0;
+    this.#elapsedTime = 0;
+    this.#timeScale = 1;
   }
 }

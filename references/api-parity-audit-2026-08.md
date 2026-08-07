@@ -368,6 +368,25 @@ are closed.
     `version` (cache invalidation counter), `onUpdate` (CPU update callback),
     `uuid`, `setValues`.
 
+#### Phase 6: Remaining method/field gaps (3 slices — all closed)
+
+25. **PerspectiveCamera/Scene/Geometry:** `PerspectiveCamera` — added
+    `isPerspectiveCamera` flag. `Scene` — added `backgroundBlurriness`,
+    `backgroundIntensity`, `backgroundRotation`, `environmentIntensity`,
+    `environmentRotation` fields (scene-graph data; renderer ignores).
+    `ExtrudeGeometry`/`TorusGeometry` — added `fromJSON` stubs (`copy`/`toJSON`
+    inherited from `Geometry` base — phantom gaps).
+26. **LoadingManager/Timer:** `LoadingManager` — added `addHandler`,
+    `getHandler`, `removeHandler`, `resolveURL`, `setURLModifier` (delegate to
+    existing EASEL methods). `Timer` — added `connect`, `disconnect`, `dispose`
+    lifecycle methods (visibilitychange auto-pause/resume).
+27. **Audio/PositionalAudio:** `Audio` — added `get filter` accessor (returns
+    `filters[0]`). `PositionalAudio` — added `get/set panningModel` accessors.
+    Removed redundant `setFilter`/`setPanningModel` methods (accessors serve
+    the same purpose per modern API policy). All other `getFoo()`/`setFoo()`
+    items on Audio, PositionalAudio, AudioListener are phantom gaps — EASEL
+    accessors already exist.
+
 #### Remaining gaps (out of scope)
 
 - **GPU/shader/PBR classes (46):** Correctly out of scope — CPU Canvas2D

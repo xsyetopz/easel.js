@@ -1,4 +1,5 @@
 import { Color } from "../math/Color.ts";
+import { Euler } from "../math/Euler.ts";
 import type { Material } from "../materials/Material.ts";
 import type { Fog, FogJSON } from "../scenes/Fog.ts";
 import { Texture, type TextureJSON } from "../textures/Texture.ts";
@@ -21,6 +22,17 @@ export class Scene extends Node {
   #background: Color | number | Texture | undefined;
   #environment: Texture | null = null;
   #overrideMaterial: Material | null = null;
+
+  /** Background blur amount; ignored by the CPU renderer. */
+  backgroundBlurriness: number = 0;
+  /** Background brightness multiplier; ignored by the CPU renderer. */
+  backgroundIntensity: number = 1;
+  /** Background rotation; ignored by the CPU renderer. */
+  backgroundRotation: Euler = new Euler();
+  /** Environment brightness multiplier; ignored by the CPU renderer. */
+  environmentIntensity: number = 1;
+  /** Environment rotation; ignored by the CPU renderer. */
+  environmentRotation: Euler = new Euler();
 
   /** Constant type guard identifying this node as a scene. */
   get isScene(): true {
@@ -87,6 +99,11 @@ export class Scene extends Node {
         : background;
     this.#environment = source.#environment;
     this.#overrideMaterial = source.#overrideMaterial;
+    this.backgroundBlurriness = source.backgroundBlurriness;
+    this.backgroundIntensity = source.backgroundIntensity;
+    this.backgroundRotation = source.backgroundRotation.clone();
+    this.environmentIntensity = source.environmentIntensity;
+    this.environmentRotation = source.environmentRotation.clone();
     return this;
   }
 

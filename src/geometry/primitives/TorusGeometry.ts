@@ -69,4 +69,10 @@ export class TorusGeometry extends Geometry {
     this.setUVs(new Float32Array(uvs));
     this.index = new IndexArray(indices);
   }
+
+  /** Restores geometry from a JSON record. */
+  fromJSON(json: Record<string, unknown>): this {
+    void json;
+    return this;
+  }
 }

@@ -38,8 +38,17 @@ export class AudioListener extends Node {
   /** Gain node used for master volume control, or `undefined` when unavailable. */
   readonly gain: AudioNodeLike | undefined;
 
-  /** Optional filter applied between the gain and the destination. */
-  filter: AudioNodeLike | undefined = undefined;
+  #filter: AudioNodeLike | undefined = undefined;
+
+  /** Current filter node, or `undefined`. */
+  get filter(): AudioNodeLike | undefined {
+    return this.#filter;
+  }
+
+  /** Sets the filter node without reconnecting audio nodes. */
+  set filter(value: AudioNodeLike | undefined) {
+    this.#filter = value;
+  }
 
   /** Time delta in seconds since the last matrix update. */
   timeDelta: number = 0;
@@ -71,30 +80,30 @@ export class AudioListener extends Node {
 
   /** Removes the current filter and reconnects gain to the destination. */
   removeFilter(): this {
-    if (!this.filter || !this.context || !this.gain) return this;
+    if (!this.#filter || !this.context || !this.gain) return this;
     try {
-      this.gain.disconnect?.(this.filter);
-      this.filter.disconnect?.(this.context.destination);
+      this.gain.disconnect?.(this.#filter);
+      this.#filter.disconnect?.(this.context.destination);
       this.gain.connect(this.context.destination);
     } catch {
       // Nodes may already be disconnected.
     }
-    this.filter = undefined;
+    this.#filter = undefined;
     return this;
   }
 
   /** Current filter, or `undefined`. */
   get currentFilter(): AudioNodeLike | undefined {
-    return this.filter;
+    return this.#filter;
   }
 
   /** Sets a filter between the gain and the destination. */
   applyFilter(value: AudioNodeLike): this {
     if (!this.context || !this.gain) return this;
-    if (this.filter !== undefined) {
+    if (this.#filter !== undefined) {
       try {
-        this.gain.disconnect?.(this.filter);
-        this.filter.disconnect?.(this.context.destination);
+        this.gain.disconnect?.(this.#filter);
+        this.#filter.disconnect?.(this.context.destination);
       } catch {
         // Fall through to reconnection.
       }
@@ -105,10 +114,10 @@ export class AudioListener extends Node {
         // Fall through.
       }
     }
-    this.filter = value;
+    this.#filter = value;
     try {
-      this.gain.connect(this.filter);
-      this.filter.connect(this.context.destination);
+      this.gain.connect(this.#filter);
+      this.#filter.connect(this.context.destination);
     } catch {
       // Context may be closed.
     }
