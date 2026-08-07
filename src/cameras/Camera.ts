@@ -107,6 +107,15 @@ export function makeCameraView(
  * through {@link updateProjectionMatrix}.
  */
 export class Camera extends Node {
+  /** Type marker identifying Camera instances. */
+  readonly isCamera = true;
+
+  /** Coordinate system hint; the CPU renderer does not use WebGL coordinate systems. */
+  coordinateSystem = 0;
+
+  /** Whether depth is reversed; false by default. */
+  reversedDepth = false;
+
   /** Runtime class label used by serialization and camera dispatch. */
   override type: string = "Camera";
 
@@ -162,6 +171,11 @@ export class Camera extends Node {
   /** Rebuilds the projection matrix and its cached inverse. */
   updateProjectionMatrix(): void {
     this.commitProjection();
+  }
+
+  /** Updates the world matrix for this camera and optionally its relatives. */
+  updateWorldMatrix(updateParents: boolean, updateChildren: boolean): void {
+    this.updateMatrixWorld(updateParents, updateChildren);
   }
 
   /** Commits a prepared projection and its inverse as one mutation. */

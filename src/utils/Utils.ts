@@ -65,6 +65,47 @@ export const TextureUtils = {
   ): string {
     return getDataUrl(image, type);
   },
+
+  /** Returns a UV transform that fits a texture inside an aspect ratio without cropping. */
+  contain(
+    texture: { width: number; height: number },
+    aspect: number,
+  ): { offset: { x: number; y: number }; repeat: { x: number; y: number } } {
+    const textureAspect = texture.width / texture.height;
+    const scale = Math.min(aspect / textureAspect, 1);
+    return {
+      offset: { x: (1 - scale) / 2, y: (1 - scale) / 2 },
+      repeat: { x: scale, y: scale },
+    };
+  },
+
+  /** Returns a UV transform that covers an aspect ratio, cropping excess texture. */
+  cover(
+    texture: { width: number; height: number },
+    aspect: number,
+  ): { offset: { x: number; y: number }; repeat: { x: number; y: number } } {
+    const textureAspect = texture.width / texture.height;
+    const scale = Math.max(aspect / textureAspect, 1);
+    return {
+      offset: { x: (1 - scale) / 2, y: (1 - scale) / 2 },
+      repeat: { x: scale, y: scale },
+    };
+  },
+
+  /** Returns a UV transform that stretches a texture to fill the target. */
+  fill(
+    _texture: { width: number; height: number },
+  ): { offset: { x: number; y: number }; repeat: { x: number; y: number } } {
+    return {
+      offset: { x: 0, y: 0 },
+      repeat: { x: 1, y: 1 },
+    };
+  },
+
+  /** Returns the byte length of a texture's RGBA pixel data. */
+  getByteLength(texture: { width: number; height: number }): number {
+    return texture.width * texture.height * 4;
+  },
 };
 
 /** Creates a canvas element in environments that support the DOM. */
