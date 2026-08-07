@@ -98,6 +98,7 @@ export class Quaternion {
   #y = 0;
   #z = 0;
   #w = 1;
+  #onChangeCallback: (() => void) | undefined = undefined;
 
   /** Constructs a quaternion, defaulting to the identity rotation. */
   constructor(x: number = 0, y: number = 0, z: number = 0, w: number = 1) {
@@ -115,6 +116,7 @@ export class Quaternion {
   /** Replaces the Cartesian x component. */
   set x(value: number) {
     this.#x = value;
+    this.#onChangeCallback?.();
   }
 
   /** Vertical Cartesian component. */
@@ -125,6 +127,7 @@ export class Quaternion {
   /** Replaces the Cartesian y component. */
   set y(value: number) {
     this.#y = value;
+    this.#onChangeCallback?.();
   }
 
   /** Cartesian z component. */
@@ -135,6 +138,7 @@ export class Quaternion {
   /** Replaces the Cartesian z component. */
   set z(value: number) {
     this.#z = value;
+    this.#onChangeCallback?.();
   }
 
   /** Homogeneous w component. */
@@ -145,6 +149,7 @@ export class Quaternion {
   /** Replaces the homogeneous w component. */
   set w(value: number) {
     this.#w = value;
+    this.#onChangeCallback?.();
   }
 
   /** Euclidean magnitude of this value. */
@@ -172,18 +177,20 @@ export class Quaternion {
 
   /** Copies component values from the supplied instance into this one. */
   copy(q: Quaternion): this {
-    this.x = q.x;
-    this.y = q.y;
-    this.z = q.z;
-    this.w = q.w;
+    this.#x = q.x;
+    this.#y = q.y;
+    this.#z = q.z;
+    this.#w = q.w;
+    this.#onChangeCallback?.();
     return this;
   }
 
   /** Negates the vector part, producing the quaternion conjugate. */
   conjugate(): this {
-    this.x = -this.x;
-    this.y = -this.y;
-    this.z = -this.z;
+    this.#x = -this.#x;
+    this.#y = -this.#y;
+    this.#z = -this.#z;
+    this.#onChangeCallback?.();
     return this;
   }
 
@@ -194,19 +201,21 @@ export class Quaternion {
 
   /** Divides every component by `scalar` in place. */
   divideScalar(scalar: number): this {
-    this.x /= scalar;
-    this.y /= scalar;
-    this.z /= scalar;
-    this.w /= scalar;
+    this.#x /= scalar;
+    this.#y /= scalar;
+    this.#z /= scalar;
+    this.#w /= scalar;
+    this.#onChangeCallback?.();
     return this;
   }
 
   /** Reads this value's components from `array` starting at `offset`. */
   fromArray(array: ArrayLike<number>, offset: number = 0): this {
-    this.x = array[offset];
-    this.y = array[offset + 1];
-    this.z = array[offset + 2];
-    this.w = array[offset + 3];
+    this.#x = array[offset];
+    this.#y = array[offset + 1];
+    this.#z = array[offset + 2];
+    this.#w = array[offset + 3];
+    this.#onChangeCallback?.();
     return this;
   }
 
@@ -222,9 +231,10 @@ export class Quaternion {
 
   /** Computes the conjugate (assumes unit quaternion). */
   invert(): this {
-    this.x = -this.x;
-    this.y = -this.y;
-    this.z = -this.z;
+    this.#x = -this.#x;
+    this.#y = -this.#y;
+    this.#z = -this.#z;
+    this.#onChangeCallback?.();
     return this;
   }
 
@@ -233,10 +243,11 @@ export class Quaternion {
     const { x, y, z, w } = this;
     const { x: qx, y: qy, z: qz, w: qw } = q;
 
-    this.x = qx * w + qw * x + qy * z - qz * y;
-    this.y = qy * w + qw * y + qz * x - qx * z;
-    this.z = qz * w + qw * z + qx * y - qy * x;
-    this.w = qw * w - qx * x - qy * y - qz * z;
+    this.#x = qx * w + qw * x + qy * z - qz * y;
+    this.#y = qy * w + qw * y + qz * x - qx * z;
+    this.#z = qz * w + qw * z + qx * y - qy * x;
+    this.#w = qw * w - qx * x - qy * y - qz * z;
+    this.#onChangeCallback?.();
     return this;
   }
 
@@ -249,19 +260,21 @@ export class Quaternion {
   multiplyQuaternions(a: Quaternion, b: Quaternion): this {
     const { x: ax, y: ay, z: az, w: aw } = a;
     const { x: bx, y: by, z: bz, w: bw } = b;
-    this.x = ax * bw + aw * bx + ay * bz - az * by;
-    this.y = ay * bw + aw * by + az * bx - ax * bz;
-    this.z = az * bw + aw * bz + ax * by - ay * bx;
-    this.w = aw * bw - ax * bx - ay * by - az * bz;
+    this.#x = ax * bw + aw * bx + ay * bz - az * by;
+    this.#y = ay * bw + aw * by + az * bx - ax * bz;
+    this.#z = az * bw + aw * bz + ax * by - ay * bx;
+    this.#w = aw * bw - ax * bx - ay * by - az * bz;
+    this.#onChangeCallback?.();
     return this;
   }
 
   /** Replaces all stored components with the supplied values. */
   set(x: number, y: number, z: number, w: number): this {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.w = w;
+    this.#x = x;
+    this.#y = y;
+    this.#z = z;
+    this.#w = w;
+    this.#onChangeCallback?.();
     return this;
   }
 
@@ -273,10 +286,11 @@ export class Quaternion {
     const halfAngle = angle / 2;
     const s = Math.sin(halfAngle);
 
-    this.x = axis.x * s;
-    this.y = axis.y * s;
-    this.z = axis.z * s;
-    this.w = Math.cos(halfAngle);
+    this.#x = axis.x * s;
+    this.#y = axis.y * s;
+    this.#z = axis.z * s;
+    this.#w = Math.cos(halfAngle);
+    this.#onChangeCallback?.();
     return this;
   }
 
@@ -293,26 +307,29 @@ export class Quaternion {
     // Order does not matter when only one component is non-zero.
     if (y !== 0 && x === 0 && z === 0) {
       const half = y / 2;
-      this.x = 0;
-      this.y = Math.sin(half);
-      this.z = 0;
-      this.w = Math.cos(half);
+      this.#x = 0;
+      this.#y = Math.sin(half);
+      this.#z = 0;
+      this.#w = Math.cos(half);
+      this.#onChangeCallback?.();
       return this;
     }
     if (x !== 0 && y === 0 && z === 0) {
       const half = x / 2;
-      this.x = Math.sin(half);
-      this.y = 0;
-      this.z = 0;
-      this.w = Math.cos(half);
+      this.#x = Math.sin(half);
+      this.#y = 0;
+      this.#z = 0;
+      this.#w = Math.cos(half);
+      this.#onChangeCallback?.();
       return this;
     }
     if (z !== 0 && x === 0 && y === 0) {
       const half = z / 2;
-      this.x = 0;
-      this.y = 0;
-      this.z = Math.sin(half);
-      this.w = Math.cos(half);
+      this.#x = 0;
+      this.#y = 0;
+      this.#z = Math.sin(half);
+      this.#w = Math.cos(half);
+      this.#onChangeCallback?.();
       return this;
     }
 
@@ -325,44 +342,51 @@ export class Quaternion {
 
     switch (order) {
       case "XYZ":
-        this.x = s1 * c2 * c3 + c1 * s2 * s3;
-        this.y = c1 * s2 * c3 - s1 * c2 * s3;
-        this.z = c1 * c2 * s3 + s1 * s2 * c3;
-        this.w = c1 * c2 * c3 - s1 * s2 * s3;
-        return this;
+        this.#x = s1 * c2 * c3 + c1 * s2 * s3;
+        this.#y = c1 * s2 * c3 - s1 * c2 * s3;
+        this.#z = c1 * c2 * s3 + s1 * s2 * c3;
+        this.#w = c1 * c2 * c3 - s1 * s2 * s3;
+        break;
       case "YXZ":
-        this.x = s1 * c2 * c3 + c1 * s2 * s3;
-        this.y = c1 * s2 * c3 - s1 * c2 * s3;
-        this.z = c1 * c2 * s3 - s1 * s2 * c3;
-        this.w = c1 * c2 * c3 + s1 * s2 * s3;
-        return this;
+        this.#x = s1 * c2 * c3 + c1 * s2 * s3;
+        this.#y = c1 * s2 * c3 - s1 * c2 * s3;
+        this.#z = c1 * c2 * s3 - s1 * s2 * c3;
+        this.#w = c1 * c2 * c3 + s1 * s2 * s3;
+        break;
       case "ZXY":
-        this.x = s1 * c2 * c3 - c1 * s2 * s3;
-        this.y = c1 * s2 * c3 + s1 * c2 * s3;
-        this.z = c1 * c2 * s3 + s1 * s2 * c3;
-        this.w = c1 * c2 * c3 - s1 * s2 * s3;
-        return this;
+        this.#x = s1 * c2 * c3 - c1 * s2 * s3;
+        this.#y = c1 * s2 * c3 + s1 * c2 * s3;
+        this.#z = c1 * c2 * s3 + s1 * s2 * c3;
+        this.#w = c1 * c2 * c3 - s1 * s2 * s3;
+        break;
       case "ZYX":
-        this.x = s1 * c2 * c3 - c1 * s2 * s3;
-        this.y = c1 * s2 * c3 + s1 * c2 * s3;
-        this.z = c1 * c2 * s3 - s1 * s2 * c3;
-        this.w = c1 * c2 * c3 + s1 * s2 * s3;
-        return this;
+        this.#x = s1 * c2 * c3 - c1 * s2 * s3;
+        this.#y = c1 * s2 * c3 + s1 * c2 * s3;
+        this.#z = c1 * c2 * s3 - s1 * s2 * c3;
+        this.#w = c1 * c2 * c3 + s1 * s2 * s3;
+        break;
       case "YZX":
-        this.x = s1 * c2 * c3 + c1 * s2 * s3;
-        this.y = c1 * s2 * c3 + s1 * c2 * s3;
-        this.z = c1 * c2 * s3 - s1 * s2 * c3;
-        this.w = c1 * c2 * c3 - s1 * s2 * s3;
-        return this;
+        this.#x = s1 * c2 * c3 + c1 * s2 * s3;
+        this.#y = c1 * s2 * c3 + s1 * c2 * s3;
+        this.#z = c1 * c2 * s3 - s1 * s2 * c3;
+        this.#w = c1 * c2 * c3 - s1 * s2 * s3;
+        break;
       case "XZY":
-        this.x = s1 * c2 * c3 - c1 * s2 * s3;
-        this.y = c1 * s2 * c3 - s1 * c2 * s3;
-        this.z = c1 * c2 * s3 + s1 * s2 * c3;
-        this.w = c1 * c2 * c3 + s1 * s2 * s3;
-        return this;
+        this.#x = s1 * c2 * c3 - c1 * s2 * s3;
+        this.#y = c1 * s2 * c3 - s1 * c2 * s3;
+        this.#z = c1 * c2 * s3 + s1 * s2 * c3;
+        this.#w = c1 * c2 * c3 + s1 * s2 * s3;
+        break;
       default:
-        return this;
+        break;
     }
+    this.#onChangeCallback?.();
+    return this;
+  }
+
+  /** Extracts the rotation from a 4×4 matrix (alias of {@link setFromRotationMatrix}). */
+  setFromMatrix4(m: { elements: ArrayLike<number> }): this {
+    return this.setFromRotationMatrix(m);
   }
 
   /** Replaces this quaternion from a rotation matrix. */
@@ -383,32 +407,33 @@ export class Quaternion {
     if (trace > 0) {
       const s = 0.5 / Math.sqrt(trace + 1.0);
 
-      this.w = 0.25 / s;
-      this.x = (m32 - m23) * s;
-      this.y = (m13 - m31) * s;
-      this.z = (m21 - m12) * s;
+      this.#w = 0.25 / s;
+      this.#x = (m32 - m23) * s;
+      this.#y = (m13 - m31) * s;
+      this.#z = (m21 - m12) * s;
     } else if (m11 > m22 && m11 > m33) {
       const s = 2.0 * Math.sqrt(1.0 + m11 - m22 - m33);
 
-      this.w = (m32 - m23) / s;
-      this.x = 0.25 * s;
-      this.y = (m12 + m21) / s;
-      this.z = (m13 + m31) / s;
+      this.#w = (m32 - m23) / s;
+      this.#x = 0.25 * s;
+      this.#y = (m12 + m21) / s;
+      this.#z = (m13 + m31) / s;
     } else if (m22 > m33) {
       const s = 2.0 * Math.sqrt(1.0 + m22 - m11 - m33);
 
-      this.w = (m13 - m31) / s;
-      this.x = (m12 + m21) / s;
-      this.y = 0.25 * s;
-      this.z = (m23 + m32) / s;
+      this.#w = (m13 - m31) / s;
+      this.#x = (m12 + m21) / s;
+      this.#y = 0.25 * s;
+      this.#z = (m23 + m32) / s;
     } else {
       const s = 2.0 * Math.sqrt(1.0 + m33 - m11 - m22);
 
-      this.w = (m21 - m12) / s;
-      this.x = (m13 + m31) / s;
-      this.y = (m23 + m32) / s;
-      this.z = 0.25 * s;
+      this.#w = (m21 - m12) / s;
+      this.#x = (m13 + m31) / s;
+      this.#y = (m23 + m32) / s;
+      this.#z = 0.25 * s;
     }
+    this.#onChangeCallback?.();
     return this;
   }
 
@@ -421,21 +446,21 @@ export class Quaternion {
     if (r < 1e-8) {
       r = 0;
       if (Math.abs(from.x) > Math.abs(from.z)) {
-        this.x = -from.y;
-        this.y = from.x;
-        this.z = 0;
-        this.w = r;
+        this.#x = -from.y;
+        this.#y = from.x;
+        this.#z = 0;
+        this.#w = r;
       } else {
-        this.x = 0;
-        this.y = -from.z;
-        this.z = from.y;
-        this.w = r;
+        this.#x = 0;
+        this.#y = -from.z;
+        this.#z = from.y;
+        this.#w = r;
       }
     } else {
-      this.x = from.y * to.z - from.z * to.y;
-      this.y = from.z * to.x - from.x * to.z;
-      this.z = from.x * to.y - from.y * to.x;
-      this.w = r;
+      this.#x = from.y * to.z - from.z * to.y;
+      this.#y = from.z * to.x - from.x * to.z;
+      this.#z = from.x * to.y - from.y * to.x;
+      this.#w = r;
     }
     return this.normalize();
   }
@@ -474,23 +499,30 @@ export class Quaternion {
       const sin = Math.sin(theta);
       const factor0 = Math.sin(s * theta) / sin;
       const factor1 = Math.sin(t * theta) / sin;
-      this.x = this.x * factor0 + x * factor1;
-      this.y = this.y * factor0 + y * factor1;
-      this.z = this.z * factor0 + z * factor1;
-      this.w = this.w * factor0 + w * factor1;
+      this.#x = this.#x * factor0 + x * factor1;
+      this.#y = this.#y * factor0 + y * factor1;
+      this.#z = this.#z * factor0 + z * factor1;
+      this.#w = this.#w * factor0 + w * factor1;
     } else {
-      this.x = this.x * s + x * t;
-      this.y = this.y * s + y * t;
-      this.z = this.z * s + z * t;
-      this.w = this.w * s + w * t;
+      this.#x = this.#x * s + x * t;
+      this.#y = this.#y * s + y * t;
+      this.#z = this.#z * s + z * t;
+      this.#w = this.#w * s + w * t;
       this.normalize();
     }
+    this.#onChangeCallback?.();
     return this;
   }
 
   /** Stores the spherical interpolation of `a` and `b` at `t`. */
   slerpQuaternions(a: Quaternion, b: Quaternion, t: number): this {
     return this.copy(a).slerp(b, t);
+  }
+
+  /** Registers a callback invoked whenever a component changes. */
+  onChange(callback: () => void): this {
+    this.#onChangeCallback = callback;
+    return this;
   }
 
   /** Replaces this quaternion with a uniformly distributed random unit rotation. */

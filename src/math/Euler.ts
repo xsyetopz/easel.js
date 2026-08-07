@@ -310,6 +310,24 @@ export class Euler {
     return this.z;
   }
 
+  /** Returns true when x, y, z, and order exactly match the argument. */
+  equals(euler: Euler): boolean {
+    return (
+      this.x === euler.x &&
+      this.y === euler.y &&
+      this.z === euler.z &&
+      this.order === euler.order
+    );
+  }
+
+  /** Writes [x, y, z] into `array` at `offset` and returns the array. */
+  toArray(array: number[] = [], offset: number = 0): number[] {
+    array[offset] = this.x;
+    array[offset + 1] = this.y;
+    array[offset + 2] = this.z;
+    return array;
+  }
+
   /** Registers a callback invoked whenever x, y, z, or order changes. */
   setOnChangeCallback(callback: () => void): this {
     this.#onChangeCallback = callback;

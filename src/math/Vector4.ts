@@ -64,6 +64,26 @@ export class Vector4 {
     this.#w = v;
   }
 
+  /** Alias for the z component. */
+  get width(): number {
+    return this.z;
+  }
+
+  /** Replaces the z component via the width alias. */
+  set width(v: number) {
+    this.z = v;
+  }
+
+  /** Alias for the w component. */
+  get height(): number {
+    return this.w;
+  }
+
+  /** Replaces the w component via the height alias. */
+  set height(v: number) {
+    this.w = v;
+  }
+
   /** Euclidean magnitude of this value. */
   get length(): number {
     return Math.sqrt(this.lengthSq);
@@ -104,6 +124,15 @@ export class Vector4 {
     this.y += v.y * s;
     this.z += v.z * s;
     this.w += v.w * s;
+    return this;
+  }
+
+  /** Stores `a + b * scale` in this vector. */
+  addScaledVectors(a: Vector4, b: Vector4, scale: number): this {
+    this.x = a.x + b.x * scale;
+    this.y = a.y + b.y * scale;
+    this.z = a.z + b.z * scale;
+    this.w = a.w + b.w * scale;
     return this;
   }
 
@@ -189,6 +218,14 @@ export class Vector4 {
   /** Returns the dot product with `v`. */
   dot(v: Vector4): number {
     return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
+  }
+
+  /** Returns the angle in radians between this vector and `v`. */
+  angleTo(v: Vector4): number {
+    const denominator = Math.sqrt(this.lengthSq * v.lengthSq);
+    if (denominator === 0) return Math.PI / 2;
+    const theta = this.dot(v) / denominator;
+    return Math.acos(Math.max(-1, Math.min(1, theta)));
   }
 
   /** Rounds every component up to the nearest integer. */
