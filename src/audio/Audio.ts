@@ -363,6 +363,78 @@ export class Audio extends Node {
     }
   }
 
+  /** Sets detune in cents and applies it to a playing source. */
+  setDetune(value: number): this {
+    this.detune = value;
+    if (this.isPlaying) {
+      const source = this.source as AudioBufferSourceNodeLike;
+      if (source?.detune) {
+        try {
+          source.detune.setTargetAtTime?.(
+            value,
+            this.context?.currentTime ?? 0,
+            0.01,
+          );
+        } catch {
+          source.detune.value = value;
+        }
+      }
+    }
+    return this;
+  }
+
+  /** Replaces the filter chain with a single filter (or clears it). */
+  setFilter(filter?: AudioNodeLike): this {
+    return this.setFilters(filter ? [filter] : []);
+  }
+
+  /** Sets the loop flag and applies it to a playing source. */
+  setLoop(value: boolean): this {
+    this.loop = value;
+    if (this.isPlaying) {
+      (this.source as AudioBufferSourceNodeLike).loop = value;
+    }
+    return this;
+  }
+
+  /** Sets the loop end position and applies it to a playing source. */
+  setLoopEnd(value: number): this {
+    this.loopEnd = value;
+    if (this.isPlaying) {
+      (this.source as AudioBufferSourceNodeLike).loopEnd = value;
+    }
+    return this;
+  }
+
+  /** Sets the loop start position and applies it to a playing source. */
+  setLoopStart(value: number): this {
+    this.loopStart = value;
+    if (this.isPlaying) {
+      (this.source as AudioBufferSourceNodeLike).loopStart = value;
+    }
+    return this;
+  }
+
+  /** Sets the playback rate and applies it to a playing source. */
+  setPlaybackRate(value: number): this {
+    this.playbackRate = value;
+    if (this.isPlaying) {
+      const source = this.source as AudioBufferSourceNodeLike;
+      if (source?.playbackRate) {
+        try {
+          source.playbackRate.setTargetAtTime?.(
+            value,
+            this.context?.currentTime ?? 0,
+            0.01,
+          );
+        } catch {
+          source.playbackRate.value = value;
+        }
+      }
+    }
+    return this;
+  }
+
   /** Copies buffer-source state from `source` and returns `this`. */
   override copy(source: Audio, recursive: boolean = true): this {
     super.copy(source, recursive);
