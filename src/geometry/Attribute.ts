@@ -72,10 +72,6 @@ export class Attribute {
 
   /** Optional channel name included in serialized output. */
   name: string = "";
-  /** Buffer usage hint retained for API parity; the CPU renderer does not use it. */
-  usage = 35044;
-  /** Optional callback invoked after attribute data is uploaded. */
-  onUploadCallback: (() => void) | undefined = undefined;
   /** Whether the latest channel writes have been published to geometry cache owners. */
   get needsUpdate(): boolean {
     return this.#needsUpdate;
@@ -289,18 +285,6 @@ export class Attribute {
     return this;
   }
 
-  /** Sets the upload callback and returns this attribute. */
-  onUpload(callback: () => void): this {
-    this.onUploadCallback = callback;
-    return this;
-  }
-
-  /** Sets the buffer usage hint and returns this attribute. */
-  setUsage(value: number): this {
-    this.usage = value;
-    return this;
-  }
-
   /** Returns an independent copy with cloned mutable state. */
   clone(): Attribute {
     return new Attribute(
@@ -337,7 +321,6 @@ export class Attribute {
 
   #copyMetadata(source: Attribute): this {
     this.name = source.name;
-    this.usage = source.usage;
     this.needsUpdate = source.needsUpdate;
     return this;
   }

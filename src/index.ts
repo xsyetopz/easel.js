@@ -297,7 +297,7 @@ export {
 } from "./geometry/Attribute.ts";
 export { Geometry } from "./geometry/Geometry.ts";
 export { InterleavedAttribute } from "./geometry/InterleavedAttribute.ts";
-export { InterleavedBuffer } from "./geometry/InterleavedBuffer.ts";
+export { InterleavedData } from "./geometry/InterleavedData.ts";
 // geometry/primitives
 export { BoxGeometry } from "./geometry/primitives/BoxGeometry.ts";
 export { CapsuleGeometry } from "./geometry/primitives/CapsuleGeometry.ts";

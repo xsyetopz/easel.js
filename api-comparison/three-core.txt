@@ -297,11 +297,8 @@
 <	Attribute.name	field	instance rw string	-
 <	Attribute.needsUpdate	accessor	instance rw boolean	-
 <	Attribute.normalized	accessor	instance r boolean	-
-<	Attribute.onUpload	method	instance (callback: () => void) => this	-
-<	Attribute.onUploadCallback	field	instance rw (() => void) | undefined	-
 <	Attribute.set	method	instance (values: ArrayLike<number>, offset: number = 0) => this	-
 <	Attribute.setComponent	method	instance (index: number, component: number, value: number) => this	-
-<	Attribute.setUsage	method	instance (value: number) => this	-
 <	Attribute.setW	method	instance (index: number, w: number) => this	-
 <	Attribute.setX	method	instance (index: number, x: number) => this	-
 <	Attribute.setXY	method	instance (index: number, x: number, y: number) => this	-
@@ -311,7 +308,6 @@
 <	Attribute.setZ	method	instance (index: number, z: number) => this	-
 <	Attribute.toJSON	method	instance () => { itemSize: number; type: string; array: number[]; normalized: boolean; name?: string; }	-
 <	Attribute.transformDirection	method	instance (matrix: Matrix4) => this	-
-<	Attribute.usage	field	instance rw number	-
 <	AttributeArray	record	type = | Float32Array | Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array	-
 !	Audio	class	class extends Node	class extends Object3D
 >	Audio._connected	field	-	instance rw boolean
@@ -946,7 +942,7 @@
 >	Clock.stop	method	-	instance () => void
 =	Color	class	class	class
 >	Color.NAMES	field	-	static rw Object
->	Color.__@iterator@6152	method	-	instance () => Generator<number, void, unknown>
+>	Color.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
 !	Color.add	method	instance (color: Color) => this	instance (color: Color) => Color
 !	Color.addColors	method	instance (color1: Color, color2: Color) => this	instance (color1: Color, color2: Color) => Color
 !	Color.addScalar	method	instance (scalar: number) => this	instance (s: number) => Color
@@ -1334,7 +1330,7 @@
 <	DrawCall.vertexColorItemSize	field	instance rw number	-
 <	DrawCall.worldPositions	field	instance rw Float32Array<ArrayBufferLike>	-
 <	DrawList	class	class	-
-<	DrawList.__@iterator@3200	method	instance () => Iterator<DrawCall, any, any>	-
+<	DrawList.__@iterator@3184	method	instance () => Iterator<DrawCall, any, any>	-
 <	DrawList.add	method	instance (drawCall: DrawCall) => void	-
 <	DrawList.calls	accessor	instance r DrawCall[]	-
 <	DrawList.clear	method	instance () => void	-
@@ -1396,7 +1392,7 @@
 >	EquirectangularRefractionMapping	const	-	const number
 =	Euler	class	class	class
 >	Euler.DEFAULT_ORDER	field	-	static rw string
->	Euler.__@iterator@6152	method	-	instance () => Generator<string | number, void, unknown>
+>	Euler.__@iterator@6158	method	-	instance () => Generator<string | number, void, unknown>
 >	Euler._onChange	method	-	instance (callback: any) => this
 >	Euler._onChangeCallback	method	-	instance () => void
 >	Euler._order	field	-	instance rw string
@@ -1866,9 +1862,9 @@
 >	IntType	const	-	const number
 <	InterleavedAttribute	class	class	-
 <	InterleavedAttribute.array	accessor	instance r Float32Array<ArrayBufferLike> | Uint16Array<ArrayBufferLike> | Uint32Array<ArrayBufferLike> | Int32Array<ArrayBufferLike>	-
-<	InterleavedAttribute.constructor	constructor	instance (data: InterleavedBuffer, itemSize: number, offset: number) => InterleavedAttribute	-
+<	InterleavedAttribute.constructor	constructor	instance (data: InterleavedData, itemSize: number, offset: number) => InterleavedAttribute	-
 <	InterleavedAttribute.count	accessor	instance r number	-
-<	InterleavedAttribute.data	accessor	instance r InterleavedBuffer	-
+<	InterleavedAttribute.data	accessor	instance r InterleavedData	-
 <	InterleavedAttribute.getW	method	instance (index: number) => number	-
 <	InterleavedAttribute.getX	method	instance (index: number) => number	-
 <	InterleavedAttribute.getY	method	instance (index: number) => number	-
@@ -1880,32 +1876,27 @@
 <	InterleavedAttribute.setX	method	instance (index: number, x: number) => this	-
 <	InterleavedAttribute.setY	method	instance (index: number, y: number) => this	-
 <	InterleavedAttribute.setZ	method	instance (index: number, z: number) => this	-
-=	InterleavedBuffer	class	class	class
-=	InterleavedBuffer.addUpdateRange	method	instance (start: number, count: number) => void	instance (start: number, count: number) => void
-!	InterleavedBuffer.array	accessor/field	instance r TypedArray	instance rw TypedArray
-=	InterleavedBuffer.clearUpdateRanges	method	instance () => void	instance () => void
-!	InterleavedBuffer.clone	method	instance () => InterleavedBuffer	instance (data?: Object) => InterleavedBuffer
-=	InterleavedBuffer.constructor	constructor	instance (array: TypedArray, stride: number) => InterleavedBuffer	instance (array: TypedArray, stride: number) => InterleavedBuffer
-!	InterleavedBuffer.copy	method	instance (source: InterleavedBuffer) => this	instance (source: InterleavedBuffer) => InterleavedBuffer
-!	InterleavedBuffer.copyAt	method	instance (index: number, attribute: InterleavedBuffer, offset: number) => this	instance (index1: number, interleavedBuffer: InterleavedBuffer, index2: number) => InterleavedBuffer
-!	InterleavedBuffer.count	accessor/field	instance r number	instance ro number
-<	InterleavedBuffer.getW	method	instance (index: number) => number	-
-<	InterleavedBuffer.getX	method	instance (index: number) => number	-
-<	InterleavedBuffer.getY	method	instance (index: number) => number	-
-<	InterleavedBuffer.getZ	method	instance (index: number) => number	-
-!	InterleavedBuffer.isInterleavedBuffer	field	instance ro true	instance ro boolean
-!	InterleavedBuffer.needsUpdate	field/accessor	instance rw boolean	instance w number
-!	InterleavedBuffer.onUpload	method	instance (callback: () => void) => this	instance (callback: Function) => InterleavedBuffer
-!	InterleavedBuffer.onUploadCallback	field/method	instance rw (() => void) | undefined	instance () => void
-!	InterleavedBuffer.set	method	instance (value: ArrayLike<number>, offset: number) => this	instance (value: (TypedArray|Array), offset: number = 0) => InterleavedBuffer
-!	InterleavedBuffer.setUsage	method	instance (value: number) => this	instance (value: (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)) => InterleavedBuffer
-!	InterleavedBuffer.stride	accessor/field	instance r number	instance rw number
-!	InterleavedBuffer.toJSON	method	instance () => { array: number[]; stride: number; type: string; }	instance (data?: Object) => Object
-<	InterleavedBuffer.updateRange	field	instance rw { offset: number; count: number; }	-
-!	InterleavedBuffer.updateRanges	field	instance rw { start: number; count: number; }[]	instance rw Array<Object>
-!	InterleavedBuffer.usage	field	instance rw number	instance rw (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)
-=	InterleavedBuffer.uuid	field	instance ro string	instance ro string
-=	InterleavedBuffer.version	field	instance rw number	instance rw number
+>	InterleavedBuffer	class	-	class
+>	InterleavedBuffer.addUpdateRange	method	-	instance (start: number, count: number) => void
+>	InterleavedBuffer.array	field	-	instance rw TypedArray
+>	InterleavedBuffer.clearUpdateRanges	method	-	instance () => void
+>	InterleavedBuffer.clone	method	-	instance (data?: Object) => InterleavedBuffer
+>	InterleavedBuffer.constructor	constructor	-	instance (array: TypedArray, stride: number) => InterleavedBuffer
+>	InterleavedBuffer.copy	method	-	instance (source: InterleavedBuffer) => InterleavedBuffer
+>	InterleavedBuffer.copyAt	method	-	instance (index1: number, interleavedBuffer: InterleavedBuffer, index2: number) => InterleavedBuffer
+>	InterleavedBuffer.count	field	-	instance ro number
+>	InterleavedBuffer.isInterleavedBuffer	field	-	instance ro boolean
+>	InterleavedBuffer.needsUpdate	accessor	-	instance w number
+>	InterleavedBuffer.onUpload	method	-	instance (callback: Function) => InterleavedBuffer
+>	InterleavedBuffer.onUploadCallback	method	-	instance () => void
+>	InterleavedBuffer.set	method	-	instance (value: (TypedArray|Array), offset: number = 0) => InterleavedBuffer
+>	InterleavedBuffer.setUsage	method	-	instance (value: (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)) => InterleavedBuffer
+>	InterleavedBuffer.stride	field	-	instance rw number
+>	InterleavedBuffer.toJSON	method	-	instance (data?: Object) => Object
+>	InterleavedBuffer.updateRanges	field	-	instance rw Array<Object>
+>	InterleavedBuffer.usage	field	-	instance rw (StaticDrawUsage|DynamicDrawUsage|StreamDrawUsage|StaticReadUsage|DynamicReadUsage|StreamReadUsage|StaticCopyUsage|DynamicCopyUsage|StreamCopyUsage)
+>	InterleavedBuffer.uuid	field	-	instance ro string
+>	InterleavedBuffer.version	field	-	instance rw number
 >	InterleavedBufferAttribute	class	-	class
 >	InterleavedBufferAttribute.applyMatrix4	method	-	instance (m: Matrix4) => InterleavedBufferAttribute
 >	InterleavedBufferAttribute.applyNormalMatrix	method	-	instance (m: Matrix3) => InterleavedBufferAttribute
@@ -1935,6 +1926,24 @@
 >	InterleavedBufferAttribute.setZ	method	-	instance (index: number, z: number) => InterleavedBufferAttribute
 >	InterleavedBufferAttribute.toJSON	method	-	instance (data?: Object) => Object
 >	InterleavedBufferAttribute.transformDirection	method	-	instance (m: Matrix4) => InterleavedBufferAttribute
+<	InterleavedData	class	class	-
+<	InterleavedData.array	accessor	instance r TypedArray	-
+<	InterleavedData.clone	method	instance () => InterleavedData	-
+<	InterleavedData.constructor	constructor	instance (array: TypedArray, stride: number) => InterleavedData	-
+<	InterleavedData.copy	method	instance (source: InterleavedData) => this	-
+<	InterleavedData.copyAt	method	instance (index: number, attribute: InterleavedData, offset: number) => this	-
+<	InterleavedData.count	accessor	instance r number	-
+<	InterleavedData.getW	method	instance (index: number) => number	-
+<	InterleavedData.getX	method	instance (index: number) => number	-
+<	InterleavedData.getY	method	instance (index: number) => number	-
+<	InterleavedData.getZ	method	instance (index: number) => number	-
+<	InterleavedData.isInterleavedData	field	instance ro true	-
+<	InterleavedData.needsUpdate	field	instance rw boolean	-
+<	InterleavedData.set	method	instance (value: ArrayLike<number>, offset: number) => this	-
+<	InterleavedData.stride	accessor	instance r number	-
+<	InterleavedData.toJSON	method	instance () => { array: number[]; stride: number; type: string; }	-
+<	InterleavedData.updateRange	field	instance rw { offset: number; count: number; }	-
+<	InterleavedData.uuid	field	instance ro string	-
 >	Interpolant	class	-	class
 >	Interpolant.DefaultSettings_	field	-	instance rw Object
 >	Interpolant.constructor	constructor	-	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => Interpolant
@@ -2410,7 +2419,7 @@
 !	Matrix2.identity	method	instance () => this	instance () => Matrix2
 !	Matrix2.set	method	instance (n11: number, n12: number, n21: number, n22: number) => this	instance (n11: number, n12: number, n21: number, n22: number) => Matrix2
 =	Matrix3	class	class	class
-<	Matrix3.__@iterator@3200	method	instance () => Generator<number, any, any>	-
+<	Matrix3.__@iterator@3184	method	instance () => Generator<number, any, any>	-
 =	Matrix3.clone	method	instance () => Matrix3	instance () => Matrix3
 <	Matrix3.compose	method	instance (position: Vector2, rotation: number, scale: Vector2) => this	-
 !	Matrix3.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix3	instance (n11?: number, n12?: number, n13?: number, n21?: number, n22?: number, n23?: number, n31?: number, n32?: number, n33?: number) => Matrix3
@@ -2445,7 +2454,7 @@
 <	Matrix3.transposeInto	method	instance (values: number[] | Float32Array<ArrayBufferLike>) => this	-
 >	Matrix3.transposeIntoArray	method	-	instance (r: Array<number>) => Matrix3
 =	Matrix4	class	class	class
-<	Matrix4.__@iterator@3200	method	instance () => Generator<number, any, any>	-
+<	Matrix4.__@iterator@3184	method	instance () => Generator<number, any, any>	-
 =	Matrix4.clone	method	instance () => Matrix4	instance () => Matrix4
 !	Matrix4.compose	method	instance (position: Vector3, q: Quaternion, scale: Vector3) => this	instance (position: Vector3, quaternion: Quaternion, scale: Vector3) => Matrix4
 !	Matrix4.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix4	instance (n11?: number, n12?: number, n13?: number, n14?: number, n21?: number, n22?: number, n23?: number, n24?: number, n31?: number, n32?: number, n33?: number, n34?: number, n41?: number, n42?: number, n43?: number, n44?: number) => Matrix4
@@ -3399,8 +3408,8 @@
 !	QuadraticBezierCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	QuadraticBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 =	Quaternion	class	class	class
-<	Quaternion.__@iterator@3200	method	instance () => Generator<number, any, any>	-
->	Quaternion.__@iterator@6152	method	-	instance () => Generator<number, void, unknown>
+<	Quaternion.__@iterator@3184	method	instance () => Generator<number, any, any>	-
+>	Quaternion.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
 >	Quaternion._onChange	method	-	instance (callback: any) => this
 >	Quaternion._onChangeCallback	method	-	instance () => void
 >	Quaternion._w	field	-	instance rw number
@@ -4369,8 +4378,8 @@
 <	VOXVoxelVolume	record	interface { readonly size: VOXSize; readonly occupancy: Uint8Array; readonly colors: Uint8Array; readonly palette: readonly number[] }	-
 >	VSMShadowMap	const	-	const number
 =	Vector2	class	class	class
-<	Vector2.__@iterator@3200	method	instance () => Generator<number, any, any>	-
->	Vector2.__@iterator@6152	method	-	instance () => Generator<number, void, unknown>
+<	Vector2.__@iterator@3184	method	instance () => Generator<number, any, any>	-
+>	Vector2.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
 !	Vector2.add	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.addScaledVector	method	instance (v: Vector2, s: number) => this	instance (v: Vector2, s: number) => Vector2
@@ -4429,8 +4438,8 @@
 !	Vector2.x	accessor/field	instance rw number	instance rw number
 !	Vector2.y	accessor/field	instance rw number	instance rw number
 =	Vector3	class	class	class
-<	Vector3.__@iterator@3200	method	instance () => Generator<number, any, any>	-
->	Vector3.__@iterator@6152	method	-	instance () => Generator<number, void, unknown>
+<	Vector3.__@iterator@3184	method	instance () => Generator<number, any, any>	-
+>	Vector3.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
 !	Vector3.add	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.addScaledVector	method	instance (v: Vector3 | Vector4, s: number) => this	instance (v: Vector3|Vector4, s: number) => Vector3
@@ -4509,8 +4518,8 @@
 !	Vector3.y	accessor/field	instance rw number	instance rw number
 !	Vector3.z	accessor/field	instance rw number	instance rw number
 =	Vector4	class	class	class
-<	Vector4.__@iterator@3200	method	instance () => Generator<number, any, any>	-
->	Vector4.__@iterator@6152	method	-	instance () => Generator<number, void, unknown>
+<	Vector4.__@iterator@3184	method	instance () => Generator<number, any, any>	-
+>	Vector4.__@iterator@6158	method	-	instance () => Generator<number, void, unknown>
 !	Vector4.add	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.addScaledVector	method	instance (v: Vector4, s: number) => this	instance (v: Vector4, s: number) => Vector4

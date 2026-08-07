@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { InterleavedAttribute } from "@/geometry/InterleavedAttribute.js";
-import { InterleavedBuffer } from "@/geometry/InterleavedBuffer.js";
+import { InterleavedData } from "@/geometry/InterleavedData.js";
 
 describe("InterleavedAttribute", () => {
   function makeAttr(
@@ -9,13 +9,13 @@ describe("InterleavedAttribute", () => {
     itemSize: number,
     offset: number,
   ) {
-    const buf = new InterleavedBuffer(new Float32Array(data), stride);
+    const buf = new InterleavedData(new Float32Array(data), stride);
     return new InterleavedAttribute(buf, itemSize, offset);
   }
 
   describe("constructor", () => {
     it("stores data ref, itemSize, offset", () => {
-      const buf = new InterleavedBuffer(new Float32Array(6), 3);
+      const buf = new InterleavedData(new Float32Array(6), 3);
       const attr = new InterleavedAttribute(buf, 3, 0);
       expect(attr.data).toBe(buf);
       expect(attr.itemSize).toBe(3);
@@ -31,8 +31,8 @@ describe("InterleavedAttribute", () => {
   });
 
   describe("array", () => {
-    it("returns the underlying array from data buffer", () => {
-      const buf = new InterleavedBuffer(new Float32Array([1, 2, 3]), 3);
+    it("returns the underlying array from data", () => {
+      const buf = new InterleavedData(new Float32Array([1, 2, 3]), 3);
       const attr = new InterleavedAttribute(buf, 3, 0);
       expect(attr.array).toBe(buf.array);
     });
@@ -62,7 +62,7 @@ describe("InterleavedAttribute", () => {
 
   describe("setX / setY / setZ / setW", () => {
     it("writes with correct stride + offset and returns this", () => {
-      const buf = new InterleavedBuffer(new Float32Array(6), 3);
+      const buf = new InterleavedData(new Float32Array(6), 3);
       const attr = new InterleavedAttribute(buf, 3, 0);
       const ret = attr.setX(1, 99);
       expect(ret).toBe(attr);
@@ -70,7 +70,7 @@ describe("InterleavedAttribute", () => {
     });
 
     it("setY / setZ write correct slots", () => {
-      const buf = new InterleavedBuffer(new Float32Array(6), 3);
+      const buf = new InterleavedData(new Float32Array(6), 3);
       const attr = new InterleavedAttribute(buf, 3, 0);
       attr.setY(0, 7);
       attr.setZ(0, 8);
@@ -80,7 +80,7 @@ describe("InterleavedAttribute", () => {
 
     it("does not clobber adjacent channel when using offset", () => {
       const data = new Float32Array(10); // stride=5
-      const buf = new InterleavedBuffer(data, 5);
+      const buf = new InterleavedData(data, 5);
       const posAttr = new InterleavedAttribute(buf, 3, 0);
       const uvAttr = new InterleavedAttribute(buf, 2, 3);
       posAttr.setX(0, 1);

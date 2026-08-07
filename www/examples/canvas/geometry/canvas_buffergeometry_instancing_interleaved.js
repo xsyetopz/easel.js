@@ -6,7 +6,7 @@ import {
   Geometry,
   InstancedMesh,
   InterleavedAttribute,
-  InterleavedBuffer,
+  InterleavedData,
   LambertMaterial,
   Matrix4,
   PerspectiveCamera,
@@ -21,7 +21,7 @@ export const meta = {
   name: "Interleaved Instance Data",
   category: "canvas",
   description:
-    "InterleavedBuffer and InterleavedAttribute organize CPU instance positions; supported instance matrices consume the decoded values.",
+    "InterleavedData and InterleavedAttribute organize CPU instance positions; supported instance matrices consume the decoded values.",
 };
 
 export const controls = [];
@@ -34,7 +34,7 @@ function makePackedInstances(count) {
     packed[i * 4 + 2] = Math.floor(i / 9) - 2;
     packed[i * 4 + 3] = 0.4 + (i % 4) * 0.12;
   }
-  const buffer = new InterleavedBuffer(packed, 4);
+  const buffer = new InterleavedData(packed, 4);
   return {
     buffer,
     position: new InterleavedAttribute(buffer, 3, 0),
@@ -110,7 +110,7 @@ export function setup(canvas) {
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
 
-const packed = new EASEL.InterleavedBuffer(values, 4);
+const packed = new EASEL.InterleavedData(values, 4);
 const position = new EASEL.InterleavedAttribute(packed, 3, 0);
 const scale = new EASEL.InterleavedAttribute(packed, 1, 3);
 for (let i = 0; i < position.count; i++) {

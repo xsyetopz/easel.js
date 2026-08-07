@@ -1,22 +1,22 @@
-import type { InterleavedBuffer } from "./InterleavedBuffer.ts";
+import type { InterleavedData } from "./InterleavedData.ts";
 
-/** Strided view of one vertex channel inside an interleaved buffer. */
+/** Strided view of one vertex channel inside interleaved data. */
 export class InterleavedAttribute {
-  #data: InterleavedBuffer;
+  #data: InterleavedData;
   #itemSize: number;
   #offset: number;
   /** Whether consumers must publish the modified packed storage. */
   needsUpdate: boolean = false;
 
   /** Constructs a strided channel view over packed vertex data. */
-  constructor(data: InterleavedBuffer, itemSize: number, offset: number) {
+  constructor(data: InterleavedData, itemSize: number, offset: number) {
     this.#data = data;
     this.#itemSize = itemSize;
     this.#offset = offset;
   }
 
-  /** Interleaved buffer that owns this channel view. */
-  get data(): InterleavedBuffer {
+  /** Interleaved data that owns this channel view. */
+  get data(): InterleavedData {
     return this.#data;
   }
 

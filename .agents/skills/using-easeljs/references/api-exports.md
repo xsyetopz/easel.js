@@ -94,7 +94,7 @@ Generated from `@xsyetopz/easel@0.6.1` `dist/index.d.ts`.
 - `Geometry` -- `./geometry/Geometry.ts`
 - `IcosahedronGeometry` -- `./geometry/primitives/IcosahedronGeometry.ts`
 - `InterleavedAttribute` -- `./geometry/InterleavedAttribute.ts`
-- `InterleavedBuffer` -- `./geometry/InterleavedBuffer.ts`
+- `InterleavedData` -- `./geometry/InterleavedData.ts`
 - `LatheGeometry` -- `./geometry/primitives/LatheGeometry.ts`
 - `OctahedronGeometry` -- `./geometry/primitives/OctahedronGeometry.ts`
 - `PlaneGeometry` -- `./geometry/primitives/PlaneGeometry.ts`

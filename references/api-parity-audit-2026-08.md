@@ -48,6 +48,8 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 | ---------- | ------- | ----------- |
 | `BufferGeometry` | `Geometry` | No GPU buffer; plain geometry |
 | `BufferAttribute` | `Attribute` | No GPU buffer; plain attribute |
+| `InterleavedBuffer` | `InterleavedData` | No GPU buffer; plain interleaved typed-array data |
+| `InterleavedBufferAttribute` | `InterleavedAttribute` | No GPU buffer; plain interleaved attribute |
 | `Object3D` | `Node` | Scene graph node, not "3D object" |
 | `Clock` | `Timer` | ES6 naming |
 | `MeshBasicMaterial` | `BasicMaterial` | Dropped `Mesh` prefix |
@@ -343,6 +345,19 @@ are closed.
     `TubeGeometry` — added `tangents`, `normals`, `binormals`, `fromJSON`.
     `ShapeGeometry` — added `fromJSON`. `EllipseCurve` — added `aX`/`aY`/
     `aRotation`/`aStartAngle`/`aEndAngle`/`aClockwise` accessor aliases.
+
+#### Phase 5: CPU terminology cleanup (1 slice — closed)
+
+23. **InterleavedBuffer → InterleavedData rename + GPU field removal:**
+    Renamed `InterleavedBuffer` class to `InterleavedData` (file, class, field
+    `isInterleavedBuffer` → `isInterleavedData`, all references in `src/`,
+    `tests/`, `www/`). Removed GPU lifecycle fields that have no CPU Canvas2D
+    meaning: `usage` (gl.STATIC_DRAW), `onUploadCallback`/`onUpload` (GPU
+    buffer upload), `updateRanges`/`addUpdateRange`/`clearUpdateRanges` (GPU
+    partial buffer update), `version` (GPU buffer revision), `setUsage`.
+    Applied to both `Attribute` and `InterleavedData`. Kept CPU-relevant
+    fields: `needsUpdate` (cache invalidation), `updateRange` (dirty
+    tracking), `uuid`, `copyAt`, `toJSON`.
 
 #### Remaining gaps (out of scope)
 
