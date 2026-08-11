@@ -1,3 +1,4 @@
+import type { Attribute } from "../geometry/Attribute.ts";
 import { fastMax, fastMin } from "./MathUtils.ts";
 import type { Matrix4 } from "./Matrix4.ts";
 import { Vector3 } from "./Vector3.ts";
@@ -85,8 +86,8 @@ export class Box3 {
   /** Type marker identifying Box3 instances. */
   readonly isBox3 = true;
 
-  #min: Vector3;
-  #max: Vector3;
+  readonly #min: Vector3;
+  readonly #max: Vector3;
 
   /** Constructs an axis-aligned box from optional lower and upper corners. */
   constructor(min?: Vector3, max?: Vector3) {
@@ -235,6 +236,17 @@ export class Box3 {
       this.#max.x = fastMax(this.#max.x, values[i] as number);
       this.#max.y = fastMax(this.#max.y, values[i + 1] as number);
       this.#max.z = fastMax(this.#max.z, values[i + 2] as number);
+    }
+    return this;
+  }
+
+  /** Replaces the bounds with the positions read from `attribute`. */
+  setFromAttribute(attribute: Attribute): this {
+    this.makeEmpty();
+    for (let i = 0; i < attribute.count; i++) {
+      this.expandByPoint(
+        _vector.set(attribute.getX(i), attribute.getY(i), attribute.getZ(i)),
+      );
     }
     return this;
   }
@@ -484,7 +496,7 @@ export class Box3 {
       if (posAttr && posAttr.array.length > 0) {
         obj.updateMatrixWorld(false, false);
         const arr = posAttr.array;
-        const itemSize = posAttr.itemSize ?? 3;
+        const itemSize = posAttr.itemSize;
         const count = arr.length / itemSize;
         for (let i = 0; i < count; i++) {
           const vertex = new Vector3(

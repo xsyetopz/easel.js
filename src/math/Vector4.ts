@@ -1,3 +1,5 @@
+import type { Attribute } from "../geometry/Attribute.ts";
+
 /** Computes the dot product of the given components against a target vector. */
 export function dot4(
   x: number,
@@ -194,6 +196,15 @@ export class Vector4 {
     this.y = a[offset + 1];
     this.z = a[offset + 2];
     this.w = a[offset + 3];
+    return this;
+  }
+
+  /** Reads x, y, z, w from an Attribute at the given vertex index. */
+  fromBufferAttribute(attribute: Attribute, index: number): this {
+    this.x = attribute.getX(index);
+    this.y = attribute.getY(index);
+    this.z = attribute.getZ(index);
+    this.w = attribute.getW(index);
     return this;
   }
 
@@ -456,8 +467,8 @@ export class Vector4 {
       if (xx > yy && xx > zz) {
         if (xx < epsilon) {
           x = 0;
-          y = 0.707106781;
-          z = 0.707106781;
+          y = Math.SQRT1_2;
+          z = Math.SQRT1_2;
         } else {
           x = Math.sqrt(xx);
           y = xy / x;
@@ -465,17 +476,17 @@ export class Vector4 {
         }
       } else if (yy > zz) {
         if (yy < epsilon) {
-          x = 0.707106781;
+          x = Math.SQRT1_2;
           y = 0;
-          z = 0.707106781;
+          z = Math.SQRT1_2;
         } else {
           y = Math.sqrt(yy);
           x = xy / y;
           z = yz / y;
         }
       } else if (zz < epsilon) {
-        x = 0.707106781;
-        y = 0.707106781;
+        x = Math.SQRT1_2;
+        y = Math.SQRT1_2;
         z = 0;
       } else {
         z = Math.sqrt(zz);
