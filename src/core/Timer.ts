@@ -9,6 +9,7 @@ export class Timer {
   #delta = 0;
   #elapsedTime = 0;
   #timeScale = 1;
+  #document: Document | undefined;
   #visibilityHandler: (() => void) | undefined;
 
   /** Last timestamp at which the timer was sampled, in milliseconds. */
@@ -43,6 +44,11 @@ export class Timer {
    * Pass a requestAnimationFrame timestamp to avoid sampling the clock again.
    */
   update(timestamp: number = now()): this {
+    if (this.#document?.hidden === true) {
+      this.#delta = 0;
+      return this;
+    }
+
     const previousTime = this.#currentTime;
     this.#currentTime = timestamp - this.#startTime;
     this.#delta = ((this.#currentTime - previousTime) * this.#timeScale) / 1000;
@@ -79,26 +85,33 @@ export class Timer {
     return this;
   }
 
-  /** Connects the timer to document visibility events for auto-pause. */
-  connect(): void {
-    if (this.#visibilityHandler) return;
-    if (typeof document === "undefined") return;
+  /** Connects the timer to document visibility events. */
+  connect(document: Document): void {
+    if (this.#document === document) return;
+    this.disconnect();
+    this.#document = document;
     this.#visibilityHandler = (): void => {
-      if (document.hidden) {
-        this.stop();
-      } else {
-        this.start();
+      if (this.#document?.hidden === false) {
+        const wasRunning = this.running;
+        this.reset();
+        this.running = wasRunning;
       }
     };
-    document.addEventListener("visibilitychange", this.#visibilityHandler);
+    this.#document.addEventListener(
+      "visibilitychange",
+      this.#visibilityHandler,
+    );
   }
 
   /** Removes the document visibility event listener. */
   disconnect(): void {
-    if (!this.#visibilityHandler) return;
-    if (typeof document !== "undefined") {
-      document.removeEventListener("visibilitychange", this.#visibilityHandler);
+    if (this.#document && this.#visibilityHandler) {
+      this.#document.removeEventListener(
+        "visibilitychange",
+        this.#visibilityHandler,
+      );
     }
+    this.#document = undefined;
     this.#visibilityHandler = undefined;
   }
 
