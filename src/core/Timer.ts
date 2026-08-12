@@ -51,6 +51,7 @@ export class Timer {
 
     const previousTime = this.#currentTime;
     this.#currentTime = timestamp - this.#startTime;
+    this.oldTime = timestamp;
     this.#delta = ((this.#currentTime - previousTime) * this.#timeScale) / 1000;
     this.#elapsedTime += this.#delta;
     return this;

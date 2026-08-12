@@ -57,8 +57,10 @@ describe("Timer", () => {
   it("accepts a frame timestamp without sampling the clock again", () => {
     const timer = new Timer();
     timer.update(40);
+    expect(timer.oldTime).toBe(40);
     expect(timer.delta).toBeCloseTo(0.04);
     timer.update(65);
+    expect(timer.oldTime).toBe(65);
     expect(timer.delta).toBeCloseTo(0.025);
     expect(timer.elapsedTime).toBeCloseTo(0.065);
   });
