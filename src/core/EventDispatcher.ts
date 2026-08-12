@@ -13,7 +13,9 @@ export type EventListener = (event: Event) => void;
 
 /** Event listener registry with add, remove, query, and dispatch operations. */
 export class EventDispatcher {
-  #listeners: Record<string, EventListener[]> = {};
+  readonly #listeners: Record<string, EventListener[]> = Object.create(
+    null,
+  ) as Record<string, EventListener[]>;
 
   /** Registers `listener` for `type` unless it is already registered. */
   addEventListener(type: string, listener: EventListener): this {

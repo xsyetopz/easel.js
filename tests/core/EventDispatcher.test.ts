@@ -73,6 +73,21 @@ describe("EventDispatcher", () => {
     });
   });
 
+  it("handles event types inherited by ordinary objects", () => {
+    const dispatcher = new EventDispatcher();
+    const fn = vi.fn();
+
+    for (const type of ["constructor", "toString", "__proto__"]) {
+      dispatcher.addEventListener(type, fn);
+      expect(dispatcher.hasEventListener(type, fn)).toBe(true);
+      dispatcher.dispatchEvent({ type });
+      dispatcher.removeEventListener(type, fn);
+      expect(dispatcher.hasEventListener(type, fn)).toBe(false);
+    }
+
+    expect(fn).toHaveBeenCalledTimes(3);
+  });
+
   it("does not add duplicate listeners", () => {
     const dispatcher = new EventDispatcher();
     const fn = vi.fn();
