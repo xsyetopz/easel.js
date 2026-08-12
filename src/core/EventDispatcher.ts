@@ -2,6 +2,8 @@
 export interface Event {
   /** Event name used to select listeners. */
   type: string;
+  /** Dispatcher invoking listeners during dispatch; `undefined` otherwise. */
+  target?: EventDispatcher | undefined;
   /** Additional event-specific payload fields. */
   [key: string]: unknown;
 }
@@ -46,13 +48,19 @@ export class EventDispatcher {
     return this;
   }
 
-  /** Invokes a snapshot of listeners registered for `event.type`. */
+  /** Invokes listeners with this dispatcher as `event.target`. */
   dispatchEvent(event: Event): void {
     const listeners = this.#listeners;
     const arr = listeners[event.type];
     if (arr !== undefined) {
-      for (const listener of arr.slice()) {
-        listener.call(this, event);
+      const previousTarget = event.target;
+      event.target = this;
+      try {
+        for (const listener of arr.slice()) {
+          listener.call(this, event);
+        }
+      } finally {
+        event.target = previousTarget;
       }
     }
   }
