@@ -104,11 +104,11 @@ describe("discrete animation tracks", () => {
       new StringTrack("state", [0, 1, 2, 3], ["idle", "walk", "walk", "run"]),
     ]);
     const clipped = subclip(source, "part", 1, 3, 1);
-    expect(Array.from(clipped.tracks[0].times)).toEqual([0, 1, 2]);
-    expect(clipped.tracks[0].values).toEqual(["walk", "walk", "run"]);
+    expect(Array.from(clipped.tracks[0].times)).toEqual([0, 1]);
+    expect(clipped.tracks[0].values).toEqual(["walk", "walk"]);
     clipped.optimize();
-    expect(Array.from(clipped.tracks[0].times)).toEqual([0, 2]);
-    expect(clipped.tracks[0].values).toEqual(["walk", "run"]);
+    expect(Array.from(clipped.tracks[0].times)).toEqual([0]);
+    expect(clipped.tracks[0].values).toEqual(["walk"]);
   });
 
   it("leaves discrete tracks unchanged when making a clip additive", () => {

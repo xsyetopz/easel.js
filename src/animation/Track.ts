@@ -1,10 +1,14 @@
+import type { InterpolationEndingMode } from "./InterpolationEnding.ts";
+import { InterpolationEnding } from "./InterpolationEnding.ts";
 import { BezierInterpolant } from "./interpolants/BezierInterpolant.ts";
 import { CubicInterpolant } from "./interpolants/CubicInterpolant.ts";
 import { DiscreteInterpolant } from "./interpolants/DiscreteInterpolant.ts";
-import { Interpolant } from "./interpolants/Interpolant.ts";
+import type { Interpolant } from "./interpolants/Interpolant.ts";
 import { LinearInterpolant } from "./interpolants/LinearInterpolant.ts";
 import { QuaternionLinearInterpolant } from "./interpolants/QuaternionLinearInterpolant.ts";
 
+export type { InterpolationEndingMode } from "./InterpolationEnding.ts";
+export { InterpolationEnding } from "./InterpolationEnding.ts";
 
 /** Numeric keyframe interpolation modes supported by the track sampler. */
 export const Interpolation = {
@@ -17,17 +21,6 @@ export const Interpolation = {
 /** Union of interpolation identifiers supported by numeric tracks. */
 export type InterpolationMode =
   (typeof Interpolation)[keyof typeof Interpolation];
-
-/** Endpoint behavior for smooth interpolation. */
-export const InterpolationEnding = {
-  ZeroCurvature: 2400,
-  ZeroSlope: 2401,
-  WrapAround: 2402,
-} as const;
-
-/** Union of endpoint policies used by smooth interpolation. */
-export type InterpolationEndingMode =
-  (typeof InterpolationEnding)[keyof typeof InterpolationEnding];
 
 /** Construction options for numeric keyframe tracks. */
 export interface TrackOptions {
@@ -136,12 +129,17 @@ export class Track<ValueType extends TrackValueType = "number"> {
       return interpolant;
     }
     if (this.#interpolation === Interpolation.Bezier) {
+      if (!(this.#inTangents && this.#outTangents)) {
+        throw new RangeError(
+          "Bezier interpolation requires inTangents and outTangents.",
+        );
+      }
       return new BezierInterpolant(
         this.#times,
         this.#values,
         this.#itemSize,
-        this.#inTangents!,
-        this.#outTangents!,
+        this.#inTangents,
+        this.#outTangents,
       );
     }
     return new LinearInterpolant(this.#times, this.#values, this.#itemSize);

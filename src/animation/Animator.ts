@@ -81,13 +81,19 @@ export class Animator {
     const existing = actionsForClip.get(localRoot);
     if (existing !== undefined) return existing;
 
-    const action = new AnimationAction(clip, localRoot, this.#actionLifecycle, this);
-    const mixers = this.#createMixers(action, clip.tracks);
+    const action = new AnimationAction(
+      clip,
+      localRoot,
+      this.#actionLifecycle,
+      this,
+    );
+    const tracks = [...clip.tracks];
+    const mixers = this.#createMixers(action, tracks);
     this.#actions.push(action);
     actionsForClip.set(localRoot, action);
 
     this.#actionMixers.set(action, mixers);
-    this.#actionTracks.set(action, clip.tracks);
+    this.#actionTracks.set(action, tracks);
 
     return action;
   }
@@ -108,9 +114,12 @@ export class Animator {
     const scaledDelta = delta * this.#timeScale;
     this.#time += scaledDelta;
     this.#activeMixers.clear();
+    this.#advanceActions(scaledDelta);
+    this.#applyMixers();
+    return this;
+  }
 
-    // Iterate backwards because a naturally finished action removes itself by
-    // swapping the array's last entry into its slot.
+  #advanceActions(scaledDelta: number): void {
     for (
       let actionIndex = this.#activeActions.length - 1;
       actionIndex >= 0;
@@ -126,19 +135,30 @@ export class Animator {
 
       const weight = action.effectiveWeight;
       if (weight === 0) continue;
-      for (let i = 0; i < tracks.length; i++) {
-        const values = tracks[i].getValueAtTime(action.time);
-        for (const mixer of mixers[i]) {
-          this.#activeMixers.add(mixer);
-          if (action.blendMode === AnimationBlend.Additive) {
-            mixer.accumulateAdditive(weight, values as number[]);
-          } else {
-            mixer.accumulate(0, weight, values);
-          }
+      this.#accumulateAction(action, tracks, mixers, weight);
+    }
+  }
+
+  #accumulateAction(
+    action: AnimationAction,
+    tracks: readonly AnimationTrack[],
+    mixers: PropertyMixer[][],
+    weight: number,
+  ): void {
+    for (let i = 0; i < tracks.length; i++) {
+      const values = tracks[i].getValueAtTime(action.time);
+      for (const mixer of mixers[i]) {
+        this.#activeMixers.add(mixer);
+        if (action.blendMode === AnimationBlend.Additive) {
+          mixer.accumulateAdditive(weight, values as number[]);
+        } else {
+          mixer.accumulate(0, weight, values);
         }
       }
     }
+  }
 
+  #applyMixers(): void {
     for (const mixer of this.#activeMixers) {
       mixer.apply(0);
     }
@@ -149,8 +169,6 @@ export class Animator {
     for (const mixer of this.#activeMixers) {
       this.#previouslyActiveMixers.add(mixer);
     }
-
-    return this;
   }
 
   /** Resets action time, evaluates the timeline at `time` seconds, and applies the result. */
@@ -160,6 +178,16 @@ export class Animator {
     }
     this.#time = 0;
     for (const action of this.#actions) action.reset(action.enabled);
+    return this.update(time);
+  }
+
+  /** Sets the animator timeline in seconds and applies the result. */
+  setTime(time: number): this {
+    if (!Number.isFinite(time)) {
+      throw new RangeError("time must be finite");
+    }
+    this.#time = 0;
+    for (const action of this.#actions) action.time = 0;
     return this.update(time);
   }
 

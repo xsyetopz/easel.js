@@ -1,5 +1,9 @@
-import { AnimationClip } from "./AnimationClip.ts";
-import type { AnimationTrack, TrackValue } from "./Track.ts";
+import { AnimationBlend, AnimationClip } from "./AnimationClip.ts";
+import {
+  copyTrackAtIndices,
+  type AnimationTrack,
+  type TrackValue,
+} from "./Track.ts";
 import { QuaternionTrack } from "./tracks/QuaternionTrack.ts";
 
 /** Numeric typed-array storage accepted by animation utilities. */
@@ -133,7 +137,7 @@ export function flattenJSON(
   }
 }
 
-/** Extracts an inclusive frame interval at `fps` and retimes it to start at zero. */
+/** Extracts a half-open frame interval at `fps` and retimes it to start at zero. */
 export function subclip(
   clip: AnimationClip,
   name: string,
@@ -142,14 +146,35 @@ export function subclip(
   fps = 30,
 ): AnimationClip {
   validateFrameRange(startFrame, endFrame, fps);
-  const startTime = startFrame / fps;
-  const endTime = endFrame / fps;
+  const cloned = clip.clone();
   const newTracks: AnimationTrack[] = [];
-  for (const track of clip.tracks) {
-    const trimmed = track.trim(startTime, endTime);
-    if (trimmed.times.length > 0) newTracks.push(trimmed.shift(-startTime));
+  for (const track of cloned.tracks) {
+    const indices: number[] = [];
+    for (let index = 0; index < track.times.length; index++) {
+      const frame = track.times[index] * fps;
+      if (frame >= startFrame && frame < endFrame) indices.push(index);
+    }
+    if (indices.length > 0) {
+      newTracks.push(copyTrackAtIndices(track, indices));
+    }
   }
-  return new AnimationClip(name, endTime - startTime, newTracks);
+
+  const minStartTime = newTracks.reduce(
+    (minimum, track) => Math.min(minimum, track.times[0] ?? minimum),
+    Number.POSITIVE_INFINITY,
+  );
+  const shiftedTracks =
+    minStartTime === Number.POSITIVE_INFINITY
+      ? newTracks
+      : newTracks.map((track) => track.shift(-minStartTime));
+  const result = new AnimationClip(
+    name,
+    cloned.duration,
+    shiftedTracks,
+    cloned.blendMode,
+  );
+  result.userData = cloned.userData;
+  return result.resetDuration();
 }
 
 /** Returns a cloned clip whose numeric tracks are relative to `referenceFrame` at `fps`. */
@@ -190,6 +215,7 @@ export function makeClipAdditive(
       subtractReference(values, referenceValues, track.itemSize);
     }
   }
+  result.blendMode = AnimationBlend.Additive;
   return result;
 }
 
@@ -246,10 +272,10 @@ function applyQuaternionReference(
     const y = values[offset + 1];
     const z = values[offset + 2];
     const w = values[offset + 3];
-    values[offset] = x * rw + w * rx + y * rz - z * ry;
-    values[offset + 1] = y * rw + w * ry + z * rx - x * rz;
-    values[offset + 2] = z * rw + w * rz + x * ry - y * rx;
-    values[offset + 3] = w * rw - x * rx - y * ry - z * rz;
+    values[offset] = rx * w + rw * x + ry * z - rz * y;
+    values[offset + 1] = ry * w + rw * y + rz * x - rx * z;
+    values[offset + 2] = rz * w + rw * z + rx * y - ry * x;
+    values[offset + 3] = rw * w - rx * x - ry * y - rz * z;
   }
 }
 

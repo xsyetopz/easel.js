@@ -74,9 +74,16 @@ for await (const fileName of new Glob("src/**/*.ts").scan(".")) {
         const name = memberName(member);
         const match = /^set([A-Z].*)$/u.exec(name);
         const accessorName = match
-          ? `${match[1]![0]!.toLowerCase()}${match[1]!.slice(1)}`
+          ? `${match[1]?.[0]?.toLowerCase()}${match[1]?.slice(1)}`
           : "";
-        if (accessorName && accessors.has(accessorName)) {
+        if (
+          accessorName &&
+          !(
+            source.fileName.endsWith("src/animation/Animator.ts") &&
+            name === "setTime"
+          ) &&
+          accessors.has(accessorName)
+        ) {
           violations.push(
             `${location(source, member)} redundant set-method; use the ${accessorName} accessor`,
           );

@@ -12,6 +12,8 @@ import { QuaternionTrack } from "./tracks/QuaternionTrack.ts";
 import { StringTrack } from "./tracks/StringTrack.ts";
 import { VectorTrack } from "./tracks/VectorTrack.ts";
 
+const MORPH_TARGET_NAME_PATTERN = /^(?<prefix>[\w-]*?)(?<index>\d+)$/u;
+
 /** Animation blending modes supported by the CPU property mixer. */
 export const AnimationBlend = {
   Normal: 2500,
@@ -65,6 +67,10 @@ export interface AnimationClipJSON {
   readonly fps?: number;
   /** Optional blend operation applied when the clip contributes track values. */
   readonly blendMode?: AnimationBlendMode;
+  /** Optional stable clip identifier used by THREE-compatible serialization. */
+  readonly uuid?: string;
+  /** Optional stringified application metadata used by THREE-compatible serialization. */
+  readonly userData?: string;
 }
 
 /** Finds a named clip in an array or serialized animation collection. */
@@ -88,12 +94,38 @@ export function findAnimationClip(
 export function animationClipFromJson(json: AnimationClipJSON): AnimationClip {
   validateClipJSON(json);
   const scale = json.fps === undefined ? 1 : 1 / validateFps(json.fps);
-  return new AnimationClip(
+  const clip = new AnimationClip(
     json.name ?? "",
     json.duration ?? -1,
     (json.tracks ?? []).map((track) => trackFromJSON(track, scale)),
     json.blendMode ?? AnimationBlend.Normal,
   );
+  if (json.uuid !== undefined) {
+    if (typeof json.uuid !== "string") {
+      throw new TypeError("Animation clip uuid must be a string.");
+    }
+    Object.defineProperty(clip, "uuid", {
+      value: json.uuid,
+      enumerable: true,
+      writable: false,
+    });
+  }
+  if (json.userData !== undefined) {
+    if (typeof json.userData !== "string") {
+      throw new TypeError("Animation clip userData must be a string.");
+    }
+    clip.userData = parseUserData(json.userData);
+  }
+  return clip;
+}
+
+/** Serializes an animation clip using THREE-compatible metadata fields. */
+export function animationClipToJSON(clip: AnimationClip): AnimationClipJSON {
+  return {
+    ...clip.toJSON(),
+    uuid: clip.uuid,
+    userData: JSON.stringify(clip.userData),
+  };
 }
 
 /** Named collection of keyframe tracks representing one animation sequence. */
@@ -103,9 +135,9 @@ export class AnimationClip {
   /** Application metadata associated with this clip. */
   userData: Record<string, unknown> = {};
 
-  #name: string;
+  readonly #name: string;
   #duration: number;
-  #tracks: AnimationTrack[];
+  readonly #tracks: AnimationTrack[];
   #blendMode: AnimationBlendMode;
 
   /**
@@ -187,31 +219,24 @@ export class AnimationClip {
     return this;
   }
 
-  /** Checks finite duration and every track's structural invariants. */
+  /** Performs minimal validation on each track in the clip. */
   validate(): boolean {
-    if (!Number.isFinite(this.#duration) || this.#duration < 0) return false;
-    return this.#tracks.every((track) => {
-      if (track.times.length * track.itemSize !== track.values.length) {
-        return false;
-      }
-      for (let index = 0; index < track.times.length; index++) {
-        if (!Number.isFinite(track.times[index])) return false;
-        if (index > 0 && track.times[index] < track.times[index - 1]) {
-          return false;
-        }
-      }
-      return true;
-    });
+    return this.#tracks.every((track) => track.validate());
   }
 
-  /** Creates an independent clip with cloned track storage. */
+  /** Creates an independent clip with cloned track storage and metadata. */
   clone(): AnimationClip {
-    return new AnimationClip(
+    const clone = new AnimationClip(
       this.#name,
       this.#duration,
       this.#tracks.map((track) => track.clone()),
       this.#blendMode,
     );
+    clone.userData = JSON.parse(JSON.stringify(this.userData)) as Record<
+      string,
+      unknown
+    >;
+    return clone;
   }
 
   /** Removes redundant keyframes where the value does not change from the previous key. */
@@ -226,7 +251,8 @@ export class AnimationClip {
     let max = 0;
     for (const track of this.#tracks) {
       const t = track.times;
-      if (t.length > 0 && t[t.length - 1] > max) max = t[t.length - 1];
+      const last = t.at(-1);
+      if (last !== undefined && last > max) max = last;
     }
     return max;
   }
@@ -259,48 +285,32 @@ export function CreateFromMorphTargetSequence(
 ): AnimationClip {
   const numFrames = morphTargetSequence.length;
   if (numFrames === 0) return new AnimationClip(name, 0, []);
-  const frameTime = 1 / fps;
+  validateFps(fps);
   const tracks: NumberTrack[] = [];
 
   for (let i = 0; i < numFrames; i++) {
-    const times: number[] = [];
-    const values: number[] = [];
-    let time = 0;
-
-    for (let j = 0; j < numFrames; j++) {
-      if (j === i - 1) {
-        times.push(time);
-        values.push(0);
-      } else if (j === i) {
-        times.push(time);
-        values.push(1);
-      } else if (j === i + 1) {
-        times.push(time);
-        values.push(0);
-      }
-      time += frameTime;
-    }
-
-    if (!noLoop) {
-      times.push(time);
-      values.push(0);
-    } else if (times.length > 0) {
-      times.push(time - frameTime);
-      values.push(0);
-    }
-
-    if (times.length === 0) {
-      times.push(0);
-      values.push(0);
-    }
-
-    tracks.push(
-      new NumberTrack(
-        `${morphTargetSequence[i].name}.morphTargetInfluences[${i}]`,
-        times,
-        values,
-      ),
+    const times = [(i + numFrames - 1) % numFrames, i, (i + 1) % numFrames];
+    const values = [0, 1, 0];
+    const order = [0, 1, 2].sort(
+      (left, right) => times[left] - times[right] || left - right,
     );
+    const sortedTimes = order.map((index) => times[index]);
+    const sortedValues = order.map((index) => values[index]);
+    const firstValue = sortedValues.at(0);
+
+    if (!noLoop && sortedTimes.at(0) === 0 && firstValue !== undefined) {
+      sortedTimes.push(numFrames);
+      sortedValues.push(firstValue);
+    }
+
+    const scaledTimes = sortedTimes.map((time) => time / fps);
+    const track = new NumberTrack(
+      `.morphTargetInfluences[${morphTargetSequence[i].name}]`,
+      scaledTimes.map((_, index) => index),
+      sortedValues,
+    );
+    track.times.set(scaledTimes);
+    tracks.push(track);
   }
 
   return new AnimationClip(name, -1, tracks);
@@ -313,13 +323,14 @@ export function CreateFromMorphTargetSequence(
 export function CreateClipsFromMorphTargetSequences(
   morphTargets: readonly { name: string }[],
   fps: number = 6,
+  noLoop: boolean = false,
 ): AnimationClip[] {
   const groups = new Map<string, { name: string }[]>();
-  const pattern = /^([\w-]*?)(\d+)$/;
 
   for (const morphTarget of morphTargets) {
-    const parts = pattern.exec(morphTarget.name);
-    const prefix = parts ? parts[1] : morphTarget.name;
+    const parts = MORPH_TARGET_NAME_PATTERN.exec(morphTarget.name);
+    if (!parts) continue;
+    const prefix = parts[1];
     let group = groups.get(prefix);
     if (!group) {
       group = [];
@@ -330,7 +341,7 @@ export function CreateClipsFromMorphTargetSequences(
 
   const clips: AnimationClip[] = [];
   for (const [prefix, group] of groups) {
-    clips.push(CreateFromMorphTargetSequence(prefix, group, fps));
+    clips.push(CreateFromMorphTargetSequence(prefix, group, fps, noLoop));
   }
   return clips;
 }
@@ -372,18 +383,20 @@ function trackFromJSON(
 }
 
 function trackToJSON(track: AnimationTrack): AnimationClipTrackJSON {
-  const type =
-    track instanceof BooleanTrack
-      ? "boolean"
-      : track instanceof StringTrack
-        ? "string"
-        : track instanceof ColorTrack
-          ? "color"
-          : track instanceof QuaternionTrack
-            ? "quaternion"
-            : track instanceof VectorTrack
-              ? "vector"
-              : "number";
+  let type: AnimationClipTrackJSON["type"];
+  if (track instanceof BooleanTrack) {
+    type = "boolean";
+  } else if (track instanceof StringTrack) {
+    type = "string";
+  } else if (track instanceof ColorTrack) {
+    type = "color";
+  } else if (track instanceof QuaternionTrack) {
+    type = "quaternion";
+  } else if (track instanceof VectorTrack) {
+    type = "vector";
+  } else {
+    type = "number";
+  }
   const json: AnimationClipTrackJSON = {
     type,
     name: track.name,
@@ -449,6 +462,14 @@ function validateFps(fps: number): number {
     );
   }
   return fps;
+}
+
+function parseUserData(serialized: string): Record<string, unknown> {
+  const userData: unknown = JSON.parse(serialized);
+  if (!isRecord(userData) || Array.isArray(userData)) {
+    throw new TypeError("Animation clip userData must decode to an object.");
+  }
+  return userData;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

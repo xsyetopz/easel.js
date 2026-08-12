@@ -84,12 +84,8 @@ describe("AnimationUtils", () => {
     const numericTrack = resultTrack as Track;
 
     expect(numericTrack.interpolation).toBe(Interpolation.Bezier);
-    expect(Array.from(numericTrack.inTangents ?? [])).toEqual([
-      -0.25, 0.75, 0.75, 0.25,
-    ]);
-    expect(Array.from(numericTrack.outTangents ?? [])).toEqual([
-      0.25, 0.75, 1, 0,
-    ]);
+    expect(Array.from(numericTrack.inTangents ?? [])).toEqual([-0.25, 0.75]);
+    expect(Array.from(numericTrack.outTangents ?? [])).toEqual([0.25, 0.75]);
   });
 
   it("provides validated ordering and independent array conversion utilities", () => {
