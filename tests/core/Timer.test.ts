@@ -1,17 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
-import { Timer } from "@/core/Timer.js";
 import { Timer as THREETimer } from "three";
+import { Timer } from "@/core/Timer.js";
 
 type TimerDocumentLike = {
   hidden: boolean;
-  addEventListener: (
-    type: "visibilitychange",
-    listener: () => void,
-  ) => void;
-  removeEventListener: (
-    type: "visibilitychange",
-    listener: () => void,
-  ) => void;
+  addEventListener: (type: "visibilitychange", listener: () => void) => void;
+  removeEventListener: (type: "visibilitychange", listener: () => void) => void;
   dispatchVisibilityChange: () => void;
   listenerCount: () => number;
 };
@@ -21,16 +15,16 @@ function makeDocumentLike(): TimerDocumentLike {
 
   return {
     hidden: false,
-    addEventListener(type, listener) {
+    addEventListener(type: "visibilitychange", listener: () => void): void {
       if (type === "visibilitychange") listeners.add(listener);
     },
-    removeEventListener(type, listener) {
+    removeEventListener(type: "visibilitychange", listener: () => void): void {
       if (type === "visibilitychange") listeners.delete(listener);
     },
-    dispatchVisibilityChange() {
+    dispatchVisibilityChange(): void {
       for (const listener of listeners) listener();
     },
-    listenerCount() {
+    listenerCount(): number {
       return listeners.size;
     },
   };
