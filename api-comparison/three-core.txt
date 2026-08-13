@@ -1543,7 +1543,7 @@
 <	GLTFExportTexture	record	interface { readonly sampler?: number; readonly source: number }	-
 <	GLTFExporter	class	class	-
 <	GLTFExporter.constructor	constructor	instance () => GLTFExporter	-
-<	GLTFExporter.parse	method	instance (root: Node, options?: GLTFExporterOptions) => GLTFExportResult | (root: Node, onDone: (result: GLTFExportResult) => void, onError?: (error: unknown) => void, options?: GLTFExporterOptions) => void | (root: Node, optionsOrDone: GLTFExporterOptions | ((result: GLTFExportResult) => void) = {}, onError?: (error: unknown) => void, callbackOptions?: GLTFExporterOptions) => GLTFExportResult | undefined	-
+<	GLTFExporter.parse	method	instance (root: Node, options?: GLTFExporterOptions) => GLTFExportResult | (root: Node, onDone: (result: GLTFExportResult) => void, onError?: (error: unknown) => void, options?: GLTFExporterOptions) => void | (root: Node, optionsOrDone: | GLTFExporterOptions | ((result: GLTFExportResult) => void) = {}, onError?: (error: unknown) => void, callbackOptions?: GLTFExporterOptions) => GLTFExportResult | undefined	-
 <	GLTFExporter.parseAsync	method	instance (root: Node, options: GLTFExporterOptions = {}) => Promise<GLTFExportResult>	-
 <	GLTFExporterOptions	record	interface { readonly embedBuffers?: boolean; readonly bufferUri?: string; readonly animations?: readonly AnimationClip[]; readonly generator?: string; readonly normalizeNormals?: boolean }	-
 <	GLTFInstanceAttributeInfo	record	interface { readonly semantic: string; readonly accessor: number; readonly type: string; readonly count: number; readonly values: readonly number[]; readonly normalized: boolean }	-
