@@ -67,6 +67,58 @@ describe("THREE comparison adapter registry", () => {
     }
   });
 
+  it("preserves matched adapter metadata and authored camera settings", () => {
+    const expected = {
+      misc_animation_groups: {
+        kind: "animation",
+        match: "animation-groups",
+        camera: { fov: 45, near: 0.1, far: 100, position: [0, 1, 7] },
+      },
+      webgl_animation_keyframes: {
+        kind: "animation",
+        match: "animation-keyframes",
+        camera: { fov: 45, near: 0.1, far: 100, position: [0, 1.2, 6.5] },
+      },
+      webgl_animation_multiple: {
+        kind: "animation",
+        match: "animation-multiple",
+        camera: { fov: 45, near: 0.1, far: 100, position: [0, 1.1, 7.5] },
+      },
+      webgl_geometries: {
+        kind: "geometry",
+        match: "geometry-gallery",
+        camera: { fov: 42, near: 0.1, far: 100, position: [0, 0, 11] },
+      },
+      webgl_helpers: {
+        kind: "geometry",
+        match: "helpers",
+        camera: { fov: 42, near: 0.1, far: 50, position: [3, 3, 5] },
+      },
+      camera_perspective_projection: {
+        kind: "camera",
+        match: "perspective-projection",
+        camera: { fov: 45, near: 0.1, far: 100, position: [10, 0, 10] },
+      },
+    };
+
+    expect(Object.keys(expected)).toHaveLength(6);
+    for (const [id, contract] of Object.entries(expected)) {
+      const adapter = getThreeComparisonAdapter(id);
+      expect(adapter).toBeDefined();
+      expect({
+        id: adapter?.id,
+        kind: adapter?.kind,
+        match: adapter?.match,
+        camera: adapter?.camera,
+      }).toEqual({ id, ...contract });
+    }
+  });
+
+  it("gives every adapter a nonempty comparison boundary", () => {
+    for (const adapter of THREE_ADAPTERS.values())
+      expect(adapter.boundary.trim()).not.toBe("");
+  });
+
   it("mounts, updates, and cleans every adapter with a mocked renderer", async () => {
     const { examples } = await import("../../www/examples/registry.ts");
     const previousDocument = globalThis.document;
@@ -139,9 +191,17 @@ describe("THREE comparison adapter registry", () => {
       const canvas = dom.window.document.createElement("canvas");
       canvas.width = 2076;
       canvas.height = 1600;
+      let clientWidth = 519;
+      let clientHeight = 400;
       Object.defineProperties(canvas, {
-        clientWidth: { configurable: true, value: 519 },
-        clientHeight: { configurable: true, value: 400 },
+        clientWidth: {
+          configurable: true,
+          get: () => clientWidth,
+        },
+        clientHeight: {
+          configurable: true,
+          get: () => clientHeight,
+        },
       });
       MockRenderer.instances = [];
       const instance = setupThreeComparison(canvas, "misc_animation_groups", {
@@ -153,6 +213,18 @@ describe("THREE comparison adapter registry", () => {
         height: 400,
       });
       expect(MockRenderer.instances[0]?.pixelRatio).toBe(1);
+
+      clientWidth = 640;
+      clientHeight = 360;
+      instance?.update?.();
+
+      expect(MockRenderer.instances[0]?.size).toEqual({
+        width: 640,
+        height: 360,
+      });
+      expect(canvas.width).toBe(2076);
+      expect(canvas.height).toBe(1600);
+      expect(MockRenderer.instances[0]?.renders).toBe(2);
       instance?.cleanup?.();
     } finally {
       Object.defineProperty(globalThis, "document", {

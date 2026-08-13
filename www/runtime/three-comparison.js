@@ -1,5 +1,8 @@
 import {
   AmbientLight,
+  AnimationClip,
+  AnimationMixer,
+  AnimationObjectGroup,
   BoxGeometry,
   BufferGeometry,
   CameraHelper,
@@ -8,20 +11,26 @@ import {
   ConeGeometry,
   CylinderGeometry,
   DirectionalLight,
+  DodecahedronGeometry,
+  DoubleSide,
   Float32BufferAttribute,
   Group,
   IcosahedronGeometry,
   LineBasicMaterial,
   LineSegments,
+  LoopRepeat,
   Mesh,
   MeshBasicMaterial,
   MeshLambertMaterial,
+  NumberKeyframeTrack,
+  OctahedronGeometry,
   OrthographicCamera,
   PerspectiveCamera,
   Points,
   PointsMaterial,
   Scene,
   SphereGeometry,
+  TetrahedronGeometry,
   TorusGeometry,
   TorusKnotGeometry,
   WebGLRenderer,
@@ -273,6 +282,102 @@ const DIRECT_GEOMETRY = Object.freeze({
   },
 });
 
+const MATCHED_ADAPTERS = Object.freeze({
+  misc_animation_groups: {
+    kind: "animation",
+    match: "animation-groups",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [0, 1, 7],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.9,
+      position: [4, 5, 6],
+    },
+  },
+  webgl_animation_keyframes: {
+    kind: "animation",
+    match: "animation-keyframes",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [0, 1.2, 6.5],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.9,
+      position: [4, 5, 6],
+    },
+  },
+  webgl_animation_multiple: {
+    kind: "animation",
+    match: "animation-multiple",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [0, 1.1, 7.5],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.9,
+      position: [4, 5, 6],
+    },
+  },
+  webgl_geometries: {
+    kind: "geometry",
+    match: "geometry-gallery",
+    camera: {
+      fov: 42,
+      near: 0.1,
+      far: 100,
+      position: [0, 0, 11],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.95,
+      position: [4, 6, 8],
+    },
+    background: 0x101522,
+  },
+  webgl_helpers: {
+    kind: "geometry",
+    match: "helpers",
+    camera: {
+      fov: 42,
+      near: 0.1,
+      far: 50,
+      position: [3, 3, 5],
+    },
+    lighting: {
+      ambient: 0.4,
+      directional: 0.8,
+      position: [2, 3, 4],
+    },
+    background: 0x121826,
+  },
+  camera_perspective_projection: {
+    kind: "camera",
+    match: "perspective-projection",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [10, 0, 10],
+    },
+    lighting: {
+      ambient: 0.4,
+      directional: 0.8,
+      position: [4, 5, 6],
+    },
+    background: 0x111824,
+  },
+});
+
 const BOUNDARIES = Object.freeze({
   animation:
     "THREE animation tracks or skinning are represented by deterministic CPU mesh motion; animation-mixer, skeleton, and asset-clip fidelity are outside this adapter.",
@@ -280,6 +385,8 @@ const BOUNDARIES = Object.freeze({
     "WebAudio nodes and analyser output are not a canvas scene; the adapter renders an equivalent animated waveform/mesh and records that audio I/O is omitted.",
   buffer:
     "The source BufferGeometry attributes, index, and draw range are represented with a bounded core geometry; GPU attribute/storage semantics are not reproduced.",
+  camera:
+    "The source perspective camera projection and animated view are represented by a deterministic THREE camera and matched mesh; source rendering details are not reproduced.",
   controls:
     "The named THREE control intent is represented with OrbitControls and matching camera constraints where possible; control-specific DOM gestures are an explicit approximation.",
   direct:
@@ -320,6 +427,9 @@ const BOUNDARIES = Object.freeze({
 
 const DEFAULT_RUNTIME = Object.freeze({
   AmbientLight,
+  AnimationClip,
+  AnimationMixer,
+  AnimationObjectGroup,
   BoxGeometry,
   BufferGeometry,
   CameraHelper,
@@ -328,20 +438,26 @@ const DEFAULT_RUNTIME = Object.freeze({
   ConeGeometry,
   CylinderGeometry,
   DirectionalLight,
+  DodecahedronGeometry,
+  DoubleSide,
   Float32BufferAttribute,
   Group,
   IcosahedronGeometry,
   LineBasicMaterial,
   LineSegments,
+  LoopRepeat,
   Mesh,
   MeshBasicMaterial,
   MeshLambertMaterial,
+  NumberKeyframeTrack,
+  OctahedronGeometry,
   OrthographicCamera,
   PerspectiveCamera,
   Points,
   PointsMaterial,
   Scene,
   SphereGeometry,
+  TetrahedronGeometry,
   TorusGeometry,
   TorusKnotGeometry,
   WebGLRenderer,
@@ -349,6 +465,7 @@ const DEFAULT_RUNTIME = Object.freeze({
 });
 
 function classifyAdapter(id) {
+  if (MATCHED_ADAPTERS[id]) return MATCHED_ADAPTERS[id];
   if (DIRECT_GEOMETRY[id])
     return { kind: "direct", direct: DIRECT_GEOMETRY[id] };
   if (id === "webgpu_camera") return { kind: "webgpu" };
@@ -449,11 +566,27 @@ export function hasThreeComparisonAdapter(exampleId) {
   return THREE_ADAPTERS.has(exampleId);
 }
 
-function addLighting(scene, runtime, kind) {
-  if (kind === "audio") return;
-  scene.add(new runtime.AmbientLight(0xffffff, 0.42));
-  const light = new runtime.DirectionalLight(0xffffff, 0.9);
-  light.position.set(3, 5, 6);
+function addLighting(scene, runtime, definition) {
+  if (definition.kind === "audio") return;
+  const lighting = definition.lighting;
+  const ambient = new runtime.AmbientLight(0xffffff, lighting?.ambient ?? 0.42);
+  scene.add(ambient);
+  if (lighting?.type === "point" && runtime.PointLight) {
+    const light = new runtime.PointLight(
+      0xffffff,
+      lighting.point,
+      lighting.distance,
+      lighting.decay,
+    );
+    light.position.set(...lighting.position);
+    scene.add(light);
+    return;
+  }
+  const light = new runtime.DirectionalLight(
+    0xffffff,
+    lighting?.directional ?? 0.9,
+  );
+  light.position.set(...(lighting?.position ?? [3, 5, 6]));
   scene.add(light);
 }
 
@@ -552,6 +685,177 @@ function addPrimitiveGallery(runtime, scene, state, definition) {
     scene.userData.comparisonFeature =
       "text geometry represented by block primitives";
   }
+}
+
+function createAnimationMesh(runtime, color, size, position, segments = 1) {
+  const mesh = new runtime.Mesh(
+    new runtime.BoxGeometry(size, size, size, segments, segments, segments),
+    new runtime.MeshLambertMaterial({ color, side: runtime.DoubleSide }),
+  );
+  mesh.position.set(...position);
+  return mesh;
+}
+
+function playAnimation(runtime, root, clips) {
+  const mixer = new runtime.AnimationMixer(root);
+  for (const clip of clips)
+    mixer.clipAction(clip).setLoop(runtime.LoopRepeat, Infinity).play();
+  return mixer;
+}
+
+function addMatchedAnimationGroups(runtime, scene, state) {
+  const roots = [-2, 0, 2].map((x, index) => {
+    const mesh = createAnimationMesh(
+      runtime,
+      [0xe05a5a, 0x5aa6e0, 0xe0b84f][index],
+      1.25,
+      [x, 0, 0],
+    );
+    scene.add(mesh);
+    state.objects.push(mesh);
+    return mesh;
+  });
+  const group = new runtime.AnimationObjectGroup(...roots);
+  const clip = new runtime.AnimationClip("spin", 2, [
+    new runtime.NumberKeyframeTrack(
+      ".rotation[y]",
+      [0, 1, 2],
+      [0, Math.PI, Math.PI * 2],
+    ),
+  ]);
+  const mixer = playAnimation(runtime, group, [clip]);
+  state.tick = (elapsed) => mixer.setTime(elapsed);
+}
+
+function addMatchedAnimationKeyframes(runtime, scene, state) {
+  const mesh = createAnimationMesh(runtime, 0x65b9d8, 1.4, [0, 0.8, 0], 2);
+  scene.add(mesh);
+  state.objects.push(mesh);
+  const clip = new runtime.AnimationClip("keyframes", 2.4, [
+    new runtime.NumberKeyframeTrack(
+      ".position[y]",
+      [0, 0.6, 1.2, 1.8, 2.4],
+      [0.8, 1.8, 0.8, 1.8, 0.8],
+    ),
+    new runtime.NumberKeyframeTrack(
+      ".rotation[x]",
+      [0, 1.2, 2.4],
+      [0, Math.PI, Math.PI * 2],
+    ),
+    new runtime.NumberKeyframeTrack(".rotation[y]", [0, 2.4], [0, Math.PI * 2]),
+    new runtime.NumberKeyframeTrack(".scale[x]", [0, 1.2, 2.4], [1, 0.72, 1]),
+    new runtime.NumberKeyframeTrack(".scale[z]", [0, 1.2, 2.4], [1, 1.28, 1]),
+  ]);
+  const mixer = playAnimation(runtime, mesh, [clip]);
+  state.tick = (elapsed) => mixer.setTime(elapsed);
+}
+
+function addMatchedAnimationMultiple(runtime, scene, state) {
+  const colors = [0xe56b6f, 0x68b4d8, 0x74c69d, 0xd7a84f];
+  const roots = colors.map((color, index) => {
+    const mesh = createAnimationMesh(runtime, color, 1.05, [
+      (index - 1.5) * 1.55,
+      0.7,
+      0,
+    ]);
+    scene.add(mesh);
+    state.objects.push(mesh);
+    return mesh;
+  });
+  const group = new runtime.AnimationObjectGroup(...roots);
+  const spin = new runtime.AnimationClip("spin", 2.8, [
+    new runtime.NumberKeyframeTrack(
+      ".rotation[y]",
+      [0, 1.4, 2.8],
+      [0, Math.PI, Math.PI * 2],
+    ),
+  ]);
+  const bounce = new runtime.AnimationClip("bounce", 1.4, [
+    new runtime.NumberKeyframeTrack(
+      ".position[y]",
+      [0, 0.7, 1.4],
+      [0.7, 1.55, 0.7],
+    ),
+    new runtime.NumberKeyframeTrack(
+      ".rotation[x]",
+      [0, 0.7, 1.4],
+      [0, 0.25, 0],
+    ),
+  ]);
+  const mixer = new runtime.AnimationMixer(group);
+  mixer.clipAction(spin).setLoop(runtime.LoopRepeat, Infinity).play();
+  mixer.clipAction(bounce).setLoop(runtime.LoopRepeat, Infinity).play();
+  mixer.clipAction(bounce).weight = 0.72;
+  state.tick = (elapsed) => mixer.setTime(elapsed);
+}
+
+function addMatchedGeometryGallery(runtime, scene, state) {
+  const definitions = [
+    ["BoxGeometry", [1.25, 1.25, 1.25], 0xe46d62],
+    ["SphereGeometry", [0.78, 18, 12], 0x56a6d9],
+    ["ConeGeometry", [0.78, 1.45, 18], 0xf1bc58],
+    ["CylinderGeometry", [0.65, 0.86, 1.35, 18], 0x8fd080],
+    ["TorusGeometry", [0.62, 0.22, 12, 20], 0xc983d1],
+    ["TorusKnotGeometry", [0.64, 0.2, 32, 8], 0xd88755],
+    ["IcosahedronGeometry", [0.86, 1], 0x82c1ce],
+    ["DodecahedronGeometry", [0.86, 1], 0xef8c9d],
+    ["OctahedronGeometry", [0.9, 1], 0xb6a3e5],
+    ["TetrahedronGeometry", [0.98, 1], 0xf0d06a],
+    ["CapsuleGeometry", [0.52, 0.66, 8, 14], 0x79c4a4],
+    ["SphereGeometry", [0.72, 10, 8], 0xf29c5f],
+  ];
+  const meshes = definitions.map(([name, args, color], index) => {
+    const mesh = addMesh(
+      runtime,
+      scene,
+      state,
+      fallbackGeometry(runtime, name, args),
+      color,
+      [((index % 4) - 1.5) * 2.05, (Math.floor(index / 4) - 1) * 2.05, 0],
+    );
+    return mesh;
+  });
+  state.tick = (elapsed) => {
+    for (const [index, mesh] of meshes.entries()) {
+      mesh.rotation.x = elapsed * (0.25 + index * 0.015);
+      mesh.rotation.y = elapsed * (0.4 + index * 0.02);
+    }
+  };
+}
+
+function addMatchedHelpers(runtime, scene, state) {
+  const mesh = addMesh(
+    runtime,
+    scene,
+    state,
+    new runtime.BoxGeometry(2, 2, 2),
+    0x4fc1e8,
+  );
+  state.tick = (elapsed) => {
+    mesh.rotation.y = elapsed * 0.3;
+  };
+}
+
+function addMatchedPerspectiveProjection(runtime, scene, state) {
+  const cube = addMesh(
+    runtime,
+    scene,
+    state,
+    new runtime.BoxGeometry(2, 2, 2),
+    0x4fc1e8,
+    [0, 0, 0],
+    { basic: true },
+  );
+  let yaw = Math.atan2(10, 10);
+  const distance = Math.sqrt(10 ** 2 + 10 ** 2);
+  state.tick = () => {
+    yaw += (state.delta ?? 1 / 60) * 0.3;
+    cube.rotation.y = yaw;
+    cube.rotation.x = yaw * 0.5;
+    state.camera.position.x = Math.sin(yaw) * distance;
+    state.camera.position.z = Math.cos(yaw) * distance;
+    state.camera.lookAt?.(0, 0, 0);
+  };
 }
 
 function addTextBlocks(runtime, scene, state) {
@@ -917,7 +1221,38 @@ function addProxyScene(runtime, scene, state) {
   };
 }
 
+function buildMatchedSceneObjects(runtime, scene, state, definition) {
+  switch (definition.match) {
+    case "animation-groups":
+      addMatchedAnimationGroups(runtime, scene, state);
+      break;
+    case "animation-keyframes":
+      addMatchedAnimationKeyframes(runtime, scene, state);
+      break;
+    case "animation-multiple":
+      addMatchedAnimationMultiple(runtime, scene, state);
+      break;
+    case "geometry-gallery":
+      addMatchedGeometryGallery(runtime, scene, state);
+      break;
+    case "helpers":
+      addMatchedHelpers(runtime, scene, state);
+      break;
+    case "perspective-projection":
+      addMatchedPerspectiveProjection(runtime, scene, state);
+      break;
+    default:
+      return false;
+  }
+  return true;
+}
+
 function buildSceneObjects(runtime, scene, state, definition) {
+  if (
+    definition.match &&
+    buildMatchedSceneObjects(runtime, scene, state, definition)
+  )
+    return;
   switch (definition.kind) {
     case "direct": {
       const geometry = createDirectGeometry(runtime, definition.direct);
@@ -1044,15 +1379,27 @@ function configureRenderer(renderer, width, height) {
 
 function createCamera(runtime, definition, width, height) {
   const aspect = width / height;
+  const cameraOptions = definition.camera ?? {};
   const orthographic =
     definition.direct?.orthographic ||
     definition.camera === "orthographic" ||
     definition.id.includes("_ortho");
   const camera = orthographic
     ? new runtime.OrthographicCamera(-4 * aspect, 4 * aspect, 4, -4, 0.1, 100)
-    : new runtime.PerspectiveCamera(45, aspect, 0.1, 100);
-  camera.position.set(0, 0.4, definition.kind === "panorama" ? 7.5 : 6.5);
-  camera.lookAt?.(0, 0, 0);
+    : new runtime.PerspectiveCamera(
+        cameraOptions.fov ?? 45,
+        aspect,
+        cameraOptions.near ?? 0.1,
+        cameraOptions.far ?? 100,
+      );
+  camera.position.set(
+    ...(cameraOptions.position ?? [
+      0,
+      0.4,
+      definition.kind === "panorama" ? 7.5 : 6.5,
+    ]),
+  );
+  if (cameraOptions.lookAt !== false) camera.lookAt?.(0, 0, 0);
   return { camera, orthographic };
 }
 
@@ -1140,7 +1487,9 @@ function setupCoreComparison(canvas, definition, runtime) {
     comparisonKind: definition.kind,
     comparisonBoundary: definition.boundary,
   };
-  addLighting(scene, runtime, definition.kind);
+  if (definition.background !== undefined)
+    scene.background = new runtime.Color(definition.background);
+  addLighting(scene, runtime, definition);
   const cameraState = createCamera(
     runtime,
     definition,
@@ -1152,6 +1501,8 @@ function setupCoreComparison(canvas, definition, runtime) {
     tick: undefined,
     controlSettings: undefined,
     pointerHandler: undefined,
+    camera: cameraState.camera,
+    delta: 0,
   };
   buildSceneObjects(runtime, scene, state, definition);
   const controls = setupControls(runtime, cameraState.camera, canvas, state);
@@ -1159,10 +1510,13 @@ function setupCoreComparison(canvas, definition, runtime) {
   if (onPointer && typeof canvas.addEventListener === "function")
     canvas.addEventListener("pointermove", onPointer);
   let size = dimensions;
+  let previousElapsed = 0;
   const started = Date.now();
   const render = () => {
     size = resizeComparison(renderer, cameraState, canvas, size);
     const elapsed = (Date.now() - started) * 0.001;
+    state.delta = elapsed - previousElapsed || 1 / 60;
+    previousElapsed = elapsed;
     state.tick?.(elapsed);
     controls?.update?.();
     renderer.render(scene, cameraState.camera);
