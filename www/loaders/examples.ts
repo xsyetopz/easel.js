@@ -16,6 +16,7 @@ export type ExampleParams = Record<string, string | number>;
 
 export interface ExampleInstance {
   cleanup?: () => void;
+  resize?: (width: number, height: number) => void;
   update?: (params: ExampleParams) => void;
 }
 

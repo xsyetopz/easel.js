@@ -69,6 +69,7 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 		import { examples } from "../examples/registry";
 		import type { ExampleInstance, ExampleModule, ExampleParams } from "../loaders/examples";
 		import { setupThreeComparison } from "../runtime/three-comparison";
+		import { resizeExampleCanvas } from "../runtime/example-viewport";
 
 		const root = document.querySelector("[data-example-viewer]");
 		if (root instanceof HTMLElement) {
@@ -85,12 +86,11 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 				let instance: ExampleInstance | undefined;
 				let threeInstance: ExampleInstance | undefined;
 				let threeCanvas: HTMLCanvasElement | undefined;
+				let activeEngine: "easel" | "three" = "easel";
+				let disposed = false;
 
-				function sizeCanvas(canvasElement: HTMLCanvasElement): void {
-					const container = canvasElement.parentElement;
-					if (!container) return;
-					canvasElement.width = Math.max(300, container.clientWidth);
-					canvasElement.height = Math.max(400, container.clientHeight);
+				function sizeCanvas(canvasElement: HTMLCanvasElement): boolean {
+					return resizeExampleCanvas(canvasElement);
 				}
 
 				function setParam(key: string, value: string | number): void {
@@ -104,15 +104,17 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 				function clearThreeState(): void {
 					threeInstance?.cleanup?.();
 					threeInstance = undefined;
-					threeCanvas?.remove();
+					stage?.querySelectorAll("[data-three-canvas]").forEach((canvas) => canvas.remove());
 					threeCanvas = undefined;
 					stage?.querySelectorAll("[data-three-error]").forEach((message) => message.remove());
 				}
 
 				function mountEasel(): void {
+					if (disposed) return;
 					instance?.cleanup?.();
 					instance = undefined;
 					clearThreeState();
+					activeEngine = "easel";
 					if (!easelCanvas) return;
 					easelCanvas.hidden = false;
 					sizeCanvas(easelCanvas);
@@ -120,9 +122,11 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 				}
 
 				function mountThree(): void {
+					if (disposed) return;
 					instance?.cleanup?.();
 					instance = undefined;
 					clearThreeState();
+					activeEngine = "three";
 					if (!stage || !easelCanvas || !exampleId) return;
 					easelCanvas.hidden = true;
 					threeCanvas = document.createElement("canvas");
@@ -142,12 +146,36 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 					}
 				}
 
-				mountEasel();
-				viewerRoot.addEventListener("example-engine-change", (event) => {
+				function resizeActive(): void {
+					if (disposed) return;
+					const canvas = activeEngine === "three" ? threeCanvas : easelCanvas;
+					if (!canvas || !sizeCanvas(canvas)) return;
+					if (activeEngine === "three") {
+						threeInstance?.update?.(params);
+					} else if (instance?.resize) {
+						instance.resize(canvas.width, canvas.height);
+					} else {
+						mountEasel();
+					}
+				}
+
+				const onEngineChange = (event: Event): void => {
 					const engine = (event as CustomEvent<{ engine?: string }>).detail?.engine;
 					if (engine === "three") mountThree();
 					if (engine === "easel") mountEasel();
-				});
+				};
+				viewerRoot.addEventListener("example-engine-change", onEngineChange);
+				mountEasel();
+
+				let resizeObserver: ResizeObserver | undefined;
+				const onWindowResize = (): void => resizeActive();
+				if (stage && typeof globalThis.ResizeObserver === "function") {
+					resizeObserver = new globalThis.ResizeObserver(() => resizeActive());
+					resizeObserver.observe(stage);
+				} else if (typeof globalThis.addEventListener === "function") {
+					globalThis.addEventListener("resize", onWindowResize);
+				}
+
 				for (const control of viewerRoot.querySelectorAll("[data-control-key]")) {
 					const key = control.getAttribute("data-control-key");
 					if (!key) continue;
@@ -161,10 +189,24 @@ const defaultParams = Object.fromEntries(controls.map((control: ExampleControl) 
 					});
 				}
 
-				globalThis.addEventListener("beforeunload", () => {
+				const cleanupViewer = (): void => {
+					if (disposed) return;
+					disposed = true;
+					resizeObserver?.disconnect();
+					if (typeof globalThis.removeEventListener === "function") {
+						globalThis.removeEventListener("resize", onWindowResize);
+						globalThis.removeEventListener("beforeunload", cleanupViewer);
+					}
+					viewerRoot.removeEventListener("example-engine-change", onEngineChange);
 					instance?.cleanup?.();
+					instance = undefined;
 					threeInstance?.cleanup?.();
-				});
+					threeInstance = undefined;
+					stage?.querySelectorAll("[data-three-canvas]").forEach((canvas) => canvas.remove());
+					threeCanvas = undefined;
+					stage?.querySelectorAll("[data-three-error]").forEach((message) => message.remove());
+				};
+				globalThis.addEventListener("beforeunload", cleanupViewer);
 			}
 		}
 	</script>
