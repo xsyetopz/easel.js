@@ -201,7 +201,10 @@ describe("AnimationClip validation and clone parity", () => {
     clip.userData = { nested: { enabled: true } };
 
     const clone = clip.clone();
-    (clone.userData["nested"] as { enabled: boolean }).enabled = false;
+    const cloneUserData = clone.userData as {
+      nested: { enabled: boolean };
+    };
+    cloneUserData.nested.enabled = false;
 
     expect(clip.userData).toEqual({ nested: { enabled: true } });
   });

@@ -1,6 +1,10 @@
 import type { Vector2 } from "../math/Vector2.ts";
 import { Path } from "./Path.ts";
 
+type ShapeJSON = Record<string, unknown> & {
+  holes?: unknown;
+};
+
 /** Closed 2D path with optional holes for triangulation or extrusion. */
 export class Shape extends Path {
   /** Serialization discriminator for this runtime type. */
@@ -51,7 +55,7 @@ export class Shape extends Path {
   /** Restores the outline and hole paths from serialized data. */
   override fromJSON(json: Record<string, unknown>): this {
     super.fromJSON(json);
-    const holes = json["holes"];
+    const { holes } = json as ShapeJSON;
     this.#holes = Array.isArray(holes)
       ? holes
           .filter((hole): hole is Record<string, unknown> => isRecord(hole))

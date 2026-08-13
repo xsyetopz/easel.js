@@ -6,7 +6,7 @@ import { FramebufferTexture } from "@/textures/FramebufferTexture.js";
 import { TEXTURE_BRIGHTNESS_LEVELS, Texture } from "@/textures/Texture.js";
 
 class RawTexture extends Texture {
-  #rawData: ImageData;
+  readonly #rawData: ImageData;
 
   constructor(data: Uint8ClampedArray, width: number, height: number) {
     super();
@@ -110,12 +110,15 @@ describe("Texture compatibility surface", () => {
     expect(clone.matrix.elements).toEqual(texture.matrix.elements);
     expect(clone.userData).toEqual(texture.userData);
     clone.offset.x = 9;
-    ((clone.userData["nested"] as Record<string, unknown>)["index"] as number) =
-      10;
+    const cloneUserData = clone.userData as {
+      nested: { index: number };
+    };
+    cloneUserData.nested.index = 10;
     expect(texture.offset.x).toBe(0.25);
-    expect(
-      (texture.userData["nested"] as Record<string, unknown>)["index"],
-    ).toBe(3);
+    const textureUserData = texture.userData as {
+      nested: { index: number };
+    };
+    expect(textureUserData.nested.index).toBe(3);
   });
 
   it("differentially matches installed THREE UV transforms", async () => {

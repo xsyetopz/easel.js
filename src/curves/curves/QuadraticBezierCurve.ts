@@ -1,15 +1,21 @@
 import { Vector2 } from "../../math/Vector2.ts";
 import { Curve } from "../Curve.ts";
 
+type QuadraticBezierCurveJSON = Record<string, unknown> & {
+  v0?: unknown;
+  v1?: unknown;
+  v2?: unknown;
+};
+
 /** Two-dimensional quadratic Bezier curve with three control points. */
 export class QuadraticBezierCurve extends Curve {
   /** Serialization discriminator for this runtime type. */
   override type: string = "QuadraticBezierCurve";
   /** Boolean type guard for this THREE.js-compatible curve type. */
   readonly isQuadraticBezierCurve = true;
-  #v0: Vector2;
-  #v1: Vector2;
-  #v2: Vector2;
+  readonly #v0: Vector2;
+  readonly #v1: Vector2;
+  readonly #v2: Vector2;
 
   /** Constructs a 2D quadratic Bezier curve from three control points. */
   constructor(
@@ -96,9 +102,7 @@ export class QuadraticBezierCurve extends Curve {
   /** Restores quadratic control points from serialized data. */
   override fromJSON(json: Record<string, unknown>): this {
     super.fromJSON(json);
-    const v0 = json["v0"];
-    const v1 = json["v1"];
-    const v2 = json["v2"];
+    const { v0, v1, v2 } = json as QuadraticBezierCurveJSON;
     if (Array.isArray(v0)) this.#v0.fromArray(v0);
     if (Array.isArray(v1)) this.#v1.fromArray(v1);
     if (Array.isArray(v2)) this.#v2.fromArray(v2);

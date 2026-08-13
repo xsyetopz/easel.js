@@ -153,7 +153,9 @@ function documentationForNode(
         ? `${tag.name.getText()} — ${description}`
         : tag.name.getText();
     });
-  if (parameters?.length) return `Parameters: ${parameters.join("; ")}.`;
+  if (parameters && parameters.length > 0) {
+    return `Parameters: ${parameters.join("; ")}.`;
+  }
   return "Documented public member.";
 }
 
@@ -320,11 +322,13 @@ function classSignature(
   symbol: ts.Symbol,
   declaration: ts.ClassDeclaration,
 ): string {
-  const typeParameters = declaration.typeParameters?.length
-    ? `<${declaration.typeParameters.map((item) => normalizeWhitespace(item.getText())).join(", ")}>`
+  const typeParameterNodes = declaration.typeParameters;
+  const typeParameters = typeParameterNodes && typeParameterNodes.length > 0
+    ? `<${typeParameterNodes.map((item) => normalizeWhitespace(item.getText())).join(", ")}>`
     : "";
-  const heritage = declaration.heritageClauses?.length
-    ? ` ${declaration.heritageClauses.map((item) => normalizeWhitespace(item.getText())).join(" ")}`
+  const heritageClauses = declaration.heritageClauses;
+  const heritage = heritageClauses && heritageClauses.length > 0
+    ? ` ${heritageClauses.map((item) => normalizeWhitespace(item.getText())).join(" ")}`
     : "";
   const lines = [`class ${symbol.name}${typeParameters}${heritage}`];
   const staticType = checker.getTypeOfSymbolAtLocation(symbol, declaration);

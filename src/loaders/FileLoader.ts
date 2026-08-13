@@ -12,7 +12,7 @@ export type FileResponseType =
 /** Loads files through Fetch with explicit caching, progress, and cancellation. */
 export class FileLoader extends Loader {
   #responseType: FileResponseType = "";
-  #mimeType = "";
+  #mimeType: string = "";
   readonly #controllers = new Set<AbortController>();
 
   /** Response conversion applied after a successful request. */
@@ -105,8 +105,10 @@ export class FileLoader extends Loader {
   }
 
   #requestHeaders(): Record<string, string> {
-    const headers: Record<string, string> = { ...this.requestHeader };
-    if (this.#mimeType) headers["Accept"] = this.#mimeType;
+    const headers = { ...this.requestHeader } as Record<string, string> & {
+      Accept?: string;
+    };
+    if (this.#mimeType) headers.Accept = this.#mimeType;
     return headers;
   }
 

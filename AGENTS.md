@@ -19,7 +19,8 @@ EASEL.js is a TypeScript, CPU-only Canvas2D 3D renderer published as
 - `package.json`: scripts, metadata, dependencies, and release gate.
 - `src/index.ts`: public exports and `REVISION`.
 - `src/renderers/Renderer.ts`, `src/pipeline/`: renderer and rasterizer contracts.
-- `www/docs/classes/`: API doc sources for `bun run docs:generate`.
+- `src/` JSDoc declarations: API doc sources for `bun run docs:generate`.
+- `www/astro/content/docs/docs/`: ignored Starlight Markdown generated from those declarations.
 - `www/examples/`, `www/examples/registry.ts`: website examples and registry.
 - `README.md`, `CONTRIBUTING.md`: setup and contribution flow.
 
@@ -92,8 +93,8 @@ examples.
 
 ## Docs and examples
 
-- Edit API docs in `www/docs/classes/*.ts`, then regenerate Markdown with
-  `bun run docs:generate`; do not hand-edit generated docs.
+- Edit API JSDoc in the owning `src/**/*.ts` declarations, then regenerate
+  Markdown with `bun run docs:generate`; do not hand-edit generated docs.
 - Put examples in `www/examples/**/*.js` and register them in
   `www/examples/registry.ts`. Keep them crawlable and source-adjacent.
 - When public behavior changes, update the relevant README, docs source,

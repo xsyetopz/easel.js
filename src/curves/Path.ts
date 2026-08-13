@@ -6,11 +6,15 @@ import { LineCurve } from "./curves/LineCurve.ts";
 import { QuadraticBezierCurve } from "./curves/QuadraticBezierCurve.ts";
 import { SplineCurve } from "./curves/SplineCurve.ts";
 
+type PathJSON = Record<string, unknown> & {
+  currentPoint?: unknown;
+};
+
 /** 2D path built from lines, arcs, splines, and Bezier segments. */
 export class Path extends CurvePath {
   /** Serialization discriminator for this runtime type. */
   override type: string = "Path";
-  #currentPoint = new Vector2();
+  readonly #currentPoint = new Vector2();
 
   /** Constructs a path and optionally connects the supplied points. */
   constructor(points?: Vector2[]) {
@@ -88,7 +92,9 @@ export class Path extends CurvePath {
   splineThru(points: Vector2[]): this {
     if (points.length === 0) return this;
     this.add(new SplineCurve([this.#currentPoint, ...points]));
-    this.#currentPoint.copy(points[points.length - 1]);
+    const lastPoint = points.at(-1);
+    if (!lastPoint) return this;
+    this.#currentPoint.copy(lastPoint);
     return this;
   }
 
@@ -178,11 +184,13 @@ export class Path extends CurvePath {
     );
     if (this.curves.length > 0) {
       const firstPoint = curve.getPoint(0);
+      if (!firstPoint) return this;
       if (!firstPoint.equals(this.#currentPoint))
         this.lineTo(firstPoint.x, firstPoint.y);
     }
     this.add(curve);
-    this.#currentPoint.copy(curve.getPoint(1));
+    const endPoint = curve.getPoint(1);
+    if (endPoint) this.#currentPoint.copy(endPoint);
     return this;
   }
 
@@ -210,7 +218,7 @@ export class Path extends CurvePath {
   /** Restores path settings and endpoint from serialized data. */
   override fromJSON(json: Record<string, unknown>): this {
     super.fromJSON(json);
-    const currentPoint = json["currentPoint"];
+    const { currentPoint } = json as PathJSON;
     if (Array.isArray(currentPoint)) this.#currentPoint.fromArray(currentPoint);
     return this;
   }

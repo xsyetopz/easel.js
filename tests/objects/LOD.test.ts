@@ -5,10 +5,14 @@ import { LOD } from "@/objects/LOD.ts";
 
 describe("LOD", () => {
   it("uses accessors and explicit updates instead of THREE.js compatibility controls", () => {
-    const lod = new LOD() as LOD & Record<string, unknown>;
+    const lod = new LOD();
+    const compatibilitySurface = lod as unknown as {
+      getCurrentLevel?: unknown;
+      autoUpdate?: unknown;
+    };
     expect(lod.currentLevel).toBe(0);
-    expect(lod["getCurrentLevel"]).toBeUndefined();
-    expect(lod["autoUpdate"]).toBeUndefined();
+    expect(compatibilitySurface.getCurrentLevel).toBeUndefined();
+    expect(compatibilitySurface.autoUpdate).toBeUndefined();
   });
 
   it("sorts levels by normalized distance and owns their nodes", () => {
