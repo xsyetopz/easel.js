@@ -1020,10 +1020,21 @@ function buildSceneObjects(runtime, scene, state, definition) {
 }
 
 function canvasDimensions(canvas) {
-  return {
-    width: Math.max(1, Number(canvas?.width) || 640),
-    height: Math.max(1, Number(canvas?.height) || 360),
-  };
+  const clientWidth = Number(canvas?.clientWidth);
+  const clientHeight = Number(canvas?.clientHeight);
+  const width = Math.max(
+    1,
+    Number.isFinite(clientWidth) && clientWidth > 0
+      ? clientWidth
+      : Number(canvas?.width) || 640,
+  );
+  const height = Math.max(
+    1,
+    Number.isFinite(clientHeight) && clientHeight > 0
+      ? clientHeight
+      : Number(canvas?.height) || 360,
+  );
+  return { width, height };
 }
 
 function configureRenderer(renderer, width, height) {

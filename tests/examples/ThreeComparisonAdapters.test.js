@@ -11,13 +11,20 @@ class MockRenderer {
   static instances = [];
   disposed = 0;
   renders = 0;
+  pixelRatio = undefined;
+  size = undefined;
 
   constructor(_options) {
     MockRenderer.instances.push(this);
   }
 
-  setPixelRatio(_ratio) {}
-  setSize(_width, _height, _updateStyle) {}
+  setPixelRatio(ratio) {
+    this.pixelRatio = ratio;
+  }
+
+  setSize(width, height, _updateStyle) {
+    this.size = { width, height };
+  }
   setScissorTest(_enabled) {}
   setClearColor(_color, _alpha) {}
   setScissor(_x, _y, _width, _height) {}
@@ -116,6 +123,41 @@ describe("THREE comparison adapter registry", () => {
       Object.defineProperty(globalThis, "cancelAnimationFrame", {
         configurable: true,
         value: previousCancelAnimationFrame,
+      });
+      dom.window.close();
+    }
+  });
+
+  it("uses CSS dimensions for the renderer while preserving the canvas backing size", () => {
+    const previousDocument = globalThis.document;
+    const dom = new JSDOM("<!doctype html><body></body>");
+    Object.defineProperty(globalThis, "document", {
+      configurable: true,
+      value: dom.window.document,
+    });
+    try {
+      const canvas = dom.window.document.createElement("canvas");
+      canvas.width = 2076;
+      canvas.height = 1600;
+      Object.defineProperties(canvas, {
+        clientWidth: { configurable: true, value: 519 },
+        clientHeight: { configurable: true, value: 400 },
+      });
+      MockRenderer.instances = [];
+      const instance = setupThreeComparison(canvas, "misc_animation_groups", {
+        WebGLRenderer: MockRenderer,
+        OrbitControls: MockControls,
+      });
+      expect(MockRenderer.instances[0]?.size).toEqual({
+        width: 519,
+        height: 400,
+      });
+      expect(MockRenderer.instances[0]?.pixelRatio).toBe(1);
+      instance?.cleanup?.();
+    } finally {
+      Object.defineProperty(globalThis, "document", {
+        configurable: true,
+        value: previousDocument,
       });
       dom.window.close();
     }
