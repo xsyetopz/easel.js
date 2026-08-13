@@ -55,6 +55,7 @@ function importedExport(
       : undefined;
     if (exported) return exported;
   }
+  return undefined;
 }
 
 function localDeclaration(
@@ -70,6 +71,7 @@ function localDeclaration(
       : context.checker.getSymbolAtLocation(statement);
     if (symbol) return symbol;
   }
+  return undefined;
 }
 
 function moduleSymbols(
@@ -104,6 +106,7 @@ function directExport(
       .find((item) => item.name === symbol.name && item !== symbol);
     if (direct) return direct;
   }
+  return undefined;
 }
 
 function resolveDeclaration(
@@ -126,6 +129,7 @@ function resolveDeclaration(
   if (imported) return resolveExport(context, imported, seen);
   const direct = directExport(context, symbol, moduleSymbols(context, declaration));
   if (direct) return resolveExport(context, direct, seen);
+  return undefined;
 }
 
 export function resolveExport(

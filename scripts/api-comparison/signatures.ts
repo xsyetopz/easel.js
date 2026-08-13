@@ -200,12 +200,12 @@ export function signatureText(
       context,
       declaration: declarationNode,
       docs,
-      documented,
+      ...(documented ? { documented } : {}),
       index,
       signatureRest:
         signatureRest && index === signature.parameters.length - 1,
       symbol: parameter,
-      typeContext: options.typeContext,
+      ...(options.typeContext ? { typeContext: options.typeContext } : {}),
     });
   });
   for (const documented of orderedDocs) {
@@ -250,7 +250,7 @@ export function signatureList(
       results.push(
         signatureText(context, signature, {
           declaration,
-          returnOverride,
+          ...(returnOverride === undefined ? {} : { returnOverride }),
         }),
       );
     }
@@ -263,7 +263,7 @@ export function signatureList(
       results.push(
         signatureText(context, signature, {
           declaration: signature.getDeclaration(),
-          returnOverride,
+          ...(returnOverride === undefined ? {} : { returnOverride }),
         }),
       );
     }

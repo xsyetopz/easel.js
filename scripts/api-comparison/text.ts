@@ -35,6 +35,13 @@ export const DEFAULT_PARAMETER_PATTERN =
 export const MEMBER_TERMINATOR_PATTERN = /;$/u;
 export const WHITESPACE_PATTERN = /\s+/gu;
 
+export function namedCapture(
+  groups: Readonly<Record<string, string>> | undefined,
+  name: string,
+): string | undefined {
+  return groups?.[name];
+}
+
 export function normalizeWhitespace(value: string): string {
   return value.replaceAll(WHITESPACE_PATTERN, " ").trim();
 }
@@ -137,7 +144,7 @@ function parseParameterDoc(
   const rest = text
     .slice(index + match[0].length + type.length + 1)
     .match(PARAM_NAME_PATTERN);
-  const rawName = rest?.groups?.name;
+  const rawName = namedCapture(rest?.groups, "name");
   if (!rawName) return;
   const isRest = rawName.startsWith("...");
   const optional = rawName.startsWith("[");
@@ -145,9 +152,12 @@ function parseParameterDoc(
     .replace(OPTIONAL_PARAMETER_PATTERN, "")
     .replace(REST_PARAMETER_PATTERN, "");
   const defaultMatch = DEFAULT_PARAMETER_PATTERN.exec(clean);
-  const defaultText = defaultMatch?.groups?.default?.trim();
+  const defaultText = namedCapture(defaultMatch?.groups, "default")?.trim();
   const name = clean.split("=")[0]?.trim();
   if (!name) return;
+  if (defaultText === undefined) {
+    return { name, optional, rest: isRest, type };
+  }
   return { defaultText, name, optional, rest: isRest, type };
 }
 

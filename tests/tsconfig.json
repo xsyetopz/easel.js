@@ -6,8 +6,7 @@
   },
   "include": [
     "../src/**/*.ts",
-    "../scripts/check-modern-api.ts",
-    "../scripts/generate-starlight-docs.ts",
+    "../scripts/**/*.ts",
     "**/*.ts"
   ]
 }

@@ -1,5 +1,10 @@
 import type { ComparisonRow, PublicFact } from "./types.ts";
-import { GETTER_PATTERN, SETTER_PATTERN, escapeCell } from "./text.ts";
+import {
+  GETTER_PATTERN,
+  SETTER_PATTERN,
+  escapeCell,
+  namedCapture,
+} from "./text.ts";
 
 const THREE_TO_EASEL_CLASS: Record<string, string> = {
   AnimationMixer: "Animator",
@@ -35,7 +40,7 @@ function accessorSubject(
 ): string {
   const pattern = prefix === "get" ? GETTER_PATTERN : SETTER_PATTERN;
   const match = pattern.exec(member);
-  const captured = match?.groups?.member;
+  const captured = namedCapture(match?.groups, "member");
   if (!captured) return "";
   const accessorMember = `${captured[0]?.toLowerCase() ?? ""}${captured.slice(1)}`;
   return `${className}.${accessorMember}`;
