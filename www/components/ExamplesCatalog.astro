@@ -1,0 +1,135 @@
+---
+import "../styles/examples.css";
+import type { ExampleCatalogData } from "../loaders/examples.ts";
+
+interface Props {
+	catalog: ExampleCatalogData;
+}
+
+const { catalog } = Astro.props as Props;
+const categories = Object.keys(catalog.categoryLabels).filter((category) =>
+	catalog.examples.some((example) => example.meta.category === category),
+);
+const remainingCategories = Array.from(
+	new Set(
+		catalog.examples
+			.map((example) => example.meta.category)
+			.filter((category) => !categories.includes(category)),
+	),
+);
+const allCategories = [...categories, ...remainingCategories];
+const searchId = "examples-search";
+const categoryId = "examples-category";
+const statusId = "examples-filter-status";
+---
+
+<section class="examples-catalog" aria-labelledby="examples-title">
+	<header class="examples-catalog-heading">
+		<p class="examples-eyebrow">Canvas2D scenes</p>
+		<h1 id="examples-title">Examples</h1>
+		<p>
+			Run focused scenes, inspect their source, and resize the renderer from a
+			phone-sized viewport to a desktop screen.
+		</p>
+	</header>
+
+	<form class="examples-filter" data-example-filter-form role="search" aria-label="Filter examples">
+		<div class="examples-filter-field">
+			<label for={searchId}>Search examples</label>
+			<input
+				id={searchId}
+				name="q"
+				type="search"
+				placeholder="Search by name or description"
+				autocomplete="off"
+				data-example-search
+			/>
+		</div>
+		<div class="examples-filter-field">
+			<label for={categoryId}>Category</label>
+			<select id={categoryId} name="category" data-example-category>
+				<option value="">All categories</option>
+				{allCategories.map((category) => (
+					<option value={category}>{catalog.categoryLabels[category] ?? category}</option>
+				))}
+			</select>
+		</div>
+		<button type="reset" class="examples-filter-clear">Clear filters</button>
+		<p id={statusId} class="examples-filter-status" aria-live="polite" data-example-filter-status>
+			{catalog.examples.length} examples
+		</p>
+	</form>
+
+	<p class="examples-empty" data-example-empty hidden>
+		No matching examples. Clear the filters to browse all scenes.
+	</p>
+
+	<div class="examples-groups" data-example-groups>
+		{allCategories.map((category) => {
+			const entries = catalog.examples.filter((example) => example.meta.category === category);
+			return (
+				<section class="examples-group" data-example-group data-category={category} aria-labelledby={`examples-${category}`}>
+					<header class="examples-group-heading">
+						<h2 id={`examples-${category}`}>{catalog.categoryLabels[category] ?? category}</h2>
+						<p>{entries.length} {entries.length === 1 ? "example" : "examples"}</p>
+					</header>
+					<ul class="examples-list">
+						{entries.map(({ meta }) => (
+							<li
+								class="examples-list-item"
+								data-example-item
+								data-example-search-text={`${meta.name} ${meta.description} ${meta.category}`.toLowerCase()}
+							>
+								<div>
+									<h3><a href={`/examples/${meta.id}/`}>{meta.name}</a></h3>
+									<p>{meta.description}</p>
+								</div>
+								<a class="examples-list-action" href={`/examples/${meta.id}/`}>Open example<span aria-hidden="true"> →</span></a>
+							</li>
+						))}
+					</ul>
+				</section>
+			);
+		})}
+	</div>
+</section>
+
+<script>
+	const form = document.querySelector<HTMLElement>("[data-example-filter-form]");
+	const search = document.querySelector<HTMLInputElement>("[data-example-search]");
+	const category = document.querySelector<HTMLSelectElement>("[data-example-category]");
+	const status = document.querySelector<HTMLElement>("[data-example-filter-status]");
+	const empty = document.querySelector<HTMLElement>("[data-example-empty]");
+	const groups = [...document.querySelectorAll<HTMLElement>("[data-example-group]")];
+
+	function updateExampleFilter(): void {
+		const query = search?.value.trim().toLowerCase() ?? "";
+		const selectedCategory = category?.value ?? "";
+		let visible = 0;
+		for (const group of groups) {
+			const groupCategory = group.dataset.category ?? "";
+			let groupVisible = 0;
+			for (const item of group.querySelectorAll<HTMLElement>("[data-example-item]")) {
+				const matchesCategory = !selectedCategory || selectedCategory === groupCategory;
+				const matchesQuery = !query || (item.dataset.exampleSearchText ?? "").includes(query);
+				const matches = matchesCategory && matchesQuery;
+				item.hidden = !matches;
+				if (matches) {
+					groupVisible += 1;
+					visible += 1;
+				}
+			}
+			group.hidden = groupVisible === 0;
+		}
+		if (empty) empty.hidden = visible !== 0;
+		if (status) status.textContent = `${visible} ${visible === 1 ? "example" : "examples"}`;
+	}
+
+	form?.addEventListener("submit", (event) => {
+		event.preventDefault();
+		updateExampleFilter();
+	});
+	search?.addEventListener("input", updateExampleFilter);
+	category?.addEventListener("change", updateExampleFilter);
+	form?.addEventListener("reset", () => globalThis.setTimeout(updateExampleFilter));
+</script>

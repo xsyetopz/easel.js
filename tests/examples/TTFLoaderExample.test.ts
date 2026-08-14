@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { JSDOM } from "jsdom";
 
-describe("TTF loader example", () => {
-  it("keeps the exact THREE route and mounts a CPU outline scene", async () => {
+describe("font specimen example", () => {
+  it("mounts and cleans the font outline scene", async () => {
     const previousDocument = globalThis.document;
     const previousRequestAnimationFrame = globalThis.requestAnimationFrame;
     const previousCancelAnimationFrame = globalThis.cancelAnimationFrame;
@@ -21,7 +21,7 @@ describe("TTF loader example", () => {
     });
     try {
       const modulePath: string =
-        "../../www/examples/canvas/loader/canvas_loader_ttf.js";
+        "../../www/examples/canvas/loader/font-specimen.js";
       const example = await import(modulePath);
       const canvas = dom.window.document.createElement("canvas");
       canvas.width = 640;
@@ -31,8 +31,8 @@ describe("TTF loader example", () => {
         value: () => null,
       });
 
-      expect(example.meta.id).toBe("webgl_loader_ttf");
-      expect(example.threeSource).toContain("TTFLoader");
+      expect(example.meta.id).toBe("font-specimen");
+      expect(example.easelSource).toContain("TTFLoader");
       const instance = example.setup(canvas);
       expect(instance).toBeDefined();
       instance?.cleanup();

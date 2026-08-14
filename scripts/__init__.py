@@ -11,12 +11,11 @@ from types import ModuleType
 COMMANDS: dict[str, str] = {
     "check-version": "check_version",
     "check-no-test-any": "check_no_test_any",
-    "check-example-source-parity": "check_example_source_parity",
+    "check-example-catalog": "check_example_catalog",
     "check-dependencies": "commands.check_dependencies",
     "verify-package": "commands.verify_package",
     "version": "commands.version",
     "release": "commands.release",
-    "audit-threejs-parity": "commands.audit_threejs_parity",
 }
 
 

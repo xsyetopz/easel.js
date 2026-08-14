@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { JSDOM } from "jsdom";
 
-describe("CPU website examples", () => {
-  it("mounts and cleans up Canvas2D loader, exporter, and controls routes", async () => {
+describe("EASEL.js example routes", () => {
+  it("mounts and cleans up representative asset, world, and tool routes", async () => {
     const previousDocument = globalThis.document;
     const previousRequestAnimationFrame = globalThis.requestAnimationFrame;
     const previousCancelAnimationFrame = globalThis.cancelAnimationFrame;
@@ -22,58 +22,35 @@ describe("CPU website examples", () => {
     try {
       for (const [modulePath, expectedId] of [
         [
-          "../../www/examples/canvas/loader/canvas_loader_bvh.js",
-          "webgl_loader_bvh",
+          "../../www/examples/canvas/loader/character-motion-review.js",
+          "character-motion-review",
         ],
         [
-          "../../www/examples/canvas/loader/canvas_loader_imagebitmap.js",
-          "webgl_loader_imagebitmap",
+          "../../www/examples/canvas/loader/product-model-viewer.js",
+          "product-model-viewer",
         ],
         [
-          "../../www/examples/canvas/loader/canvas_loader_gltf.js",
-          "webgl_loader_gltf",
+          "../../www/examples/canvas/loader/instanced-asset-review.js",
+          "instanced-asset-review",
         ],
         [
-          "../../www/examples/canvas/loader/canvas_loader_gltf_instancing.js",
-          "webgl_loader_gltf_instancing",
+          "../../www/examples/canvas/loader/volume-slice-review.js",
+          "volume-slice-review",
         ],
         [
-          "../../www/examples/canvas/loader/canvas_loader_gltf_progressive_lod.js",
-          "webgl_loader_gltf_progressive_lod",
+          "../../www/examples/canvas/loader/obj-model-review.js",
+          "obj-model-review",
         ],
         [
-          "../../www/examples/canvas/loader/canvas_loader_gltf_variants.js",
-          "webgl_loader_gltf_variants",
+          "../../www/examples/canvas/loader/point-cloud-review.js",
+          "point-cloud-review",
         ],
         [
-          "../../www/examples/canvas/loader/canvas_loader_nrrd.js",
-          "webgl_loader_nrrd",
+          "../../www/examples/canvas/loader/voxel-asset-review.js",
+          "voxel-asset-review",
         ],
-        [
-          "../../www/examples/canvas/loader/canvas_loader_texture_tga.js",
-          "webgl_loader_texture_tga",
-        ],
-        [
-          "../../www/examples/canvas/loader/canvas_loader_vox.js",
-          "webgl_loader_vox",
-        ],
-        [
-          "../../www/examples/canvas/loader/canvas_loader_svg.js",
-          "webgl_loader_svg",
-        ],
-        [
-          "../../www/examples/physics/canvas_physics_rapier_character_controller.js",
-          "physics_rapier_character_controller",
-        ],
-        [
-          "../../www/examples/physics/canvas_physics_rapier_joints.js",
-          "physics_rapier_joints",
-        ],
-        ["../../www/examples/misc/misc_exporter_gltf.js", "misc_exporter_gltf"],
-        [
-          "../../www/examples/misc/misc_controls_transform.js",
-          "misc_controls_transform",
-        ],
+        ["../../www/examples/misc/gltf-export-check.js", "gltf-export-check"],
+        ["../../www/examples/misc/scene-transform.js", "scene-transform"],
       ] as const) {
         const example = await import(modulePath);
         const canvas = dom.window.document.createElement("canvas");

@@ -1,0 +1,42 @@
+---
+import "../styles/site.css";
+import SiteFooter from "./SiteFooter.astro";
+import SiteHeader from "./SiteHeader.astro";
+
+export type SiteSection = "docs" | "examples" | "manual";
+
+export interface SiteLayoutProps {
+	title: string;
+	description?: string | undefined;
+	section?: SiteSection | undefined;
+	canonical?: string | undefined;
+}
+
+const { title, description, section, canonical } = Astro.props as SiteLayoutProps;
+const resolvedDescription =
+	description ??
+	"EASEL.js is a TypeScript, CPU-only renderer with a THREE-style scene graph and inspectable Canvas2D rasterization.";
+const canonicalUrl = new URL(
+	canonical ?? Astro.url.pathname,
+	Astro.site ?? Astro.url.origin,
+).href;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="description" content={resolvedDescription} />
+		<link rel="canonical" href={canonicalUrl} />
+		<title>{title}</title>
+	</head>
+	<body>
+		<a class="skip-link" href="#main-content">Skip to main content</a>
+		<SiteHeader section={section} />
+		<main id="main-content" class="site-main">
+			<slot />
+		</main>
+		<SiteFooter />
+	</body>
+</html>

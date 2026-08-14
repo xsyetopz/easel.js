@@ -1,0 +1,22 @@
+---
+import SiteLayout from "../../components/SiteLayout.astro";
+---
+
+<SiteLayout
+	title="Page not found · EASEL.js"
+	description="The requested EASEL.js page could not be found."
+	canonical="/404.html"
+>
+	<div class="page-not-found">
+		<section class="not-found-content" aria-labelledby="not-found-title">
+			<h1 id="not-found-title">Page not found.</h1>
+			<p>The address does not match a published EASEL.js page.</p>
+			<ul class="route-links">
+				<li><a href="/">Return home</a></li>
+				<li><a href="/docs/">Browse the API reference</a></li>
+				<li><a href="/examples/">Run an example</a></li>
+				<li><a href="/manual/">Read the manual</a></li>
+			</ul>
+		</section>
+	</div>
+</SiteLayout>

@@ -13,12 +13,11 @@ _USAGE = """Usage: python -m scripts <command>
 Commands:
   check-version
   check-no-test-any
-  check-example-source-parity
+  check-example-catalog
   check-dependencies
   verify-package
   version
-  release
-  audit-threejs-parity"""
+  release"""
 
 
 def main(

@@ -1,0 +1,61 @@
+---
+import CodeBlock from "../../components/CodeBlock.astro";
+import SiteLayout from "../../components/SiteLayout.astro";
+
+const firstFrame = `<canvas id="frame" width="640" height="360"></canvas>
+<script type="module">
+  import {
+    BasicMaterial,
+    BoxGeometry,
+    Mesh,
+    PerspectiveCamera,
+    Renderer,
+    Scene,
+  } from "@xsyetopz/easel";
+
+  const canvas = document.querySelector("#frame");
+  if (!(canvas instanceof HTMLCanvasElement)) throw new Error("Canvas element #frame is required.");
+  const renderer = new Renderer({ canvas, width: 640, height: 360 });
+  const scene = new Scene();
+  const camera = new PerspectiveCamera({
+    fov: 45,
+    aspect: 640 / 360,
+    near: 0.1,
+    far: 100,
+  });
+  camera.position.set(0, 0, 4);
+  camera.lookAt(0, 0, 0);
+  scene.add(new Mesh(new BoxGeometry(), new BasicMaterial({ color: 0x0969da })));
+  renderer.prepare(scene, camera);
+  renderer.render(scene, camera);
+</script>`;
+---
+
+<SiteLayout
+	title="EASEL.js · 3D scenes on Canvas2D"
+	description="EASEL.js is a TypeScript, CPU-only renderer with a THREE-style scene graph and inspectable Canvas2D rasterization."
+>
+	<div class="page-home">
+		<section class="home-intro" aria-labelledby="home-title">
+			<h1 id="home-title">3D scenes on Canvas2D.</h1>
+			<p>EASEL.js is a TypeScript, CPU-only renderer with a THREE-style scene graph and inspectable rasterization.</p>
+		</section>
+
+		<section class="home-links-section" aria-labelledby="home-links-title">
+			<h2 id="home-links-title">Start here</h2>
+			<p>Read the API, follow a task guide, or run a real Canvas2D scene.</p>
+			<ul class="home-links">
+				<li><a href="/docs/">Browse the API reference</a></li>
+				<li><a href="/examples/">Run an example</a></li>
+				<li><a href="/manual/">Build a first scene</a></li>
+				<li><a href="https://github.com/xsyetopz/easel.js">Read the source on GitHub</a></li>
+			</ul>
+		</section>
+
+		<section class="home-install" aria-labelledby="install-title">
+			<h2 id="install-title">Install and render a first frame</h2>
+			<p>Install <code>@xsyetopz/easel</code>, then create a scene and upload its pixels to a Canvas2D element.</p>
+			<CodeBlock code={firstFrame} language="html" label="index.html" />
+		</section>
+	</div>
+</SiteLayout>

@@ -11,12 +11,21 @@ export interface ExampleCatalogEntry {
   meta: ExampleMeta;
 }
 
+export interface ExampleRegistryEntry extends ExampleCatalogEntry {
+  controls: ExampleControl[];
+  easelSource: string;
+  load: () => Promise<ExampleModule>;
+}
+
 export type ExampleControl = ControlDefinition;
 export type ExampleParams = Record<string, string | number>;
 
 export interface ExampleInstance {
   cleanup?: () => void;
+  pause?: () => void;
   resize?: (width: number, height: number) => void;
+  resume?: () => void;
+  setReducedMotion?: (reduced: boolean) => void;
   update?: (params: ExampleParams) => void;
 }
 
@@ -28,16 +37,12 @@ export interface ExampleModule {
     params: ExampleParams,
   ) => ExampleInstance | undefined;
   easelSource: string;
-  threeSource?: string | undefined;
-  noThreeReason?: string | undefined;
 }
 
 export interface ExampleRouteData {
   meta: ExampleMeta;
   controls?: ExampleControl[] | undefined;
   easelSource: string;
-  threeSource?: string | undefined;
-  noThreeReason?: string | undefined;
   setup: ExampleModule["setup"];
 }
 
@@ -48,7 +53,7 @@ export interface ExampleCatalogData {
 
 interface ExampleRegistryModule {
   categoryLabels: Record<string, string>;
-  examples: ExampleModule[];
+  examples: ExampleRegistryEntry[];
 }
 
 async function loadExampleRegistry(): Promise<ExampleRegistryModule> {
@@ -67,9 +72,10 @@ export async function loadExampleCatalog(): Promise<ExampleCatalogData> {
 
 export async function loadExampleModule(
   exampleId: string,
-): Promise<ExampleModule | null> {
+): Promise<ExampleModule | undefined> {
   const { examples } = await loadExampleRegistry();
-  return examples.find((example) => example.meta.id === exampleId) ?? null;
+  const entry = examples.find((example) => example.meta.id === exampleId);
+  return entry?.load();
 }
 
 export function buildExampleRouteData(
@@ -79,8 +85,6 @@ export function buildExampleRouteData(
     meta: exampleModule.meta,
     controls: exampleModule.controls,
     easelSource: exampleModule.easelSource,
-    threeSource: exampleModule.threeSource,
-    noThreeReason: exampleModule.noThreeReason,
     setup: exampleModule.setup,
   };
 }

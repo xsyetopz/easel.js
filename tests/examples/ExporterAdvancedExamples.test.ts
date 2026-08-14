@@ -2,15 +2,11 @@ import { describe, expect, it } from "bun:test";
 import { JSDOM } from "jsdom";
 
 const routes = [
-  ["../../www/examples/misc/misc_exporter_exr.js", "misc_exporter_exr"],
-  [
-    "../../www/examples/misc/misc_exporter_gltf_normals.js",
-    "misc_exporter_gltf_normals",
-  ],
+  ["../../www/examples/misc/gltf-normal-check.js", "gltf-normal-check"],
 ] as const;
 
-describe("advanced CPU exporter examples", () => {
-  it("mounts and cleans EXR and glTF normals routes", async () => {
+describe("export examples", () => {
+  it("mounts and cleans the glTF normal check", async () => {
     const previousDocument = globalThis.document;
     const previousRequestAnimationFrame = globalThis.requestAnimationFrame;
     const previousCancelAnimationFrame = globalThis.cancelAnimationFrame;
@@ -44,7 +40,6 @@ describe("advanced CPU exporter examples", () => {
         const instance = example.setup(canvas);
         expect(example.meta.id).toBe(expectedId);
         expect(example.easelSource).toContain("@xsyetopz/easel");
-        expect(example.threeSource).toContain('from "three"');
         expect(instance).toBeDefined();
         instance?.cleanup();
       }

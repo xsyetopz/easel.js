@@ -110,16 +110,3 @@ export const directEasel = {
   camera:
     "const camera = new EASEL.OrthographicCamera({ left: -4, right: 4, top: 2.25, bottom: -2.25 });",
 };
-
-export const directThree = {
-  mesh: `const geometry = new THREE.BufferGeometry();\ngeometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));\nconst mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: 0xe29a56 }));`,
-  indexed:
-    "geometry.setIndex(indices);\nconst mesh = new THREE.Mesh(geometry, material);",
-  lines:
-    "const lines = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: 0x6ec8ff }));",
-  "lines-indexed":
-    "geometry.setIndex(indices);\nconst lines = new THREE.LineSegments(geometry, material);",
-  "lines-colors": `geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));\nconst lines = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ vertexColors: true }));`,
-  camera:
-    "const camera = new THREE.OrthographicCamera(-4, 4, 2.25, -2.25, 0.1, 100);",
-};

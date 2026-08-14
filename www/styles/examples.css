@@ -1,0 +1,449 @@
+.examples-catalog,
+.examples-viewer {
+	--examples-border: var(--color-border, #d0d7de);
+	--examples-muted: var(--color-muted, #59636e);
+	--examples-accent: var(--color-accent, #0969da);
+	--examples-surface: var(--color-surface, #f6f8fa);
+	--examples-code: var(--color-code, #f6f8fa);
+	max-inline-size: 78rem;
+	margin-inline: auto;
+	padding-block: clamp(1.5rem, 4vw, 3.5rem);
+	padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.examples-eyebrow {
+	margin: 0 0 0.5rem;
+	color: var(--examples-muted);
+	font-size: 0.8125rem;
+	font-weight: 650;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.examples-catalog-heading,
+.examples-viewer-heading {
+	max-inline-size: 70ch;
+}
+
+.examples-catalog-heading h1,
+.examples-viewer-heading h1 {
+	margin: 0;
+	font-size: clamp(2rem, 5vw, 3.5rem);
+	letter-spacing: -0.03em;
+	line-height: 1.05;
+}
+
+.examples-catalog-heading p:not(.examples-eyebrow),
+.examples-viewer-heading p:not(.examples-eyebrow) {
+	max-inline-size: 66ch;
+	margin-block: 1rem 0;
+	color: var(--examples-muted);
+	font-size: 1.0625rem;
+	line-height: 1.55;
+}
+
+.examples-filter {
+	display: grid;
+	grid-template-columns: minmax(12rem, 2fr) minmax(10rem, 1fr) auto;
+	align-items: end;
+	gap: 0.75rem 1rem;
+	margin-block: clamp(2rem, 5vw, 3.5rem) 2rem;
+	padding-block: 1rem;
+	border-block: 1px solid var(--examples-border);
+}
+
+.examples-filter-field {
+	display: grid;
+	gap: 0.35rem;
+}
+
+.examples-filter label,
+.examples-control label {
+	font-size: 0.875rem;
+	font-weight: 650;
+}
+
+.examples-filter input,
+.examples-filter select,
+.examples-control input,
+.examples-control select {
+	min-block-size: 2.5rem;
+	inline-size: 100%;
+	box-sizing: border-box;
+	border: 1px solid var(--examples-border);
+	border-radius: 0.375rem;
+	background: var(--color-bg, #fff);
+	color: inherit;
+	font: inherit;
+	padding-inline: 0.7rem;
+}
+
+.examples-filter input:focus-visible,
+.examples-filter select:focus-visible,
+.examples-filter button:focus-visible,
+.examples-control input:focus-visible,
+.examples-control select:focus-visible,
+.examples-sequence a:focus-visible,
+.examples-list a:focus-visible,
+.examples-breadcrumbs a:focus-visible {
+	outline: 3px solid var(--examples-accent);
+	outline-offset: 2px;
+}
+
+.examples-filter-clear {
+	min-block-size: 2.5rem;
+	border: 1px solid var(--examples-border);
+	border-radius: 0.375rem;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+	font: inherit;
+	padding-inline: 0.9rem;
+	white-space: nowrap;
+}
+
+.examples-filter-clear:hover {
+	border-color: var(--examples-accent);
+	color: var(--examples-accent);
+}
+
+.examples-filter-status {
+	grid-column: 1 / -1;
+	margin: 0;
+	color: var(--examples-muted);
+	font-size: 0.875rem;
+}
+
+.examples-empty {
+	margin-block: 2rem;
+	padding: 1rem;
+	border-inline-start: 0.25rem solid var(--examples-accent);
+	background: var(--examples-surface);
+}
+
+.examples-group {
+	margin-block: 2.5rem;
+}
+
+.examples-group-heading {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	padding-block-end: 0.6rem;
+	border-block-end: 1px solid var(--examples-border);
+}
+
+.examples-group-heading h2 {
+	margin: 0;
+	font-size: clamp(1.3rem, 3vw, 1.8rem);
+	letter-spacing: -0.015em;
+}
+
+.examples-group-heading p {
+	margin: 0;
+	color: var(--examples-muted);
+	font-size: 0.875rem;
+}
+
+.examples-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.examples-list-item {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: start;
+	gap: 1rem;
+	padding-block: 1rem;
+	border-block-end: 1px solid var(--examples-border);
+}
+
+.examples-list-item h3 {
+	margin: 0;
+	font-size: 1.05rem;
+}
+
+.examples-list-item h3 a,
+.examples-list-action,
+.examples-breadcrumbs a,
+.examples-sequence a {
+	color: var(--examples-accent);
+	text-decoration-thickness: 0.08em;
+	text-underline-offset: 0.15em;
+}
+
+.examples-list-item p {
+	max-inline-size: 68ch;
+	margin: 0.35rem 0 0;
+	color: var(--examples-muted);
+	line-height: 1.5;
+}
+
+.examples-list-action {
+	font-size: 0.9rem;
+	white-space: nowrap;
+}
+
+.examples-breadcrumbs {
+	margin-block-end: clamp(1.5rem, 4vw, 2.75rem);
+	font-size: 0.9rem;
+}
+
+.examples-breadcrumbs ol {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem 0.75rem;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.examples-breadcrumbs li + li::before {
+	margin-inline-end: 0.75rem;
+	color: var(--examples-muted);
+	content: "/";
+}
+
+.examples-stage-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(14rem, 20rem);
+	align-items: start;
+	gap: 1rem 1.5rem;
+	margin-block-start: clamp(2rem, 5vw, 3.5rem);
+}
+
+.examples-stage-figure {
+	grid-row: span 2;
+	min-inline-size: 0;
+	margin: 0;
+}
+
+.examples-stage {
+	position: relative;
+	inline-size: 100%;
+	max-inline-size: 100%;
+	min-block-size: 8rem;
+	aspect-ratio: 16 / 9;
+	border: 1px solid var(--examples-border);
+	background: #101622;
+	overflow: hidden;
+}
+
+.examples-stage canvas {
+	display: block;
+	inline-size: 100%;
+	block-size: auto;
+	max-inline-size: 100%;
+	aspect-ratio: 16 / 9;
+	background: #101622;
+}
+
+.examples-stage-message {
+	position: absolute;
+	inset: 50% 1rem auto;
+	transform: translateY(-50%);
+	margin: 0;
+	color: #f0f6fc;
+	font-size: 0.95rem;
+	line-height: 1.45;
+	text-align: center;
+}
+
+.examples-stage-message[hidden] {
+	display: none;
+}
+
+.examples-stage-figure figcaption {
+	margin-block-start: 0.65rem;
+	color: var(--examples-muted);
+	font-size: 0.875rem;
+	line-height: 1.45;
+}
+
+.examples-runtime-status {
+	grid-column: 2;
+	min-block-size: 1.5rem;
+	color: var(--examples-muted);
+	font-size: 0.875rem;
+	line-height: 1.45;
+}
+
+.examples-runtime-status a {
+	display: inline-block;
+	margin-inline-start: 0.5rem;
+	color: var(--examples-accent);
+}
+
+.examples-controls {
+	grid-column: 2;
+	padding: 1rem;
+	border: 1px solid var(--examples-border);
+	background: var(--examples-surface);
+}
+
+.examples-controls h2,
+.examples-source h2 {
+	margin: 0;
+	font-size: 1.2rem;
+}
+
+.examples-control + .examples-control {
+	margin-block-start: 1rem;
+}
+
+.examples-control-input {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 0.75rem;
+	margin-block-start: 0.35rem;
+}
+
+.examples-control input[type="range"] {
+	padding-inline: 0;
+}
+
+.examples-control input[type="color"] {
+	min-block-size: 2.5rem;
+	padding: 0.2rem;
+}
+
+.examples-control output {
+	min-inline-size: 4rem;
+	color: var(--examples-muted);
+	font-family: var(--font-code, ui-monospace, monospace);
+	font-size: 0.8rem;
+	text-align: end;
+}
+
+.examples-source {
+	margin-block-start: clamp(2rem, 5vw, 3.5rem);
+	padding-block-start: 1.25rem;
+	border-block-start: 1px solid var(--examples-border);
+}
+
+.examples-source header p {
+	margin-block: 0.4rem 1rem;
+	color: var(--examples-muted);
+	font-size: 0.9rem;
+}
+
+.examples-code-scroll {
+	max-inline-size: 100%;
+	overflow-x: auto;
+	border: 1px solid var(--examples-border);
+	background: var(--examples-code);
+}
+
+.examples-code-scroll pre {
+	min-inline-size: max-content;
+	margin: 0;
+	padding: 1rem;
+	font-family: var(--font-code, ui-monospace, monospace);
+	font-size: 0.85rem;
+	line-height: 1.55;
+	white-space: pre;
+}
+
+.examples-sequence {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+	align-items: start;
+	gap: 1rem;
+	margin-block-start: 2rem;
+	padding-block-start: 1rem;
+	border-block-start: 1px solid var(--examples-border);
+}
+
+.examples-sequence a {
+	display: grid;
+	gap: 0.2rem;
+}
+
+.examples-sequence a span {
+	color: var(--examples-muted);
+	font-size: 0.8rem;
+	text-transform: uppercase;
+}
+
+.examples-sequence-next {
+	text-align: end;
+}
+
+.examples-sequence-index {
+	align-self: center;
+	font-size: 0.9rem;
+}
+
+@media (max-width: 48rem) {
+	.examples-filter {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	}
+
+	.examples-filter-clear {
+		justify-self: start;
+	}
+
+	.examples-stage-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.examples-stage-figure,
+	.examples-runtime-status,
+	.examples-controls {
+		grid-column: 1;
+		grid-row: auto;
+	}
+}
+
+@media (max-width: 40rem) {
+	.examples-catalog,
+	.examples-viewer {
+		padding-inline: 1rem;
+	}
+
+	.examples-filter {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.examples-list-item {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.65rem;
+	}
+
+	.examples-list-action {
+		justify-self: start;
+	}
+
+	.examples-group-heading {
+		align-items: start;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.examples-sequence {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	}
+
+	.examples-sequence-index {
+		grid-column: 1 / -1;
+		grid-row: 1;
+		justify-self: start;
+	}
+
+	.examples-sequence-next {
+		grid-column: 2;
+		grid-row: 2;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.examples-stage-message,
+	.examples-catalog a,
+	.examples-viewer a {
+		transition: none;
+	}
+}

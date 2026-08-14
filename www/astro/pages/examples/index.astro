@@ -1,0 +1,15 @@
+---
+import SiteLayout from "../../../components/SiteLayout.astro";
+import ExamplesCatalog from "../../../components/ExamplesCatalog.astro";
+import { loadExampleCatalog } from "../../../loaders/examples.ts";
+
+const catalog = await loadExampleCatalog();
+---
+
+<SiteLayout
+	title="Examples"
+	description="Runnable CPU Canvas2D scenes for EASEL.js."
+	section="examples"
+>
+	<ExamplesCatalog catalog={catalog} />
+</SiteLayout>

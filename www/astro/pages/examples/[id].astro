@@ -1,0 +1,45 @@
+---
+import SiteLayout from "../../../components/SiteLayout.astro";
+import ExamplesViewer from "../../../components/ExamplesViewer.astro";
+import {
+	buildExampleRouteData,
+	loadExampleCatalog,
+	loadExampleModule,
+} from "../../../loaders/examples.ts";
+import type {
+	ExampleCatalogData,
+	ExampleRouteData,
+} from "../../../loaders/examples.ts";
+
+interface ExamplePageProps {
+	catalog: ExampleCatalogData;
+	example: ExampleRouteData;
+}
+
+export async function getStaticPaths() {
+	const catalog = await loadExampleCatalog();
+	const paths = [];
+	for (const entry of catalog.examples) {
+		const module = await loadExampleModule(entry.meta.id);
+		if (!module) {
+			throw new Error(`Missing example module for ${entry.meta.id}`);
+		}
+		paths.push({
+			params: { id: entry.meta.id },
+			props: { catalog, example: buildExampleRouteData(module) },
+		});
+	}
+	return paths;
+}
+
+const { catalog, example } = Astro.props as ExamplePageProps;
+---
+
+<SiteLayout
+	title={`${example.meta.name} example`}
+	description={example.meta.description}
+	section="examples"
+	canonical={`/examples/${example.meta.id}/`}
+>
+	<ExamplesViewer catalog={catalog} example={example} />
+</SiteLayout>

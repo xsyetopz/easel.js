@@ -1,26 +1,39 @@
 ---
-import hljs from "highlight.js/lib/core";
-import type { LanguageFn } from "highlight.js";
-import javascript from "highlight.js/lib/languages/javascript";
-import typescript from "highlight.js/lib/languages/typescript";
-
-hljs.registerLanguage("javascript", javascript as LanguageFn);
-hljs.registerLanguage("typescript", typescript as LanguageFn);
-
 interface Props {
 	code: string;
-	language?: string;
+	language?: string | undefined;
+	label?: string | undefined;
 }
 
-const { code, language = "javascript" } = Astro.props as Props;
-const escapeHtml = (value: string) =>
-	value
-		.replaceAll("&", "&amp;")
-		.replaceAll("<", "&lt;")
-		.replaceAll(">", "&gt;")
-		.replaceAll('"', "&quot;")
-		.replaceAll("'", "&#39;");
-const highlighted = language === "plaintext" ? escapeHtml(code) : hljs.highlight(code, { language, ignoreIllegals: true }).value;
+const { code, language = "text", label } = Astro.props as Props;
 ---
 
-<pre class="code-block hljs"><code set:html={highlighted}></code></pre>
+<div class="code-block" data-code-block>
+	<div class="code-block__toolbar">
+		<span>{label ?? language}</span>
+		<button type="button" data-code-copy>Copy</button>
+	</div>
+	<div class="code-block__scroll">
+		<pre><code>{code}</code></pre>
+	</div>
+	<span class="code-block__status" data-code-status role="status" aria-live="polite"></span>
+</div>
+
+<script>
+	for (const block of document.querySelectorAll("[data-code-block]")) {
+		const button = block.querySelector("[data-code-copy]");
+		const status = block.querySelector("[data-code-status]");
+		const codeNode = block.querySelector("pre code");
+		if (!(button instanceof HTMLButtonElement) || !(codeNode instanceof HTMLElement)) continue;
+
+		button.addEventListener("click", async () => {
+			const text = codeNode.textContent ?? "";
+			try {
+				await navigator.clipboard.writeText(text);
+				if (status instanceof HTMLElement) status.textContent = "Copied.";
+			} catch {
+				if (status instanceof HTMLElement) status.textContent = "Copy unavailable; select the code to copy it.";
+			}
+		});
+	}
+</script>

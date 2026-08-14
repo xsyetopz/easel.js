@@ -1,7 +1,7 @@
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 
-const docsSidebarGroups = [
+const apiSidebarGroups = [
   "Core",
   "Cameras",
   "Geometry",
@@ -21,7 +21,7 @@ const docsSidebarGroups = [
   "Utilities",
 ].map((label) => ({
   label,
-  collapsed: !["Core", "Cameras"].includes(label),
+  collapsed: true,
   items: [
     {
       autogenerate: {
@@ -31,6 +31,17 @@ const docsSidebarGroups = [
   ],
 }));
 
+const manualSidebar = [
+  { slug: "manual" },
+  { slug: "manual/install" },
+  { slug: "manual/first-scene" },
+  { slug: "manual/renderer-model" },
+  { slug: "manual/cameras-and-controls" },
+  { slug: "manual/geometry-and-materials" },
+  { slug: "manual/animation" },
+  { slug: "manual/textures-and-loaders" },
+];
+
 export default defineConfig({
   base: "/",
   site: "https://easeljs.org",
@@ -38,25 +49,33 @@ export default defineConfig({
   outDir: "./dist/www",
   integrations: [
     starlight({
-      title: "EASEL.js docs",
-      description: "Canvas2D software renderer API reference.",
+      title: "EASEL.js",
+      description: "Canvas2D software renderer documentation.",
       customCss: ["./www/astro/styles/starlight.scss"],
       credits: false,
       disable404Route: true,
       lastUpdated: false,
       pagination: true,
-      social: [
-        {
-          icon: "github",
-          label: "GitHub",
-          href: "https://github.com/xsyetopz/easel.js",
-        },
-      ],
+      social: [],
+      markdown: {
+        processedDirs: ["./www/astro/content/manual"],
+      },
+      components: {
+        Header: "./www/components/StarlightHeader.astro",
+        MobileMenuFooter: "./www/components/StarlightMobileMenuFooter.astro",
+        ThemeProvider: "./www/components/StarlightThemeProvider.astro",
+      },
       sidebar: [
-        { label: "Website", link: "/" },
-        { label: "Examples", link: "/examples/" },
-        { label: "API Reference", slug: "docs" },
-        ...docsSidebarGroups,
+        {
+          label: "Manual",
+          collapsed: false,
+          items: manualSidebar,
+        },
+        {
+          label: "API reference",
+          collapsed: false,
+          items: [{ slug: "docs" }, ...apiSidebarGroups],
+        },
       ],
     }),
   ],

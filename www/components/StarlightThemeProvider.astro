@@ -1,0 +1,14 @@
+---
+---
+
+<script is:inline>
+  (() => {
+    const media = window.matchMedia("(prefers-color-scheme: light)");
+    const apply = () => {
+      document.documentElement.dataset.theme = media.matches ? "light" : "dark";
+    };
+
+    apply();
+    media.addEventListener("change", apply);
+  })();
+</script>
