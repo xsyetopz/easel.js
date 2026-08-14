@@ -1,5 +1,6 @@
 ---
 import SiteLayout from "../../components/SiteLayout.astro";
+import { sitePath } from "../../utils/site-path.ts";
 ---
 
 <SiteLayout
@@ -12,10 +13,10 @@ import SiteLayout from "../../components/SiteLayout.astro";
 			<h1 id="not-found-title">Page not found.</h1>
 			<p>The address does not match a published EASEL.js page.</p>
 			<ul class="route-links">
-				<li><a href="/">Return home</a></li>
-				<li><a href="/docs/">Browse the API reference</a></li>
-				<li><a href="/examples/">Run an example</a></li>
-				<li><a href="/manual/">Read the manual</a></li>
+				<li><a href={sitePath("/")}>Return home</a></li>
+				<li><a href={sitePath("/docs/")}>Browse the API reference</a></li>
+				<li><a href={sitePath("/examples/")}>Run an example</a></li>
+				<li><a href={sitePath("/manual/")}>Read the manual</a></li>
 			</ul>
 		</section>
 	</div>

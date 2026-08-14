@@ -5,6 +5,7 @@ import type {
 	ExampleControl,
 	ExampleRouteData,
 } from "../loaders/examples.ts";
+import { sitePath } from "../utils/site-path.ts";
 
 interface Props {
 	catalog: ExampleCatalogData;
@@ -33,7 +34,7 @@ const isAnimated = example.meta.animated;
 	<script type="application/json" data-example-params set:html={JSON.stringify(defaults)}></script>
 	<nav class="examples-breadcrumbs" aria-label="Breadcrumb">
 		<ol>
-			<li><a href="/examples/">Examples</a></li>
+			<li><a href={sitePath("/examples/")}>Examples</a></li>
 			<li aria-current="page">{example.meta.name}</li>
 		</ol>
 	</nav>
@@ -149,14 +150,14 @@ const isAnimated = example.meta.animated;
 
 	<nav class="examples-sequence" aria-label="Example navigation">
 		{previous ? (
-			<a href={`/examples/${previous.meta.id}/`}>
+			<a href={sitePath(`/examples/${previous.meta.id}/`)}>
 				<span>Previous</span>
 				<strong>{previous.meta.name}</strong>
 			</a>
 		) : <span aria-hidden="true" />}
-		<a class="examples-sequence-index" href="/examples/">All examples</a>
+		<a class="examples-sequence-index" href={sitePath("/examples/")}>All examples</a>
 		{next ? (
-			<a class="examples-sequence-next" href={`/examples/${next.meta.id}/`}>
+			<a class="examples-sequence-next" href={sitePath(`/examples/${next.meta.id}/`)}>
 				<span>Next</span>
 				<strong>{next.meta.name}</strong>
 			</a>

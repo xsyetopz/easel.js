@@ -43,9 +43,47 @@ const manualSidebar = [
   { slug: "manual/textures-and-loaders" },
 ];
 
+const DEFAULT_GITHUB_REPOSITORY = "xsyetopz/easel.js";
+const configuredRepository = process.env.GITHUB_REPOSITORY?.trim();
+const githubRepository =
+  configuredRepository && /^[^/]+\/[^/]+$/.test(configuredRepository)
+    ? configuredRepository
+    : DEFAULT_GITHUB_REPOSITORY;
+const [githubOwner, githubProject] = githubRepository.split("/");
+const isGitHubPagesBuild = process.env.EASEL_GITHUB_PAGES === "true";
+const githubPagesBase = `/${githubProject}/`;
+const githubPagesSite = `https://${githubOwner}.github.io${githubPagesBase}`;
+const baseAwareMarkdownLinks = {
+  name: "base-aware-markdown-links",
+  hooks: {
+    "astro:config:setup": ({ config }) => {
+      const basePath = config.base.replace(/\/+$/u, "");
+      const processor = config.markdown?.processor;
+      if (!processor?.options?.mdastPlugins) return;
+
+      processor.options.mdastPlugins.push({
+        name: "prefix-site-links",
+        link(node, context) {
+          if (
+            !basePath ||
+            !node.url.startsWith("/") ||
+            node.url.startsWith("//") ||
+            node.url === basePath ||
+            node.url.startsWith(`${basePath}/`)
+          ) {
+            return;
+          }
+
+          context.replaceNode(node, { ...node, url: `${basePath}${node.url}` });
+        },
+      });
+    },
+  },
+};
+
 export default defineConfig({
-  base: "/",
-  site: "https://easeljs.org",
+  base: isGitHubPagesBuild ? githubPagesBase : "/",
+  site: isGitHubPagesBuild ? githubPagesSite : "https://easeljs.org",
   srcDir: "./www/astro",
   publicDir: "./www/public",
   outDir: "./dist/www",
@@ -80,6 +118,7 @@ export default defineConfig({
         },
       ],
     }),
+    baseAwareMarkdownLinks,
   ],
   build: {
     format: "directory",

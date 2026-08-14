@@ -1,6 +1,7 @@
 ---
 import "../styles/examples.css";
 import type { ExampleCatalogData } from "../loaders/examples.ts";
+import { sitePath } from "../utils/site-path.ts";
 
 interface Props {
 	catalog: ExampleCatalogData;
@@ -81,10 +82,10 @@ const statusId = "examples-filter-status";
 								data-example-search-text={`${meta.name} ${meta.description} ${meta.category}`.toLowerCase()}
 							>
 								<div>
-									<h3><a href={`/examples/${meta.id}/`}>{meta.name}</a></h3>
+									<h3><a href={sitePath(`/examples/${meta.id}/`)}>{meta.name}</a></h3>
 									<p>{meta.description}</p>
 								</div>
-								<a class="examples-list-action" href={`/examples/${meta.id}/`}>Open example<span aria-hidden="true"> →</span></a>
+								<a class="examples-list-action" href={sitePath(`/examples/${meta.id}/`)}>Open example<span aria-hidden="true"> →</span></a>
 							</li>
 						))}
 					</ul>

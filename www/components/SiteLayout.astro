@@ -2,6 +2,7 @@
 import "../styles/site.css";
 import SiteFooter from "./SiteFooter.astro";
 import SiteHeader from "./SiteHeader.astro";
+import { sitePath } from "../utils/site-path.ts";
 
 export type SiteSection = "docs" | "examples" | "manual";
 
@@ -16,8 +17,9 @@ const { title, description, section, canonical } = Astro.props as SiteLayoutProp
 const resolvedDescription =
 	description ??
 	"EASEL.js is a TypeScript, CPU-only renderer with a THREE-style scene graph and inspectable Canvas2D rasterization.";
+const canonicalPath = canonical ? sitePath(canonical) : Astro.url.pathname;
 const canonicalUrl = new URL(
-	canonical ?? Astro.url.pathname,
+	canonicalPath,
 	Astro.site ?? Astro.url.origin,
 ).href;
 ---

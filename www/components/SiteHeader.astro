@@ -1,19 +1,21 @@
 ---
+import { sitePath } from "../utils/site-path.ts";
+
 interface Props {
 	section?: "docs" | "examples" | "manual" | undefined;
 }
 
 const { section } = Astro.props as Props;
 const links = [
-	{ label: "Docs", href: "/docs/", section: "docs" as const },
-	{ label: "Examples", href: "/examples/", section: "examples" as const },
-	{ label: "Manual", href: "/manual/", section: "manual" as const },
+	{ label: "Docs", href: sitePath("/docs/"), section: "docs" as const },
+	{ label: "Examples", href: sitePath("/examples/"), section: "examples" as const },
+	{ label: "Manual", href: sitePath("/manual/"), section: "manual" as const },
 ];
 ---
 
 <header class="site-header">
 	<div class="site-container site-header__inner">
-		<a class="site-wordmark" href="/" aria-label="EASEL.js home">EASEL.js</a>
+		<a class="site-wordmark" href={sitePath("/")} aria-label="EASEL.js home">EASEL.js</a>
 		<nav class="site-primary-nav" aria-label="Primary">
 			<ul>
 				{links.map((link) => (

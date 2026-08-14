@@ -1,6 +1,7 @@
 ---
 import CodeBlock from "../../components/CodeBlock.astro";
 import SiteLayout from "../../components/SiteLayout.astro";
+import { sitePath } from "../../utils/site-path.ts";
 
 const firstFrame = `<canvas id="frame" width="640" height="360"></canvas>
 <script type="module">
@@ -45,9 +46,9 @@ const firstFrame = `<canvas id="frame" width="640" height="360"></canvas>
 			<h2 id="home-links-title">Start here</h2>
 			<p>Read the API, follow a task guide, or run a real Canvas2D scene.</p>
 			<ul class="home-links">
-				<li><a href="/docs/">Browse the API reference</a></li>
-				<li><a href="/examples/">Run an example</a></li>
-				<li><a href="/manual/">Build a first scene</a></li>
+				<li><a href={sitePath("/docs/")}>Browse the API reference</a></li>
+				<li><a href={sitePath("/examples/")}>Run an example</a></li>
+				<li><a href={sitePath("/manual/")}>Build a first scene</a></li>
 				<li><a href="https://github.com/xsyetopz/easel.js">Read the source on GitHub</a></li>
 			</ul>
 		</section>

@@ -1,17 +1,18 @@
 ---
 import Search from "virtual:starlight/components/Search";
+import { sitePath, sitePathname } from "../utils/site-path.ts";
 
-const currentPath = Astro.url.pathname.replace(/\/+$/u, "") || "/";
+const currentPath = sitePathname(Astro.url.pathname).replace(/\/+$/u, "") || "/";
 const navigation = [
-  { href: "/docs/", label: "Docs" },
-  { href: "/examples/", label: "Examples" },
-  { href: "/manual/", label: "Manual" },
-  { href: "https://github.com/xsyetopz/easel.js", label: "GitHub" },
+	{ path: "/docs/", label: "Docs" },
+	{ path: "/examples/", label: "Examples" },
+	{ path: "/manual/", label: "Manual" },
+	{ path: "https://github.com/xsyetopz/easel.js", label: "GitHub" },
 ];
 
-function isCurrent(href: string): boolean {
-  if (!href.startsWith("/")) return false;
-  const normalized = href.replace(/\/+$/u, "") || "/";
+function isCurrent(path: string): boolean {
+	if (!path.startsWith("/")) return false;
+	const normalized = path.replace(/\/+$/u, "") || "/";
   return normalized === "/docs"
     ? currentPath === "/docs" || currentPath.startsWith("/docs/")
     : normalized === "/manual"
@@ -23,16 +24,16 @@ function isCurrent(href: string): boolean {
 ---
 
 <div class="starlight-header-content">
-  <a class="starlight-brand" href="/" aria-label="EASEL.js home">EASEL.js</a>
+	<a class="starlight-brand" href={sitePath("/")} aria-label="EASEL.js home">EASEL.js</a>
   <nav class="starlight-global-nav" aria-label="Primary">
     <ul>
       {
-        navigation.map(({ href, label }) => (
-          <li>
-            <a
-              href={href}
-              aria-current={isCurrent(href) ? "page" : undefined}
-              rel={href.startsWith("http") ? "noreferrer" : undefined}
+				navigation.map(({ path, label }) => (
+					<li>
+						<a
+							href={path.startsWith("/") ? sitePath(path) : path}
+							aria-current={isCurrent(path) ? "page" : undefined}
+							rel={path.startsWith("http") ? "noreferrer" : undefined}
             >
               {label}
             </a>
