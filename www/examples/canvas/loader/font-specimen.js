@@ -13,10 +13,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "font-specimen",
   name: "Font Specimen",
   category: "assets",
+  animated: true,
   description: "Turn TTF glyph outlines into a readable 3D specimen.",
 };
 
@@ -66,18 +69,15 @@ export function setup(canvas) {
   text.position.set(-2.2, -1.2, 0);
   scene.add(text);
   const timer = new Timer();
-  let animationFrame;
-  function animate() {
-    animationFrame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     text.rotation.y += timer.update().delta * 0.2;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (animationFrame !== undefined)
-        globalThis.cancelAnimationFrame(animationFrame);
+      animation.cleanup();
     },
   };
 }

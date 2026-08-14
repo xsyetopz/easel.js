@@ -14,10 +14,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "terrain-placement",
   name: "Terrain Placement",
   category: "worlds",
+  animated: true,
   description: "Place a marker on terrain by clicking a world position.",
 };
 
@@ -101,18 +104,16 @@ export function setup(canvas) {
   };
   canvas.addEventListener("click", handleClick);
   const clock = new Timer();
-  let animationFrame;
-  function animate() {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     terrain.rotation.y += clock.update().delta * 0.03;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
+      animation.cleanup();
       canvas.removeEventListener("click", handleClick);
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
     },
   };
 }

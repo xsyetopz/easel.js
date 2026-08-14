@@ -16,10 +16,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "collision-bounds",
   name: "Collision Bounds",
   category: "worlds",
+  animated: true,
   description: "Visualize oriented bounds around a moving object.",
 };
 
@@ -71,9 +74,7 @@ export function setup(canvas) {
   const obbA = new OBB();
   const obbB = new OBB();
   const clock = new Timer();
-  let animationFrame;
-  function animate(timestamp) {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     clock.update(timestamp);
     boxA.rotation.y += clock.delta * 0.65;
     boxB.rotation.y -= clock.delta * 0.52;
@@ -87,11 +88,11 @@ export function setup(canvas) {
     materialA.color.hex = overlaps ? 0xf3bf57 : 0x5b9fe0;
     materialB.color.hex = overlaps ? 0xf3bf57 : 0xe07070;
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+      animation.cleanup();
     },
   };
 }

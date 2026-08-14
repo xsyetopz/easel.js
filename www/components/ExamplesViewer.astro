@@ -26,7 +26,7 @@ const next =
 		: undefined;
 const statusId = `example-status-${example.meta.id}`;
 const sourceId = `example-source-${example.meta.id}`;
-const isMotion = example.meta.category === "motion";
+const isAnimated = example.meta.animated;
 ---
 
 <article class="examples-viewer" data-example-viewer={example.meta.id}>
@@ -70,7 +70,7 @@ const isMotion = example.meta.category === "motion";
 			<a href={`#${sourceId}`} data-example-status-source hidden>Open source</a>
 		</div>
 
-		{isMotion && (
+		{isAnimated && (
 			<div class="examples-motion-controls" data-example-motion-controls hidden>
 				<button type="button" data-example-motion-toggle aria-pressed="false">Pause animation</button>
 				<p data-example-motion-note>Animation starts automatically; pause it to inspect a static frame.</p>
@@ -199,7 +199,7 @@ const isMotion = example.meta.category === "motion";
 					container: stage,
 					module,
 					params,
-						onState(state, error) {
+					onState(state, error) {
 						if (state === "loading") {
 							if (status) status.textContent = "Loading scene…";
 							if (message) {
@@ -208,8 +208,8 @@ const isMotion = example.meta.category === "motion";
 							}
 							return;
 						}
-							if (state === "unsupported") {
-								if (motionControls) motionControls.hidden = true;
+						if (state === "unsupported") {
+							if (motionControls) motionControls.hidden = true;
 							if (status) status.textContent = "Canvas2D is unavailable in this browser.";
 							if (message) {
 								message.hidden = false;
@@ -218,8 +218,8 @@ const isMotion = example.meta.category === "motion";
 							if (sourceLink) sourceLink.hidden = false;
 							return;
 						}
-							if (state === "error") {
-								if (motionControls) motionControls.hidden = true;
+						if (state === "error") {
+							if (motionControls) motionControls.hidden = true;
 							if (status) status.textContent = "This scene could not start. Open the source or choose another example.";
 							if (message) {
 								message.hidden = false;
@@ -229,42 +229,42 @@ const isMotion = example.meta.category === "motion";
 							if (error) console.error(`Example ${id ?? "unknown"} failed`, error);
 							return;
 						}
-							if (status) status.textContent = "Scene ready. Canvas2D output is shown above.";
-							if (message) message.hidden = true;
-							if (sourceLink) sourceLink.hidden = true;
-							if (motionControls) motionControls.hidden = false;
+						if (status) status.textContent = "Scene ready. Canvas2D output is shown above.";
+						if (message) message.hidden = true;
+						if (sourceLink) sourceLink.hidden = true;
+						if (motionControls) motionControls.hidden = false;
 						},
-					});
+				});
 
 				const reducedMotionQuery =
 					typeof globalThis.matchMedia === "function"
 						? globalThis.matchMedia("(prefers-reduced-motion: reduce)")
 						: undefined;
-				let motionPaused = reducedMotionQuery?.matches === true;
-					const setMotionState = (paused: boolean): void => {
-						motionPaused = paused;
-						if (!motionToggle) return;
-						motionToggle.setAttribute("aria-pressed", String(paused));
-						motionToggle.textContent = paused ? "Play animation" : "Pause animation";
-						if (motionNote) {
-							motionNote.textContent = paused
-								? "Animation is paused. Play it when you want to inspect motion."
-								: "Animation starts automatically; pause it to inspect a static frame.";
-						}
-					};
+				let motionPaused = controller.paused;
+				const setMotionState = (paused: boolean): void => {
+					motionPaused = paused;
+					if (!motionToggle) return;
+					motionToggle.setAttribute("aria-pressed", String(paused));
+					motionToggle.textContent = paused ? "Play animation" : "Pause animation";
+					if (motionNote) {
+						motionNote.textContent = paused
+							? "Animation is paused. Play it when you want to inspect motion."
+							: "Animation starts automatically; pause it to inspect a static frame.";
+					}
+				};
 				setMotionState(motionPaused);
 				const onMotionToggle = (): void => {
-						if (motionPaused) {
-							controller.resume();
-							setMotionState(false);
-						} else {
-							controller.pause();
-							setMotionState(true);
-						}
+					if (motionPaused) {
+						controller.resume();
+						setMotionState(false);
+					} else {
+						controller.pause();
+						setMotionState(true);
+					}
 				};
 				motionToggle?.addEventListener("click", onMotionToggle);
 				const onReducedMotionChange = (): void => {
-					if (reducedMotionQuery?.matches === true) setMotionState(true);
+					setMotionState(controller.paused);
 				};
 				reducedMotionQuery?.addEventListener?.("change", onReducedMotionChange);
 

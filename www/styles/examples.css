@@ -277,6 +277,37 @@
 	color: var(--examples-accent);
 }
 
+.examples-motion-controls {
+	display: grid;
+	grid-column: 2;
+	gap: 0.45rem;
+	padding: 0.85rem 1rem;
+	border: 1px solid var(--examples-border);
+	background: var(--examples-surface);
+}
+
+.examples-motion-controls button {
+	justify-self: start;
+	min-block-size: 2.25rem;
+	padding: 0.4rem 0.75rem;
+	border: 1px solid var(--examples-border);
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.examples-motion-controls button:hover {
+	background: var(--examples-code);
+}
+
+.examples-motion-controls p {
+	margin: 0;
+	color: var(--examples-muted);
+	font-size: 0.875rem;
+	line-height: 1.45;
+}
+
 .examples-controls {
 	grid-column: 2;
 	padding: 1rem;
@@ -393,6 +424,7 @@
 
 	.examples-stage-figure,
 	.examples-runtime-status,
+	.examples-motion-controls,
 	.examples-controls {
 		grid-column: 1;
 		grid-row: auto;

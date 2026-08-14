@@ -8,6 +8,7 @@ export const meta = {
   id: "top-down-map",
   name: "Top-Down Map",
   category: "worlds",
+  animated: true,
   description: "Pan an orthographic map view across a layered level blockout.",
 };
 

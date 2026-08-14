@@ -4,6 +4,7 @@ export interface ExampleMeta {
   id: string;
   name: string;
   category: string;
+  animated: boolean;
   description: string;
 }
 

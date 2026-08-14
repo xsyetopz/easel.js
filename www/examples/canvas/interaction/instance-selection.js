@@ -16,6 +16,7 @@ export const meta = {
   id: "instance-selection",
   name: "Instance Selection",
   category: "interaction",
+  animated: true,
   description: "Select one repeated prop inside a dense scene.",
 };
 

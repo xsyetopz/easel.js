@@ -16,11 +16,13 @@ import {
   Timer,
   Vector3,
 } from "@/index.js";
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 export const meta = {
   id: "coordinated-motion",
   name: "Coordinated Motion",
   category: "motion",
+  animated: true,
   description: "Keep several moving parts in sync with one animation group.",
 };
 
@@ -76,42 +78,16 @@ export function setup(canvas) {
   bounceAction.weight = 0.72;
 
   const clock = new Timer();
-  let animationFrame;
-  let running = true;
-
-  function stopAnimation() {
-    if (animationFrame === undefined) return;
-    cancelAnimationFrame(animationFrame);
-    animationFrame = undefined;
-  }
-
-  function animate() {
-    if (!running) return;
-    animationFrame = requestAnimationFrame(animate);
-    animator.update(clock.update().delta);
+  const animation = createExampleAnimationLoop((timestamp) => {
+    animator.update(clock.update(timestamp).delta);
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
 
   return {
-    pause() {
-      running = false;
-      stopAnimation();
-    },
-    resume() {
-      if (running) return;
-      running = true;
-      clock.update();
-      animate();
-    },
-    setReducedMotion(reduced) {
-      if (reduced) this.pause();
-      else this.resume();
-    },
+    ...animation,
     cleanup() {
-      running = false;
-      stopAnimation();
+      animation.cleanup();
     },
   };
 }

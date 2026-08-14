@@ -8,6 +8,7 @@ const apiSidebarGroups = [
   "Materials",
   "Lights",
   "Objects",
+  "Physics",
   "Animation",
   "Textures",
   "Scene",

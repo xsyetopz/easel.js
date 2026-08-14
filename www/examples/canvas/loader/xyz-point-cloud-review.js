@@ -9,10 +9,13 @@ import {
   XYZLoader,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "xyz-point-cloud-review",
   name: "XYZ Point Cloud Review",
   category: "assets",
+  animated: true,
   description: "Review XYZ point samples as a lightweight measurement cloud.",
 };
 export const controls = [];
@@ -44,18 +47,15 @@ export function setup(canvas) {
   );
   scene.add(points);
   const timer = new Timer();
-  let animationFrame;
-  function animate() {
-    animationFrame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     points.rotation.y += timer.update().delta * 0.35;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (animationFrame !== undefined)
-        globalThis.cancelAnimationFrame(animationFrame);
+      animation.cleanup();
     },
   };
 }

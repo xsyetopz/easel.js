@@ -4,6 +4,7 @@ export const meta = {
   id: "linework-overlay",
   name: "Linework Overlay",
   category: "materials",
+  animated: true,
   description: "Lay colored linework over a scene for routes and annotations.",
 };
 export const controls = [];

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { generateSourceDocs } from "../../scripts/generate-starlight-docs.ts";
+import { CATEGORY_NAMES } from "../../scripts/starlight-docs/api-model.ts";
 
 const root = `${import.meta.dir}/../..`;
 
@@ -42,6 +43,32 @@ describe("generate-starlight-docs", () => {
     expect(docs.get("pipeline/LightBaker.md")).toContain(
       "Generated from `src/pipeline/shading/LightBaker.ts`",
     );
+  });
+
+  it("keeps every generated API category in the Starlight sidebar", () => {
+    const docs = generateSourceDocs();
+    const generatedCategories = new Set(
+      [...docs.keys()]
+        .filter((key) => key !== "index.md")
+        .map((key) => key.slice(0, key.indexOf("/"))),
+    );
+    const config = readFileSync(`${root}/astro.config.mjs`, "utf8");
+    const sidebarStart = config.indexOf("const apiSidebarGroups");
+    const sidebarEnd = config.indexOf("const manualSidebar");
+    const apiSidebar = config.slice(sidebarStart, sidebarEnd);
+    const labelsBySlug = new Map(
+      Object.values(CATEGORY_NAMES).map((label) => [
+        label.toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-"),
+        label,
+      ]),
+    );
+
+    for (const category of generatedCategories) {
+      const label = labelsBySlug.get(category);
+      expect(label).toBeDefined();
+      if (label === undefined) continue;
+      expect(apiSidebar).toContain(`  "${label}",`);
+    }
   });
 
   it("has no hand-maintained API catalog", () => {

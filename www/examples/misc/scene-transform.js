@@ -12,10 +12,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../runtime/example-animation.ts";
+
 export const meta = {
   id: "scene-transform",
   name: "Scene Transform",
   category: "interaction",
+  animated: true,
   description: "Translate, rotate, and scale a selected scene object.",
 };
 
@@ -55,21 +58,18 @@ export function setup(canvas) {
   transform.addEventListener("mouseUp", () => {
     orbit.enabled = true;
   });
-  let animationFrame;
-  function animate() {
-    animationFrame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     orbit.update();
     transform.update();
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
+      animation.cleanup();
       transform.dispose();
       orbit.dispose();
-      if (animationFrame !== undefined)
-        globalThis.cancelAnimationFrame(animationFrame);
     },
   };
 }

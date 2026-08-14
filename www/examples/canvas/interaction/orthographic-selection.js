@@ -9,6 +9,7 @@ export const meta = {
   id: "orthographic-selection",
   name: "Orthographic Selection",
   category: "interaction",
+  animated: true,
   description:
     "Select map objects from a plan view without perspective distortion.",
 };

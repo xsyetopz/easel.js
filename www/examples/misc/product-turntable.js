@@ -12,10 +12,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../runtime/example-animation.ts";
+
 export const meta = {
   id: "product-turntable",
   name: "Product Turntable",
   category: "interaction",
+  animated: true,
   description:
     "Inspect a prop from every angle with a damped turntable camera.",
 };
@@ -48,19 +51,17 @@ export function setup(canvas) {
   );
   scene.add(mesh);
   const clock = new Timer();
-  let animationFrame;
-  function animate() {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     mesh.rotation.y += clock.update().delta * 0.35;
     orbit.update();
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
+      animation.cleanup();
       orbit.dispose();
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
     },
   };
 }

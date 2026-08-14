@@ -12,6 +12,7 @@ export const meta = {
   id: "lod-budget",
   name: "Level-of-Detail Budget",
   category: "worlds",
+  animated: true,
   description: "Compare near and distant mesh detail while moving the camera.",
 };
 

@@ -11,10 +11,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../runtime/example-animation.ts";
+
 export const meta = {
   id: "gltf-export-check",
   name: "glTF Export Check",
   category: "data",
+  animated: true,
   description: "Export a scene to glTF and inspect the resulting document.",
 };
 export const controls = [];
@@ -43,17 +46,15 @@ export function setup(canvas) {
   mesh.userData.exportedBytes = exported.binary.byteLength;
   mesh.userData.exportedJson = JSON.stringify(exported.json).length;
   const timer = new Timer();
-  let frame;
-  function animate() {
-    frame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     mesh.rotation.y += timer.update().delta * 0.4;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
+      animation.cleanup();
       renderer.dispose();
     },
   };

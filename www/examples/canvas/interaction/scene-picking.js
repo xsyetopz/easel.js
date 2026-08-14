@@ -9,6 +9,7 @@ export const meta = {
   id: "scene-picking",
   name: "Scene Picking",
   category: "interaction",
+  animated: true,
   description: "Pick a scene object and highlight the current selection.",
 };
 

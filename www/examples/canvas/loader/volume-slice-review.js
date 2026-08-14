@@ -11,10 +11,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "volume-slice-review",
   name: "Volume Slice Review",
   category: "data",
+  animated: true,
   description:
     "Step through an NRRD slice while keeping its orientation visible.",
 };
@@ -62,17 +65,15 @@ export function setup(canvas) {
   );
   scene.add(plane);
   const timer = new Timer();
-  let frame;
-  function animate() {
-    frame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     plane.rotation.z += timer.update().delta * 0.2;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
+      animation.cleanup();
     },
   };
 }

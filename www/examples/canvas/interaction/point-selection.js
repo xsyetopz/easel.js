@@ -9,6 +9,7 @@ export const meta = {
   id: "point-selection",
   name: "Point Selection",
   category: "interaction",
+  animated: true,
   description: "Pick a point in a dense measurement cloud.",
 };
 

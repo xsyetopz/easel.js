@@ -11,10 +11,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "convex-collision-hull",
   name: "Convex Collision Hull",
   category: "geometry",
+  animated: true,
   description: "Wrap authored points in a convex hull for collision setup.",
 };
 
@@ -50,17 +53,15 @@ export function setup(canvas) {
   const mesh = new Mesh(geometry, new LambertMaterial({ color: 0xe9a65a }));
   scene.add(mesh);
   const clock = new Timer();
-  let animationFrame;
-  function animate() {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     mesh.rotation.y += clock.update().delta * 0.42;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+      animation.cleanup();
     },
   };
 }

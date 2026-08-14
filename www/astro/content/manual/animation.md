@@ -13,7 +13,7 @@ root object and advances active actions by seconds.
 ```ts
 const clip = new EASEL.AnimationClip("spin", 2, [
   new EASEL.NumberTrack(
-    ".rotation[y]",
+    "rotation.y",
     [0, 2],
     [0, Math.PI * 2],
   ),
@@ -27,6 +27,7 @@ function frame(now: number): void {
   const delta = (now - previous) / 1000;
   previous = now;
   animator.update(delta);
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }

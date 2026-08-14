@@ -19,6 +19,7 @@ describe("EASEL.js example catalog", () => {
     expect(
       examples.every((example) => example.meta.description.length > 40),
     ).toBe(true);
+    expect(examples.every((example) => example.meta.animated)).toBe(true);
     expect(
       examples.every((example) =>
         example.easelSource.includes("@xsyetopz/easel"),
@@ -30,6 +31,13 @@ describe("EASEL.js example catalog", () => {
     expect(
       examples.some((example) =>
         /three|webgl|webgpu/iu.test(example.easelSource),
+      ),
+    ).toBe(false);
+    expect(
+      examples.some((example) =>
+        /HDRLoader|VertexNormalsHelper|VertexTangentsHelper/u.test(
+          example.easelSource,
+        ),
       ),
     ).toBe(false);
   });
@@ -51,6 +59,17 @@ describe("EASEL.js example catalog", () => {
       const source = example.easelSource.replace(/^import[^\n]*\n/gm, "");
       expect(() => new Function(source)).not.toThrow();
     }
+  });
+
+  it("models every continuously rendered scene as pausable animation", () => {
+    expect(examples.filter((example) => example.meta.animated)).toHaveLength(
+      examples.length,
+    );
+    expect(
+      examples.every(
+        (example) => typeof example.load === "function" && example.controls,
+      ),
+    ).toBe(true);
   });
 
   it("lazy-loads the module represented by every catalog entry", async () => {

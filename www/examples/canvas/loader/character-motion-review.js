@@ -9,11 +9,13 @@ import {
   Timer,
   Vector3,
 } from "@/index.js";
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 export const meta = {
   id: "character-motion-review",
   name: "Character Motion Review",
   category: "motion",
+  animated: true,
   description: "Inspect a skeletal motion clip with its animated hierarchy.",
 };
 export const controls = [];
@@ -70,44 +72,18 @@ export function setup(canvas) {
     .setLoop(Loop.Repeat, Number.POSITIVE_INFINITY)
     .play();
   const timer = new Timer();
-  let animationFrame;
-  let running = true;
-
-  function stopAnimation() {
-    if (animationFrame === undefined) return;
-    globalThis.cancelAnimationFrame(animationFrame);
-    animationFrame = undefined;
-  }
-
-  function animate() {
-    if (!running) return;
-    animationFrame = globalThis.requestAnimationFrame(animate);
-    animator.update(timer.update().delta);
+  const animation = createExampleAnimationLoop((timestamp) => {
+    animator.update(timer.update(timestamp).delta);
     result.root.updateMatrixWorld(false, true);
     result.skeleton.update();
     helper.update();
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
-    pause() {
-      running = false;
-      stopAnimation();
-    },
-    resume() {
-      if (running) return;
-      running = true;
-      timer.update();
-      animate();
-    },
-    setReducedMotion(reduced) {
-      if (reduced) this.pause();
-      else this.resume();
-    },
+    ...animation,
     cleanup() {
-      running = false;
-      stopAnimation();
+      animation.cleanup();
       animator.stopAll();
       scene.remove(result.root, helper);
       helper.dispose();

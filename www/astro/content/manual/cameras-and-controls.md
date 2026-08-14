@@ -33,6 +33,7 @@ controls.enableDamping = true;
 
 function frame(): void {
   controls.update();
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }

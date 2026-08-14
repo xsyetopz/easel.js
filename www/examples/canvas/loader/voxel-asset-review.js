@@ -10,10 +10,13 @@ import {
   VOXLoader,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "voxel-asset-review",
   name: "Voxel Asset Review",
   category: "assets",
+  animated: true,
   description: "Open a VOX blockout and inspect its palette and structure.",
 };
 export const controls = [];
@@ -97,17 +100,15 @@ export function setup(canvas) {
   mesh.material = new LambertMaterial({ vertexColors: true });
   scene.add(mesh);
   const timer = new Timer();
-  let frame;
-  function animate() {
-    frame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     mesh.rotation.y += timer.update().delta * 0.35;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
+      animation.cleanup();
     },
   };
 }

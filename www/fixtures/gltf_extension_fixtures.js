@@ -7,6 +7,7 @@ import {
   Timer,
   Vector3,
 } from "@/index.js";
+import { createExampleAnimationLoop } from "../runtime/example-animation.ts";
 
 function dataUri(bytes) {
   let binary = "";
@@ -128,18 +129,16 @@ export function mountGLTFExample(canvas, document) {
   const result = new GLTFLoader().parse(document, { materialType: "lambert" });
   scene.add(result.scene);
   const timer = new Timer();
-  let frame;
-  function animate() {
-    frame = globalThis.requestAnimationFrame(animate);
-    result.scene.rotation.y += timer.update().delta * 0.3;
+  const animation = createExampleAnimationLoop((timestamp) => {
+    result.scene.rotation.y += timer.update(timestamp).delta * 0.3;
     result.scene.updateMatrixWorld(true, true);
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
+      animation.cleanup();
       renderer.dispose();
     },
   };

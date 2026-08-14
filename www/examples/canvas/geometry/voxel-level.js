@@ -12,10 +12,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "voxel-level",
   name: "Voxel Level",
   category: "worlds",
+  animated: true,
   description: "Build a small blockout from reusable voxel materials.",
 };
 
@@ -74,17 +77,15 @@ export function setup(canvas) {
     }
   }
   const clock = new Timer();
-  let animationFrame;
-  function animate() {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     world.rotation.y += clock.update().delta * 0.12;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+      animation.cleanup();
     },
   };
 }

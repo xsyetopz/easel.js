@@ -16,10 +16,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "curve-editor",
   name: "Curve Editor",
   category: "geometry",
+  animated: true,
   description: "Move path control points and preview the resulting curve.",
 };
 
@@ -91,18 +94,16 @@ export function setup(canvas) {
   };
   canvas.addEventListener("click", handleClick);
   const clock = new Timer();
-  let animationFrame;
-  function animate() {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     root.rotation.y += clock.update().delta * 0.18;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
+      animation.cleanup();
       canvas.removeEventListener("click", handleClick);
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
     },
   };
 }

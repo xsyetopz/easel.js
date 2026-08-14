@@ -8,6 +8,7 @@ export const meta = {
   id: "first-person-walkthrough",
   name: "First-Person Walkthrough",
   category: "interaction",
+  animated: true,
   description: "Walk through a small scene with keyboard-look controls.",
 };
 

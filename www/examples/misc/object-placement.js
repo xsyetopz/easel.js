@@ -8,6 +8,7 @@ export const meta = {
   id: "object-placement",
   name: "Object Placement",
   category: "interaction",
+  animated: true,
   description: "Drag scene objects into place with pointer controls.",
 };
 

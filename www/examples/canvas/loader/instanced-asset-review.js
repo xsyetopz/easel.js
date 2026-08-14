@@ -7,6 +7,7 @@ export const meta = {
   id: "instanced-asset-review",
   name: "Instanced Asset Review",
   category: "assets",
+  animated: true,
   description:
     "Review repeated glTF parts without duplicating source geometry.",
 };

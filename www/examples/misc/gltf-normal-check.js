@@ -12,10 +12,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../runtime/example-animation.ts";
+
 export const meta = {
   id: "gltf-normal-check",
   name: "glTF Normal Check",
   category: "data",
+  animated: true,
   description:
     "Export vertex normals with a glTF scene for downstream shading.",
 };
@@ -68,19 +71,17 @@ export function setup(canvas) {
   const exported = new GLTFExporter().parse(scene, { normalizeNormals: true });
   canvas.dataset.gltfBytes = String(exported.binary.byteLength);
   const timer = new Timer();
-  let frame;
-  function animate() {
-    frame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     const delta = timer.update().delta;
     mesh1.rotation.y += delta * 0.2;
     mesh2.rotation.y -= delta * 0.2;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
+      animation.cleanup();
       renderer.dispose();
     },
   };

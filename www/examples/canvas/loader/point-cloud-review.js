@@ -9,10 +9,13 @@ import {
   Timer,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "point-cloud-review",
   name: "Point Cloud Review",
   category: "assets",
+  animated: true,
   description: "Inspect a PCD scan as selectable rendered points.",
 };
 export const controls = [];
@@ -36,17 +39,15 @@ export function setup(canvas) {
   const points = new Points(geometry, new BasicMaterial({ color: 0xffffff }));
   scene.add(points);
   const timer = new Timer();
-  let frame;
-  function animate() {
-    frame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     points.rotation.y += timer.update().delta * 0.4;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
+      animation.cleanup();
     },
   };
 }

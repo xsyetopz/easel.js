@@ -18,12 +18,14 @@ import {
   Timer,
   WireframeGeometry,
 } from "@/index.js";
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 export const meta = {
   id: "normal-inspection",
   name: "Normal Inspection",
   category: "materials",
-  description: "Reveal vertex normals while checking a model’s topology.",
+  animated: true,
+  description: "Inspect mesh topology with wireframe and edge overlays.",
 };
 
 export const controls = [];
@@ -88,9 +90,6 @@ export function setup(canvas) {
   group.add(edges);
 
   const timer = new Timer();
-  let animationFrame;
-  let running = true;
-
   function resize() {
     const nextWidth = Math.max(1, canvas.width || width);
     const nextHeight = Math.max(1, canvas.height || height);
@@ -102,8 +101,7 @@ export function setup(canvas) {
     camera.updateProjectionMatrix();
   }
 
-  function animate(timestamp) {
-    if (!running) return;
+  const animation = createExampleAnimationLoop((timestamp) => {
     resize();
     timer.update(timestamp);
     const time = timer.elapsedTime * 0.55;
@@ -118,22 +116,12 @@ export function setup(canvas) {
     renderer.prepare(scene, camera);
     boxHelper.update();
     renderer.render(scene, camera);
-    if (typeof globalThis.requestAnimationFrame === "function") {
-      animationFrame = globalThis.requestAnimationFrame(animate);
-    }
-  }
-
-  animate();
+  });
 
   return {
+    ...animation,
     cleanup() {
-      running = false;
-      if (
-        animationFrame !== undefined &&
-        typeof globalThis.cancelAnimationFrame === "function"
-      ) {
-        globalThis.cancelAnimationFrame(animationFrame);
-      }
+      animation.cleanup();
       boxHelper.dispose();
       wireframe.geometry?.dispose();
       wireframe.material?.dispose();
@@ -153,10 +141,11 @@ export function setup(canvas) {
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
 geometry.computeVertexNormals();
-geometry.computeTangents();
-const normals = new EASEL.VertexNormalsHelper(mesh, 5);
-const tangents = new EASEL.VertexTangentsHelper(mesh, 5);
-scene.add(normals, tangents, new EASEL.BoxHelper(mesh));`;
+const wireframe = new EASEL.LineSegments(
+  new EASEL.WireframeGeometry(geometry),
+  new EASEL.LineMaterial({ color: 0xe9f0ff }),
+);
+scene.add(wireframe, new EASEL.BoxHelper(mesh));`;
 
 export const example = {
   meta,

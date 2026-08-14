@@ -39,6 +39,7 @@ scene.add(mesh);
 function frame(time: number): void {
   mesh.rotation.x = time / 2000;
   mesh.rotation.y = time / 1000;
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }

@@ -2,8 +2,8 @@ import {
   AmbientLight,
   BasicMaterial,
   Color,
+  DataTexture,
   DirectionalLight,
-  HDRLoader,
   Mesh,
   PerspectiveCamera,
   Renderer,
@@ -13,28 +13,27 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "hdr-texture-review",
-  name: "HDR Texture Review",
+  name: "Data Texture Review",
   category: "assets",
-  description: "Check an HDR environment texture on a neutral surface.",
+  animated: true,
+  description: "Check packed RGBA data on a neutral textured surface.",
 };
 
 export const controls = [];
 
-function makeHdrBytes() {
-  const header = "#?RADIANCE\nFORMAT=32-bit_rgbe\n\n-Y 2 +X 4\n";
+function makeRgbaBytes() {
   const colors = [
     [255, 220, 180, 129],
     [180, 220, 255, 129],
     [100, 140, 220, 128],
     [40, 60, 110, 128],
   ];
-  const bytes = new Uint8Array(header.length + colors.length * 2 * 4);
-  for (let index = 0; index < header.length; index++) {
-    bytes[index] = header.charCodeAt(index);
-  }
-  let offset = header.length;
+  const bytes = new Uint8ClampedArray(colors.length * 2 * 4);
+  let offset = 0;
   for (let row = 0; row < 2; row++) {
     for (const color of colors) {
       bytes.set(color, offset);
@@ -58,9 +57,8 @@ export function setup(canvas) {
   camera.position.set(0, 0, 4);
   camera.lookAt(new Vector3(0, 0, 0));
   const renderer = new Renderer({ canvas, width, height });
-  const loader = new HDRLoader();
-  const parsed = loader.parse(makeHdrBytes(), { exposure: 1.15 });
-  const texture = loader.toDataTexture(parsed);
+  const texture = new DataTexture(makeRgbaBytes(), 4, 2);
+  texture.buildBrightnessLevels();
   scene.add(new AmbientLight(0xffffff, 0.6));
   const light = new DirectionalLight(0xffffff, 0.7);
   light.position.set(2, 3, 4);
@@ -71,24 +69,22 @@ export function setup(canvas) {
   );
   scene.add(mesh);
   const timer = new Timer();
-  let frame;
-  function animate() {
-    frame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     mesh.rotation.y += timer.update().delta * 0.3;
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
+      animation.cleanup();
     },
   };
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
-const loader = new EASEL.HDRLoader();
-const parsed = loader.parse(hdrBytes, { exposure: 1.15 });
-const texture = loader.toDataTexture(parsed);
+const texture = new EASEL.DataTexture(rgbaBytes, 4, 2);
+texture.buildBrightnessLevels();
 const material = new EASEL.BasicMaterial({ map: texture });`;
 
 export const example = {

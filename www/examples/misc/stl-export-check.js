@@ -11,10 +11,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../runtime/example-animation.ts";
+
 export const meta = {
   id: "stl-export-check",
   name: "STL Export Check",
   category: "data",
+  animated: true,
   description: "Write a watertight mesh as STL for fabrication workflows.",
 };
 export const controls = [];
@@ -42,17 +45,15 @@ export function setup(canvas) {
   const exported = new STLExporter().parse(mesh, "EASELBox");
   mesh.userData.exportedLength = exported.length;
   const timer = new Timer();
-  let frame;
-  function animate() {
-    frame = globalThis.requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     mesh.rotation.y += timer.update().delta * 0.4;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
+      animation.cleanup();
     },
   };
 }

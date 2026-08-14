@@ -11,6 +11,7 @@ import {
   Timer,
   Vector3,
 } from "@/index.js";
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 export function createScene(canvas, options = {}) {
   const width = canvas.width || 640;
@@ -49,18 +50,16 @@ export function createScene(canvas, options = {}) {
 
 export function runLoop(renderer, scene, camera, update, disposers = []) {
   const clock = new Timer();
-  let animationFrame;
-  const animate = (timestamp) => {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     clock.update(timestamp);
     update(clock.elapsedTime, clock.delta);
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  };
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+      animation.cleanup();
       for (const dispose of disposers) dispose();
     },
   };

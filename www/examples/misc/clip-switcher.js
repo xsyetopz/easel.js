@@ -15,11 +15,13 @@ import {
   Timer,
   Vector3,
 } from "@/index.js";
+import { createExampleAnimationLoop } from "../../runtime/example-animation.ts";
 
 export const meta = {
   id: "clip-switcher",
   name: "Clip Switcher",
   category: "motion",
+  animated: true,
   description: "Switch between named clips on a grouped mechanical assembly.",
 };
 
@@ -62,41 +64,15 @@ export function setup(canvas) {
     .setLoop(Loop.Repeat, Number.POSITIVE_INFINITY)
     .play();
   const clock = new Timer();
-  let animationFrame;
-  let running = true;
-
-  function stopAnimation() {
-    if (animationFrame === undefined) return;
-    cancelAnimationFrame(animationFrame);
-    animationFrame = undefined;
-  }
-
-  function animate() {
-    if (!running) return;
-    animationFrame = requestAnimationFrame(animate);
-    animator.update(clock.update().delta);
+  const animation = createExampleAnimationLoop((timestamp) => {
+    animator.update(clock.update(timestamp).delta);
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
-    pause() {
-      running = false;
-      stopAnimation();
-    },
-    resume() {
-      if (running) return;
-      running = true;
-      clock.update();
-      animate();
-    },
-    setReducedMotion(reduced) {
-      if (reduced) this.pause();
-      else this.resume();
-    },
+    ...animation,
     cleanup() {
-      running = false;
-      stopAnimation();
+      animation.cleanup();
     },
   };
 }

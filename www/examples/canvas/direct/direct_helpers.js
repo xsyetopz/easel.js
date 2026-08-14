@@ -13,6 +13,7 @@ import {
   Timer,
   Vector3,
 } from "@/index.js";
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 function base(canvas, orthographic = false) {
   const width = canvas.width || 640;
@@ -81,18 +82,16 @@ export function setupDirect(canvas, kind) {
         );
   scene.add(object);
   const clock = new Timer();
-  let frame;
-  function animate(timestamp) {
-    frame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     clock.update(timestamp);
     object.rotation.y += clock.delta * 0.45;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (frame !== undefined) cancelAnimationFrame(frame);
+      animation.cleanup();
     },
   };
 }

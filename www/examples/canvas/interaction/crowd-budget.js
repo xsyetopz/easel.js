@@ -9,6 +9,7 @@ export const meta = {
   id: "crowd-budget",
   name: "Crowd Budget",
   category: "worlds",
+  animated: true,
   description:
     "Measure a repeated field of agents while their transforms update.",
 };

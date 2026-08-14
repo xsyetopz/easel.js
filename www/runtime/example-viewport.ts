@@ -22,6 +22,7 @@ export interface ExampleRuntimeOptions {
 }
 
 export interface ExampleRuntimeController {
+  readonly paused: boolean;
   pause(): void;
   resize(): void;
   resume(): void;
@@ -74,9 +75,9 @@ function hasCanvas2DContext(canvas: HTMLCanvasElement): boolean {
  *
  * The controller owns the observer, animation teardown, and reduced-motion
  * media listener so page navigation cannot leave a scene running in the
- * background. Modules that expose `resize`, `update`, or `setReducedMotion`
- * receive those lifecycle calls; other modules are remounted safely when the
- * canvas dimensions change or a control is changed.
+ * background. Modules that expose `resize`, `update`, `pause`, `resume`, or
+ * `setReducedMotion` receive those lifecycle calls; other modules are
+ * remounted safely when the canvas dimensions change or a control is changed.
  */
 export function mountExampleRuntime({
   canvas,
@@ -190,6 +191,9 @@ export function mountExampleRuntime({
   mediaQuery?.addEventListener?.("change", onReducedMotionChange);
 
   return {
+    get paused(): boolean {
+      return paused || reducedMotion();
+    },
     pause,
     resize,
     resume,

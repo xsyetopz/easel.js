@@ -29,6 +29,7 @@ _REGISTRY_ENTRY_PATTERN = re.compile(
 )
 _META_PATTERN = re.compile(r"export const meta = \{([\s\S]*?)\n\};")
 _FIELD_PATTERN = re.compile(r'\b(id|name|category|description):\s*"([^"]*)",')
+_ANIMATED_PATTERN = re.compile(r"\banimated:\s*(true|false),")
 _SOURCE_PATTERN = re.compile(r"export const easelSource = `")
 _HELPER_PATHS = {
     "www/examples/canvas/direct/direct_helpers.js",
@@ -129,6 +130,15 @@ def check_catalog(repo_root: Path) -> list[str]:
             _error(failures, f"{display_path}: meta.category is not in the catalog")
         if fields.get("category") != registry_fields.get("category"):
             _error(failures, f"{display_path}: module and registry categories differ")
+        module_animated_match = _ANIMATED_PATTERN.search(meta_match.group(1))
+        registry_animated_match = _ANIMATED_PATTERN.search(entry.group("meta"))
+        if module_animated_match is None or registry_animated_match is None:
+            _error(failures, f"{display_path}: missing animated capability metadata")
+        elif module_animated_match.group(1) != registry_animated_match.group(1):
+            _error(
+                failures,
+                f"{display_path}: module and registry animation metadata differ",
+            )
         if not fields.get("name") or not fields.get("description"):
             _error(failures, f"{display_path}: user-facing name/description is incomplete")
         elif fields["description"] == f'{fields["name"]}.':
@@ -137,6 +147,22 @@ def check_catalog(repo_root: Path) -> list[str]:
             _error(failures, f"{display_path}: description is too short for a real task")
         if re.search(r"three|webgl|webgpu|upstream|comparison|migration", source, re.IGNORECASE):
             _error(failures, f"{display_path}: comparison language remains in the EASEL example")
+        has_animation_loop = any(
+            marker in source
+            for marker in (
+                "createExampleAnimationLoop",
+                "runLoop(",
+                "setupDirect(",
+                "mountGLTFExample(",
+            )
+        )
+        if module_animated_match is not None:
+            is_animated = module_animated_match.group(1) == "true"
+            if has_animation_loop != is_animated:
+                _error(
+                    failures,
+                    f"{display_path}: animated metadata does not match its loop capability",
+                )
         if "threeSource" in source or "upstreamExample" in source or "upstreamSourceHash" in source:
             _error(failures, f"{display_path}: legacy comparison payload remains")
         source_match = _SOURCE_PATTERN.search(source)

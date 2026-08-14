@@ -10,10 +10,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "wave-surface",
   name: "Wave Surface",
   category: "materials",
+  animated: true,
   description: "Inspect a moving water surface built from sampled points.",
 };
 
@@ -60,9 +63,7 @@ export function setup(canvas) {
   scene.add(points);
   const position = geometry.getAttribute("position");
   const clock = new Timer();
-  let animationFrame;
-  function animate(timestamp) {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     clock.update(timestamp);
     if (position) {
       for (let row = 0; row < rows; row++) {
@@ -81,11 +82,11 @@ export function setup(canvas) {
     }
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+      animation.cleanup();
     },
   };
 }

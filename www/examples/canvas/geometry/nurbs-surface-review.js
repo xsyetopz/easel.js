@@ -14,10 +14,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "nurbs-surface-review",
   name: "NURBS Surface Review",
   category: "geometry",
+  animated: true,
   description: "Inspect a smooth control-point surface used in modeling.",
 };
 
@@ -96,18 +99,16 @@ export function setup(canvas) {
   scene.add(surfaceMesh);
 
   const clock = new Timer();
-  let animationFrame;
-  function animate() {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     mesh.rotation.y += clock.update().delta * 0.3;
     surfaceMesh.rotation.y -= clock.delta * 0.15;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+      animation.cleanup();
     },
   };
 }

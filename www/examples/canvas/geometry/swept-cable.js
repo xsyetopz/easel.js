@@ -15,10 +15,13 @@ import {
   Vector3,
 } from "@/index.js";
 
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
 export const meta = {
   id: "swept-cable",
   name: "Swept Cable",
   category: "geometry",
+  animated: true,
   description: "Turn a path into a swept cable, rail, or road section.",
 };
 
@@ -76,17 +79,15 @@ export function setup(canvas) {
   ribbon.position.y = -0.8;
   group.add(ribbon);
   const clock = new Timer();
-  let animationFrame;
-  function animate() {
-    animationFrame = requestAnimationFrame(animate);
+  const animation = createExampleAnimationLoop((timestamp) => {
     group.rotation.y += clock.update().delta * 0.24;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
-  }
-  animate();
+  });
   return {
+    ...animation,
     cleanup() {
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+      animation.cleanup();
     },
   };
 }

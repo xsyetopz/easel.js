@@ -139,7 +139,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - run: bun install --frozen-lockfile
       - run: bun run tests:no-any
-      - run: bun run examples:source-parity
+      - run: bun run examples:catalog
       - run: bun test
 
   www:
