@@ -67,7 +67,7 @@ const isAnimated = example.meta.animated;
 
 		<div class="examples-runtime-status" id={statusId} role="status" aria-live="polite" data-example-status>
 			<span data-example-status-message>Loading scene…</span>
-			<a href={`#${sourceId}`} data-example-status-source hidden>Open source</a>
+			<a href={`#${sourceId}`} data-example-status-source hidden>Open API excerpt</a>
 		</div>
 
 		{isAnimated && (
@@ -139,8 +139,8 @@ const isAnimated = example.meta.animated;
 
 	<section class="examples-source" id={sourceId} aria-labelledby={`${sourceId}-title`}>
 		<header>
-			<h2 id={`${sourceId}-title`}>Source</h2>
-			<p>This is the ESM source used by this page.</p>
+			<h2 id={`${sourceId}-title`}>API excerpt</h2>
+			<p>A focused ESM excerpt highlighting the EASEL APIs used by this example. The complete module is loaded separately by the page.</p>
 		</header>
 		<div class="examples-code-scroll">
 			<pre><code>{example.easelSource}</code></pre>

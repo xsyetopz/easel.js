@@ -8,6 +8,7 @@ describe("EASEL.js example catalog", () => {
 
     const ids = examples.map((example) => example.meta.id);
     expect(new Set(ids).size).toBe(ids.length);
+    expect(ids).toContain("data-texture-review");
     expect(ids.every((id) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(id))).toBe(
       true,
     );

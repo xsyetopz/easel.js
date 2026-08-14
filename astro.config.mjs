@@ -47,6 +47,7 @@ export default defineConfig({
   base: "/",
   site: "https://easeljs.org",
   srcDir: "./www/astro",
+  publicDir: "./www/public",
   outDir: "./dist/www",
   integrations: [
     starlight({

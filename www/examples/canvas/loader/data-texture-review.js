@@ -16,7 +16,7 @@ import {
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 export const meta = {
-  id: "hdr-texture-review",
+  id: "data-texture-review",
   name: "Data Texture Review",
   category: "assets",
   animated: true,

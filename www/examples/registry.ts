@@ -647,7 +647,7 @@ const mesh = new EASEL.Mesh(geometry, material);`,
   },
   {
     meta: {
-      id: "hdr-texture-review",
+      id: "data-texture-review",
       name: "Data Texture Review",
       category: "assets",
       animated: true,
@@ -659,7 +659,7 @@ const texture = new EASEL.DataTexture(rgbaBytes, 4, 2);
 texture.buildBrightnessLevels();
 const material = new EASEL.BasicMaterial({ map: texture });`,
     load: async () =>
-      (await import("./canvas/loader/hdr-texture-review.js")).example,
+      (await import("./canvas/loader/data-texture-review.js")).example,
   },
   {
     meta: {
