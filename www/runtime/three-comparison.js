@@ -35,7 +35,14 @@ import {
   TorusKnotGeometry,
   WebGLRenderer,
 } from "three";
+import { ArcballControls } from "three/addons/controls/ArcballControls.js";
+import { DragControls } from "three/addons/controls/DragControls.js";
+import { FlyControls } from "three/addons/controls/FlyControls.js";
+import { MapControls } from "three/addons/controls/MapControls.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
+import { TrackballControls } from "three/addons/controls/TrackballControls.js";
+import { TransformControls } from "three/addons/controls/TransformControls.js";
 
 /**
  * Every registry example currently has a THREE source. Keep this list explicit
@@ -298,6 +305,22 @@ const MATCHED_ADAPTERS = Object.freeze({
       position: [4, 5, 6],
     },
   },
+  misc_animation_keys: {
+    kind: "animation",
+    match: "animation-keys",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [0, 1, 6],
+      lookAt: [0, 0, 0],
+    },
+    lighting: {
+      ambient: 0.3,
+      directional: 0.9,
+      position: [3, 4, 5],
+    },
+  },
   webgl_animation_keyframes: {
     kind: "animation",
     match: "animation-keyframes",
@@ -324,6 +347,172 @@ const MATCHED_ADAPTERS = Object.freeze({
     },
     lighting: {
       ambient: 0.35,
+      directional: 0.9,
+      position: [4, 5, 6],
+    },
+  },
+  misc_controls_orbit: {
+    kind: "controls",
+    match: "controls-orbit",
+    control: "orbit",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [3, 2, 6],
+      lookAt: [0, 0, 0],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.9,
+      position: [4, 5, 6],
+    },
+  },
+  misc_controls_arcball: {
+    kind: "controls",
+    match: "controls-arcball",
+    control: "arcball",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [3, 2.5, 6],
+      lookAt: [0, 0, 0],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.95,
+      position: [5, 7, 8],
+      fill: {
+        color: 0x6d9dff,
+        intensity: 0.25,
+        position: [-4, 2, -5],
+      },
+    },
+  },
+  misc_controls_drag: {
+    kind: "controls",
+    match: "controls-drag",
+    control: "drag",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [0, 1, 8],
+      lookAt: [0, 0.5, 0],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.95,
+      position: [5, 7, 8],
+      fill: {
+        color: 0x6d9dff,
+        intensity: 0.25,
+        position: [-4, 2, -5],
+      },
+    },
+  },
+  misc_controls_fly: {
+    kind: "controls",
+    match: "controls-fly",
+    control: "fly",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [0, 2, 8],
+      lookAt: [0, 1, 0],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.95,
+      position: [5, 7, 8],
+      fill: {
+        color: 0x6d9dff,
+        intensity: 0.25,
+        position: [-4, 2, -5],
+      },
+    },
+  },
+  misc_controls_map: {
+    kind: "controls",
+    match: "controls-map",
+    control: "map",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [5, 6, 8],
+      lookAt: [0, 0, 0],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.95,
+      position: [5, 7, 8],
+      fill: {
+        color: 0x6d9dff,
+        intensity: 0.25,
+        position: [-4, 2, -5],
+      },
+    },
+  },
+  misc_controls_pointerlock: {
+    kind: "controls",
+    match: "controls-pointerlock",
+    control: "pointerlock",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [0, 1.5, 8],
+      lookAt: [0, 1, 0],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.95,
+      position: [5, 7, 8],
+      fill: {
+        color: 0x6d9dff,
+        intensity: 0.25,
+        position: [-4, 2, -5],
+      },
+    },
+  },
+  misc_controls_trackball: {
+    kind: "controls",
+    match: "controls-trackball",
+    control: "trackball",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [4, 3, 7],
+      lookAt: [0, 0, 0],
+    },
+    lighting: {
+      ambient: 0.35,
+      directional: 0.95,
+      position: [5, 7, 8],
+      fill: {
+        color: 0x6d9dff,
+        intensity: 0.25,
+        position: [-4, 2, -5],
+      },
+    },
+  },
+  misc_controls_transform: {
+    kind: "controls",
+    match: "controls-transform",
+    control: "transform",
+    camera: {
+      fov: 45,
+      near: 0.1,
+      far: 100,
+      position: [3, 2, 6],
+      lookAt: [0, 0, 0],
+    },
+    lighting: {
+      ambient: 0.4,
       directional: 0.9,
       position: [4, 5, 6],
     },
@@ -388,7 +577,7 @@ const BOUNDARIES = Object.freeze({
   camera:
     "The source perspective camera projection and animated view are represented by a deterministic THREE camera and matched mesh; source rendering details are not reproduced.",
   controls:
-    "The named THREE control intent is represented with OrbitControls and matching camera constraints where possible; control-specific DOM gestures are an explicit approximation.",
+    "The named THREE control intent is represented by the matched add-on control where available; browser DOM gestures and unsupported GPU/media behavior remain explicit boundaries.",
   direct:
     "The direct THREE BufferGeometry primitive, index, line mode, and vertex-color path is represented without claiming pixel identity with the upstream demo.",
   dom: "CSS2D/CSS3D/SVG DOM overlays cannot be drawn into this WebGL comparison canvas; the adapter shows the closest THREE mesh layout and omits DOM/media interaction.",
@@ -461,6 +650,13 @@ const DEFAULT_RUNTIME = Object.freeze({
   TorusGeometry,
   TorusKnotGeometry,
   WebGLRenderer,
+  ArcballControls,
+  DragControls,
+  FlyControls,
+  MapControls,
+  PointerLockControls,
+  TrackballControls,
+  TransformControls,
   OrbitControls,
 });
 
@@ -588,6 +784,14 @@ function addLighting(scene, runtime, definition) {
   );
   light.position.set(...(lighting?.position ?? [3, 5, 6]));
   scene.add(light);
+  if (lighting?.fill && runtime.DirectionalLight) {
+    const fill = new runtime.DirectionalLight(
+      lighting.fill.color,
+      lighting.fill.intensity,
+    );
+    fill.position.set(...lighting.fill.position);
+    scene.add(fill);
+  }
 }
 
 function createDirectGeometry(runtime, options) {
@@ -728,26 +932,170 @@ function addMatchedAnimationGroups(runtime, scene, state) {
 }
 
 function addMatchedAnimationKeyframes(runtime, scene, state) {
-  const mesh = createAnimationMesh(runtime, 0x65b9d8, 1.4, [0, 0.8, 0], 2);
-  scene.add(mesh);
-  state.objects.push(mesh);
-  const clip = new runtime.AnimationClip("keyframes", 2.4, [
-    new runtime.NumberKeyframeTrack(
-      ".position[y]",
-      [0, 0.6, 1.2, 1.8, 2.4],
-      [0.8, 1.8, 0.8, 1.8, 0.8],
-    ),
-    new runtime.NumberKeyframeTrack(
-      ".rotation[x]",
-      [0, 1.2, 2.4],
-      [0, Math.PI, Math.PI * 2],
-    ),
-    new runtime.NumberKeyframeTrack(".rotation[y]", [0, 2.4], [0, Math.PI * 2]),
-    new runtime.NumberKeyframeTrack(".scale[x]", [0, 1.2, 2.4], [1, 0.72, 1]),
-    new runtime.NumberKeyframeTrack(".scale[z]", [0, 1.2, 2.4], [1, 1.28, 1]),
+  const mesh = addMesh(
+    runtime,
+    scene,
+    state,
+    new runtime.TorusKnotGeometry(1, 0.32, 48, 10),
+    0x67c5a4,
+  );
+  const clip = new runtime.AnimationClip("keys", 2, [
+    new runtime.NumberKeyframeTrack(".position[y]", [0, 1, 2], [0, 1.2, 0]),
+    new runtime.NumberKeyframeTrack(".rotation[y]", [0, 2], [0, Math.PI * 2]),
   ]);
   const mixer = playAnimation(runtime, mesh, [clip]);
   state.tick = (elapsed) => mixer.setTime(elapsed);
+}
+
+function addMatchedControlsOrbit(runtime, scene, state) {
+  const knot = addMesh(
+    runtime,
+    scene,
+    state,
+    new runtime.TorusKnotGeometry(1, 0.3, 48, 10),
+    0x588fd4,
+  );
+  state.tick = (elapsed) => {
+    knot.rotation.y = elapsed * 0.35;
+  };
+  state.controlSettings = {
+    type: "orbit",
+    enableDamping: true,
+    target: [0, 0, 0],
+  };
+}
+
+function addMatchedControlsArcball(runtime, scene, state) {
+  const box = addMesh(
+    runtime,
+    scene,
+    state,
+    new runtime.BoxGeometry(2, 2, 2),
+    0x5b9fe0,
+  );
+  state.tick = (elapsed) => {
+    box.rotation.y = elapsed * 0.2;
+  };
+  state.controlSettings = {
+    type: "arcball",
+    gizmosVisible: true,
+    target: [0, 0, 0],
+  };
+}
+
+function addMatchedControlsDrag(runtime, scene, state) {
+  for (let index = 0; index < 12; index++) {
+    addMesh(
+      runtime,
+      scene,
+      state,
+      new runtime.BoxGeometry(0.9, 0.9, 0.9),
+      index % 2 ? 0x5b9fe0 : 0xe4b85f,
+      [(index % 4) - 1.5, Math.floor(index / 4) - 1, 0],
+    );
+  }
+  state.controlSettings = {
+    type: "drag",
+    objects: state.objects,
+  };
+}
+
+function addMatchedControlsFly(runtime, scene, state) {
+  for (let index = 0; index < 24; index++) {
+    addMesh(
+      runtime,
+      scene,
+      state,
+      new runtime.BoxGeometry(0.8, 0.8, 0.8),
+      index % 2 ? 0x5b9fe0 : 0xe4b85f,
+      [
+        (index % 6) - 2.5,
+        Math.floor(index / 6) * 0.7,
+        -Math.floor(index / 6) * 2,
+      ],
+    );
+  }
+  state.controlSettings = {
+    type: "fly",
+    movementSpeed: 3,
+    rollSpeed: 0.7,
+  };
+}
+
+function addMatchedControlsMap(runtime, scene, state) {
+  for (let index = 0; index < 16; index++) {
+    addMesh(
+      runtime,
+      scene,
+      state,
+      new runtime.BoxGeometry(0.8, 0.8 + (index % 3) * 0.4, 0.8),
+      index % 2 ? 0x5b9fe0 : 0xe4b85f,
+      [(index % 4) - 1.5, 0.4, Math.floor(index / 4) - 1.5],
+    );
+  }
+  state.controlSettings = {
+    type: "map",
+    enableDamping: true,
+    screenSpacePanning: false,
+    target: [0, 0, 0],
+  };
+}
+
+function addMatchedControlsPointerLock(runtime, scene, state) {
+  for (let index = 0; index < 40; index++) {
+    addMesh(
+      runtime,
+      scene,
+      state,
+      new runtime.BoxGeometry(0.7, 0.7, 0.7),
+      index % 2 ? 0x5b9fe0 : 0xe4b85f,
+      [((index * 17) % 11) - 5, (index % 4) * 0.8, -Math.floor(index / 4) * 2],
+    );
+  }
+  state.controlSettings = {
+    type: "pointerlock",
+  };
+  state.tick = (_elapsed, delta) => {
+    if (!state.pointerLock?.isLocked) return;
+    state.pointerLock.moveForward(delta * 3);
+    state.objects[0].rotation.y += delta * 0.4;
+  };
+}
+
+function addMatchedControlsTrackball(runtime, scene, state) {
+  const box = addMesh(
+    runtime,
+    scene,
+    state,
+    new runtime.BoxGeometry(2, 2, 2),
+    0x5b9fe0,
+  );
+  state.tick = (elapsed) => {
+    box.rotation.y = elapsed * 0.2;
+  };
+  state.controlSettings = {
+    type: "trackball",
+    staticMoving: false,
+    target: [0, 0, 0],
+  };
+}
+
+function addMatchedControlsTransform(runtime, scene, state) {
+  const box = addMesh(
+    runtime,
+    scene,
+    state,
+    new runtime.BoxGeometry(1.5, 1.5, 1.5),
+    0x4d8fd6,
+  );
+  state.controlSettings = {
+    type: "transform",
+    object: box,
+    mode: "translate",
+    axis: "XYZ",
+    target: [0, 0, 0],
+    enableDamping: true,
+  };
 }
 
 function addMatchedAnimationMultiple(runtime, scene, state) {
@@ -1226,6 +1574,9 @@ function buildMatchedSceneObjects(runtime, scene, state, definition) {
     case "animation-groups":
       addMatchedAnimationGroups(runtime, scene, state);
       break;
+    case "animation-keys":
+      addMatchedAnimationKeyframes(runtime, scene, state);
+      break;
     case "animation-keyframes":
       addMatchedAnimationKeyframes(runtime, scene, state);
       break;
@@ -1240,6 +1591,30 @@ function buildMatchedSceneObjects(runtime, scene, state, definition) {
       break;
     case "perspective-projection":
       addMatchedPerspectiveProjection(runtime, scene, state);
+      break;
+    case "controls-orbit":
+      addMatchedControlsOrbit(runtime, scene, state);
+      break;
+    case "controls-arcball":
+      addMatchedControlsArcball(runtime, scene, state);
+      break;
+    case "controls-drag":
+      addMatchedControlsDrag(runtime, scene, state);
+      break;
+    case "controls-fly":
+      addMatchedControlsFly(runtime, scene, state);
+      break;
+    case "controls-map":
+      addMatchedControlsMap(runtime, scene, state);
+      break;
+    case "controls-pointerlock":
+      addMatchedControlsPointerLock(runtime, scene, state);
+      break;
+    case "controls-trackball":
+      addMatchedControlsTrackball(runtime, scene, state);
+      break;
+    case "controls-transform":
+      addMatchedControlsTransform(runtime, scene, state);
       break;
     default:
       return false;
@@ -1399,7 +1774,8 @@ function createCamera(runtime, definition, width, height) {
       definition.kind === "panorama" ? 7.5 : 6.5,
     ]),
   );
-  if (cameraOptions.lookAt !== false) camera.lookAt?.(0, 0, 0);
+  if (cameraOptions.lookAt !== false)
+    camera.lookAt?.(...(cameraOptions.lookAt ?? [0, 0, 0]));
   return { camera, orthographic };
 }
 
@@ -1461,19 +1837,98 @@ function disposeScene(scene) {
   for (const material of materials) material.dispose();
 }
 
-function setupControls(runtime, camera, canvas, state) {
-  if (!state.controlSettings || typeof runtime.OrbitControls !== "function")
-    return;
-  let controls;
+function setupControls(runtime, scene, camera, canvas, state) {
+  const settings = state.controlSettings;
+  if (!settings) return;
+  const controls = [];
+  let primary;
+  let cleanup;
   try {
-    controls = new runtime.OrbitControls(camera, canvas);
+    switch (settings.type) {
+      case "orbit":
+        primary = new runtime.OrbitControls(camera, canvas);
+        primary.enableDamping = settings.enableDamping;
+        primary.target?.set?.(...settings.target);
+        break;
+      case "arcball":
+        primary = new runtime.ArcballControls(camera, canvas);
+        primary.target?.set?.(...settings.target);
+        primary.setGizmosVisible?.(settings.gizmosVisible);
+        primary.gizmosVisible = settings.gizmosVisible;
+        break;
+      case "drag":
+        primary = new runtime.DragControls(settings.objects, camera, canvas);
+        break;
+      case "fly":
+        primary = new runtime.FlyControls(camera, canvas);
+        primary.movementSpeed = settings.movementSpeed;
+        primary.rollSpeed = settings.rollSpeed;
+        break;
+      case "map":
+        primary = new runtime.MapControls(camera, canvas);
+        primary.enableDamping = settings.enableDamping;
+        primary.screenSpacePanning = settings.screenSpacePanning;
+        primary.target?.set?.(...settings.target);
+        break;
+      case "pointerlock": {
+        primary = new runtime.PointerLockControls(camera, canvas);
+        state.pointerLock = primary;
+        const onClick = () => primary.lock();
+        canvas.addEventListener?.("click", onClick);
+        cleanup = () => canvas.removeEventListener?.("click", onClick);
+        break;
+      }
+      case "trackball":
+        primary = new runtime.TrackballControls(camera, canvas);
+        primary.staticMoving = settings.staticMoving;
+        primary.target?.set?.(...settings.target);
+        break;
+      case "transform": {
+        primary = new runtime.TransformControls(camera, canvas);
+        primary.attach(settings.object);
+        primary.setMode?.(settings.mode);
+        primary.axis = settings.axis;
+        const helper = primary.getHelper?.();
+        if (helper) scene.add(helper);
+        const orbit = new runtime.OrbitControls(camera, canvas);
+        orbit.enableDamping = settings.enableDamping;
+        const onMouseDown = () => {
+          orbit.enabled = false;
+        };
+        const onMouseUp = () => {
+          orbit.enabled = true;
+        };
+        primary.addEventListener?.("mouseDown", onMouseDown);
+        primary.addEventListener?.("mouseUp", onMouseUp);
+        controls.push(orbit);
+        const previousCleanup = cleanup;
+        cleanup = () => {
+          previousCleanup?.();
+          primary.removeEventListener?.("mouseDown", onMouseDown);
+          primary.removeEventListener?.("mouseUp", onMouseUp);
+        };
+        break;
+      }
+      default:
+        return;
+    }
   } catch {
+    cleanup?.();
     return;
   }
-  Object.assign(controls, state.controlSettings);
-  controls.target?.set?.(0, 0, 0);
-  controls.update?.();
-  return controls;
+  controls.unshift(primary);
+  for (const control of controls) {
+    control.update?.(state.delta);
+  }
+  return {
+    update(delta) {
+      for (const control of controls) control.update?.(delta);
+    },
+    dispose() {
+      cleanup?.();
+      for (const control of controls) control.dispose?.();
+    },
+  };
 }
 
 function setupCoreComparison(canvas, definition, runtime) {
@@ -1505,7 +1960,13 @@ function setupCoreComparison(canvas, definition, runtime) {
     delta: 0,
   };
   buildSceneObjects(runtime, scene, state, definition);
-  const controls = setupControls(runtime, cameraState.camera, canvas, state);
+  const controls = setupControls(
+    runtime,
+    scene,
+    cameraState.camera,
+    canvas,
+    state,
+  );
   const onPointer = state.pointerHandler;
   if (onPointer && typeof canvas.addEventListener === "function")
     canvas.addEventListener("pointermove", onPointer);
@@ -1517,8 +1978,8 @@ function setupCoreComparison(canvas, definition, runtime) {
     const elapsed = (Date.now() - started) * 0.001;
     state.delta = elapsed - previousElapsed || 1 / 60;
     previousElapsed = elapsed;
-    state.tick?.(elapsed);
-    controls?.update?.();
+    state.tick?.(elapsed, state.delta);
+    controls?.update?.(state.delta);
     renderer.render(scene, cameraState.camera);
   };
   const loop = startFrameLoop(render);
