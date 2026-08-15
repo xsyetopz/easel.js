@@ -34,17 +34,17 @@ const firstFrame = `<canvas id="frame" width="640" height="360"></canvas>
 
 <SiteLayout
 	title="EASEL.js · 3D scenes on Canvas2D"
-	description="EASEL.js is a TypeScript, CPU-only renderer with a THREE-style scene graph and inspectable Canvas2D rasterization."
+	description="EASEL.js renders TypeScript scene graphs into Canvas2D."
 >
 	<div class="page-home">
 		<section class="home-intro" aria-labelledby="home-title">
 			<h1 id="home-title">3D scenes on Canvas2D.</h1>
-			<p>EASEL.js is a TypeScript, CPU-only renderer with a THREE-style scene graph and inspectable rasterization.</p>
+			<p>Build 3D scenes that render to Canvas2D.</p>
 		</section>
 
 		<section class="home-links-section" aria-labelledby="home-links-title">
 			<h2 id="home-links-title">Start here</h2>
-			<p>Read the API, follow a task guide, or run a real Canvas2D scene.</p>
+			<p>Start with the API reference, a live example, or a first-scene guide.</p>
 			<ul class="home-links">
 				<li><a href={sitePath("/docs/")}>Browse the API reference</a></li>
 				<li><a href={sitePath("/examples/")}>Run an example</a></li>
@@ -55,7 +55,7 @@ const firstFrame = `<canvas id="frame" width="640" height="360"></canvas>
 
 		<section class="home-install" aria-labelledby="install-title">
 			<h2 id="install-title">Install and render a first frame</h2>
-			<p>Install <code>@xsyetopz/easel</code>, then create a scene and upload its pixels to a Canvas2D element.</p>
+			<p>Install <code>@xsyetopz/easel</code>, then render a scene into a canvas element.</p>
 			<CodeBlock code={firstFrame} language="html" label="index.html" />
 		</section>
 	</div>

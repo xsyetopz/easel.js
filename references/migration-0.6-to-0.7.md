@@ -28,4 +28,3 @@ EASEL 0.7 (baseline `@xsyetopz/easel@0.7.0`) represents a major API upgrade that
 - [ ] Supply three.js → easel equivalent for Three.js BoxGeometry + MeshNormalMaterial (full path used in README.md)
 - [ ] Enumerate new 0.7 APIs in `migration-0.7.md` plus migration table for each kit
 - [ ] Capture changelog snippet for cross-reference (to sources/CHANGELOG.md)
-- [ ] Capture final relocation: add small rational note re: three-parity-audit-2026-08.md and l1-l29-audit.log (chain data for gaps)

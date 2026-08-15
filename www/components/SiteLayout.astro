@@ -16,7 +16,7 @@ export interface SiteLayoutProps {
 const { title, description, section, canonical } = Astro.props as SiteLayoutProps;
 const resolvedDescription =
 	description ??
-	"EASEL.js is a TypeScript, CPU-only renderer with a THREE-style scene graph and inspectable Canvas2D rasterization.";
+	"EASEL.js renders TypeScript scene graphs into Canvas2D.";
 const canonicalPath = canonical ? sitePath(canonical) : Astro.url.pathname;
 const canonicalUrl = new URL(
 	canonicalPath,
