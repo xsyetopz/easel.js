@@ -256,7 +256,7 @@ export function buildMesh(
     );
   }
   const [object] = objects;
-  if (object !== undefined) return object;
+  if (objects.length === 1 && object !== undefined) return object;
   const group = new Group();
   group.name = meshName(meshDef, index);
   group.add(...objects);

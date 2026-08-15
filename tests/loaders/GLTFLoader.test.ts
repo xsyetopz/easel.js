@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { GLTFLoader } from "@/loaders/GLTFLoader.js";
 import { LambertMaterial } from "@/materials/LambertMaterial.js";
+import { Group } from "@/objects/Group.js";
 import { InstancedMesh } from "@/objects/InstancedMesh.js";
 import { LOD } from "@/objects/LOD.js";
 import { Mesh } from "@/objects/Mesh.js";
@@ -9,6 +10,7 @@ import { Mesh } from "@/objects/Mesh.js";
 const SOURCE_KEY = "source";
 const TRANSLATION_KEY = "TRANSLATION";
 const GLTF_INSTANCING_KEY = "gltfInstancing";
+const GLTF_PRIMITIVE_INDEX_KEY = "gltfPrimitiveIndex";
 const NODES_KEY = "nodes";
 const MESHES_KEY = "meshes";
 const PRIMITIVES_KEY = "primitives";
@@ -227,6 +229,37 @@ describe("GLTFLoader", () => {
     expect(result.animations[0]?.channels[0]?.values).toEqual([
       0, 0, 0, 1, 0, 0,
     ]);
+  });
+
+  it("retains every primitive in a multi-primitive mesh group", () => {
+    const result = new GLTFLoader().parse({
+      asset: { version: "2.0" },
+      buffers: [{ uri: makeDataUri(), byteLength: 74 }],
+      bufferViews: [{ buffer: 0, byteOffset: 0, byteLength: 36 }],
+      accessors: [
+        { bufferView: 0, componentType: 5126, count: 3, type: "VEC3" },
+      ],
+      meshes: [
+        {
+          name: "Two primitives",
+          primitives: [
+            { attributes: { POSITION: 0 } },
+            { attributes: { POSITION: 0 } },
+          ],
+        },
+      ],
+      nodes: [{ mesh: 0 }],
+      scenes: [{ nodes: [0] }],
+    });
+
+    const group = result.scene.children[0];
+    expect(group).toBeInstanceOf(Group);
+    if (!(group instanceof Group)) return;
+    expect(group.children).toHaveLength(2);
+    expect(group.children.every((child) => child instanceof Mesh)).toBe(true);
+    expect(
+      group.children.map((child) => child.userData[GLTF_PRIMITIVE_INDEX_KEY]),
+    ).toEqual([0, 1]);
   });
 
   it("decodes EXT_mesh_gpu_instancing into CPU InstancedMesh transforms and colors", () => {
