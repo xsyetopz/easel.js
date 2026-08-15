@@ -10,15 +10,14 @@ import type {
 } from "../GLTFLoader.ts";
 import { array, finite, integer, numberArray, record } from "./validation.ts";
 
-/** Creates the glTF default material for primitives without a material index. */
-export function createDefaultMaterial(
-  options: GLTFLoaderOptions,
-): BasicMaterial | LambertMaterial {
+/** Creates the glTF default material used by primitives without a material index. */
+export function createDefaultMaterial(options: GLTFLoaderOptions) {
   return options.materialType === "basic"
     ? new BasicMaterial()
     : new LambertMaterial();
 }
 
+/** Resolves a texture index from the loader's map or numeric texture table. */
 export function textureFor(
   options: GLTFLoaderOptions,
   index: number,
@@ -30,144 +29,196 @@ export function textureFor(
   return table[index] ?? table[String(index)];
 }
 
+function property(
+  value: Readonly<Record<string, unknown>> | undefined,
+  key: string,
+): unknown {
+  return value?.[key];
+}
+
+function parseBaseColorFactor(
+  pbr: Readonly<Record<string, unknown>>,
+  path: string,
+): [number, number, number, number] {
+  const rawFactor = property(pbr, "baseColorFactor");
+  const factor =
+    rawFactor === undefined ? [1, 1, 1, 1] : numberArray(rawFactor, path, 4);
+  const [red, green, blue, alpha] = factor;
+  if (
+    red === undefined ||
+    green === undefined ||
+    blue === undefined ||
+    alpha === undefined
+  ) {
+    throw new RangeError(`GLTFLoader: ${path} must contain 4 values.`);
+  }
+  return [red, green, blue, alpha];
+}
+
+function parseImageMetadata(
+  image: Readonly<Record<string, unknown>> | undefined,
+  path: string,
+): Pick<GLTFTextureReference, "uri" | "bufferView" | "mimeType"> {
+  const uri = property(image, "uri");
+  const bufferView = property(image, "bufferView");
+  const mimeType = property(image, "mimeType");
+  return {
+    uri: typeof uri === "string" ? uri : undefined,
+    bufferView:
+      typeof bufferView === "number"
+        ? integer(bufferView, `${path}.bufferView`)
+        : undefined,
+    mimeType: typeof mimeType === "string" ? mimeType : undefined,
+  };
+}
+
+function parseBaseColorTexture(
+  pbr: Readonly<Record<string, unknown>>,
+  textures: readonly unknown[],
+  images: readonly unknown[],
+  materialIndex: number,
+): GLTFTextureReference | undefined {
+  const rawTextureInfo = property(pbr, "baseColorTexture");
+  if (rawTextureInfo === undefined) return;
+  const path = `materials[${materialIndex}].baseColorTexture`;
+  const textureInfo = record(rawTextureInfo, path);
+  const index = integer(property(textureInfo, "index"), `${path}.index`);
+  const texture = record(textures[index], `textures[${index}]`);
+  const rawSource = property(texture, "source");
+  const source = typeof rawSource === "number" ? rawSource : undefined;
+  const image =
+    source === undefined
+      ? undefined
+      : record(images[source], `images[${source}]`);
+  return {
+    index,
+    texCoord: integer(
+      property(textureInfo, "texCoord"),
+      "baseColorTexture.texCoord",
+      0,
+    ),
+    source,
+    ...parseImageMetadata(image, "image"),
+  };
+}
+
+function parseAlphaMode(
+  source: Readonly<Record<string, unknown>>,
+): "OPAQUE" | "MASK" | "BLEND" {
+  const mode = property(source, "alphaMode");
+  return mode === "BLEND" || mode === "MASK" ? mode : "OPAQUE";
+}
+
+interface MaterialProperties {
+  readonly baseColorFactor: [number, number, number, number];
+  readonly baseColorTexture: GLTFTextureReference | undefined;
+  readonly alphaMode: "OPAQUE" | "MASK" | "BLEND";
+}
+
+interface MaterialParseContext {
+  readonly textures: readonly unknown[];
+  readonly images: readonly unknown[];
+  readonly options: GLTFLoaderOptions;
+}
+
+function createMaterial(
+  source: Readonly<Record<string, unknown>>,
+  options: GLTFLoaderOptions,
+  index: number,
+  { baseColorFactor, baseColorTexture, alphaMode }: MaterialProperties,
+): BasicMaterial | LambertMaterial {
+  const alpha =
+    alphaMode === "OPAQUE" ? 1 : Math.min(1, Math.max(0, baseColorFactor[3]));
+  const rawName = property(source, "name");
+  const materialOptions = {
+    color: new Color().setRGB(
+      baseColorFactor[0],
+      baseColorFactor[1],
+      baseColorFactor[2],
+    ),
+    transparent: alphaMode === "BLEND" && alpha < 1,
+    opacity:
+      alphaMode === "BLEND"
+        ? Math.min(8, Math.max(0, Math.round((1 - alpha) * 8)))
+        : 0,
+    name: typeof rawName === "string" ? rawName : `Material${index}`,
+  };
+  if (baseColorTexture !== undefined) {
+    const map = textureFor(options, baseColorTexture.index);
+    if (map !== undefined) Object.assign(materialOptions, { map });
+  }
+  if (property(source, "doubleSided") === true) {
+    Object.assign(materialOptions, { side: Side.Double });
+  }
+  return options.materialType === "basic"
+    ? new BasicMaterial(materialOptions)
+    : new LambertMaterial(materialOptions);
+}
+
+function parseMaterial(
+  value: unknown,
+  index: number,
+  { textures, images, options }: MaterialParseContext,
+): GLTFMaterialInfo {
+  const source = record(value, `materials[${index}]`);
+  const pbr = record(
+    property(source, "pbrMetallicRoughness") ?? {},
+    `materials[${index}].pbrMetallicRoughness`,
+  );
+  const baseColorFactor = parseBaseColorFactor(
+    pbr,
+    `materials[${index}].baseColorFactor`,
+  );
+  const baseColorTexture = parseBaseColorTexture(pbr, textures, images, index);
+  const alphaMode = parseAlphaMode(source);
+  const material = createMaterial(source, options, index, {
+    baseColorFactor,
+    baseColorTexture,
+    alphaMode,
+  });
+  return {
+    index,
+    name: material.name,
+    material,
+    baseColorFactor,
+    baseColorTexture,
+    alphaMode,
+    alphaCutoff: finite(
+      property(source, "alphaCutoff"),
+      `materials[${index}].alphaCutoff`,
+      0.5,
+    ),
+    doubleSided: property(source, "doubleSided") === true,
+  } satisfies GLTFMaterialInfo;
+}
+
+/** Builds renderer materials and base-color texture metadata from glTF materials. */
 export function parseMaterials(
   document: Readonly<Record<string, unknown>>,
   options: GLTFLoaderOptions,
 ): { materials: GLTFMaterialInfo[] } {
-  const entries = array(document["materials"] ?? [], "materials");
-  const textures = array(document["textures"] ?? [], "textures");
-  const images = array(document["images"] ?? [], "images");
-  const materials = entries.map((value, index) => {
-    const source = record(value, `materials[${index}]`);
-    const pbr = record(
-      source["pbrMetallicRoughness"] ?? {},
-      `materials[${index}].pbrMetallicRoughness`,
-    );
-    const factor =
-      pbr["baseColorFactor"] === undefined
-        ? [1, 1, 1, 1]
-        : numberArray(
-            pbr["baseColorFactor"],
-            `materials[${index}].baseColorFactor`,
-            4,
-          );
-    const baseColorFactor: [number, number, number, number] = [
-      factor[0]!,
-      factor[1]!,
-      factor[2]!,
-      factor[3]!,
-    ];
-    const textureInfo =
-      pbr["baseColorTexture"] === undefined
-        ? undefined
-        : record(
-            pbr["baseColorTexture"],
-            `materials[${index}].baseColorTexture`,
-          );
-    const textureIndex =
-      textureInfo === undefined
-        ? undefined
-        : integer(
-            textureInfo["index"],
-            `materials[${index}].baseColorTexture.index`,
-          );
-    const textureSource =
-      textureIndex === undefined
-        ? undefined
-        : record(textures[textureIndex], `textures[${textureIndex}]`)["source"];
-    const image =
-      typeof textureSource === "number"
-        ? record(images[textureSource], `images[${textureSource}]`)
-        : undefined;
-    const uri =
-      image && typeof image["uri"] === "string"
-        ? (image["uri"] as string)
-        : undefined;
-    const bufferView =
-      image && typeof image["bufferView"] === "number"
-        ? integer(image["bufferView"], "image.bufferView")
-        : undefined;
-    const mimeType =
-      image && typeof image["mimeType"] === "string"
-        ? (image["mimeType"] as string)
-        : undefined;
-    const baseColorTexture =
-      textureIndex === undefined
-        ? undefined
-        : {
-            index: textureIndex,
-            texCoord: integer(
-              textureInfo?.["texCoord"],
-              "baseColorTexture.texCoord",
-              0,
-            ),
-            source:
-              typeof textureSource === "number" ? textureSource : undefined,
-            uri,
-            bufferView,
-            mimeType,
-          };
-    const alphaMode =
-      source["alphaMode"] === "BLEND" || source["alphaMode"] === "MASK"
-        ? source["alphaMode"]
-        : "OPAQUE";
-    const sourceAlpha = Math.min(1, Math.max(0, baseColorFactor[3]!));
-    const alpha = alphaMode === "OPAQUE" ? 1 : sourceAlpha;
-    const materialOptions = {
-      color: new Color().setRGB(
-        baseColorFactor[0]!,
-        baseColorFactor[1]!,
-        baseColorFactor[2]!,
-      ),
-      transparent: alphaMode === "BLEND" && alpha < 1,
-      opacity:
-        alphaMode === "BLEND"
-          ? Math.min(8, Math.max(0, Math.round((1 - alpha) * 8)))
-          : 0,
-      name:
-        typeof source["name"] === "string"
-          ? (source["name"] as string)
-          : `Material${index}`,
-    };
-    const map =
-      textureIndex === undefined
-        ? undefined
-        : textureFor(options, textureIndex);
-    if (map !== undefined) Object.assign(materialOptions, { map });
-    if (source["doubleSided"] === true)
-      Object.assign(materialOptions, { side: Side.Double });
-    const material =
-      options.materialType === "basic"
-        ? new BasicMaterial(materialOptions)
-        : new LambertMaterial(materialOptions);
-    return {
-      index,
-      name: material.name,
-      material,
-      baseColorFactor,
-      baseColorTexture,
-      alphaMode,
-      alphaCutoff: finite(
-        source["alphaCutoff"],
-        `materials[${index}].alphaCutoff`,
-        0.5,
-      ),
-      doubleSided: source["doubleSided"] === true,
-    } satisfies GLTFMaterialInfo;
-  });
+  const entries = array(property(document, "materials") ?? [], "materials");
+  const textures = array(property(document, "textures") ?? [], "textures");
+  const images = array(property(document, "images") ?? [], "images");
+  const context = { textures, images, options };
+  const materials = entries.map((value, index) =>
+    parseMaterial(value, index, context),
+  );
   return { materials };
 }
 
+/** Extracts image source metadata for each texture declared in the document. */
 export function parseTextureReferences(
   document: Readonly<Record<string, unknown>>,
 ): GLTFTextureReference[] {
-  const textures = array(document["textures"] ?? [], "textures");
-  const images = array(document["images"] ?? [], "images");
+  const textures = array(property(document, "textures") ?? [], "textures");
+  const images = array(property(document, "images") ?? [], "images");
   return textures.map((value, index) => {
     const texture = record(value, `textures[${index}]`);
+    const rawSource = property(texture, "source");
     const source =
-      typeof texture["source"] === "number"
-        ? integer(texture["source"], `textures[${index}].source`)
+      typeof rawSource === "number"
+        ? integer(rawSource, `textures[${index}].source`)
         : undefined;
     const image =
       source === undefined
@@ -177,18 +228,7 @@ export function parseTextureReferences(
       index,
       texCoord: 0,
       source,
-      uri:
-        image && typeof image["uri"] === "string"
-          ? (image["uri"] as string)
-          : undefined,
-      bufferView:
-        image && typeof image["bufferView"] === "number"
-          ? integer(image["bufferView"], `images[${source}].bufferView`)
-          : undefined,
-      mimeType:
-        image && typeof image["mimeType"] === "string"
-          ? (image["mimeType"] as string)
-          : undefined,
+      ...parseImageMetadata(image, `images[${source}]`),
     };
   });
 }

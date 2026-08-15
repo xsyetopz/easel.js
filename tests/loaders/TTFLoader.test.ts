@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { TTFFont, TTFLoader } from "@/loaders/TTFLoader.js";
 
+const E_GLYPH_KEY = "E";
+
 const FIXTURE =
   "AAEAAAAJAIAAAwAQY21hcABIAK0AAACcAAAAPGdseWYLRw+jAAAA2AAAAIRoZWFkAloK8QAAAVwAAAA2aGhlYQZDAZQAAAGUAAAAJGhtdHgINAAAAAABuAAAAAxsb2NhAAAA0AAAAcQAAAAQbWF4cAAEAAAAAAHUAAAABm5hbWUAmgT7AAAB3AAAABxwb3N0/58AMgAAAfgAAAAgAAAAAQADAAEAAAAMAAQAMAAAAAgAAAAAAAAAIAA/AEX//wAAACAAPwBF////4P/D/7wAAQAAAAAAAAAAAAEAAAAAAlgDIAALAAABAQEBAQEBAQEBAQEAAAJYAAD+NAAAAXwAAP6EAAABzAAA/agAAAAAAHgAAADcAAAAeAAAANwAAAB4AAAAAAABAAAAAAH0AyAABwAAAQEBAQEBAQEAAAH0AAD+ogAAAV4AAP4MAAAAAACWAAAB9AAAAJYAAAAAAAEAAAABAAAAAAAAAAAD6AAAA+gAAAAAAAAAAAAAAAAAAAAAAAAAAAJYAyAAAAAAAAAAAQAAAAAAAQAAAyD/OAAAAyADIP84AAAAAQAAAAAAAAAAAAAAAAAAAAMCvAAAArwAAAK8AAAAAAAAAAAAAAAAAEwAAACEAAEAAAADAAAAAAABABIAAwABBAkAAQAKAAAARQBBAFMARQBMAAMAAAAAAAD/nAAyAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
@@ -21,8 +23,12 @@ describe("TTFLoader", () => {
       yMin: 0,
       yMax: 800,
     });
-    expect(result.glyphs["E"]).toMatchObject({ ha: 972, x_min: 0, x_max: 833 });
-    expect(result.glyphs["E"]?.o).toContain("m 0 0 l 833 0");
+    expect(result.glyphs[E_GLYPH_KEY]).toMatchObject({
+      ha: 972,
+      x_min: 0,
+      x_max: 833,
+    });
+    expect(result.glyphs[E_GLYPH_KEY]?.o).toContain("m 0 0 l 833 0");
     expect(result.glyphs[" "]?.o).toBe("");
   });
 
@@ -42,7 +48,9 @@ describe("TTFLoader", () => {
     const normal = loader.parse(fixtureBytes());
     loader.reversed = true;
     const reversed = loader.parse(fixtureBytes());
-    expect(reversed.glyphs["E"]?.o).not.toBe(normal.glyphs["E"]?.o);
+    expect(reversed.glyphs[E_GLYPH_KEY]?.o).not.toBe(
+      normal.glyphs[E_GLYPH_KEY]?.o,
+    );
     expect(() => new TTFLoader().parse(new Uint8Array(8))).toThrow(
       /TTFLoader: truncated sfnt header/u,
     );

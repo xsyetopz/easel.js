@@ -1,13 +1,20 @@
 import { describe, expect, it } from "bun:test";
 import { SVGLoader } from "@/loaders/SVGLoader.js";
 
+const FILL_KEY = "fill";
+const ELEMENT_KEY = "element";
+const STYLE_KEY = "style";
+const STROKE_KEY = "stroke";
+const OPACITY_KEY = "opacity";
+const STROKE_OPACITY_KEY = "strokeOpacity";
+
 describe("SVGLoader", () => {
   it("parses path, polyline, and polygon elements without a DOM", () => {
     const result = new SVGLoader().parse(
       `<svg><path d="M0 0 L1 0 L1 1 Z" fill="#f00"/><polyline points="0,0 1,1"/><polygon points="0 0 1 0 0 1"/></svg>`,
     );
     expect(result.paths).toHaveLength(3);
-    expect(result.paths[0]?.userData["fill"]).toBe("#f00");
+    expect(result.paths[0]?.userData[FILL_KEY]).toBe("#f00");
     expect(result.paths[0]?.subPaths).toHaveLength(1);
     expect(result.paths[1]?.subPaths[0]?.curves.length).toBeGreaterThan(0);
   });
@@ -19,8 +26,10 @@ describe("SVGLoader", () => {
     expect(result.paths).toHaveLength(4);
     expect(result.xml).toContain("<rect");
     expect(result.paths[0]?.subPaths[0]?.curves.length).toBeGreaterThan(3);
-    expect(result.paths[0]?.userData["element"]).toBe("rect");
-    expect(result.paths[0]?.userData["style"]).toMatchObject({ fill: "#0f0" });
+    expect(result.paths[0]?.userData[ELEMENT_KEY]).toBe("rect");
+    expect(result.paths[0]?.userData[STYLE_KEY]).toMatchObject({
+      fill: "#0f0",
+    });
   });
 
   it("inherits presentation styles and applies affine transforms", () => {
@@ -28,10 +37,10 @@ describe("SVGLoader", () => {
       `<svg fill="#f00" opacity=".5"><g transform="translate(10 20) scale(2)" stroke="#00f" stroke-width="3"><path d="M0 0 L1 0" style="fill:none;stroke-opacity:.25"/></g></svg>`,
     );
     const path = result.paths[0];
-    expect(path?.userData["fill"]).toBe("none");
-    expect(path?.userData["stroke"]).toBe("#00f");
-    expect(path?.userData["opacity"]).toBeCloseTo(0.5);
-    expect(path?.userData["strokeOpacity"]).toBeCloseTo(0.25);
+    expect(path?.userData[FILL_KEY]).toBe("none");
+    expect(path?.userData[STROKE_KEY]).toBe("#00f");
+    expect(path?.userData[OPACITY_KEY]).toBeCloseTo(0.5);
+    expect(path?.userData[STROKE_OPACITY_KEY]).toBeCloseTo(0.25);
     const firstCurve = path?.subPaths[0]?.curves[0] as {
       v1?: { x: number; y: number };
     };

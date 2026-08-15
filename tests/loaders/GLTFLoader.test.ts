@@ -6,6 +6,14 @@ import { InstancedMesh } from "@/objects/InstancedMesh.js";
 import { LOD } from "@/objects/LOD.js";
 import { Mesh } from "@/objects/Mesh.js";
 
+const SOURCE_KEY = "source";
+const TRANSLATION_KEY = "TRANSLATION";
+const GLTF_INSTANCING_KEY = "gltfInstancing";
+const NODES_KEY = "nodes";
+const MESHES_KEY = "meshes";
+const PRIMITIVES_KEY = "primitives";
+const EXTENSIONS_KEY = "extensions";
+
 function makeDataUri(): string {
   const bytes = new Uint8Array(74);
   const view = new DataView(bytes.buffer);
@@ -209,7 +217,7 @@ describe("GLTFLoader", () => {
     expect(mesh).toBeInstanceOf(Mesh);
     if (!(mesh instanceof Mesh)) return;
     expect(mesh.position.toArray()).toEqual([1, 2, 3]);
-    expect(mesh.userData["source"]).toBe("fixture");
+    expect(mesh.userData[SOURCE_KEY]).toBe("fixture");
     expect(mesh.geometry?.getAttribute("position")?.count).toBe(3);
     expect(mesh.geometry?.index).toEqual(new Uint16Array([0, 1, 2]));
     expect(mesh.material).toBeInstanceOf(LambertMaterial);
@@ -242,17 +250,17 @@ describe("GLTFLoader", () => {
     );
     expect(result.instancing).toHaveLength(1);
     expect(result.instancing[0]?.count).toBe(2);
-    expect(result.instancing[0]?.attributes["TRANSLATION"]?.values).toEqual([
+    expect(result.instancing[0]?.attributes[TRANSLATION_KEY]?.values).toEqual([
       1, 0, 0, -1, 0, 0,
     ]);
-    expect(mesh.userData["gltfInstancing"]).toBeDefined();
+    expect(mesh.userData[GLTF_INSTANCING_KEY]).toBeDefined();
   });
 
   it("builds MSFT_lod node chains as CPU LOD levels with screen-coverage metadata", () => {
     const document = makeExtensionDocument({
       MSFT_lod: { ids: [1, 2] },
     });
-    document["nodes"] = [
+    document[NODES_KEY] = [
       {
         name: "High",
         mesh: 0,
@@ -278,15 +286,15 @@ describe("GLTFLoader", () => {
 
   it("preserves KHR_materials_variants names and primitive mappings as CPU metadata", () => {
     const document = makeExtensionDocument({});
-    const meshes = document["meshes"] as Array<Record<string, unknown>>;
-    const primitives = meshes[0]?.["primitives"] as Array<
+    const meshes = document[MESHES_KEY] as Array<Record<string, unknown>>;
+    const primitives = meshes[0]?.[PRIMITIVES_KEY] as Array<
       Record<string, unknown>
     >;
-    if (!primitives?.[0]) return;
-    primitives[0]["extensions"] = {
+    if (!primitives[0]) return;
+    primitives[0][EXTENSIONS_KEY] = {
       KHR_materials_variants: { mappings: [{ material: 0, variants: [0, 1] }] },
     };
-    document["extensions"] = {
+    document[EXTENSIONS_KEY] = {
       KHR_materials_variants: {
         variants: [{ name: "Red" }, { name: "Green" }],
       },
@@ -317,7 +325,6 @@ describe("GLTFLoader", () => {
     expect(channels?.[1]?.interpolation).toBe("STEP");
     expect(channels?.[1]?.values).toEqual([1, 0, 1, 0, 0, 1, 1, 0]);
   });
-
   it("parses the canonical Khronos Box fixture", () => {
     const document = JSON.parse(
       readFileSync(
@@ -339,7 +346,7 @@ describe("GLTFLoader", () => {
     expect(result.materials[0]?.name).toBe("Red");
   });
 
-  it("parses Khronos Simple Instancing with a default material", () => {
+  it("parses the canonical Khronos Simple Instancing asset with a default material", () => {
     const document = JSON.parse(
       readFileSync(
         new URL(

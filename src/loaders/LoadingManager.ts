@@ -18,7 +18,7 @@ export class LoadingManager {
   #itemsLoaded = 0;
   #itemsTotal = 0;
   #urlModifier: ((url: string) => string) | undefined;
-  #handlers: Array<{ regex: RegExp; loader: Loader }> = [];
+  readonly #handlers: Array<{ regex: RegExp; loader: Loader }> = [];
   #abortController: AbortController | undefined;
 
   /** Constructs a loading manager with optional lifecycle callbacks. */
@@ -105,9 +105,7 @@ export class LoadingManager {
 
   /** Registers a new item and starts a batch when previously idle. */
   itemStart(_url: string): void {
-    if (!this.#isLoading) {
-      this.#onStart?.(_url, this.#itemsLoaded, this.#itemsTotal + 1);
-    }
+    this.#onStart?.(_url, this.#itemsLoaded, this.#itemsTotal + 1);
     this.#itemsTotal++;
     this.#isLoading = true;
   }
@@ -151,9 +149,7 @@ export class LoadingManager {
 
   /** Removes an exact registered regular-expression object. */
   unregisterHandler(regex: RegExp): boolean {
-    const index = this.#handlers.findIndex(
-      (entry) => entry.regex === regex,
-    );
+    const index = this.#handlers.findIndex((entry) => entry.regex === regex);
     if (index === -1) return false;
     this.#handlers.splice(index, 1);
     return true;
@@ -175,9 +171,7 @@ export class LoadingManager {
 
   /** Removes the handler registered for the given regular expression. */
   removeHandler(regex: RegExp): void {
-    const index = this.#handlers.findIndex(
-      (entry) => entry.regex === regex,
-    );
+    const index = this.#handlers.findIndex((entry) => entry.regex === regex);
     if (index !== -1) this.#handlers.splice(index, 1);
   }
 

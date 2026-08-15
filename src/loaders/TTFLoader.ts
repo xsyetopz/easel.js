@@ -1,5 +1,5 @@
 import type { Shape } from "../curves/Shape.ts";
-import { ShapePath } from "../curves/ShapePath.ts";
+import type { ShapePath } from "../curves/ShapePath.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 import { TrueTypeFontData } from "./_TTFParser.ts";

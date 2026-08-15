@@ -411,6 +411,14 @@ export { GCodeLoader } from "./loaders/GCodeLoader.ts";
 export { GeometryLoader } from "./loaders/GeometryLoader.ts";
 export { BufferGeometryLoader } from "./loaders/BufferGeometryLoader.ts";
 export {
+  HDRLoader,
+  type HDRFormat,
+  type HDRParseResult,
+  type HDRTextureOptions,
+  type HDRToneMapping,
+  RGBELoader,
+} from "./loaders/HDRLoader.ts";
+export {
   type GLTFAnimation,
   type GLTFAnimationChannel,
   type GLTFAnimationTarget,

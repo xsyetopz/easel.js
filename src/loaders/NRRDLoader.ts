@@ -218,18 +218,7 @@ export class NRRDVolume {
     let outputIndex = 0;
     for (let row = 0; row < planeHeight; row++) {
       for (let column = 0; column < planeWidth; column++) {
-        let x = column;
-        let y = row;
-        let z = index;
-        if (axisIndex === 0) {
-          x = index;
-          y = column;
-          z = row;
-        } else if (axisIndex === 1) {
-          x = column;
-          y = index;
-          z = row;
-        }
+        const [x, y, z] = this.#sliceCoordinate(axisIndex, column, row, index);
         output[outputIndex++] = this.data[this.access(x, y, z)] ?? 0;
       }
     }
@@ -299,11 +288,28 @@ export class NRRDVolume {
   }
 
   #axisLength(axisIndex: 0 | 1 | 2): number {
-    return axisIndex === 0
-      ? this.xLength
-      : axisIndex === 1
-        ? this.yLength
-        : this.zLength;
+    if (axisIndex === 0) {
+      return this.xLength;
+    }
+    if (axisIndex === 1) {
+      return this.yLength;
+    }
+    return this.zLength;
+  }
+
+  #sliceCoordinate(
+    axisIndex: 0 | 1 | 2,
+    column: number,
+    row: number,
+    index: number,
+  ): [number, number, number] {
+    if (axisIndex === 0) {
+      return [index, column, row];
+    }
+    if (axisIndex === 1) {
+      return [column, index, row];
+    }
+    return [column, row, index];
   }
 
   #validateCoordinate(value: number, length: number, label: string): void {

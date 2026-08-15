@@ -1,16 +1,16 @@
 import { DataTexture } from "../textures/DataTexture.ts";
 import { DataTextureLoader } from "./DataTextureLoader.ts";
+import {
+  type DecodeMipLevelOptions,
+  type PixelFormatInfo,
+  decodeMipLevel,
+  readMipmapCount,
+  readPixelFormat,
+  validateHeader,
+} from "./_DDSLoaderHelpers.ts";
 
-const DDS_MAGIC = 0x20534444;
 const DDS_HEADER_BYTES = 128;
-const DDS_HEADER_SIZE = 124;
-const DDS_PIXEL_FORMAT_SIZE = 32;
-const DDSD_MIPMAPCOUNT = 0x20000;
-const DDPF_ALPHAPIXELS = 0x1;
-const DDPF_FOURCC = 0x4;
-const DDPF_RGB = 0x40;
 const DDSCAPS2_CUBEMAP = 0x200;
-const MAX_MIPMAPS = 32;
 const MAX_OUTPUT_BYTES = 256 * 1024 * 1024;
 
 /** Packed byte order accepted by the CPU DDS decoder. */
@@ -44,6 +44,12 @@ export interface DDSParseResult {
   readonly pixelFormat: DDSPixelFormat;
   /** Explicitly identifies the CPU-only decode path. */
   readonly compressed: false;
+}
+
+interface MipmapDecodeState {
+  mipmaps: DDSMipmap[];
+  dataOffset: number;
+  decodedBytes: number;
 }
 
 /**
@@ -80,55 +86,17 @@ export class DDSLoader extends DataTextureLoader {
       );
     }
 
-    const bytesPerPixel = pixelFormat.bitsPerPixel >> 3;
     const pitch = view.getUint32(20, true);
-    let dataOffset = DDS_HEADER_BYTES;
-    const mipmaps: DDSMipmap[] = [];
-    let mipWidth = width;
-    let mipHeight = height;
-    let decodedBytes = 0;
-
-    for (let level = 0; level < mipmapCount; level++) {
-      const tightRowBytes = mipWidth * bytesPerPixel;
-      if (level === 0 && pitch !== 0 && pitch < tightRowBytes) {
-        throw new Error("DDSLoader: DDS pitch is smaller than a source row.");
-      }
-      const rowBytes =
-        level === 0 ? Math.max(tightRowBytes, pitch) : tightRowBytes;
-      const levelByteLength = rowBytes * mipHeight;
-      const outputByteLength = mipWidth * mipHeight * 4;
-      if (
-        !(
-          Number.isSafeInteger(levelByteLength) &&
-          Number.isSafeInteger(outputByteLength) &&
-          Number.isSafeInteger(dataOffset + levelByteLength)
-        ) ||
-        dataOffset + levelByteLength > buffer.byteLength
-      ) {
-        throw new Error(
-          `DDSLoader: Truncated pixel data at mip level ${level}.`,
-        );
-      }
-      if (decodedBytes + outputByteLength > MAX_OUTPUT_BYTES) {
-        throw new Error("DDSLoader: Mipmaps are too large for CPU decoding.");
-      }
-
-      const data = decodeMipLevel(
-        view,
-        dataOffset,
-        rowBytes,
-        mipWidth,
-        mipHeight,
-        pixelFormat,
-      );
-      mipmaps.push({ data, width: mipWidth, height: mipHeight });
-      decodedBytes += outputByteLength;
-      dataOffset += levelByteLength;
-      mipWidth = Math.max(1, mipWidth >> 1);
-      mipHeight = Math.max(1, mipHeight >> 1);
-    }
-
-    const base = mipmaps[0];
+    const state = decodeAllMipmaps(
+      view,
+      mipmapCount,
+      width,
+      height,
+      pitch,
+      pixelFormat,
+      buffer.byteLength,
+    );
+    const base = state.mipmaps[0];
     if (base === undefined) {
       throw new Error("DDSLoader: DDS image did not contain a base mip level.");
     }
@@ -136,8 +104,8 @@ export class DDSLoader extends DataTextureLoader {
       data: base.data,
       width,
       height,
-      mipmaps: Object.freeze(mipmaps),
-      mipmapCount: mipmaps.length,
+      mipmaps: Object.freeze(state.mipmaps),
+      mipmapCount: state.mipmaps.length,
       isCubemap,
       pixelFormat: pixelFormat.name,
       compressed: false,
@@ -165,183 +133,74 @@ export class DDSLoader extends DataTextureLoader {
   }
 }
 
-interface PixelFormatInfo {
-  readonly name: DDSPixelFormat;
-  readonly bitsPerPixel: 24 | 32;
-  readonly redMask: number;
-  readonly greenMask: number;
-  readonly blueMask: number;
-  readonly alphaMask: number;
-}
-
-function validateHeader(view: DataView): void {
-  if (view.getUint32(0, true) !== DDS_MAGIC) {
-    throw new Error("DDSLoader: Invalid magic number in DDS header.");
-  }
-  if (view.getUint32(4, true) !== DDS_HEADER_SIZE) {
-    throw new Error("DDSLoader: Invalid header size.");
-  }
-  if (view.getUint32(76, true) !== DDS_PIXEL_FORMAT_SIZE) {
-    throw new Error("DDSLoader: Invalid pixel-format header size.");
-  }
-  const width = view.getUint32(16, true);
-  const height = view.getUint32(12, true);
-  if (width === 0 || height === 0) {
-    throw new Error("DDSLoader: Invalid image dimensions.");
-  }
-  if (
-    !Number.isSafeInteger(width * height) ||
-    width * height * 4 > MAX_OUTPUT_BYTES
-  ) {
-    throw new Error("DDSLoader: Image is too large for CPU decoding.");
-  }
-}
-
-function readMipmapCount(
+function decodeAllMipmaps(
   view: DataView,
-  flags: number,
-  loadMipmaps: boolean,
-): number {
-  if (!loadMipmaps || (flags & DDSD_MIPMAPCOUNT) === 0) return 1;
-  const value = Math.max(1, view.getUint32(28, true));
-  if (value > MAX_MIPMAPS) {
-    throw new Error(`DDSLoader: Refusing to decode ${value} mip levels.`);
-  }
-  return value;
-}
-
-function readPixelFormat(view: DataView): PixelFormatInfo {
-  const flags = view.getUint32(80, true);
-  const fourCC = view.getUint32(84, true);
-  if ((flags & DDPF_FOURCC) !== 0 || fourCC !== 0) {
-    throw new Error(
-      "DDSLoader: Compressed DXT/BCn DDS textures require a CPU decoder; only uncompressed RGBA/BGRA is supported.",
-    );
-  }
-  if ((flags & DDPF_RGB) === 0) {
-    throw new Error(
-      "DDSLoader: Unsupported DDS pixel format; expected RGB data.",
-    );
-  }
-
-  const bitsPerPixel = view.getUint32(88, true);
-  if (bitsPerPixel !== 24 && bitsPerPixel !== 32) {
-    throw new Error(
-      `DDSLoader: Unsupported uncompressed pixel size ${bitsPerPixel}; expected 24 or 32 bits.`,
-    );
-  }
-  const redMask = view.getUint32(92, true);
-  const greenMask = view.getUint32(96, true);
-  const blueMask = view.getUint32(100, true);
-  const alphaMask = view.getUint32(104, true);
-  validateChannelMask(redMask, "red");
-  validateChannelMask(greenMask, "green");
-  validateChannelMask(blueMask, "blue");
-  if (bitsPerPixel === 24 && alphaMask !== 0) {
-    throw new Error(
-      "DDSLoader: A 24-bit DDS image cannot declare an alpha channel.",
-    );
-  }
-  if (alphaMask !== 0) validateChannelMask(alphaMask, "alpha");
-  if (
-    (redMask & greenMask) !== 0 ||
-    (redMask & blueMask) !== 0 ||
-    (greenMask & blueMask) !== 0
-  ) {
-    throw new Error("DDSLoader: DDS color channel masks overlap.");
-  }
-  if (
-    alphaMask !== 0 &&
-    ((alphaMask & redMask) !== 0 ||
-      (alphaMask & greenMask) !== 0 ||
-      (alphaMask & blueMask) !== 0)
-  ) {
-    throw new Error("DDSLoader: DDS alpha mask overlaps a color channel.");
-  }
-
-  const name =
-    bitsPerPixel === 32
-      ? redMask < blueMask
-        ? "rgba8"
-        : "bgra8"
-      : redMask < blueMask
-        ? "rgb8"
-        : "bgr8";
-  if (
-    bitsPerPixel === 32 &&
-    (flags & DDPF_ALPHAPIXELS) !== 0 &&
-    alphaMask === 0
-  ) {
-    throw new Error(
-      "DDSLoader: DDS alpha flag requires an alpha channel mask.",
-    );
-  }
-  return {
-    name,
-    bitsPerPixel,
-    redMask,
-    greenMask,
-    blueMask,
-    alphaMask,
-  };
-}
-
-function validateChannelMask(mask: number, channel: string): void {
-  if (mask === 0 || !isContiguousByteMask(mask)) {
-    throw new Error(
-      `DDSLoader: Unsupported ${channel} channel mask 0x${mask.toString(16)}; expected an 8-bit channel.`,
-    );
-  }
-}
-
-function isContiguousByteMask(mask: number): boolean {
-  const value = mask >>> 0;
-  const shift = countTrailingZeros(value);
-  return shift < 32 && value >>> shift === 255;
-}
-
-function countTrailingZeros(value: number): number {
-  let shift = 0;
-  let current = value >>> 0;
-  while ((current & 1) === 0 && shift < 32) {
-    current >>>= 1;
-    shift++;
-  }
-  return shift;
-}
-
-function decodeMipLevel(
-  view: DataView,
-  offset: number,
-  rowBytes: number,
+  mipmapCount: number,
   width: number,
   height: number,
-  format: PixelFormatInfo,
-): Uint8ClampedArray {
-  const bytesPerPixel = format.bitsPerPixel >> 3;
-  const output = new Uint8ClampedArray(width * height * 4);
-  for (let y = 0; y < height; y++) {
-    const sourceRow = offset + y * rowBytes;
-    for (let x = 0; x < width; x++) {
-      const sourceOffset = sourceRow + x * bytesPerPixel;
-      const packed =
-        bytesPerPixel === 4
-          ? view.getUint32(sourceOffset, true)
-          : view.getUint8(sourceOffset) |
-            (view.getUint8(sourceOffset + 1) << 8) |
-            (view.getUint8(sourceOffset + 2) << 16);
-      const target = (y * width + x) * 4;
-      output[target] = readChannel(packed, format.redMask);
-      output[target + 1] = readChannel(packed, format.greenMask);
-      output[target + 2] = readChannel(packed, format.blueMask);
-      output[target + 3] =
-        format.alphaMask === 0 ? 255 : readChannel(packed, format.alphaMask);
+  pitch: number,
+  pixelFormat: PixelFormatInfo,
+  bufferLength: number,
+): MipmapDecodeState {
+  const bytesPerPixel = pixelFormat.bitsPerPixel >> 3;
+  const mipmaps: DDSMipmap[] = [];
+  let dataOffset = DDS_HEADER_BYTES;
+  let mipWidth = width;
+  let mipHeight = height;
+  let decodedBytes = 0;
+
+  for (let level = 0; level < mipmapCount; level++) {
+    const tightRowBytes = mipWidth * bytesPerPixel;
+    if (level === 0 && pitch !== 0 && pitch < tightRowBytes) {
+      throw new Error("DDSLoader: DDS pitch is smaller than a source row.");
     }
+    const rowBytes =
+      level === 0 ? Math.max(tightRowBytes, pitch) : tightRowBytes;
+    const levelByteLength = rowBytes * mipHeight;
+    const outputByteLength = mipWidth * mipHeight * 4;
+    validateMipBounds(
+      levelByteLength,
+      outputByteLength,
+      dataOffset,
+      bufferLength,
+      level,
+    );
+    if (decodedBytes + outputByteLength > MAX_OUTPUT_BYTES) {
+      throw new Error("DDSLoader: Mipmaps are too large for CPU decoding.");
+    }
+    const options: DecodeMipLevelOptions = {
+      view,
+      offset: dataOffset,
+      rowBytes,
+      width: mipWidth,
+      height: mipHeight,
+      format: pixelFormat,
+    };
+    const data = decodeMipLevel(options);
+    mipmaps.push({ data, width: mipWidth, height: mipHeight });
+    decodedBytes += outputByteLength;
+    dataOffset += levelByteLength;
+    mipWidth = Math.max(1, mipWidth >> 1);
+    mipHeight = Math.max(1, mipHeight >> 1);
   }
-  return output;
+  return { mipmaps, dataOffset, decodedBytes };
 }
 
-function readChannel(value: number, mask: number): number {
-  const shift = countTrailingZeros(mask);
-  return ((value & mask) >>> shift) & 255;
+function validateMipBounds(
+  levelByteLength: number,
+  outputByteLength: number,
+  dataOffset: number,
+  bufferLength: number,
+  level: number,
+): void {
+  if (
+    !(
+      Number.isSafeInteger(levelByteLength) &&
+      Number.isSafeInteger(outputByteLength) &&
+      Number.isSafeInteger(dataOffset + levelByteLength)
+    ) ||
+    dataOffset + levelByteLength > bufferLength
+  ) {
+    throw new Error(`DDSLoader: Truncated pixel data at mip level ${level}.`);
+  }
 }

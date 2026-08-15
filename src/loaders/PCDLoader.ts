@@ -2,6 +2,9 @@ import { Geometry } from "../geometry/Geometry.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 
+const LINE_PATTERN = /\r?\n/u;
+const VALUE_PATTERN = /\s+/u;
+
 /** Loads ASCII PCD point-cloud data into EASEL geometry. */
 export class PCDLoader extends Loader {
   /** Loads an ASCII PCD resource through the configured manager. */
@@ -27,44 +30,31 @@ export class PCDLoader extends Loader {
 
   /** Parses an ASCII PCD header and point rows into positions and colors. */
   override parse(text: string): Geometry {
-    const lines = text.split(/\r?\n/u);
-    let fields: string[] = [];
-    let dataIndex = -1;
-    for (let index = 0; index < lines.length; index++) {
-      const line = lines[index]!.trim();
-      const [key, ...values] = line.split(/\s+/u);
-      if (key?.toUpperCase() === "FIELDS")
-        fields = values.map((value) => value.toLowerCase());
-      if (key?.toUpperCase() === "DATA") {
-        if (values[0]?.toLowerCase() !== "ascii")
-          throw new Error("PCDLoader only supports ASCII PCD data.");
-        dataIndex = index + 1;
-        break;
-      }
-    }
-    if (dataIndex < 0 || fields.length === 0)
+    const lines = text.split(LINE_PATTERN);
+    const header = parsePcdHeader(lines);
+    if (header.dataIndex < 0 || header.fields.length === 0)
       throw new SyntaxError(
         "PCDLoader requires FIELDS and DATA ascii headers.",
       );
-    const x = fields.indexOf("x");
-    const y = fields.indexOf("y");
-    const z = fields.indexOf("z");
+    const x = header.fields.indexOf("x");
+    const y = header.fields.indexOf("y");
+    const z = header.fields.indexOf("z");
     if (x < 0 || y < 0 || z < 0)
       throw new SyntaxError("PCDLoader requires x, y, and z fields.");
-    const rgb = fields.findIndex(
+    const rgb = header.fields.findIndex(
       (field) => field === "rgb" || field === "rgba",
     );
     const positions: number[] = [];
     const colors: number[] = [];
-    for (const line of lines.slice(dataIndex)) {
-      const values = line.trim().split(/\s+/u);
-      if (values.length < fields.length || values[0] === "") continue;
+    for (const line of lines.slice(header.dataIndex)) {
+      const values = line.trim().split(VALUE_PATTERN);
+      if (values.length < header.fields.length || values[0] === "") continue;
       positions.push(Number(values[x]), Number(values[y]), Number(values[z]));
       if (rgb >= 0) {
         const packed = Number(values[rgb]);
         const integer = Number.isInteger(packed)
           ? packed >>> 0
-          : new Uint32Array(new Float32Array([packed]).buffer)[0]!;
+          : (new Uint32Array(new Float32Array([packed]).buffer)[0] ?? 0);
         colors.push(
           ((integer >>> 16) & 255) / 255,
           ((integer >>> 8) & 255) / 255,
@@ -76,4 +66,27 @@ export class PCDLoader extends Loader {
     if (rgb >= 0) geometry.setColors(colors);
     return geometry;
   }
+}
+
+interface PcdHeader {
+  fields: string[];
+  dataIndex: number;
+}
+
+function parsePcdHeader(lines: string[]): PcdHeader {
+  let fields: string[] = [];
+  let dataIndex = -1;
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index]?.trim();
+    const [key, ...values] = line.split(VALUE_PATTERN);
+    if (key?.toUpperCase() === "FIELDS")
+      fields = values.map((value) => value.toLowerCase());
+    if (key?.toUpperCase() === "DATA") {
+      if (values[0]?.toLowerCase() !== "ascii")
+        throw new Error("PCDLoader only supports ASCII PCD data.");
+      dataIndex = index + 1;
+      break;
+    }
+  }
+  return { fields, dataIndex };
 }

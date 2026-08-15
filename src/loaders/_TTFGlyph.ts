@@ -1,6 +1,9 @@
 import { ShapePath } from "../curves/ShapePath.ts";
 import type { OutlinePoint } from "./_TTFParser.ts";
 
+const whitespacePattern = /\s+/u;
+
+/** Serializes TrueType contours into the compact glyph path command format. */
 export function outlineToString(
   contours: readonly (readonly OutlinePoint[])[],
   scale: number,
@@ -69,6 +72,7 @@ export function outlineToString(
   return parts.join(" ");
 }
 
+/** Converts a compact glyph outline string into a translated ShapePath. */
 export function parseGlyphPath(
   outline: string,
   scale: number,
@@ -76,7 +80,8 @@ export function parseGlyphPath(
   offsetY: number,
 ): ShapePath {
   const path = new ShapePath();
-  const tokens = outline.trim().length > 0 ? outline.trim().split(/\s+/u) : [];
+  const tokens =
+    outline.trim().length > 0 ? outline.trim().split(whitespacePattern) : [];
   let index = 0;
   const read = (): number => {
     const value = Number.parseFloat(tokens[index++] ?? "NaN");
@@ -123,6 +128,7 @@ export function parseGlyphPath(
   return path;
 }
 
+/** Returns the on-curve midpoint between two outline points. */
 export function midpoint(
   left: OutlinePoint,
   right: OutlinePoint,
@@ -134,10 +140,12 @@ export function midpoint(
   };
 }
 
+/** Compares two outline points by their horizontal and vertical coordinates. */
 export function samePoint(left: OutlinePoint, right: OutlinePoint): boolean {
   return left.x === right.x && left.y === right.y;
 }
 
+/** Rounds a scaled outline coordinate to the path representation. */
 export function round(value: number): number {
   return Math.round(value);
 }

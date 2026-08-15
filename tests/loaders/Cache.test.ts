@@ -79,13 +79,11 @@ describe("Cache", () => {
     globalThis.fetch = (() => {
       fetches++;
       return Promise.resolve(
-        new Response(
-          JSON.stringify({
-            attributes: {
-              position: { array: [0, 0, 0], itemSize: 3 },
-            },
-          }),
-        ),
+        Response.json({
+          attributes: {
+            position: { array: [0, 0, 0], itemSize: 3 },
+          },
+        }),
       );
     }) as unknown as typeof fetch;
 

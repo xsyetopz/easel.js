@@ -3,6 +3,8 @@ import { Attribute } from "@/geometry/Attribute.ts";
 import { Geometry } from "@/geometry/Geometry.ts";
 import { BufferGeometryLoader } from "@/index.ts";
 
+const POSITION_ATTRIBUTE_KEY = "position";
+
 describe("BufferGeometryLoader", () => {
   it("parses attributes and index into a Geometry", () => {
     const json = {
@@ -88,9 +90,13 @@ describe("BufferGeometryLoader", () => {
 
     const geometry = new BufferGeometryLoader().parse(json);
     expect(geometry.morphAttributes).toBeDefined();
-    expect(geometry.morphAttributes?.["position"]).toHaveLength(1);
-    expect(geometry.morphAttributes?.["position"][0]?.itemSize).toBe(3);
-    expect(geometry.morphAttributes?.["position"][0]?.name).toBe("morph0");
+    expect(geometry.morphAttributes?.[POSITION_ATTRIBUTE_KEY]).toHaveLength(1);
+    expect(
+      geometry.morphAttributes?.[POSITION_ATTRIBUTE_KEY][0]?.itemSize,
+    ).toBe(3);
+    expect(geometry.morphAttributes?.[POSITION_ATTRIBUTE_KEY][0]?.name).toBe(
+      "morph0",
+    );
     expect(geometry.morphTargetsRelative).toBe(true);
   });
 

@@ -211,7 +211,9 @@ function readHeader(bytes: Uint8Array): ParsedHeader {
     throw new Error("HDRLoader: Bad File Format: missing FORMAT specifier.");
   }
   if (dimensions === undefined) {
-    throw new Error("HDRLoader: Bad File Format: missing image size specifier.");
+    throw new Error(
+      "HDRLoader: Bad File Format: missing image size specifier.",
+    );
   }
   const [width, height, xSign, ySign] = dimensions;
   const dataOffset =
@@ -273,25 +275,16 @@ function parseHeaderLine(line: string, state: HeaderState): boolean {
     throw new Error("HDRLoader: Image dimensions must be positive.");
   }
   assertOutputSize(width, height);
-  state[3] = [
-    width,
-    height,
-    groups.xSign as Sign,
-    groups.ySign as Sign,
-  ];
+  state[3] = [width, height, groups.xSign as Sign, groups.ySign as Sign];
   return true;
 }
 
 function updateFormat(line: string, state: HeaderState): void {
-  const groups = FORMAT_PATTERN.exec(line)?.groups as
-    | HeaderGroups
-    | undefined;
+  const groups = FORMAT_PATTERN.exec(line)?.groups as HeaderGroups | undefined;
   const value = groups?.value;
   if (value === undefined) return;
   if (value !== "32-bit_rgbe" && value !== "32-bit_rle_rgbe") {
-    throw new Error(
-      `HDRLoader: Bad File Format: unsupported FORMAT=${value}.`,
-    );
+    throw new Error(`HDRLoader: Bad File Format: unsupported FORMAT=${value}.`);
   }
   state[0] = value;
 }
@@ -326,10 +319,7 @@ function assertOutputSize(width: number, height: number): void {
   }
 }
 
-function decodePixels(
-  bytes: Uint8Array,
-  options: DecodeOptions,
-): Float32Array {
+function decodePixels(bytes: Uint8Array, options: DecodeOptions): Float32Array {
   const { dataOffset, width, height } = options;
   const data = new Float32Array(width * height * RGBA_CHANNELS);
   const rle = hasRleHeader(bytes, dataOffset, width);
@@ -431,10 +421,7 @@ function decodeRleScanline(
   return cursor;
 }
 
-function decodeRleChannel(
-  bytes: Uint8Array,
-  options: RleOptions,
-): number {
+function decodeRleChannel(bytes: Uint8Array, options: RleOptions): number {
   let cursor = options.cursor;
   let position = 0;
   while (position < options.width) {
@@ -456,10 +443,7 @@ function decodeRleChannel(
     if (control > 128) {
       options.scanline.fill(bytes[cursor++] ?? 0, start, start + count);
     } else {
-      options.scanline.set(
-        bytes.subarray(cursor, cursor + count),
-        start,
-      );
+      options.scanline.set(bytes.subarray(cursor, cursor + count), start);
       cursor += count;
     }
     position += count;
@@ -505,7 +489,10 @@ function validateTextureOptions(
   toneMapping: HDRToneMapping,
 ): void {
   assertExposure(exposure);
-  if (toneMapping !== REINHARD_TONE_MAPPING && toneMapping !== NO_TONE_MAPPING) {
+  if (
+    toneMapping !== REINHARD_TONE_MAPPING &&
+    toneMapping !== NO_TONE_MAPPING
+  ) {
     throw new RangeError('HDRLoader toneMapping must be "reinhard" or "none".');
   }
 }

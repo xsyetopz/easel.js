@@ -2,37 +2,40 @@ import { Geometry } from "../geometry/Geometry.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 
+const NORMAL_PATTERN =
+  /facet\s+normal\s+(?<x>[-+\d.eE]+)\s+(?<y>[-+\d.eE]+)\s+(?<z>[-+\d.eE]+)/giu;
+const VERTEX_PATTERN =
+  /vertex\s+(?<x>[-+\d.eE]+)\s+(?<y>[-+\d.eE]+)\s+(?<z>[-+\d.eE]+)/giu;
+
 function parseAscii(text: string): Geometry {
   const positions: number[] = [];
   const normals: number[] = [];
-  const normalPattern =
-    /facet\s+normal\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)/giu;
-  const vertexPattern =
-    /vertex\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)/giu;
   const facetNormals: number[][] = [];
   let normalMatch: RegExpExecArray | null;
-  normalMatch = normalPattern.exec(text);
+  normalMatch = NORMAL_PATTERN.exec(text);
   while (normalMatch !== null) {
+    const { x, y, z } = normalMatch.groups ?? {};
     facetNormals.push([
-      Number.parseFloat(normalMatch[1] ?? "0"),
-      Number.parseFloat(normalMatch[2] ?? "0"),
-      Number.parseFloat(normalMatch[3] ?? "0"),
+      Number.parseFloat(x ?? "0"),
+      Number.parseFloat(y ?? "0"),
+      Number.parseFloat(z ?? "0"),
     ]);
-    normalMatch = normalPattern.exec(text);
+    normalMatch = NORMAL_PATTERN.exec(text);
   }
   let vertexMatch: RegExpExecArray | null;
   let vertexIndex = 0;
-  vertexMatch = vertexPattern.exec(text);
+  vertexMatch = VERTEX_PATTERN.exec(text);
   while (vertexMatch !== null) {
+    const { x, y, z } = vertexMatch.groups ?? {};
     positions.push(
-      Number.parseFloat(vertexMatch[1] ?? "0"),
-      Number.parseFloat(vertexMatch[2] ?? "0"),
-      Number.parseFloat(vertexMatch[3] ?? "0"),
+      Number.parseFloat(x ?? "0"),
+      Number.parseFloat(y ?? "0"),
+      Number.parseFloat(z ?? "0"),
     );
     const normal = facetNormals[Math.floor(vertexIndex / 3)] ?? [0, 0, 0];
-    normals.push(normal[0]!, normal[1]!, normal[2]!);
+    normals.push(normal[0] ?? 0, normal[1] ?? 0, normal[2] ?? 0);
     vertexIndex++;
-    vertexMatch = vertexPattern.exec(text);
+    vertexMatch = VERTEX_PATTERN.exec(text);
   }
   const geometry = new Geometry().setPositions(positions);
   if (positions.length > 0 && facetNormals.length > 0)

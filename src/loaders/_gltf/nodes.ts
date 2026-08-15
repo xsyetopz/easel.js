@@ -2,32 +2,74 @@ import type { OrthographicCamera } from "../../cameras/OrthographicCamera.ts";
 import type { PerspectiveCamera } from "../../cameras/PerspectiveCamera.ts";
 import type { Node } from "../../core/Node.ts";
 import type { Scene } from "../../core/Scene.ts";
-import { Geometry } from "../../geometry/Geometry.ts";
 import type { Material } from "../../materials/Material.ts";
 import { Matrix4 } from "../../math/Matrix4.ts";
 import { Quaternion } from "../../math/Quaternion.ts";
 import { Vector3 } from "../../math/Vector3.ts";
 import { Group } from "../../objects/Group.ts";
-import { InstancedMesh } from "../../objects/InstancedMesh.ts";
 import { LOD } from "../../objects/LOD.ts";
-import { Mesh } from "../../objects/Mesh.ts";
+import type { Mesh } from "../../objects/Mesh.ts";
 import type { GLTFMaterialInfo, GLTFNodeLODInfo } from "../GLTFLoader.ts";
-import type { BuildContext, InstancingData } from "./extensions.ts";
-import { array, integer, numberArray, record } from "./validation.ts";
+import type { BuildContext } from "./extensions.ts";
+import type { MeshBuildOptions } from "./mesh.ts";
+import { buildMesh as buildMeshImplementation } from "./mesh.ts";
+import { integer, numberArray } from "./validation.ts";
 
+/** Builds the mesh referenced by a glTF node using the shared mesh builder. */
+export function buildMesh(
+  index: number,
+  options: MeshBuildOptions,
+): Group | Mesh {
+  return buildMeshImplementation(index, options);
+}
+
+/** Options for recursively constructing glTF nodes and their scene-graph content. */
+export interface NodeBuildOptions {
+  /** Source node records indexed by their glTF node number. */
+  readonly nodes: NodeRecord[];
+  /** Source mesh definitions indexed by their glTF mesh number. */
+  readonly meshes: Readonly<Record<string, unknown>>[];
+  /** Camera prototypes available to node camera references. */
+  readonly cameras: readonly (PerspectiveCamera | OrthographicCamera)[];
+  /** Decodes an accessor into flattened numeric component values. */
+  readonly readAccessor: (index: number) => number[];
+  /** Parsed material records available to mesh construction. */
+  readonly materials: readonly GLTFMaterialInfo[];
+  /** glTF default material used by primitives without an explicit material. */
+  readonly defaultMaterial: Material;
+  /** Optional collection receiving cloned cameras encountered during traversal. */
+  readonly collectCameras:
+    | (PerspectiveCamera | OrthographicCamera)[]
+    | undefined;
+  /** Shared extension and LOD state used during node construction. */
+  readonly context: BuildContext;
+}
+
+/** Describes the node fields consumed from a glTF document. */
 export interface NodeRecord {
+  /** Optional node name copied to the created scene-graph object. */
   name?: string;
+  /** Indices of child nodes attached below this node. */
   children?: number[];
+  /** Index of the mesh instance referenced by this node. */
   mesh?: number;
+  /** Index of the camera referenced by this node. */
   camera?: number;
+  /** Column-major local transform matrix, when provided. */
   matrix?: number[];
+  /** Local translation vector in glTF coordinates. */
   translation?: number[];
+  /** Local rotation quaternion in glTF component order. */
   rotation?: number[];
+  /** Local scale vector in glTF coordinates. */
   scale?: number[];
+  /** Application-defined metadata copied into node user data. */
   extras?: unknown;
+  /** glTF extension payloads associated with the node. */
   extensions?: Readonly<Record<string, unknown>>;
 }
 
+/** Applies a node's matrix or TRS fields to a scene-graph node. */
 export function setNodeTransform(node: Node, source: NodeRecord): void {
   if (source.matrix !== undefined) {
     const matrix = numberArray(source.matrix, "node.matrix", 16);
@@ -49,6 +91,7 @@ export function setNodeTransform(node: Node, source: NodeRecord): void {
   node.updateMatrix();
 }
 
+/** Merges glTF extras into node user data and records the source index. */
 export function setUserData(node: Node, extras: unknown, index: number): void {
   const existing = node.userData;
   if (
@@ -67,6 +110,7 @@ export function setUserData(node: Node, extras: unknown, index: number): void {
   }
 }
 
+/** Builds a local transform matrix from a node's matrix or TRS fields. */
 export function nodeTransformMatrix(source: NodeRecord): Matrix4 {
   if (source.matrix !== undefined)
     return new Matrix4().fromArray(
@@ -91,6 +135,7 @@ export function nodeTransformMatrix(source: NodeRecord): Matrix4 {
   return new Matrix4().compose(position, quaternion, scale);
 }
 
+/** Applies a child node's transform relative to its LOD parent matrix. */
 export function applyRelativeNodeTransform(
   object: Node,
   source: NodeRecord,
@@ -104,6 +149,7 @@ export function applyRelativeNodeTransform(
   object.updateMatrix();
 }
 
+/** Calculates the camera distance at which an LOD level becomes active. */
 export function lodDistance(
   info: GLTFNodeLODInfo,
   level: number,
@@ -115,277 +161,103 @@ export function lodDistance(
   return level * 10 * scale;
 }
 
-export function buildNode(
+function buildLOD(
   index: number,
-  nodes: NodeRecord[],
-  meshes: Readonly<Record<string, unknown>>[],
-  cameras: readonly (PerspectiveCamera | OrthographicCamera)[],
-  readAccessor: (index: number) => number[],
-  materials: readonly GLTFMaterialInfo[],
-  defaultMaterial: Material,
-  collectCameras: (PerspectiveCamera | OrthographicCamera)[] | undefined,
-  context: BuildContext,
-): Group | Mesh | LOD | Scene | PerspectiveCamera | OrthographicCamera {
-  const source = nodes[index];
-  if (!source) throw new RangeError(`GLTFLoader: node ${index} is missing.`);
-  const lodInfo = context.lods.get(index);
-  if (lodInfo !== undefined && !context.activeLods.has(index)) {
-    context.activeLods.add(index);
-    const lod = new LOD();
-    lod.name = source.name ?? `Node${index}`;
-    const parentMatrix = nodeTransformMatrix(source);
-    setNodeTransform(lod, source);
-    const levelIndices = [index, ...lodInfo.ids];
-    for (let level = 0; level < levelIndices.length; level++) {
-      const levelIndex = levelIndices[level]!;
-      const levelObject = buildNodeContent(
-        levelIndex,
-        nodes,
-        meshes,
-        cameras,
-        readAccessor,
-        materials,
-        defaultMaterial,
-        collectCameras,
-        context,
-        false,
-      );
-      if (level > 0) {
-        const levelSource = nodes[levelIndex]!;
-        applyRelativeNodeTransform(levelObject, levelSource, parentMatrix);
-      }
-      lod.addLevel(
-        levelObject,
-        lodDistance(lodInfo, level, context.lodDistanceScale),
-      );
-      levelObject.visible = level === 0;
+  source: NodeRecord,
+  info: GLTFNodeLODInfo,
+  options: NodeBuildOptions,
+): LOD {
+  options.context.activeLods.add(index);
+  const lod = new LOD();
+  lod.name = source.name ?? `Node${index}`;
+  const parentMatrix = nodeTransformMatrix(source);
+  setNodeTransform(lod, source);
+  const levelIndices = [index, ...info.ids];
+  for (let level = 0; level < levelIndices.length; level++) {
+    const levelIndex = levelIndices[level];
+    if (levelIndex === undefined)
+      throw new RangeError(`GLTFLoader: LOD level ${level} is missing.`);
+    const levelObject = buildNodeContent(levelIndex, options, false);
+    if (level > 0) {
+      const levelSource = options.nodes[levelIndex];
+      if (levelSource === undefined)
+        throw new RangeError(`GLTFLoader: node ${levelIndex} is missing.`);
+      applyRelativeNodeTransform(levelObject, levelSource, parentMatrix);
     }
-    lod.userData = { gltfNodeIndex: index, gltfLOD: lodInfo };
-    setUserData(lod, source.extras, index);
-    context.activeLods.delete(index);
-    return lod;
+    lod.addLevel(
+      levelObject,
+      lodDistance(info, level, options.context.lodDistanceScale),
+    );
+    levelObject.visible = level === 0;
   }
-  return buildNodeContent(
-    index,
-    nodes,
-    meshes,
-    cameras,
-    readAccessor,
-    materials,
-    defaultMaterial,
-    collectCameras,
-    context,
-  );
+  lod.userData = { gltfNodeIndex: index, gltfLOD: info };
+  setUserData(lod, source.extras, index);
+  options.context.activeLods.delete(index);
+  return lod;
 }
 
+/** Builds a node and its LOD levels, recursively resolving scene references. */
+export function buildNode(
+  index: number,
+  options: NodeBuildOptions,
+): Group | Mesh | LOD | Scene | PerspectiveCamera | OrthographicCamera {
+  const source = options.nodes[index];
+  if (!source) throw new RangeError(`GLTFLoader: node ${index} is missing.`);
+  const lodInfo = options.context.lods.get(index);
+  if (lodInfo !== undefined && !options.context.activeLods.has(index))
+    return buildLOD(index, source, lodInfo, options);
+  return buildNodeContent(index, options);
+}
+
+/** Builds a node's camera, mesh, or group content and attaches its children. */
 export function buildNodeContent(
   index: number,
-  nodes: NodeRecord[],
-  meshes: Readonly<Record<string, unknown>>[],
-  cameras: readonly (PerspectiveCamera | OrthographicCamera)[],
-  readAccessor: (index: number) => number[],
-  materials: readonly GLTFMaterialInfo[],
-  defaultMaterial: Material,
-  collectCameras: (PerspectiveCamera | OrthographicCamera)[] | undefined,
-  context: BuildContext,
+  options: NodeBuildOptions,
   applyTransform: boolean = true,
 ): Group | Mesh | LOD | Scene | PerspectiveCamera | OrthographicCamera {
-  const source = nodes[index];
+  const source = options.nodes[index];
   if (!source) throw new RangeError(`GLTFLoader: node ${index} is missing.`);
   const camera =
     source.camera === undefined
       ? undefined
-      : cameras[integer(source.camera, `nodes[${index}].camera`)];
+      : options.cameras[integer(source.camera, `nodes[${index}].camera`)];
   let object: Group | Mesh | LOD | PerspectiveCamera | OrthographicCamera;
   if (camera) {
     object = camera.clone();
-    collectCameras?.push(object);
+    options.collectCameras?.push(object);
   } else if (source.mesh !== undefined) {
-    object = buildMesh(
-      integer(source.mesh, `nodes[${index}].mesh`),
-      meshes,
-      readAccessor,
-      materials,
-      defaultMaterial,
-      context.instancing.get(index),
-    );
+    const instancing = options.context.instancing.get(index);
+    object =
+      instancing === undefined
+        ? buildMeshImplementation(
+            integer(source.mesh, `nodes[${index}].mesh`),
+            {
+              meshes: options.meshes,
+              readAccessor: options.readAccessor,
+              materials: options.materials,
+              defaultMaterial: options.defaultMaterial,
+            },
+          )
+        : buildMeshImplementation(
+            integer(source.mesh, `nodes[${index}].mesh`),
+            {
+              meshes: options.meshes,
+              readAccessor: options.readAccessor,
+              materials: options.materials,
+              defaultMaterial: options.defaultMaterial,
+              instancing,
+            },
+          );
   } else {
     object = new Group();
   }
   if (source.name !== undefined) object.name = source.name;
   if (applyTransform) setNodeTransform(object, source);
   setUserData(object, source.extras, index);
-  const instancing = context.instancing.get(index);
+  const instancing = options.context.instancing.get(index);
   if (instancing)
     object.userData = { ...object.userData, gltfInstancing: instancing.info };
   for (const child of source.children ?? [])
-    object.add(
-      buildNode(
-        integer(child, `nodes[${index}].children`),
-        nodes,
-        meshes,
-        cameras,
-        readAccessor,
-        materials,
-        defaultMaterial,
-        collectCameras,
-        context,
-      ),
-    );
+    object.add(buildNode(integer(child, `nodes[${index}].children`), options));
   return object;
-}
-
-export function buildMesh(
-  index: number,
-  meshes: Readonly<Record<string, unknown>>[],
-  readAccessor: (index: number) => number[],
-  materials: readonly GLTFMaterialInfo[],
-  defaultMaterial: Material,
-  instancing?: InstancingData,
-): Group | InstancedMesh | Mesh {
-  const meshDef = meshes[index];
-  if (!meshDef) throw new RangeError(`GLTFLoader: mesh ${index} is missing.`);
-  const primitives = array(
-    meshDef["primitives"] ?? [],
-    `meshes[${index}].primitives`,
-  );
-  const objects: Mesh[] = [];
-  for (
-    let primitiveIndex = 0;
-    primitiveIndex < primitives.length;
-    primitiveIndex++
-  ) {
-    const primitive = record(
-      primitives[primitiveIndex],
-      `meshes[${index}].primitives[${primitiveIndex}]`,
-    );
-    const mode = integer(primitive["mode"], "primitive.mode", 4);
-    if (mode !== 4 && mode !== 5 && mode !== 6)
-      throw new Error(
-        `GLTFLoader: primitive mode ${mode} is outside the CPU triangle path.`,
-      );
-    const attributes = record(primitive["attributes"], "primitive.attributes");
-    const positionAccessor = integer(
-      attributes["POSITION"],
-      "primitive.attributes.POSITION",
-    );
-    const positions = readAccessor(positionAccessor);
-    const geometry = new Geometry().setPositions(positions);
-    if (typeof attributes["NORMAL"] === "number")
-      geometry.setNormals(
-        readAccessor(
-          integer(attributes["NORMAL"], "primitive.attributes.NORMAL"),
-        ),
-      );
-    if (typeof attributes["TEXCOORD_0"] === "number")
-      geometry.setUVs(
-        readAccessor(
-          integer(attributes["TEXCOORD_0"], "primitive.attributes.TEXCOORD_0"),
-        ),
-      );
-    if (typeof attributes["COLOR_0"] === "number") {
-      const colors = readAccessor(
-        integer(attributes["COLOR_0"], "primitive.attributes.COLOR_0"),
-      );
-      const components = colors.length / (positions.length / 3);
-      geometry.setColors(
-        components === 4
-          ? colors.filter((_value, component) => component % 4 !== 3)
-          : colors,
-      );
-    }
-    const sourceIndices =
-      primitive["indices"] === undefined
-        ? Array.from({ length: positions.length / 3 }, (_value, item) => item)
-        : readAccessor(integer(primitive["indices"], "primitive.indices"));
-    const indices: number[] = [];
-    if (mode === 4) indices.push(...sourceIndices);
-    else if (mode === 5) {
-      for (let item = 0; item + 2 < sourceIndices.length; item++) {
-        if (item % 2 === 0)
-          indices.push(
-            sourceIndices[item]!,
-            sourceIndices[item + 1]!,
-            sourceIndices[item + 2]!,
-          );
-        else
-          indices.push(
-            sourceIndices[item + 1]!,
-            sourceIndices[item]!,
-            sourceIndices[item + 2]!,
-          );
-      }
-    } else
-      for (let item = 1; item + 1 < sourceIndices.length; item++)
-        indices.push(
-          sourceIndices[0]!,
-          sourceIndices[item]!,
-          sourceIndices[item + 1]!,
-        );
-    geometry.index = indices.some((value) => value > 65535)
-      ? new Uint32Array(indices)
-      : indices;
-    if (geometry.getAttribute("normal") === undefined)
-      geometry.computeVertexNormals();
-    const materialIndex =
-      primitive["material"] === undefined
-        ? undefined
-        : integer(primitive["material"], "primitive.material");
-    const info =
-      materialIndex === undefined ? undefined : materials[materialIndex];
-    const object = instancing
-      ? new InstancedMesh(
-          geometry,
-          info?.material ?? defaultMaterial,
-          instancing.info.count,
-        )
-      : new Mesh(geometry, info?.material ?? defaultMaterial);
-    if (instancing) {
-      const translation = instancing.translations;
-      const rotation = instancing.rotations;
-      const scale = instancing.scales;
-      const position = new Vector3();
-      const quaternion = new Quaternion();
-      const size = new Vector3(1, 1, 1);
-      const matrix = new Matrix4();
-      for (let instance = 0; instance < instancing.info.count; instance++) {
-        if (translation) position.fromArray(translation, instance * 3);
-        else position.set(0, 0, 0);
-        if (rotation) quaternion.fromArray(rotation, instance * 4);
-        else quaternion.set(0, 0, 0, 1);
-        if (scale) size.fromArray(scale, instance * 3);
-        else size.set(1, 1, 1);
-        (object as InstancedMesh).setMatrixAt(
-          instance,
-          matrix.compose(position, quaternion, size),
-        );
-      }
-      if (instancing.instanceColor)
-        (object as InstancedMesh).instanceColor = instancing.instanceColor;
-    }
-    object.name =
-      typeof meshDef["name"] === "string"
-        ? (meshDef["name"] as string)
-        : `Mesh${index}`;
-    object.userData = {
-      gltfMeshIndex: index,
-      gltfPrimitiveIndex: primitiveIndex,
-      ...(info
-        ? {
-            gltfMaterialIndex: info.index,
-            gltfBaseColorTexture: info.baseColorTexture,
-          }
-        : {}),
-      ...(instancing ? { gltfInstancing: instancing.info } : {}),
-    };
-    objects.push(object);
-  }
-  if (objects.length === 1) return objects[0]!;
-  const group = new Group();
-  group.name =
-    typeof meshDef["name"] === "string"
-      ? (meshDef["name"] as string)
-      : `Mesh${index}`;
-  group.add(...objects);
-  return group;
 }

@@ -1,17 +1,30 @@
 import { Matrix4 } from "../math/Matrix4.ts";
 import type { VOXFrame, VOXTranslation } from "./VOXLoader.ts";
 
+const WHITESPACE = /\s+/u;
+
+/** String token and next byte offset parsed from a VOX chunk. */
 export interface ParsedString {
+  /** Decoded string value. */
   readonly value: string;
+  /** Offset immediately after the token. */
   readonly next: number;
 }
 
+/** Dictionary token and next byte offset parsed from a VOX chunk. */
 export interface ParsedDictionary {
-  readonly value: Readonly<Record<string, string>>;
+  /** Decoded key/value entries. */
+  readonly value: Readonly<Record<string, string>> & {
+    readonly _r?: string;
+    readonly _t?: string;
+  };
+  /** Offset immediately after the dictionary. */
   readonly next: number;
 }
 
+/** MagicaVoxel file signature. */
 export const VOX_MAGIC = "VOX ";
+/** Default 256-entry RGBA palette used when a VOX file omits one. */
 export const DEFAULT_PALETTE: readonly number[] = [
   0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0xff33ffff,
   0xff00ffff, 0xffffccff, 0xffccccff, 0xff99ccff, 0xff66ccff, 0xff33ccff,
@@ -58,10 +71,12 @@ export const DEFAULT_PALETTE: readonly number[] = [
   0xff555555, 0xff444444, 0xff222222, 0xff111111,
 ];
 
+/** Throws a consistently prefixed syntax error for malformed VOX data. */
 export function fail(message: string): never {
   throw new SyntaxError(`VOXLoader: ${message}`);
 }
 
+/** Checks a chunk range and returns its exclusive end offset. */
 export function checkedEnd(
   start: number,
   size: number,
@@ -74,6 +89,7 @@ export function checkedEnd(
   return start + size;
 }
 
+/** Reads a length-prefixed UTF-8 string and its following offset. */
 export function readString(
   view: DataView,
   offset: number,
@@ -86,6 +102,7 @@ export function readString(
   return { value: new TextDecoder().decode(bytes), next: valueEnd };
 }
 
+/** Reads a VOX attribute dictionary from a bounded chunk region. */
 export function readDictionary(
   view: DataView,
   offset: number,
@@ -104,6 +121,7 @@ export function readDictionary(
   return { value, next };
 }
 
+/** Converts a MagicaVoxel packed rotation byte to a transform matrix. */
 export function decodeRotation(byte: number): Matrix4 {
   const index1 = byte & 0x3;
   const index2 = (byte >> 2) & 0x3;
@@ -125,21 +143,21 @@ export function decodeRotation(byte: number): Matrix4 {
     [0, 0, 0],
     [0, 0, 0],
   ];
-  rows[0]![index1] = sign1;
-  rows[1]![index2] = sign2;
-  rows[2]![index3] = sign3;
+  rows[0][index1] = sign1;
+  rows[1][index2] = sign2;
+  rows[2][index3] = sign3;
   return new Matrix4().set(
-    rows[0]![0]!,
-    rows[0]![2]!,
-    -rows[0]![1]!,
+    rows[0][0],
+    rows[0][2],
+    -rows[0][1],
     0,
-    rows[2]![0]!,
-    rows[2]![2]!,
-    -rows[2]![1]!,
+    rows[2][0],
+    rows[2][2],
+    -rows[2][1],
     0,
-    -rows[1]![0]!,
-    -rows[1]![2]!,
-    rows[1]![1]!,
+    -rows[1][0],
+    -rows[1][2],
+    rows[1][1],
     0,
     0,
     0,
@@ -148,6 +166,7 @@ export function decodeRotation(byte: number): Matrix4 {
   );
 }
 
+/** Decodes nTRN rotation, translation, and attributes for one frame. */
 export function readFrame(
   view: DataView,
   offset: number,
@@ -156,23 +175,23 @@ export function readFrame(
   const attributes = readDictionary(view, offset, end);
   let rotation: Matrix4 | undefined;
   let translation: VOXTranslation | undefined;
-  const rotationValue = attributes.value["_r"];
+  const rotationValue = attributes.value._r;
   if (rotationValue !== undefined) {
     const byte = Number.parseInt(rotationValue, 10);
     if (!Number.isInteger(byte) || byte < 0 || byte > 255)
       fail("invalid nTRN rotation attribute.");
     rotation = decodeRotation(byte);
   }
-  const translationValue = attributes.value["_t"];
+  const translationValue = attributes.value._t;
   if (translationValue !== undefined) {
-    const values = translationValue.trim().split(/\s+/u).map(Number);
+    const values = translationValue.trim().split(WHITESPACE).map(Number);
     if (
       values.length < 3 ||
       values.slice(0, 3).some((value) => !Number.isFinite(value))
     ) {
       fail("invalid nTRN translation attribute.");
     }
-    translation = { x: values[0]!, y: values[1]!, z: values[2]! };
+    translation = { x: values[0] ?? 0, y: values[1] ?? 0, z: values[2] ?? 0 };
   }
   return {
     frame: { rotation, translation, attributes: attributes.value },
@@ -180,6 +199,7 @@ export function readFrame(
   };
 }
 
+/** Reads the four-byte ASCII identifier at a VOX chunk boundary. */
 export function readChunkId(
   view: DataView,
   offset: number,
@@ -192,6 +212,7 @@ export function readChunkId(
   return id;
 }
 
+/** Copies the 256 RGBA entries from an RGBA chunk into a palette array. */
 export function copyPalette(
   view: DataView,
   offset: number,

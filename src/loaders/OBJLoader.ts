@@ -7,6 +7,11 @@ import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 import type { MTLLoaderResult, MTLMaterialDefinition } from "./MTLLoader.ts";
 
+const RE_NEWLINE = /\r?\n/u;
+const RE_MATERIAL_COLOR =
+  /^#\s*easel-material-color\s+(?<color>[0-9a-f]{6})$/iu;
+const RE_WHITESPACE = /\s+/u;
+
 interface ObjObject {
   name: string;
   vertices: number[];
@@ -35,6 +40,20 @@ interface ResolvedMaterialTable {
   readonly definitions:
     | Readonly<Record<string, MTLMaterialDefinition>>
     | undefined;
+}
+
+interface OBJMeshUserData {
+  [key: string]: unknown;
+  materialName?: string;
+  mapKd?: {
+    path: string;
+    url: string;
+  };
+}
+
+interface OBJGroupUserData {
+  [key: string]: unknown;
+  mtllib?: string[];
 }
 
 function isMTLMaterialTable(
@@ -119,11 +138,14 @@ export class OBJLoader extends Loader {
     text: string,
     options: OBJLoaderOptions | OBJMaterialTable = {},
   ): Group {
-    const configuredTable = isMaterialOptions(options)
-      ? options.materials
-      : Object.keys(options).length === 0
-        ? undefined
-        : options;
+    let configuredTable: OBJMaterialTable | undefined;
+    if (isMaterialOptions(options)) {
+      configuredTable = options.materials;
+    } else if (Object.keys(options).length === 0) {
+      configuredTable = undefined;
+    } else {
+      configuredTable = options;
+    }
     const materialTable = resolveMaterialTable(
       configuredTable ?? this.#materials,
     );
@@ -137,22 +159,22 @@ export class OBJLoader extends Loader {
     let current = createObject("Object");
     objects.push(current);
 
-    for (const rawLine of text.split(/\r?\n/u)) {
+    for (const rawLine of text.split(RE_NEWLINE)) {
       const line = rawLine.trim();
       if (line === "") continue;
       if (line.startsWith("#")) {
-        const colorMatch = line.match(
-          /^#\s*easel-material-color\s+([0-9a-f]{6})$/iu,
-        );
-        if (colorMatch && currentMaterialName) {
+        const colorMatch = line.match(RE_MATERIAL_COLOR);
+        const colorHex = (colorMatch?.groups as { color?: string } | undefined)
+          ?.color;
+        if (colorHex !== undefined && currentMaterialName) {
           inlineMaterialColors.set(
             currentMaterialName,
-            Number.parseInt(colorMatch[1]!, 16),
+            Number.parseInt(colorHex, 16),
           );
         }
         continue;
       }
-      const parts = line.split(/\s+/u);
+      const parts = line.split(RE_WHITESPACE);
       const command = parts[0];
       if (command === "mtllib") {
         libraries.push(...parts.slice(1));
@@ -224,12 +246,17 @@ export class OBJLoader extends Loader {
           face.push(index);
         }
         for (let index = 1; index + 1 < face.length; index++) {
-          current.indices.push(face[0]!, face[index]!, face[index + 1]!);
+          current.indices.push(
+            face[0] ?? 0,
+            face[index] ?? 0,
+            face[index + 1] ?? 0,
+          );
         }
       }
     }
 
     const group = new Group();
+    const groupUserData = group.userData as OBJGroupUserData;
     for (const object of objects) {
       if (object.indices.length === 0) continue;
       const geometry = new Geometry().setPositions(object.vertices);
@@ -250,20 +277,20 @@ export class OBJLoader extends Loader {
       if (object.materialName) material.name = object.materialName;
       const mesh = new Mesh(geometry, material);
       mesh.name = object.name;
-      if (object.materialName)
-        mesh.userData["materialName"] = object.materialName;
+      const meshUserData = mesh.userData as OBJMeshUserData;
+      if (object.materialName) meshUserData.materialName = object.materialName;
       const definition = object.materialName
         ? materialTable?.definitions?.[object.materialName]
         : undefined;
       if (definition?.mapKd !== undefined) {
-        mesh.userData["mapKd"] = {
+        meshUserData.mapKd = {
           path: definition.mapKd.path,
           url: definition.mapKd.url,
         };
       }
       group.add(mesh);
     }
-    if (libraries.length > 0) group.userData["mtllib"] = libraries;
+    if (libraries.length > 0) groupUserData.mtllib = libraries;
     return group;
   }
 }

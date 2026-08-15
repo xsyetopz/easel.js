@@ -7,11 +7,24 @@ import type {
   NRRDScalarType,
 } from "./NRRDLoader.ts";
 
+const RE_BOM = /^\uFEFF/u;
+const RE_LINE_SPLIT = /\r\n|\n|\r/u;
+const RE_MAGIC = /^NRRD\d+$/u;
+const RE_WHITESPACE = /\s+/u;
+const RE_HEX_PREFIX = /^0x/u;
+const RE_HEX_VALUE = /^[+-]?[0-9a-f]+$/u;
+const RE_COMMA_SPLIT = /\s*,\s*/u;
+const RE_PARENS = /\((?<inner>[^)]*)\)/u;
+
+/** Byte width metadata for one supported NRRD scalar type. */
 export interface NRRDTypeInfo {
+  /** Canonical scalar type name. */
   readonly type: NRRDScalarType;
+  /** Number of bytes per scalar value. */
   readonly bytes: 1 | 2 | 4 | 8;
 }
 
+/** Byte width and canonical name for each supported NRRD scalar type. */
 export const typeInfo: Record<NRRDScalarType, NRRDTypeInfo> = {
   uint8: { type: "uint8", bytes: 1 },
   int8: { type: "int8", bytes: 1 },
@@ -23,6 +36,7 @@ export const typeInfo: Record<NRRDScalarType, NRRDTypeInfo> = {
   float64: { type: "float64", bytes: 8 },
 };
 
+/** Maps NRRD and common C-style scalar names to canonical types. */
 export const typeAliases: Record<string, NRRDScalarType> = {
   uchar: "uint8",
   "unsigned char": "uint8",
@@ -59,13 +73,7 @@ export const typeAliases: Record<string, NRRDScalarType> = {
   float64: "float64",
 };
 
-export function parseHeader(bytes: Uint8Array): NRRDHeader {
-  const text = new TextDecoder().decode(bytes).replace(/^\uFEFF/u, "");
-  const lines = text.split(/\r\n|\n|\r/u);
-  const magic = lines.shift()?.trim() ?? "";
-  if (!/^NRRD\d+$/u.test(magic)) {
-    throw new SyntaxError("NRRDLoader: input is not an NRRD file.");
-  }
+function parseHeaderFields(lines: string[]): Map<string, string> {
   const fields = new Map<string, string>();
   for (const line of lines) {
     const trimmed = line.trim();
@@ -78,6 +86,24 @@ export function parseHeader(bytes: Uint8Array): NRRDHeader {
     const value = line.slice(separator + 1).trim();
     if (key) fields.set(key, value);
   }
+  return fields;
+}
+
+function axisLabel(axis: number): NRRDAxis {
+  if (axis === 0) return "x";
+  if (axis === 1) return "y";
+  return "z";
+}
+
+/** Parses an NRRD header into validated, normalized metadata. */
+export function parseHeader(bytes: Uint8Array): NRRDHeader {
+  const text = new TextDecoder().decode(bytes).replace(RE_BOM, "");
+  const lines = text.split(RE_LINE_SPLIT);
+  const magic = lines.shift()?.trim() ?? "";
+  if (!RE_MAGIC.test(magic)) {
+    throw new SyntaxError("NRRDLoader: input is not an NRRD file.");
+  }
+  const fields = parseHeaderFields(lines);
   if (fields.has("data file") || fields.has("datafile")) {
     throw new Error(
       "NRRDLoader: detached 'data file' payloads are not supported; provide a single-file NRRD.",
@@ -120,6 +146,7 @@ export function parseHeader(bytes: Uint8Array): NRRDHeader {
   });
 }
 
+/** Decodes raw, ASCII, or hexadecimal NRRD payload samples. */
 export function decodePayload(
   payload: Uint8Array,
   header: NRRDHeader,
@@ -129,7 +156,7 @@ export function decodePayload(
     return decodeRaw(payload, header, count);
   }
   const text = new TextDecoder().decode(payload).replace(/#.*$/gmu, " ");
-  const tokens = text.trim() ? text.trim().split(/\s+/u) : [];
+  const tokens = text.trim() ? text.trim().split(RE_WHITESPACE) : [];
   if (tokens.length < count) {
     throw new Error(
       `NRRDLoader: ${header.encoding} payload contains ${tokens.length} samples; expected ${count}.`,
@@ -149,6 +176,7 @@ export function decodePayload(
   return result;
 }
 
+/** Decodes binary NRRD samples using the declared scalar type and endianness. */
 export function decodeRaw(
   payload: Uint8Array,
   header: NRRDHeader,
@@ -186,6 +214,7 @@ export function decodeRaw(
   return result;
 }
 
+/** Reads one typed scalar value from a DataView. */
 export function readValue(
   view: DataView,
   offset: number,
@@ -212,6 +241,7 @@ export function readValue(
   }
 }
 
+/** Allocates the typed array matching an NRRD scalar type. */
 export function createDataArray(
   type: NRRDScalarType,
   length: number,
@@ -236,6 +266,7 @@ export function createDataArray(
   }
 }
 
+/** Converts one ASCII or hexadecimal sample token to a number. */
 export function parseTextSample(
   token: string,
   type: NRRDScalarType,
@@ -244,11 +275,12 @@ export function parseTextSample(
   if (encoding === "ascii" || type === "float32" || type === "float64") {
     return Number(token);
   }
-  const normalized = token.toLowerCase().replace(/^0x/u, "");
-  if (!(normalized && /^[+-]?[0-9a-f]+$/u.test(normalized))) return Number.NaN;
+  const normalized = token.toLowerCase().replace(RE_HEX_PREFIX, "");
+  if (!(normalized && RE_HEX_VALUE.test(normalized))) return Number.NaN;
   return Number.parseInt(normalized, 16);
 }
 
+/** Normalizes a declared NRRD encoding and rejects unsupported values. */
 export function parseEncoding(value: string | undefined): NRRDEncoding {
   const normalized = (value ?? "raw").toLowerCase();
   if (normalized === "raw") return "raw";
@@ -261,6 +293,7 @@ export function parseEncoding(value: string | undefined): NRRDEncoding {
   );
 }
 
+/** Normalizes the optional NRRD byte-order declaration. */
 export function parseEndian(
   value: string | undefined,
 ): "little" | "big" | undefined {
@@ -270,6 +303,7 @@ export function parseEndian(
   throw new Error(`NRRDLoader: unsupported endian '${value}'.`);
 }
 
+/** Parses a required positive safe integer NRRD field. */
 export function parsePositiveInteger(
   value: string | undefined,
   name: string,
@@ -281,6 +315,7 @@ export function parsePositiveInteger(
   return number;
 }
 
+/** Parses an optional positive safe integer, returning undefined when absent. */
 export function parseOptionalInteger(
   value: string | undefined,
 ): number | undefined {
@@ -289,12 +324,13 @@ export function parseOptionalInteger(
   return Number.isSafeInteger(number) && number > 0 ? number : undefined;
 }
 
+/** Parses one positive sample-size entry for each NRRD dimension. */
 export function parseSizes(
   value: string | undefined,
   dimension: number,
 ): number[] {
   if (!value) throw new SyntaxError("NRRDLoader: sizes field is required.");
-  const sizes = value.split(/\s+/u).map((entry) => Number(entry));
+  const sizes = value.split(RE_WHITESPACE).map((entry) => Number(entry));
   if (
     sizes.length !== dimension ||
     sizes.some((size) => !Number.isSafeInteger(size) || size <= 0)
@@ -306,6 +342,7 @@ export function parseSizes(
   return sizes;
 }
 
+/** Parses optional NRRD space-direction vectors and none entries. */
 export function parseDirections(
   value: string | undefined,
 ): readonly (readonly [number, number, number] | null)[] | undefined {
@@ -316,7 +353,7 @@ export function parseDirections(
       if (entry.toLowerCase() === "none") return null;
       const components = entry
         .slice(1, -1)
-        .split(/\s*,\s*/u)
+        .split(RE_COMMA_SPLIT)
         .map((component) => Number(component));
       if (
         components.length !== 3 ||
@@ -326,21 +363,22 @@ export function parseDirections(
           `NRRDLoader: invalid space direction '${entry}'.`,
         );
       }
-      return Object.freeze([components[0]!, components[1]!, components[2]!] as [
-        number,
-        number,
-        number,
-      ]);
+      return Object.freeze([
+        components[0] ?? 0,
+        components[1] ?? 0,
+        components[2] ?? 0,
+      ] as [number, number, number]);
     }),
   );
 }
 
+/** Parses optional per-axis spacings, preserving none markers. */
 export function parseSpacings(
   value: string | undefined,
 ): readonly (number | null)[] | undefined {
   if (value === undefined) return;
   return Object.freeze(
-    value.split(/\s+/u).map((entry) => {
+    value.split(RE_WHITESPACE).map((entry) => {
       if (entry.toLowerCase() === "none") return null;
       const number = Number(entry);
       if (!Number.isFinite(number)) {
@@ -351,13 +389,15 @@ export function parseSpacings(
   );
 }
 
+/** Parses a comma-separated NRRD origin vector into numeric components. */
 export function parseVector(
   value: string | undefined,
 ): readonly number[] | undefined {
   if (value === undefined) return;
-  const match = /\(([^)]*)\)/u.exec(value);
-  const components = (match?.[1] ?? value)
-    .split(/\s*,\s*/u)
+  const match = RE_PARENS.exec(value);
+  const inner = (match?.groups as { inner?: string } | undefined)?.inner;
+  const components = (inner ?? value)
+    .split(RE_COMMA_SPLIT)
     .map((entry) => Number(entry));
   if (components.some((component) => !Number.isFinite(component))) {
     throw new SyntaxError(`NRRDLoader: invalid space origin '${value}'.`);
@@ -365,6 +405,7 @@ export function parseVector(
   return Object.freeze(components);
 }
 
+/** Derives positive voxel spacing from explicit or directional metadata. */
 export function deriveSpacing(header: NRRDHeader): [number, number, number] {
   const output: [number, number, number] = [1, 1, 1];
   if (header.spacings) {
@@ -390,6 +431,7 @@ export function deriveSpacing(header: NRRDHeader): [number, number, number] {
   return output;
 }
 
+/** Derives x/y/z axis labels from NRRD space-direction vectors. */
 export function deriveAxisOrder(
   header: NRRDHeader,
 ): [NRRDAxis, NRRDAxis, NRRDAxis] {
@@ -407,14 +449,19 @@ export function deriveAxisOrder(
           : best,
       0,
     );
-    const label = axis === 0 ? "x" : axis === 1 ? "y" : "z";
+    const label = axisLabel(axis);
     if (!output.includes(label)) output[index] = label;
   }
-  return output.every((value): value is NRRDAxis => value !== undefined)
-    ? [output[0]!, output[1]!, output[2]!]
-    : fallback;
+  const a = output[0];
+  const b = output[1];
+  const c = output[2];
+  if (a !== undefined && b !== undefined && c !== undefined) {
+    return [a, b, c];
+  }
+  return fallback;
 }
 
+/** Computes the finite minimum and maximum values in a sample array. */
 export function computeRange(data: NRRDDataArray): {
   min: number;
   max: number;
@@ -430,6 +477,7 @@ export function computeRange(data: NRRDDataArray): {
   return { min, max };
 }
 
+/** Multiplies dimensions while rejecting unsafe sample counts. */
 export function product(values: readonly number[]): number {
   let result = 1;
   for (const value of values) {
@@ -443,6 +491,7 @@ export function product(values: readonly number[]): number {
   return result;
 }
 
+/** Converts supported NRRD input forms into a byte view. */
 export function toBytes(input: NRRDInput): Uint8Array {
   if (typeof input === "string") return new TextEncoder().encode(input);
   if (input instanceof Uint8Array) {
@@ -451,6 +500,7 @@ export function toBytes(input: NRRDInput): Uint8Array {
   return new Uint8Array(input);
 }
 
+/** Finds the byte offset immediately after an NRRD header separator. */
 export function findHeaderEnd(bytes: Uint8Array): number {
   for (let index = 0; index < bytes.length - 1; index++) {
     if (bytes[index] === 10 && bytes[index + 1] === 10) return index + 2;
@@ -473,6 +523,7 @@ export function findHeaderEnd(bytes: Uint8Array): number {
   return -1;
 }
 
+/** Converts an x, y, or z axis label to its numeric index. */
 export function axisToIndex(axis: NRRDAxis): 0 | 1 | 2 {
   switch (axis) {
     case "x":
@@ -484,10 +535,12 @@ export function axisToIndex(axis: NRRDAxis): 0 | 1 | 2 {
   }
 }
 
+/** Returns the default axis used when selecting volume slices. */
 export function defaultSliceAxis(): "z" {
   return "z";
 }
 
+/** Normalizes packed or component color input to three unit channels. */
 export function normalizeColor(
   color: number | readonly [number, number, number] | undefined,
 ): [number, number, number] {
@@ -506,10 +559,12 @@ export function normalizeColor(
   ];
 }
 
+/** Clamps a numeric color component to the inclusive unit interval. */
 export function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
+/** Clamps and rounds a numeric channel to an 8-bit value. */
 export function clampByte(value: number): number {
   return Math.round(Math.min(255, Math.max(0, value)));
 }

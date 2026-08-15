@@ -7,6 +7,9 @@ import { Mesh } from "@/objects/Mesh.js";
 import { Texture } from "@/textures/Texture.js";
 import type { ImageDataLike } from "@/utils/ImageUtils.js";
 
+const RED_MATERIAL_KEY = "red";
+const MAP_KD_KEY = "mapKd";
+
 describe("MTLLoader", () => {
   it("parses multiple materials and uses Kd before Ka", () => {
     const table = new MTLLoader().parse(`
@@ -28,7 +31,7 @@ describe("MTLLoader", () => {
     expect(table.getDefinition("red")?.diffuseColor?.hex).toBe(0xcc1a33);
     expect(table.getDefinition("red")?.baseColor.hex).toBe(0xcc1a33);
     expect(table.getDefinition("red")?.illum).toBe(2);
-    expect(table.materialsInfo["red"]?.kd).toEqual([0.8, 0.1, 0.2]);
+    expect(table.materialsInfo[RED_MATERIAL_KEY]?.kd).toEqual([0.8, 0.1, 0.2]);
     expect((table.get("ambient-only") as LambertMaterial).color.hex).toBe(
       0x334d66,
     );
@@ -119,7 +122,7 @@ describe("MTLLoader", () => {
     expect(mesh.material).toBeInstanceOf(BasicMaterial);
     expect((mesh.material as BasicMaterial).color.hex).toBe(0x3366cc);
     expect((mesh.material as BasicMaterial).map).toBe(texture);
-    expect(mesh.userData["mapKd"]).toEqual({
+    expect(mesh.userData[MAP_KD_KEY]).toEqual({
       path: "albedo.png",
       url: "albedo.png",
     });

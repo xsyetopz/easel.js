@@ -37,7 +37,7 @@ export class GeometryLoader extends Loader {
   override parse(json: GeometryJSON): Geometry {
     const geometry = new Geometry();
 
-    for (const [name, attribData] of Object.entries(json.attributes ?? {})) {
+    for (const [name, attribData] of Object.entries(json.attributes)) {
       const array = new Float32Array(attribData.array);
       geometry.setAttribute(name, new Attribute(array, attribData.itemSize));
     }

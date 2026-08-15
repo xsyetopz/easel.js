@@ -1,3 +1,4 @@
+/** Validates an unknown value as a non-null, non-array object record. */
 export function record(
   value: unknown,
   path: string,
@@ -8,12 +9,14 @@ export function record(
   return value as Readonly<Record<string, unknown>>;
 }
 
+/** Validates an unknown value as an array and returns its elements unchanged. */
 export function array(value: unknown, path: string): readonly unknown[] {
   if (!Array.isArray(value))
     throw new TypeError(`GLTFLoader: ${path} must be an array.`);
   return value;
 }
 
+/** Validates a finite numeric value, using the fallback when the value is absent. */
 export function finite(
   value: unknown,
   path: string,
@@ -26,6 +29,7 @@ export function finite(
   return value;
 }
 
+/** Validates a safe integer, preserving the optional fallback behavior. */
 export function integer(
   value: unknown,
   path: string,
@@ -37,6 +41,7 @@ export function integer(
   return number;
 }
 
+/** Validates and converts an array of finite numbers, optionally enforcing its length. */
 export function numberArray(
   value: unknown,
   path: string,

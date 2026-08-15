@@ -2,6 +2,9 @@ import { describe, expect, it } from "bun:test";
 import { GCodeLoader } from "@/loaders/GCodeLoader.js";
 import { LineSegments } from "@/objects/LineSegments.js";
 
+const LAYERS_KEY = "layers";
+const FEED_RATES_KEY = "feedRates";
+
 describe("GCodeLoader", () => {
   it("parses travel, extrusion, modal fields, and layer comments", () => {
     const loader = new GCodeLoader();
@@ -20,11 +23,11 @@ G1 X0 Y1 E0.2
     expect(group.name).toBe("gcode");
     expect(group.rotation.x).toBeCloseTo(-Math.PI / 2);
     expect(group.children).toHaveLength(4);
-    expect(group.userData["layers"]).toEqual([
+    expect(group.userData[LAYERS_KEY]).toEqual([
       { index: 0, z: 0 },
       { index: 1, z: 0.4 },
     ]);
-    expect(group.userData["feedRates"]).toEqual([6000, 1200]);
+    expect(group.userData[FEED_RATES_KEY]).toEqual([6000, 1200]);
 
     const firstExtrusion = group.children[0];
     const firstTravel = group.children[1];
@@ -84,7 +87,8 @@ G1 X0 Y0
 `);
     const cut = group.children[0];
     const travel = group.children[1];
-    expect(group.userData["mode"]).toBe("toolpath");
+    const { mode } = group.userData;
+    expect(mode).toBe("toolpath");
     expect(cut).toBeInstanceOf(LineSegments);
     expect(travel).toBeInstanceOf(LineSegments);
     if (!(cut instanceof LineSegments && travel instanceof LineSegments))

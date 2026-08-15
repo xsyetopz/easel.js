@@ -173,7 +173,9 @@ export class MTLMaterialTable implements MTLLoaderResult {
 
   /** Returns materials in deterministic source declaration order. */
   toArray(): Material[] {
-    return Object.keys(this.materials).map((name) => this.materials[name]!);
+    return Object.keys(this.materials)
+      .map((name) => this.materials[name])
+      .filter((material): material is Material => material !== undefined);
   }
 
   /** Returns the source-order index for a material name. */
@@ -215,6 +217,9 @@ interface MapReferenceParts {
 }
 
 const COLOR_COMPONENTS = 3;
+const RE_WHITESPACE = /\s+/u;
+const RE_NEWLINE = /\r?\n/u;
+const RE_RECORD = /^(?<key>\S+)(?:\s+(?<rest>.*))?$/u;
 
 function clampUnit(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -230,7 +235,7 @@ function parseColor(
   value: string,
   options: MTLMaterialOptions,
 ): Color | undefined {
-  const parts = value.trim().split(/\s+/u);
+  const parts = value.trim().split(RE_WHITESPACE);
   if (parts.length < COLOR_COMPONENTS) return;
   const channels = parts
     .slice(0, COLOR_COMPONENTS)
@@ -258,7 +263,7 @@ function parseColor(
 }
 
 function parsePropertyValue(value: string): string | readonly number[] {
-  const parts = value.trim().split(/\s+/u).filter(Boolean);
+  const parts = value.trim().split(RE_WHITESPACE).filter(Boolean);
   const numbers = parts.map((part) => parseFiniteNumber(part));
   if (parts.length > 0 && numbers.every((number) => number !== undefined)) {
     return numbers as number[];
@@ -335,9 +340,9 @@ function parseMapReference(value: string): MapReferenceParts | undefined {
         break;
       }
       case "-clamp": {
-        const value = tokens[index + 1]?.toLowerCase();
-        if (value === "on" || value === "off") {
-          clamp = value === "on";
+        const clampValue = tokens[index + 1]?.toLowerCase();
+        if (clampValue === "on" || clampValue === "off") {
+          clamp = clampValue === "on";
           index++;
         } else {
           path.push(token);
@@ -416,7 +421,17 @@ function lookupTexture(
     const texture = textureRecord[candidate];
     if (texture !== undefined) return texture;
   }
-  return textureRecord[candidates[candidates.length - 1]!];
+  return textureRecord[candidates.at(-1) ?? ""];
+}
+
+function resolveOpacity(raw: RawMaterial): number {
+  if (raw.opacitySource === "tr") {
+    return 1 - clampUnit(raw.transparencyValue ?? 0);
+  }
+  if (raw.opacitySource === "d") {
+    return clampUnit(raw.dissolve ?? 1);
+  }
+  return 1;
 }
 
 function createMaterial(
@@ -428,13 +443,7 @@ function createMaterial(
     raw.diffuseColor?.clone() ??
     raw.ambientColor?.clone() ??
     new Color(0xffffff);
-  const opacity = clampUnit(
-    raw.opacitySource === "tr"
-      ? 1 - clampUnit(raw.transparencyValue ?? 0)
-      : raw.opacitySource === "d"
-        ? clampUnit(raw.dissolve ?? 1)
-        : 1,
-  );
+  const opacity = clampUnit(resolveOpacity(raw));
   const opacityLevel = Math.round((1 - opacity) * 8);
   const texture =
     raw.mapKd === undefined
@@ -570,19 +579,26 @@ export class MTLLoader extends Loader {
     const materials = new Map<string, RawMaterial>();
     const warnings: string[] = [];
     let current: RawMaterial | undefined;
-    const lines = text.split(/\r?\n/u);
+    const lines = text.split(RE_NEWLINE);
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const sourceLine = lines[lineIndex] ?? "";
       const line = sourceLine.trim();
       if (line === "" || line.startsWith("#")) continue;
-      const match = line.match(/^(\S+)(?:\s+(.*))?$/u);
+      const match = line.match(RE_RECORD);
       if (match === null) {
         warnings.push(`line ${lineIndex + 1}: malformed record`);
         continue;
       }
-      const key = match[1]!.toLowerCase();
-      const value = match[2]?.trim() ?? "";
+      const groups = match.groups as
+        | { key?: string; rest?: string }
+        | undefined;
+      const key = groups?.key?.toLowerCase();
+      if (key === undefined) {
+        warnings.push(`line ${lineIndex + 1}: malformed record`);
+        continue;
+      }
+      const value = groups?.rest?.trim() ?? "";
 
       if (key === "newmtl") {
         if (value === "") {

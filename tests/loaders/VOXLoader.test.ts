@@ -72,7 +72,12 @@ function voxFile(version: 150 | 200, children: Uint8Array[]): ArrayBuffer {
   return output.buffer;
 }
 
-function modelChunks(voxels: number[], x = 2, y = 1, z = 1): Uint8Array[] {
+function modelChunks(
+  voxels: number[],
+  x = 2,
+  y = 1,
+  z = 1,
+): [Uint8Array, Uint8Array] {
   return [
     chunk("SIZE", [...u32(x), ...u32(y), ...u32(z)]),
     chunk("XYZI", [...u32(voxels.length / 4), ...voxels]),
@@ -90,16 +95,17 @@ describe("VOXLoader", () => {
   test("parses VOX 150 chunks, applies RGBA palette, and builds greedy CPU geometry", () => {
     const [size, xyzi] = modelChunks([0, 0, 0, 1, 1, 0, 0, 1]);
     const result = new VOXLoader().parse(
-      voxFile(150, [size!, xyzi!, paletteChunk(0xff3366cc)]),
+      voxFile(150, [size, xyzi, paletteChunk(0xff3366cc)]),
     );
     expect(result.chunks).toHaveLength(1);
-    expect(result.chunks[0]?.size).toEqual({ x: 2, y: 1, z: 1 });
-    expect(result.chunks[0]?.data).toEqual(
-      new Uint8Array([0, 0, 0, 1, 1, 0, 0, 1]),
-    );
+    const chunk = result.chunks[0];
+    expect(chunk).toBeDefined();
+    expect(chunk?.size).toEqual({ x: 2, y: 1, z: 1 });
+    expect(chunk?.data).toEqual(new Uint8Array([0, 0, 0, 1, 1, 0, 0, 1]));
     expect(result.palette[1]).toBe(0xff3366cc);
-    expect(result.chunks[0]?.palette).toBe(result.palette);
-    const mesh = buildMesh(result.chunks[0]!);
+    expect(chunk?.palette).toBe(result.palette);
+    if (chunk === undefined) throw new Error("Expected a VOX chunk.");
+    const mesh = buildMesh(chunk);
     expect(mesh).toBeInstanceOf(Mesh);
     expect(mesh.geometry?.getAttribute("color")?.getX(0)).toBeCloseTo(
       0xcc / 255,
@@ -111,10 +117,11 @@ describe("VOXLoader", () => {
 
   test("decodes CPU occupancy and palette-index volume without a GPU texture", () => {
     const [size, xyzi] = modelChunks([1, 0, 0, 2, 0, 0, 0, 3], 2, 1, 1);
-    const result = new VOXLoader().parse(voxFile(200, [size!, xyzi!]));
+    const result = new VOXLoader().parse(voxFile(200, [size, xyzi]));
     const volume = result.chunks[0];
     expect(volume).toBeDefined();
-    const voxels = volume!;
+    if (volume === undefined) throw new Error("Expected a VOX chunk.");
+    const voxels = volume;
     expect(buildMesh(voxels).geometry?.getAttribute("position")?.count).toBe(
       40,
     );
@@ -149,7 +156,7 @@ describe("VOXLoader", () => {
       ...u32(2),
     ]);
     const result = new VOXLoader().parse(
-      voxFile(150, [size!, xyzi!, transform, shape, group]),
+      voxFile(150, [size, xyzi, transform, shape, group]),
     );
     expect(result.nodes[0]?.type).toBe("transform");
     expect(result.nodes[2]?.type).toBe("shape");
@@ -164,7 +171,7 @@ describe("VOXLoader", () => {
       ...u32(2),
     ]);
     const grouped = new VOXLoader().parse(
-      voxFile(150, [size!, xyzi!, rootGroup, shape]),
+      voxFile(150, [size, xyzi, rootGroup, shape]),
     );
     expect(grouped.scene).toBeInstanceOf(Group);
     expect(grouped.scene?.children).toHaveLength(1);
@@ -180,7 +187,7 @@ describe("VOXLoader", () => {
       ),
     ).toThrow(/missing an XYZI/u);
     const [size, xyzi] = modelChunks([1, 0, 0, 0], 1, 1, 1);
-    expect(() => new VOXLoader().parse(voxFile(150, [size!, xyzi!]))).toThrow(
+    expect(() => new VOXLoader().parse(voxFile(150, [size, xyzi]))).toThrow(
       /invalid voxel/u,
     );
     expect(() =>

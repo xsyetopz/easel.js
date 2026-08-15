@@ -1,3 +1,6 @@
+const ABSOLUTE_URL_PATTERN = /^(?:[a-z][a-z\d+.-]*:)?\/\//iu;
+const SCHEME_PATTERN = /^[a-z][a-z\d+.-]*:/iu;
+
 /** Returns the directory portion of a resource URL, including its trailing slash. */
 export function extractUrlBase(url: string): string {
   const separator = url.lastIndexOf("/");
@@ -7,8 +10,8 @@ export function extractUrlBase(url: string): string {
 /** Resolves an asset URL against a path while preserving absolute URLs. */
 export function resolveUrl(url: string, path: string): string {
   if (url === "") return "";
-  if (/^(?:[a-z][a-z\d+.-]*:)?\/\//iu.test(url)) return url;
-  if (/^[a-z][a-z\d+.-]*:/iu.test(url)) return url;
-  if (/^[a-z][a-z\d+.-]*:/iu.test(path)) return new URL(url, path).href;
+  if (ABSOLUTE_URL_PATTERN.test(url)) return url;
+  if (SCHEME_PATTERN.test(url)) return url;
+  if (SCHEME_PATTERN.test(path)) return new URL(url, path).href;
   return path + url;
 }
