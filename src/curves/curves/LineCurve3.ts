@@ -7,8 +7,8 @@ export class LineCurve3 extends Curve {
   override type: string = "LineCurve3";
   /** Boolean type guard for this THREE.js-compatible curve type. */
   readonly isLineCurve3 = true;
-  #v1: Vector3;
-  #v2: Vector3;
+  readonly #v1: Vector3;
+  readonly #v2: Vector3;
 
   /** Constructs a 3D line segment from `v1` to `v2`. */
   constructor(v1: Vector3 = new Vector3(), v2: Vector3 = new Vector3()) {
@@ -90,8 +90,12 @@ export class LineCurve3 extends Curve {
   /** Restores line endpoints from serialized data. */
   override fromJSON(json: Record<string, unknown>): this {
     super.fromJSON(json);
-    const v1 = json["v1"];
-    const v2 = json["v2"];
+    const data = json as Record<string, unknown> & {
+      v1?: unknown;
+      v2?: unknown;
+    };
+    const v1 = data.v1;
+    const v2 = data.v2;
     if (Array.isArray(v1)) this.#v1.fromArray(v1);
     if (Array.isArray(v2)) this.#v2.fromArray(v2);
     this.updateArcLengths();

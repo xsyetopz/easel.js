@@ -55,6 +55,6 @@ describe("Curve base (via LineCurve3)", () => {
 
   it("getSpacedPoints last point matches curve end", () => {
     const pts = curve.getSpacedPoints(4);
-    expect(pts[pts.length - 1]).toMatchVector(b, 1e-6);
+    expect(pts.at(-1)).toMatchVector(b, 1e-6);
   });
 });

@@ -12,6 +12,12 @@ import { QuadraticBezierCurve } from "./curves/QuadraticBezierCurve.ts";
 import { QuadraticBezierCurve3 } from "./curves/QuadraticBezierCurve3.ts";
 import { SplineCurve } from "./curves/SplineCurve.ts";
 
+type CurvePathJSON = Record<string, unknown> & {
+  autoClose?: unknown;
+  curves?: unknown;
+  type?: unknown;
+};
+
 /** Ordered sequence of connected curves forming a path. */
 export class CurvePath extends Curve {
   /** Serialization discriminator for this runtime type. */
@@ -61,8 +67,11 @@ export class CurvePath extends Curve {
   /** Closes the path by appending a segment from its end to its start. */
   closePath(): this {
     if (this.#curves.length === 0) return this;
-    const startPoint = this.#curves[0].getPoint(0);
-    const endPoint = this.#curves[this.#curves.length - 1].getPoint(1);
+    const startCurve = this.#curves[0];
+    const endCurve = this.#curves.at(-1);
+    if (!(startCurve && endCurve)) return this;
+    const startPoint = startCurve.getPoint(0);
+    const endPoint = endCurve.getPoint(1);
     if (!(startPoint && endPoint) || pointsEqual(startPoint, endPoint))
       return this;
     if (startPoint.z !== undefined || endPoint.z !== undefined) {
@@ -111,7 +120,7 @@ export class CurvePath extends Curve {
   /** Approximate total arc length across all child curves. */
   override get length(): number {
     const lengths = this.curveLengths;
-    return lengths[lengths.length - 1] ?? 0;
+    return lengths.at(-1) ?? 0;
   }
 
   /** Cumulative child-curve lengths used to map global path parameters. */
@@ -206,11 +215,10 @@ export class CurvePath extends Curve {
   }
 
   /** Restores path settings and child curves from serialized data. */
-  override fromJSON(json: Record<string, unknown>): this {
+  override fromJSON(json: CurvePathJSON): this {
     super.fromJSON(json);
-    if (typeof json["autoClose"] === "boolean")
-      this.#autoClose = json["autoClose"];
-    const curves = json["curves"];
+    if (typeof json.autoClose === "boolean") this.#autoClose = json.autoClose;
+    const curves = json.curves;
     this.#curves = Array.isArray(curves)
       ? curves
           .filter((curve): curve is Record<string, unknown> => isRecord(curve))
@@ -282,8 +290,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /** Reconstructs one supported THREE.js-compatible curve from JSON. */
-function curveFromJSON(json: Record<string, unknown>): Curve {
-  const type = json["type"];
+function curveFromJSON(json: CurvePathJSON): Curve {
+  const type = json.type;
   let curve: Curve;
   switch (type) {
     case "ArcCurve":

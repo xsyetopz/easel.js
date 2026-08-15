@@ -122,14 +122,21 @@ export class NURBSCurve extends Curve {
   /** Restores NURBS parameters and control points from serialized data. */
   override fromJSON(json: Record<string, unknown>): this {
     super.fromJSON(json);
-    if (typeof json["degree"] === "number") this.degree = json["degree"];
-    if (Array.isArray(json["knots"])) {
-      this.knots = json["knots"].filter(
+    const data = json as Record<string, unknown> & {
+      degree?: unknown;
+      knots?: unknown;
+      controlPoints?: unknown;
+      startKnot?: unknown;
+      endKnot?: unknown;
+    };
+    if (typeof data.degree === "number") this.degree = data.degree;
+    if (Array.isArray(data.knots)) {
+      this.knots = data.knots.filter(
         (value): value is number => typeof value === "number",
       );
     }
-    if (Array.isArray(json["controlPoints"])) {
-      this.controlPoints = json["controlPoints"]
+    if (Array.isArray(data.controlPoints)) {
+      this.controlPoints = data.controlPoints
         .filter(Array.isArray)
         .map(
           (point) =>
@@ -141,9 +148,8 @@ export class NURBSCurve extends Curve {
             ),
         );
     }
-    if (typeof json["startKnot"] === "number")
-      this.startKnot = json["startKnot"];
-    if (typeof json["endKnot"] === "number") this.endKnot = json["endKnot"];
+    if (typeof data.startKnot === "number") this.startKnot = data.startKnot;
+    if (typeof data.endKnot === "number") this.endKnot = data.endKnot;
     return this;
   }
 }

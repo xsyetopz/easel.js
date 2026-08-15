@@ -125,12 +125,13 @@ export class ShapePath {
       const isInsideNow = isInside(entry.winding, fillRule);
       entry.boundary = wasInside !== isInsideNow;
       if (entry.boundary) {
-        entry.role =
-          entry.parent?.role === "hole"
-            ? "outer"
-            : entry.parent
-              ? "hole"
-              : "outer";
+        if (entry.parent?.role === "hole") {
+          entry.role = "outer";
+        } else if (entry.parent) {
+          entry.role = "hole";
+        } else {
+          entry.role = "outer";
+        }
       }
     }
 
@@ -257,8 +258,13 @@ function pointInPolygon(point: Point, polygon: Point[]): boolean {
 
 /** Resolves the supported SVG fill rule metadata. */
 function getFillRule(userData: Record<string, unknown>): "nonzero" | "evenodd" {
-  const style = userData["style"];
-  const fillRule = isRecord(style) ? style["fillRule"] : undefined;
+  const data = userData as Record<string, unknown> & {
+    style?: unknown;
+  };
+  const style = data.style;
+  const fillRule = isRecord(style)
+    ? (style as Record<string, unknown> & { fillRule?: unknown }).fillRule
+    : undefined;
   return fillRule === "evenodd" ? "evenodd" : "nonzero";
 }
 

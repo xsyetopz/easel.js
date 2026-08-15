@@ -1,14 +1,17 @@
 import { Vector2 } from "../../math/Vector2.ts";
 import { Curve } from "../Curve.ts";
 
+/** Catmull–Rom basis evaluation options for one scalar component. */
+interface CatmullRomOptions {
+  t: number;
+  p0: number;
+  p1: number;
+  p2: number;
+  p3: number;
+}
+
 /** Catmull–Rom basis evaluation for one scalar component. */
-function catmullRom(
-  t: number,
-  p0: number,
-  p1: number,
-  p2: number,
-  p3: number,
-): number {
+function catmullRom({ t, p0, p1, p2, p3 }: CatmullRomOptions): number {
   const t2 = t * t;
   const t3 = t2 * t;
   return (
@@ -61,8 +64,8 @@ export class SplineCurve extends Curve {
     const p3 =
       points[intPoint > points.length - 3 ? points.length - 1 : intPoint + 2];
     return target.set(
-      catmullRom(weight, p0.x, p1.x, p2.x, p3.x),
-      catmullRom(weight, p0.y, p1.y, p2.y, p3.y),
+      catmullRom({ t: weight, p0: p0.x, p1: p1.x, p2: p2.x, p3: p3.x }),
+      catmullRom({ t: weight, p0: p0.y, p1: p1.y, p2: p2.y, p3: p3.y }),
     );
   }
 
@@ -89,7 +92,7 @@ export class SplineCurve extends Curve {
   /** Restores spline control points from serialized data. */
   override fromJSON(json: Record<string, unknown>): this {
     super.fromJSON(json);
-    const points = json["points"];
+    const points = (json as { points?: unknown }).points;
     if (Array.isArray(points)) {
       this.#points = points
         .filter((point): point is number[] => Array.isArray(point))

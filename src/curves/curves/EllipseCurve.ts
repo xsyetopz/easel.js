@@ -252,17 +252,25 @@ export class EllipseCurve extends Curve {
   /** Restores ellipse parameters from serialized field names. */
   override fromJSON(json: Record<string, unknown>): this {
     super.fromJSON(json);
-    this.#cx = numberValue(json["aX"], this.#cx);
-    this.#cy = numberValue(json["aY"], this.#cy);
-    this.#xRadius = numberValue(json["xRadius"], this.#xRadius);
-    this.#yRadius = numberValue(json["yRadius"], this.#yRadius);
-    this.#startAngle = numberValue(json["aStartAngle"], this.#startAngle);
-    this.#endAngle = numberValue(json["aEndAngle"], this.#endAngle);
+    const data = json as Record<string, unknown> & {
+      aX?: unknown;
+      aY?: unknown;
+      xRadius?: unknown;
+      yRadius?: unknown;
+      aStartAngle?: unknown;
+      aEndAngle?: unknown;
+      aClockwise?: unknown;
+      aRotation?: unknown;
+    };
+    this.#cx = numberValue(data.aX, this.#cx);
+    this.#cy = numberValue(data.aY, this.#cy);
+    this.#xRadius = numberValue(data.xRadius, this.#xRadius);
+    this.#yRadius = numberValue(data.yRadius, this.#yRadius);
+    this.#startAngle = numberValue(data.aStartAngle, this.#startAngle);
+    this.#endAngle = numberValue(data.aEndAngle, this.#endAngle);
     this.#clockwise =
-      typeof json["aClockwise"] === "boolean"
-        ? json["aClockwise"]
-        : this.#clockwise;
-    this.#rotation = numberValue(json["aRotation"], this.#rotation);
+      typeof data.aClockwise === "boolean" ? data.aClockwise : this.#clockwise;
+    this.#rotation = numberValue(data.aRotation, this.#rotation);
     this.updateArcLengths();
     return this;
   }

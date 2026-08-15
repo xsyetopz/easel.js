@@ -74,7 +74,7 @@ export function calcBasisFunctionDerivatives(
   derivativeCount: number,
   knots: number[],
 ): number[][] {
-  const zero = () => new Array<number>(degree + 1).fill(0);
+  const zero = (): number[] => new Array<number>(degree + 1).fill(0);
   const derivatives = Array.from({ length: derivativeCount + 1 }, zero);
   const ndu = Array.from({ length: degree + 1 }, zero);
   ndu[0][0] = 1;

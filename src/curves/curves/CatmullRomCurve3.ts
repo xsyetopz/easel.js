@@ -196,7 +196,13 @@ export class CatmullRomCurve3 extends Curve {
   /** Restores control points and interpolation settings from serialized data. */
   override fromJSON(json: Record<string, unknown>): this {
     super.fromJSON(json);
-    const points = json["points"];
+    const data = json as {
+      points?: unknown;
+      closed?: unknown;
+      curveType?: unknown;
+      tension?: unknown;
+    };
+    const points = data.points;
     if (Array.isArray(points)) {
       this.#points = points
         .filter((point): point is number[] => Array.isArray(point))
@@ -204,15 +210,16 @@ export class CatmullRomCurve3 extends Curve {
           (point) => new Vector3(point[0] ?? 0, point[1] ?? 0, point[2] ?? 0),
         );
     }
-    if (typeof json["closed"] === "boolean") this.#closed = json["closed"];
+    if (typeof data.closed === "boolean") this.#closed = data.closed;
+    const curveType = data.curveType;
     if (
-      json["curveType"] === "centripetal" ||
-      json["curveType"] === "chordal" ||
-      json["curveType"] === "catmullrom"
+      curveType === "centripetal" ||
+      curveType === "chordal" ||
+      curveType === "catmullrom"
     ) {
-      this.#curveType = json["curveType"];
+      this.#curveType = curveType;
     }
-    if (typeof json["tension"] === "number") this.#tension = json["tension"];
+    if (typeof data.tension === "number") this.#tension = data.tension;
     this.updateArcLengths();
     return this;
   }

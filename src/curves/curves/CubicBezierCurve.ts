@@ -7,10 +7,10 @@ export class CubicBezierCurve extends Curve {
   override type: string = "CubicBezierCurve";
   /** Boolean type guard for this THREE.js-compatible curve type. */
   readonly isCubicBezierCurve = true;
-  #v0: Vector2;
-  #v1: Vector2;
-  #v2: Vector2;
-  #v3: Vector2;
+  readonly #v0: Vector2;
+  readonly #v1: Vector2;
+  readonly #v2: Vector2;
+  readonly #v3: Vector2;
 
   /** Constructs a 2D cubic Bezier curve from four control points. */
   constructor(
@@ -118,10 +118,16 @@ export class CubicBezierCurve extends Curve {
   /** Restores cubic control points from serialized data. */
   override fromJSON(json: Record<string, unknown>): this {
     super.fromJSON(json);
-    const v0 = json["v0"];
-    const v1 = json["v1"];
-    const v2 = json["v2"];
-    const v3 = json["v3"];
+    const data = json as {
+      v0?: unknown;
+      v1?: unknown;
+      v2?: unknown;
+      v3?: unknown;
+    };
+    const v0 = data.v0;
+    const v1 = data.v1;
+    const v2 = data.v2;
+    const v3 = data.v3;
     if (Array.isArray(v0)) this.#v0.fromArray(v0);
     if (Array.isArray(v1)) this.#v1.fromArray(v1);
     if (Array.isArray(v2)) this.#v2.fromArray(v2);

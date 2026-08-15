@@ -52,7 +52,7 @@ export class Curve {
   /** Marks or clears arc-length invalidation; setting `true` drops cached lengths. */
   set needsUpdate(value: boolean) {
     this.#needsUpdate = value;
-    if (this.#needsUpdate) this.#cacheArcLengths = undefined;
+    if (value) this.#cacheArcLengths = undefined;
   }
 
   /**
@@ -91,7 +91,7 @@ export class Curve {
   /** Approximate total arc length using the configured subdivision count. */
   get length(): number {
     const lengths = this.getLengths();
-    return lengths[lengths.length - 1] ?? 0;
+    return lengths.at(-1) ?? 0;
   }
 
   /**
@@ -284,7 +284,8 @@ export class Curve {
 
   /** Restores base curve settings from serialized data. */
   fromJSON(json: Record<string, unknown>): this {
-    const divisions = json["arcLengthDivisions"];
+    const divisions = (json as { arcLengthDivisions?: unknown })
+      .arcLengthDivisions;
     if (typeof divisions === "number") this.arcLengthDivisions = divisions;
     return this;
   }
