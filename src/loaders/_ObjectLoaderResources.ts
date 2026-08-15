@@ -14,7 +14,6 @@ import {
   optionalTuple,
 } from "./_ObjectLoaderHelpers.ts";
 import { AnimationLoader } from "./AnimationLoader.ts";
-import { BufferGeometryLoader } from "./BufferGeometryLoader.ts";
 import { GeometryLoader } from "./GeometryLoader.ts";
 import type { Loader } from "./Loader.ts";
 import { MaterialLoader } from "./MaterialLoader.ts";
@@ -27,7 +26,7 @@ function configureLoader<T extends Loader>(loader: T, parent: Loader): T {
   return loader;
 }
 
-/** Parses geometry data from JSON with the appropriate delegated loader. */
+/** Parses supported geometry records with the canonical GeometryLoader. */
 export function parseGeometryRecords(
   parent: Loader,
   json: ObjectRecord,
@@ -49,15 +48,7 @@ export function parseGeometryRecords(
       continue;
     }
     let geometry: Geometry | undefined;
-    if (type === "BufferGeometry") {
-      const loader = configureLoader(
-        new BufferGeometryLoader(parent.manager),
-        parent,
-      );
-      geometry = loader.parse(
-        entry as unknown as Parameters<typeof loader.parse>[0],
-      );
-    } else if (type === "Geometry") {
+    if (type === "Geometry" || type === "BufferGeometry") {
       const loader = configureLoader(
         new GeometryLoader(parent.manager),
         parent,

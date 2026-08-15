@@ -3,6 +3,7 @@ import { OrthographicCamera } from "@/cameras/OrthographicCamera.ts";
 import { PerspectiveCamera } from "@/cameras/PerspectiveCamera.ts";
 import { Node } from "@/core/Node.ts";
 import { Scene } from "@/core/Scene.ts";
+import { Geometry } from "@/geometry/Geometry.ts";
 import { AmbientLight } from "@/lights/AmbientLight.ts";
 import { DirectionalLight } from "@/lights/DirectionalLight.ts";
 import { HemisphereLight } from "@/lights/HemisphereLight.ts";
@@ -188,5 +189,38 @@ describe("ObjectLoader", () => {
     expect(loadedOrthographic.projectionMatrix.elements).toEqual(
       orthographic.projectionMatrix.elements,
     );
+  });
+
+  it("uses the canonical geometry loader for nested geometry resources", () => {
+    const source = new Geometry();
+    source.setPositions([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+    source.index = new Uint32Array([0, 1, 2]);
+    source.name = "resource";
+
+    const geometries = new ObjectLoader().parseGeometries({
+      geometries: [
+        { ...source.toJSON(), uuid: "00000000-0000-4000-8000-000000000020" },
+        {
+          uuid: "00000000-0000-4000-8000-000000000021",
+          type: "BufferGeometry",
+          data: {
+            attributes: {
+              color: {
+                itemSize: 3,
+                type: "Uint8Array",
+                array: [255, 0, 0],
+                normalized: true,
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const canonical = geometries.get("00000000-0000-4000-8000-000000000020");
+    const compatible = geometries.get("00000000-0000-4000-8000-000000000021");
+    expect(canonical?.name).toBe("resource");
+    expect(canonical?.index).toBeInstanceOf(Uint32Array);
+    expect(compatible?.getAttribute("color")?.array).toBeInstanceOf(Uint8Array);
   });
 });

@@ -409,7 +409,6 @@ export {
 export { FileLoader, type FileResponseType } from "./loaders/FileLoader.ts";
 export { GCodeLoader } from "./loaders/GCodeLoader.ts";
 export { GeometryLoader } from "./loaders/GeometryLoader.ts";
-export { BufferGeometryLoader } from "./loaders/BufferGeometryLoader.ts";
 export {
   HDRLoader,
   type HDRFormat,

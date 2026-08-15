@@ -80,7 +80,7 @@ export class ObjectLoader extends Loader {
     return Promise.resolve(this.parse(data as NodeJSON | ObjectRecord));
   }
 
-  /** Parses geometry data from JSON, delegating to typed geometry loaders. */
+  /** Parses geometry resources through the canonical GeometryLoader. */
   parseGeometries(json: ObjectRecord): Map<string, Geometry> {
     return parseGeometryRecords(this, json);
   }

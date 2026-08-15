@@ -16,6 +16,10 @@ semantic versioning.
 
 ### Changed
 
+- Consolidated geometry JSON parsing under the CPU-named `GeometryLoader` and
+  removed the misleading `BufferGeometryLoader` export. The canonical loader
+  preserves supported typed attributes, index width, morph data, ranges,
+  bounds, names, parameters, and user data from nested serialized geometry.
 - Standardized clamped nearest-neighbor texture lookup to normalized texel
   cells and documented texel-center atlas UVs.
 - Refined the website examples with concise explanations, compact shared

@@ -99,14 +99,14 @@ WebGLRenderTarget        Uniform                  UniformsGroup
 | `ImageUtils` | ✅ Implemented — `src/utils/Utils.ts` namespace | 2026-08-07 |
 | `TextureUtils` | ✅ Implemented — `src/utils/Utils.ts` namespace | 2026-08-07 |
 | `DataUtils` | ✅ Implemented — `src/utils/Utils.ts` namespace | 2026-08-07 |
-| `BufferGeometryLoader` | ✅ Implemented — `src/loaders/BufferGeometryLoader.ts` | 2026-08-07 |
+| `BufferGeometryLoader` | Intentionally not exported; compatible JSON is handled by the CPU-named `GeometryLoader` | 2026-08-07 |
 
 ### 5. Functions — THREE-only (11 functions) — ALL CLOSED
 
 | three.js | EASEL status | Closed |
 | ---------- | ------------- | ------ |
 | `AudioLoader.load` | ✅ Implemented | 2026-08-07 |
-| `BufferGeometryLoader.load` | ✅ Implemented | 2026-08-07 |
+| `BufferGeometryLoader.load` | Compatible operation is exposed as `GeometryLoader.load` | 2026-08-07 |
 | `CompressedTextureLoader.load` | Out of scope (GPU) | — |
 | `CubeTextureLoader.load` | Out of scope (GPU) | — |
 | `createCanvasElement` | ✅ Implemented — `src/utils/Utils.ts` | 2026-08-07 |
@@ -259,8 +259,9 @@ are closed.
 6. **Utils (4 namespaces):** `ShapeUtils`, `ImageUtils`, `TextureUtils`,
    `DataUtils` — `src/utils/Utils.ts` (const-object pattern, wrapping existing
    functions)
-7. **Loaders (1 class):** `BufferGeometryLoader` —
-   `src/loaders/BufferGeometryLoader.ts`
+7. **Loaders (1 class):** compatible nested geometry loading —
+   `src/loaders/GeometryLoader.ts` (the Three.js class name is intentionally not
+   exported)
 8. **Console wrappers (6 functions):** `error`, `log`, `warn`, `warnOnce`,
    `getConsoleFunction`, `setConsoleFunction` — `src/utils/ConsoleUtils.ts`
 9. **Input constants (2):** `MOUSE`, `TOUCH` — `src/core/Constants.ts`
