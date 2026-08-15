@@ -1,4 +1,7 @@
-import { InterpolationEnding, type InterpolationEndingMode } from "../Track.ts";
+import {
+  InterpolationEnding,
+  type InterpolationEndingMode,
+} from "../InterpolationEnding.ts";
 
 /** Endpoint result for cubic spline boundary evaluation. */
 interface Endpoint {
@@ -10,10 +13,10 @@ interface Endpoint {
 
 /** Base keyframe interpolant with binary search and endpoint helpers. */
 export class Interpolant {
-  #positions: ArrayLike<number>;
-  #values: ArrayLike<number>;
-  #stride: number;
-  #result: number[];
+  readonly #positions: ArrayLike<number>;
+  readonly #values: ArrayLike<number>;
+  readonly #stride: number;
+  readonly #result: number[];
   #endingStart: InterpolationEndingMode = InterpolationEnding.ZeroSlope;
   #endingEnd: InterpolationEndingMode = InterpolationEnding.ZeroSlope;
 
@@ -61,7 +64,10 @@ export class Interpolant {
   }
 
   /** Sets endpoint policies for cubic spline interpolation. */
-  setEndings(start: InterpolationEndingMode, end: InterpolationEndingMode): void {
+  setEndings(
+    start: InterpolationEndingMode,
+    end: InterpolationEndingMode,
+  ): void {
     this.#endingStart = start;
     this.#endingEnd = end;
   }
@@ -85,9 +91,9 @@ export class Interpolant {
     const index = this.findKeyframe(time);
     return this.interpolate_(
       index,
-      positions[index]!,
+      positions[index],
       time,
-      positions[index + 1]!,
+      positions[index + 1],
     );
   }
 
@@ -111,7 +117,7 @@ export class Interpolant {
     let high = positions.length - 1;
     while (low < high - 1) {
       const middle = (low + high) >> 1;
-      if (positions[middle]! <= time) low = middle;
+      if (positions[middle] <= time) low = middle;
       else high = middle;
     }
     return low;
@@ -120,7 +126,7 @@ export class Interpolant {
   /** Returns the previous endpoint for cubic spline interpolation. */
   protected smoothPrevious(index: number, t0: number, t1: number): Endpoint {
     const positions = this.#positions;
-    if (index > 0) return { index: index - 1, time: positions[index - 1]! };
+    if (index > 0) return { index: index - 1, time: positions[index - 1] };
     if (this.#endingStart === InterpolationEnding.ZeroSlope) {
       return { index: index + 1, time: 2 * t0 - t1 };
     }
@@ -131,7 +137,7 @@ export class Interpolant {
       const previous = positions.length - 2;
       return {
         index: previous,
-        time: t0 + positions[previous]! - positions[previous + 1]!,
+        time: t0 + positions[previous] - positions[previous + 1],
       };
     }
     return { index: index + 1, time: t1 };
@@ -141,8 +147,7 @@ export class Interpolant {
   protected smoothNext(index: number, t0: number, t1: number): Endpoint {
     const positions = this.#positions;
     const next = index + 2;
-    if (next < positions.length)
-      return { index: next, time: positions[next]! };
+    if (next < positions.length) return { index: next, time: positions[next] };
     if (this.#endingEnd === InterpolationEnding.ZeroSlope) {
       return { index: index + 1, time: 2 * t1 - t0 };
     }
@@ -150,7 +155,7 @@ export class Interpolant {
       this.#endingEnd === InterpolationEnding.WrapAround &&
       positions.length > 2
     ) {
-      return { index: 1, time: t1 + positions[1]! - positions[0]! };
+      return { index: 1, time: t1 + positions[1] - positions[0] };
     }
     return { index, time: t0 };
   }

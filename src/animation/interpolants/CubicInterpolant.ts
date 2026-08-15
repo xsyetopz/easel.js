@@ -3,7 +3,12 @@ import { Interpolant } from "./Interpolant.ts";
 /** Catmull-Rom / cubic spline interpolation between adjacent keyframes. */
 export class CubicInterpolant extends Interpolant {
   /** Interpolates the interval beginning at `i1` using cubic spline. */
-  override interpolate_(i1: number, t0: number, t: number, t1: number): number[] {
+  override interpolate_(
+    i1: number,
+    t0: number,
+    t: number,
+    t1: number,
+  ): number[] {
     const stride = this.stride;
     const values = this.values;
     const result = this.result;

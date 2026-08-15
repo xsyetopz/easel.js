@@ -417,29 +417,43 @@ function trackToJSON(track: AnimationTrack): AnimationClipTrackJSON {
   };
 }
 
+interface AnimationCollectionObject {
+  readonly geometry?: unknown;
+  readonly animations?: unknown;
+}
+
+interface AnimationGeometryObject {
+  readonly animations?: unknown;
+}
+
 function animationListFromObject(
   object: Record<string, unknown>,
 ): readonly AnimationClip[] {
-  const geometry = object["geometry"];
-  if (isRecord(geometry) && Array.isArray(geometry["animations"])) {
-    return geometry["animations"] as AnimationClip[];
+  const collection = object as AnimationCollectionObject;
+  const geometry = collection.geometry;
+  if (isRecord(geometry)) {
+    const geometryObject = geometry as AnimationGeometryObject;
+    if (Array.isArray(geometryObject.animations)) {
+      return geometryObject.animations as AnimationClip[];
+    }
   }
-  return Array.isArray(object["animations"])
-    ? (object["animations"] as AnimationClip[])
+  return Array.isArray(collection.animations)
+    ? (collection.animations as AnimationClip[])
     : [];
 }
 
 function validateClipJSON(json: AnimationClipJSON): void {
   if (!isRecord(json))
     throw new TypeError("Animation clip JSON must be an object.");
-  const fps = json["fps"];
+  const clipJSON = json as AnimationClipJSON;
+  const fps = clipJSON.fps;
   if (fps !== undefined) {
     if (typeof fps !== "number") {
       throw new TypeError("Animation clip fps must be a number.");
     }
     validateFps(fps);
   }
-  const duration = json["duration"];
+  const duration = clipJSON.duration;
   if (
     duration !== undefined &&
     (typeof duration !== "number" ||
@@ -450,7 +464,7 @@ function validateClipJSON(json: AnimationClipJSON): void {
       "Animation clip duration must be finite and non-negative.",
     );
   }
-  if (json["tracks"] !== undefined && !Array.isArray(json["tracks"])) {
+  if (clipJSON.tracks !== undefined && !Array.isArray(clipJSON.tracks)) {
     throw new TypeError("Animation clip tracks must be an array.");
   }
 }

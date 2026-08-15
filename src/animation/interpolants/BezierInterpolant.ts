@@ -2,8 +2,8 @@ import { Interpolant } from "./Interpolant.ts";
 
 /** Cubic Bezier interpolation with tangent control points. */
 export class BezierInterpolant extends Interpolant {
-  #inTangents: ArrayLike<number>;
-  #outTangents: ArrayLike<number>;
+  readonly #inTangents: ArrayLike<number>;
+  readonly #outTangents: ArrayLike<number>;
 
   /** Creates a Bezier interpolant from keyframes and tangent arrays. */
   constructor(
@@ -20,7 +20,12 @@ export class BezierInterpolant extends Interpolant {
   }
 
   /** Interpolates the interval beginning at `i1` using cubic Bezier. */
-  override interpolate_(i1: number, t0: number, t: number, t1: number): number[] {
+  override interpolate_(
+    i1: number,
+    t0: number,
+    t: number,
+    t1: number,
+  ): number[] {
     const stride = this.stride;
     const values = this.values;
     const result = this.result;
@@ -32,10 +37,10 @@ export class BezierInterpolant extends Interpolant {
       const value1 = values[(i1 + 1) * stride + c];
       const outOffset = i1 * tangentStride + c * 2;
       const inOffset = (i1 + 1) * tangentStride + c * 2;
-      const control0Time = outTangents[outOffset]!;
-      const control0Value = outTangents[outOffset + 1]!;
-      const control1Time = inTangents[inOffset]!;
-      const control1Value = inTangents[inOffset + 1]!;
+      const control0Time = outTangents[outOffset];
+      const control0Value = outTangents[outOffset + 1];
+      const control1Time = inTangents[inOffset];
+      const control1Value = inTangents[inOffset + 1];
       let parameter = (t - t0) / (t1 - t0);
       for (let iteration = 0; iteration < 8; iteration++) {
         const oneMinus = 1 - parameter;
@@ -52,10 +57,7 @@ export class BezierInterpolant extends Interpolant {
           6 * oneMinus * parameter * (control1Time - control0Time) +
           3 * parameter2 * (t1 - control1Time);
         if (Math.abs(derivative) < 1e-10) break;
-        parameter = Math.max(
-          0,
-          Math.min(1, parameter - error / derivative),
-        );
+        parameter = Math.max(0, Math.min(1, parameter - error / derivative));
       }
       const oneMinus = 1 - parameter;
       const parameter2 = parameter * parameter;

@@ -22,6 +22,7 @@ export {
   type AnimationClipJSON,
   type AnimationClipTrackJSON,
   animationClipFromJson,
+  animationClipToJSON,
   findAnimationClip,
   findByName,
   parse,

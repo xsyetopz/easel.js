@@ -4,7 +4,12 @@ import { Interpolant } from "./Interpolant.ts";
 /** Spherical linear interpolation for quaternion keyframes. */
 export class QuaternionLinearInterpolant extends Interpolant {
   /** Interpolates the interval beginning at `i1` using SLERP. */
-  override interpolate_(i1: number, t0: number, t: number, t1: number): number[] {
+  override interpolate_(
+    i1: number,
+    t0: number,
+    t: number,
+    t1: number,
+  ): number[] {
     const values = this.values;
     const result = this.result;
     if (t1 === t0) {

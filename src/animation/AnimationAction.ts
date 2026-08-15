@@ -39,9 +39,9 @@ export class AnimationAction {
   #fade: Transition | undefined;
   #warp: Transition | undefined;
   readonly #lifecycle: AnimationActionLifecycle | undefined;
-  #active = false;
+  #active: boolean = false;
   #blendMode: AnimationBlendMode;
-  #mixer: Animator | undefined;
+  readonly #mixer: Animator | undefined;
 
   /** Current clip position in seconds; callers may seek by assigning this value. */
   time = 0;
@@ -414,29 +414,43 @@ export class AnimationAction {
 
   #applyLoop(duration: number): void {
     if (duration === 0) {
-      this.time = 0;
-      if (this.loop === Loop.Once || Number.isFinite(this.repetitions)) {
-        if (this.clampWhenFinished) this.paused = true;
-        else this.#finish();
-      }
+      this.#applyZeroDurationLoop();
       return;
     }
     if (this.loop === Loop.Once) {
-      if (this.time >= duration || this.time < 0) {
-        this.time = this.time >= duration ? duration : 0;
-        if (this.clampWhenFinished) this.paused = true;
-        else this.#finish();
-      }
+      this.#applyOnceLoop(duration);
       return;
     }
+    this.#applyRepeatLoop(duration);
+  }
+
+  #finishOrClamp(): void {
+    if (this.clampWhenFinished) this.paused = true;
+    else this.#finish();
+  }
+
+  #applyZeroDurationLoop(): void {
+    this.time = 0;
+    if (this.loop === Loop.Once || Number.isFinite(this.repetitions)) {
+      this.#finishOrClamp();
+    }
+  }
+
+  #applyOnceLoop(duration: number): void {
+    if (this.time >= duration || this.time < 0) {
+      this.time = this.time >= duration ? duration : 0;
+      this.#finishOrClamp();
+    }
+  }
+
+  #applyRepeatLoop(duration: number): void {
     const cycle = Math.floor(this.time / duration);
     const crossings = Math.abs(cycle);
     if (crossings > 0 && Number.isFinite(this.repetitions)) {
       this.#repetitionCount += crossings;
       if (this.#repetitionCount >= this.repetitions) {
         this.time = this.timeScale < 0 ? 0 : duration;
-        if (this.clampWhenFinished) this.paused = true;
-        else this.#finish();
+        this.#finishOrClamp();
         return;
       }
     } else if (crossings > 0) {

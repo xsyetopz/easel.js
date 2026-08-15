@@ -1,10 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { createRequire } from "node:module";
 import { AnimationBlend, AnimationClip } from "@/animation/AnimationClip.js";
-import {
-  makeClipAdditive,
-  subclip,
-} from "@/animation/AnimationUtils.js";
+import { makeClipAdditive, subclip } from "@/animation/AnimationUtils.js";
 import { NumberTrack } from "@/animation/tracks/NumberTrack.js";
 import { QuaternionTrack } from "@/animation/tracks/QuaternionTrack.js";
 

@@ -268,12 +268,14 @@ export class PropertyMixer {
       throw new RangeError("PropertyMixer values length must equal itemSize.");
     }
     for (const value of values) {
-      const valid =
-        this.#valueType === "boolean"
-          ? typeof value === "boolean"
-          : this.#valueType === "string"
-            ? typeof value === "string"
-            : typeof value === "number" && Number.isFinite(value);
+      let valid: boolean;
+      if (this.#valueType === "boolean") {
+        valid = typeof value === "boolean";
+      } else if (this.#valueType === "string") {
+        valid = typeof value === "string";
+      } else {
+        valid = typeof value === "number" && Number.isFinite(value);
+      }
       if (!valid) {
         throw new TypeError(
           `PropertyMixer values must match ${this.#valueType} valueType.`,
