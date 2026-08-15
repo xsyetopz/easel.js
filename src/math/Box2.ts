@@ -7,11 +7,11 @@ export class Box2 {
   /** Type marker identifying Box2 instances. */
   readonly isBox2 = true;
 
-  #min: Vector2 = new Vector2(
+  readonly #min: Vector2 = new Vector2(
     Number.POSITIVE_INFINITY,
     Number.POSITIVE_INFINITY,
   );
-  #max: Vector2 = new Vector2(
+  readonly #max: Vector2 = new Vector2(
     Number.NEGATIVE_INFINITY,
     Number.NEGATIVE_INFINITY,
   );

@@ -17,7 +17,7 @@ export const DEG2RAD = 0.017453292519943295;
 
 /** Clamps `x` to the inclusive range [`min`, `max`]. */
 export function clamp(x: number, min: number, max: number): number {
-  return x < min ? min : x > max ? max : x;
+  return x < min ? min : Math.min(x, max);
 }
 
 /** Fast atan2 approximation via a minimax polynomial. */
@@ -38,12 +38,12 @@ export function fastAtan2(y: number, x: number): number {
 
 /** Returns the larger of `a` and `b` without allocating. */
 export function fastMax(a: number, b: number): number {
-  return a > b ? a : b;
+  return Math.max(a, b);
 }
 
 /** Returns the smaller of `a` and `b` without allocating. */
 export function fastMin(a: number, b: number): number {
-  return a < b ? a : b;
+  return Math.min(a, b);
 }
 
 /** Rounds `x` with the renderer's integer fast path. */
@@ -74,7 +74,7 @@ export function nextPowerOf2(n: number): number {
 
 /** Returns asin(`value`) after clamping the input to [-1, 1]. */
 export function safeAsin(value: number): number {
-  return Math.asin(value < -1 ? -1 : value > 1 ? 1 : value);
+  return Math.asin(value < -1 ? -1 : Math.min(value, 1));
 }
 
 /** Converts an angle in radians to degrees. */

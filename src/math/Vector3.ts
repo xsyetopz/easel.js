@@ -1,5 +1,7 @@
 import type { Attribute } from "../geometry/Attribute.ts";
 import { clamp } from "./MathUtils.ts";
+import { Quaternion } from "./Quaternion.ts";
+import type { Vector4 } from "./Vector4.ts";
 
 /** Cross product of two 3D vectors, returned as a new Vector3. */
 export function cross3(
@@ -22,9 +24,6 @@ export function dot3(
 ): number {
   return x * target.x + y * target.y + z * target.z;
 }
-
-import { Quaternion } from "./Quaternion.ts";
-import type { Vector4 } from "./Vector4.ts";
 
 const _q = new Quaternion();
 

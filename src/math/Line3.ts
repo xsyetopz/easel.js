@@ -4,8 +4,8 @@ import { Vector3 } from "./Vector3.ts";
 
 /** Finite line segment between two 3D points. */
 export class Line3 {
-  #start: Vector3 = new Vector3();
-  #end: Vector3 = new Vector3();
+  readonly #start: Vector3 = new Vector3();
+  readonly #end: Vector3 = new Vector3();
 
   /** Constructs a line segment from two 3D endpoints. */
   constructor(start: Vector3 = new Vector3(), end: Vector3 = new Vector3()) {

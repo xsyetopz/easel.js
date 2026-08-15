@@ -301,9 +301,18 @@ export class Triangle {
     barycoord: Vector3,
     target: Vector3,
   ): Vector3 {
-    target.x = attr.getX(i1) * barycoord.x + attr.getX(i2) * barycoord.y + attr.getX(i3) * barycoord.z;
-    target.y = attr.getY(i1) * barycoord.x + attr.getY(i2) * barycoord.y + attr.getY(i3) * barycoord.z;
-    target.z = attr.getZ(i1) * barycoord.x + attr.getZ(i2) * barycoord.y + attr.getZ(i3) * barycoord.z;
+    target.x =
+      attr.getX(i1) * barycoord.x +
+      attr.getX(i2) * barycoord.y +
+      attr.getX(i3) * barycoord.z;
+    target.y =
+      attr.getY(i1) * barycoord.x +
+      attr.getY(i2) * barycoord.y +
+      attr.getY(i3) * barycoord.z;
+    target.z =
+      attr.getZ(i1) * barycoord.x +
+      attr.getZ(i2) * barycoord.y +
+      attr.getZ(i3) * barycoord.z;
     return target;
   }
 

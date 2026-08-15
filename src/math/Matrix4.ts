@@ -15,7 +15,7 @@ import { Vector3 } from "./Vector3.ts";
 
 /** 4x4 matrix for 3D affine and projection transforms. */
 export class Matrix4 {
-  #elements: Float32Array<ArrayBufferLike> = new Float32Array(16);
+  readonly #elements: Float32Array<ArrayBufferLike> = new Float32Array(16);
 
   /** Constructs a 4×4 matrix with column-major storage. */
   constructor(elements?: Float32Array<ArrayBufferLike>) {

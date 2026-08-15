@@ -140,8 +140,8 @@ function _boxIntersectionT(
 
 /** Ray defined by an origin point and direction vector. */
 export class Ray {
-  #origin: Vector3 = new Vector3(0, 0, 0);
-  #direction: Vector3 = new Vector3(0, 0, -1);
+  readonly #origin: Vector3 = new Vector3(0, 0, 0);
+  readonly #direction: Vector3 = new Vector3(0, 0, -1);
 
   /** Constructs a ray from an origin and direction. */
   constructor(

@@ -166,7 +166,7 @@ export class Quaternion {
   /** Returns the angle between this quaternion and q in radians. */
   angleTo(q: Quaternion): number {
     const dot = this.dot(q);
-    const clamped = dot < -1 ? -1 : dot > 1 ? 1 : dot;
+    const clamped = dot < -1 ? -1 : Math.min(dot, 1);
     return 2 * Math.acos(Math.abs(clamped));
   }
 

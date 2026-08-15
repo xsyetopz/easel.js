@@ -22,21 +22,24 @@ export class Frustum {
    * are evaluated only when this method is called, so the render loop does not
    * pay for any extra allocations while the frustum is reused.
    */
-  set(
-    p0: Plane = new Plane(),
-    p1: Plane = new Plane(),
-    p2: Plane = new Plane(),
-    p3: Plane = new Plane(),
-    p4: Plane = new Plane(),
-    p5: Plane = new Plane(),
-  ): this {
-    const planes = this.planes;
-    planes[0].copy(p0);
-    planes[1].copy(p1);
-    planes[2].copy(p2);
-    planes[3].copy(p3);
-    planes[4].copy(p4);
-    planes[5].copy(p5);
+  /** Copies an array of up to six clipping planes into this frustum. */
+  set(planes: Plane[]): this;
+  /** Copies variadic clipping planes into this frustum. */
+  set(...planes: Plane[]): this;
+  /** Copies supplied planes and resets omitted slots to defaults. */
+  set(planes: Plane | Plane[], ...rest: Plane[]): this {
+    const src: Plane[] = Array.isArray(planes) ? planes : [planes, ...rest];
+    const defaults = [
+      new Plane(),
+      new Plane(),
+      new Plane(),
+      new Plane(),
+      new Plane(),
+      new Plane(),
+    ];
+    for (let i = 0; i < 6; i++) {
+      this.planes[i].copy(src[i] ?? defaults[i]);
+    }
     return this;
   }
 

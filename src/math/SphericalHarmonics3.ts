@@ -58,9 +58,6 @@ export class SphericalHarmonics3 {
     new Vector3(),
   ];
 
-  /** Constructs nine zero-valued RGB coefficient vectors. */
-  constructor() {}
-
   /** Type marker identifying SphericalHarmonics3 instances. */
   get isSphericalHarmonics3(): true {
     return true;

@@ -112,11 +112,16 @@ describe("Ray", () => {
         THREETarget,
       );
 
-      expect(ray.intersectsBox(box)).toBe(THREEHit != null);
-      if (THREEHit == null) {
+      expect(ray.intersectsBox(box)).toBe(
+        THREEHit !== null && THREEHit !== undefined,
+      );
+      if (THREEHit === null || THREEHit === undefined) {
         expect(hit).toBeUndefined();
         expect(target).toMatchVector({ x: 9, y: 8, z: 7 });
       } else {
+        if (hit === undefined) {
+          throw new Error("Expected ray-box intersection");
+        }
         expect(hit).toBe(target);
         expect(hit).toMatchVector(THREEHit);
       }

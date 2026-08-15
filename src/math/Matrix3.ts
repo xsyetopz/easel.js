@@ -5,7 +5,7 @@ import type { Vector3 } from "./Vector3.ts";
 
 /** 3x3 matrix for 2D transforms and normal matrices. */
 export class Matrix3 {
-  #elements: Float32Array<ArrayBufferLike> = new Float32Array(9);
+  readonly #elements: Float32Array<ArrayBufferLike> = new Float32Array(9);
 
   /** Constructs a 3×3 matrix with column-major storage. */
   constructor(elements?: Float32Array<ArrayBufferLike>) {

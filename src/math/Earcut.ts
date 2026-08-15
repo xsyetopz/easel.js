@@ -233,10 +233,10 @@ function testEar(ear: EarcutNode): boolean {
   const by = b.y;
   const cy = c.y;
 
-  const x0 = ax < bx ? (ax < cx ? ax : cx) : bx < cx ? bx : cx;
-  const y0 = ay < by ? (ay < cy ? ay : cy) : by < cy ? by : cy;
-  const x1 = ax > bx ? (ax > cx ? ax : cx) : bx > cx ? bx : cx;
-  const y1 = ay > by ? (ay > cy ? ay : cy) : by > cy ? by : cy;
+  const x0 = ax < bx ? Math.min(ax, cx) : Math.min(bx, cx);
+  const y0 = ay < by ? Math.min(ay, cy) : Math.min(by, cy);
+  const x1 = ax > bx ? Math.max(ax, cx) : Math.max(bx, cx);
+  const y1 = ay > by ? Math.max(ay, cy) : Math.max(by, cy);
 
   let p = c.next;
   while (p !== a) {
@@ -275,10 +275,10 @@ function testEarHashed(
   const by = b.y;
   const cy = c.y;
 
-  const x0 = ax < bx ? (ax < cx ? ax : cx) : bx < cx ? bx : cx;
-  const y0 = ay < by ? (ay < cy ? ay : cy) : by < cy ? by : cy;
-  const x1 = ax > bx ? (ax > cx ? ax : cx) : bx > cx ? bx : cx;
-  const y1 = ay > by ? (ay > cy ? ay : cy) : by > cy ? by : cy;
+  const x0 = ax < bx ? Math.min(ax, cx) : Math.min(bx, cx);
+  const y0 = ay < by ? Math.min(ay, cy) : Math.min(by, cy);
+  const x1 = ax > bx ? Math.max(ax, cx) : Math.max(bx, cx);
+  const y1 = ay > by ? Math.max(ay, cy) : Math.max(by, cy);
 
   const minZ = zOrder(x0, y0, minX, minY, invSize);
   const maxZ = zOrder(x1, y1, minX, minY, invSize);
@@ -677,7 +677,9 @@ function onSegment(p: EarcutNode, q: EarcutNode, r: EarcutNode): boolean {
 }
 
 function sign(n: number): number {
-  return n > 0 ? 1 : n < 0 ? -1 : 0;
+  if (n > 0) return 1;
+  if (n < 0) return -1;
+  return 0;
 }
 
 function intersectsPolygon(a: EarcutNode, b: EarcutNode): boolean {

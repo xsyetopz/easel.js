@@ -45,8 +45,11 @@ export function triangulateShape(
   for (let contourIndex = 0; contourIndex <= holes.length; contourIndex++) {
     const points = contourIndex === 0 ? contour : holes[contourIndex - 1];
     if (contourIndex > 0) holeIndices.push(coordinates.length / 2);
+    const lastPoint = points[points.length - 1];
     const length =
-      points.length > 2 && pointsEqual(points[points.length - 1], points[0])
+      points.length > 2 &&
+      lastPoint !== undefined &&
+      pointsEqual(lastPoint, points[0])
         ? points.length - 1
         : points.length;
     for (let index = 0; index < length; index++) {

@@ -1,6 +1,8 @@
 /** Column-major 2x2 matrix with row-major constructor and setter arguments. */
 export class Matrix2 {
-  #elements: Float32Array<ArrayBufferLike> = new Float32Array([1, 0, 0, 1]);
+  readonly #elements: Float32Array<ArrayBufferLike> = new Float32Array([
+    1, 0, 0, 1,
+  ]);
 
   /** Constructs a 2×2 matrix with column-major storage. */
   constructor();
@@ -19,7 +21,7 @@ export class Matrix2 {
         "Matrix2 requires either zero constructor values or all four values.",
       );
     }
-    this.set(n11!, n12!, n21!, n22!);
+    this.set(n11 ?? 0, n12 ?? 0, n21 ?? 0, n22 ?? 0);
   }
 
   /** Column-major matrix storage exposed for direct numeric access. */
