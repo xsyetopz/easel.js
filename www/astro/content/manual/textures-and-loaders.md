@@ -32,8 +32,17 @@ loader.load(
 
 Model loaders such as [`OBJLoader`](/docs/loaders/OBJLoader/) and
 [`GLTFLoader`](/docs/loaders/GLTFLoader/) create scene-graph data for the same
-CPU renderer. Inspect the loader's result before adding it to a scene, and
-keep source images small enough for the texture cache and the target device.
+CPU renderer. Source images are reduced to the texture cache limit.
+
+<figure class="manual-render" data-manual-example="texture-surface-review">
+  <div class="manual-render__stage">
+    <canvas width="16" height="9" role="img" aria-label="Nearest-neighbor texture sampling on a rotating mesh.">
+      This render needs a Canvas2D-capable browser.
+    </canvas>
+    <p data-manual-example-status role="status">Loading render…</p>
+  </div>
+  <figcaption>Nearest-neighbor texture sampling on a rotating mesh.</figcaption>
+</figure>
 
 ## Related API
 
@@ -42,7 +51,3 @@ keep source images small enough for the texture cache and the target device.
 - [ImageLoader](/docs/loaders/ImageLoader/)
 - [OBJLoader](/docs/loaders/OBJLoader/)
 - [GLTFLoader](/docs/loaders/GLTFLoader/)
-
-## Try an example
-
-[Browse textured scenes and loader examples](/examples/).

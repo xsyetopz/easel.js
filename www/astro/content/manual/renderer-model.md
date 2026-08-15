@@ -35,18 +35,17 @@ pipeline abstraction.
 - Shadows, PBR, shader programs, WebGL, and WebGPU are outside this renderer's
   contract.
 
-Choose a supported CPU path first. If an effect requires a GPU buffer or shader,
-keep it outside EASEL and compose the result at the application boundary.
+<figure class="manual-render" data-manual-example="lighting-bench">
+  <div class="manual-render__stage">
+    <canvas width="16" height="9" role="img" aria-label="CPU-baked lighting rendered to Canvas2D.">
+      This render needs a Canvas2D-capable browser.
+    </canvas>
+    <p data-manual-example-status role="status">Loading render…</p>
+  </div>
+  <figcaption>CPU-baked lighting rendered to Canvas2D.</figcaption>
+</figure>
 
 ## Related API
 
 - [Renderer](/docs/renderers/Renderer/)
 - [RenderTimings](/docs/renderers/RenderTimings/)
-- [SceneTraversal](/docs/pipeline/SceneTraversal/)
-- [PainterSort](/docs/pipeline/PainterSort/)
-- [Rasterizer](/docs/pipeline/Rasterizer/)
-
-## Try an example
-
-[Inspect the runnable examples](/examples/) and compare their source with the
-pipeline stages above.

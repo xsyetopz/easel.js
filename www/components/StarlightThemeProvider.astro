@@ -3,12 +3,18 @@
 
 <script is:inline>
   (() => {
-    const media = window.matchMedia("(prefers-color-scheme: light)");
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
-      document.documentElement.dataset.theme = media.matches ? "light" : "dark";
+      document.documentElement.dataset.theme = media.matches ? "dark" : "light";
     };
 
     apply();
     media.addEventListener("change", apply);
   })();
+</script>
+
+<script>
+  import { mountManualExamples } from "../runtime/manual-examples.ts";
+
+  mountManualExamples();
 </script>

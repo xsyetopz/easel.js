@@ -49,8 +49,3 @@ usable for non-rendering work.
 
 - [Renderer](/docs/renderers/Renderer/)
 - [RendererOptions](/docs/renderers/RendererOptions/)
-
-## Try an example
-
-[Open the examples](/examples/) to compare a working browser setup with your
-own entry point.

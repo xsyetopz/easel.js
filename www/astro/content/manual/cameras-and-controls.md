@@ -47,13 +47,19 @@ For a responsive canvas, derive the aspect from the drawable size rather than
 the CSS width alone. Update `camera.aspect` and call
 `camera.updateProjectionMatrix()` after each resize.
 
+<figure class="manual-render" data-manual-example="product-turntable">
+  <div class="manual-render__stage">
+    <canvas width="16" height="9" role="img" aria-label="Orbit camera around a product model.">
+      This render needs a Canvas2D-capable browser.
+    </canvas>
+    <p data-manual-example-status role="status">Loading render…</p>
+  </div>
+  <figcaption>Orbit camera around a product model.</figcaption>
+</figure>
+
 ## Related API
 
 - [Camera](/docs/cameras/Camera/)
 - [PerspectiveCamera](/docs/cameras/PerspectiveCamera/)
 - [OrthographicCamera](/docs/cameras/OrthographicCamera/)
 - [OrbitControls](/docs/controls/OrbitControls/)
-
-## Try an example
-
-[Try an interactive camera example](/examples/).

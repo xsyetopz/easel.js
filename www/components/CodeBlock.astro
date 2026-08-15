@@ -1,4 +1,6 @@
 ---
+import { getSingletonHighlighter } from "shiki";
+
 interface Props {
 	code: string;
 	language?: string | undefined;
@@ -6,6 +8,14 @@ interface Props {
 }
 
 const { code, language = "text", label } = Astro.props as Props;
+const highlighter = await getSingletonHighlighter({
+  langs: [language],
+  themes: ["github-light", "github-dark"],
+});
+const highlightedCode = highlighter.codeToHtml(code, {
+  lang: language,
+  themes: { light: "github-light", dark: "github-dark" },
+});
 ---
 
 <div class="code-block" data-code-block>
@@ -13,9 +23,7 @@ const { code, language = "text", label } = Astro.props as Props;
 		<span>{label ?? language}</span>
 		<button type="button" data-code-copy>Copy</button>
 	</div>
-	<div class="code-block__scroll">
-		<pre><code>{code}</code></pre>
-	</div>
+	<div class="code-block__scroll" set:html={highlightedCode}></div>
 	<span class="code-block__status" data-code-status role="status" aria-live="polite"></span>
 </div>
 

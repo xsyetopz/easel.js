@@ -193,6 +193,59 @@ main {
 	text-underline-offset: 0.15em;
 }
 
+.sl-markdown-content > h3 + ul {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+	gap: 0.35rem 1.5rem;
+	padding-inline-start: 0;
+	list-style: none;
+}
+
+.manual-render {
+	margin-block: 1.5rem 2rem;
+}
+
+.manual-render__stage {
+	position: relative;
+	inline-size: 100%;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	border: 1px solid var(--sl-color-hairline-shade);
+	background: #101622;
+}
+
+.manual-render canvas {
+	display: block;
+	inline-size: 100%;
+	block-size: auto;
+	aspect-ratio: 16 / 9;
+}
+
+.manual-render [data-manual-example-status] {
+	position: absolute;
+	inset: auto 0 0;
+	margin: 0;
+	padding: 0.4rem 0.65rem;
+	background: rgb(13 17 23 / 0.78);
+	color: #f0f6fc;
+	font-size: var(--sl-text-xs);
+}
+
+.manual-render figcaption {
+	margin-block-start: 0.55rem;
+	color: var(--sl-color-gray-3);
+	font-size: var(--sl-text-sm);
+}
+
+[data-theme="dark"] .shiki {
+	background-color: var(--shiki-dark-bg) !important;
+	color: var(--shiki-dark) !important;
+}
+
+[data-theme="dark"] .shiki span {
+	color: var(--shiki-dark) !important;
+}
+
 :where(a, button, input, select, textarea, summary):focus-visible {
 	outline: 2px solid var(--sl-color-accent);
 	outline-offset: 3px;

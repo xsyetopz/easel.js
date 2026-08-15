@@ -6,11 +6,9 @@ sidebar:
   label: "Manual overview"
 ---
 
-EASEL.js puts a THREE-style scene graph on a CPU-only Canvas2D renderer. The
-manual is a short path from an empty page to a scene you can inspect and
-control.
-
-Choose a guide:
+EASEL.js puts a scene graph on a CPU-only Canvas2D renderer. The manual
+covers installation, rendering, cameras, geometry, animation, textures, and
+loaders.
 
 - [Install EASEL.js](/manual/install/) and prepare a browser entry point.
 - [Build a first scene](/manual/first-scene/) with a scene, camera, geometry, material, and render loop.
@@ -20,16 +18,11 @@ Choose a guide:
 - [Animate a scene](/manual/animation/) with clips, tracks, and an animator.
 - [Use textures and loaders](/manual/textures-and-loaders/) within the bounded Canvas2D texture path.
 
-The [API reference](/docs/) is generated from public declarations and JSDoc in
-`src/`. It is the authority for complete signatures and properties; these
-guides only explain the common tasks around them.
+The [API reference](/docs/) lists public symbols and their descriptions. These
+guides cover common tasks.
 
 ## Related API
 
 - [Renderer](/docs/renderers/Renderer/)
 - [Scene](/docs/core/Scene/)
 - [PerspectiveCamera](/docs/cameras/PerspectiveCamera/)
-
-## Try an example
-
-[Browse the examples](/examples/) for runnable Canvas2D scenes and their source.

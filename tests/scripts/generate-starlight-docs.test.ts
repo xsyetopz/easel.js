@@ -2,51 +2,108 @@ import { describe, expect, it } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { generateSourceDocs } from "../../scripts/generate-starlight-docs.ts";
 import { CATEGORY_NAMES } from "../../scripts/starlight-docs/api-model.ts";
+import { renderDocs } from "../../scripts/starlight-docs/markdown-rendering.ts";
 
 const root = `${import.meta.dir}/../..`;
 
+function generatedPages(): Map<string, string> {
+  return generateSourceDocs();
+}
+
 describe("generate-starlight-docs", () => {
-  it("generates one deterministic page for every source export", () => {
-    const first = generateSourceDocs();
-    const second = generateSourceDocs();
+  it("generates one deterministic page for every eligible source export", () => {
+    const first = generatedPages();
+    const second = generatedPages();
 
     expect([...first]).toEqual([...second]);
     expect(first.size).toBeGreaterThan(300);
-    expect(first.get("index.md")).toContain(
-      "generated from the public exports in `src/index.ts`",
+    const overview = first.get("index.md");
+    expect(overview).toBeDefined();
+    if (overview === undefined) return;
+    expect(overview).not.toContain("src/");
+    expect(overview).not.toContain("docs:generate");
+    expect(overview).toContain("## Table of contents");
+    expect(overview).toContain("[Renderer](./renderers/Renderer/)");
+    expect(overview).toContain(
+      "[SphericalHarmonicsBasis](./math/SphericalHarmonicsBasis-type/)",
     );
+    expect(overview).not.toMatch(/\*\*[^*]+\*\*:\s*\d+/u);
+    for (const page of first.keys()) {
+      if (page === "index.md") continue;
+      const route = `./${page.replace(/\.md$/u, "/")}`;
+      expect(overview.split(`(${route})`)).toHaveLength(2);
+    }
   });
 
-  it("documents classes, records, functions, constants, and pipeline types", () => {
-    const docs = generateSourceDocs();
+  it("publishes only top-level JSDoc narratives", () => {
+    const docs = generatedPages();
+    const sourceJson = docs.get("textures/SourceJSON.md");
+    const renderer = docs.get("renderers/Renderer.md");
+    expect(sourceJson).toContain(
+      "Serializable image or raw pixel source description.",
+    );
+    expect(sourceJson).not.toContain("interface SourceJSON");
+    expect(sourceJson).not.toContain("## Properties");
+    expect(sourceJson).not.toContain("## Methods");
+    expect(renderer).toContain(
+      "Canvas2D software renderer orchestrating the full pipeline.",
+    );
+    expect(renderer).not.toContain("new Renderer");
+    expect(renderer).not.toContain("## Properties");
+    expect(renderer).not.toContain("## Methods");
+  });
 
-    expect(docs.get("math/SphericalHarmonics3.md")).toContain(
-      "`radianceAt(normal: Readonly<Vector3>, target: Vector3): Vector3`",
-    );
-    expect(docs.get("animation/AnimationClipJSON.md")).toContain(
-      "interface AnimationClipJSON",
-    );
-    expect(docs.get("math/clamp.md")).toContain("function clamp");
-    expect(docs.get("math/multiplyQuaternionsFlat.md")).toContain(
-      "without creating Quaternion objects",
-    );
-    expect(docs.get("lights/LightProbe.md")).toContain(
-      "Diffuse environment lighting evaluated only during flat or Gouraud baking",
-    );
-    expect(docs.get("math/SphericalHarmonicsBasis-type.md")).toContain(
-      "type SphericalHarmonicsBasis",
-    );
-    expect(docs.get("math/sphericalHarmonicsBasis-function.md")).toContain(
-      "function sphericalHarmonicsBasis",
-    );
-    expect(docs.get("core/REVISION.md")).toContain("const REVISION:");
-    expect(docs.get("pipeline/LightBaker.md")).toContain(
-      "Generated from `src/pipeline/shading/LightBaker.ts`",
+  it("omits implementation pages and unsafe comparison terminology", () => {
+    const docs = generatedPages();
+    expect(docs.has("pipeline/LightBaker.md")).toBe(false);
+    expect(docs.has("renderers/Renderer.md")).toBe(true);
+    for (const unsafePage of [
+      "core/EXRExporter.md",
+      "loaders/DDSLoader.md",
+      "loaders/TTFFont.md",
+      "loaders/NRRDVolume.md",
+    ]) {
+      expect(docs.get(unsafePage)).not.toContain("description:");
+    }
+    const forbidden = [
+      /Generated from/gu,
+      /docs:generate/gu,
+      /source declaration/giu,
+      /src\//gu,
+      /```ts/gu,
+      /^## (?:Properties|Methods)$/gmu,
+      /\bTHREE\b/gu,
+      /three\.js/giu,
+      /threejs/giu,
+      /\b(?:Three|three)['’]s\b/gu,
+      /(?:WebGL|WebGPU|GPU|PBR)/giu,
+      /\b(?:device API|environment map|render target|shader|shadow map)\b/giu,
+    ];
+    for (const content of docs.values()) {
+      for (const pattern of forbidden) expect(content).not.toMatch(pattern);
+    }
+  });
+
+  it("renders a title-only page when a symbol has no JSDoc", () => {
+    const docs = renderDocs([
+      { category: "Core", kind: "constant", name: "Undocumented" },
+    ]);
+    const page = docs.get("core/Undocumented.md");
+    expect(page).toBe(
+      [
+        "---",
+        'title: "Undocumented"',
+        "sidebar:",
+        "  order: 1",
+        '  label: "Undocumented"',
+        "---",
+        "",
+      ].join("\n"),
     );
   });
 
   it("keeps every generated API category in the Starlight sidebar", () => {
-    const docs = generateSourceDocs();
+    const docs = generatedPages();
     const generatedCategories = new Set(
       [...docs.keys()]
         .filter((key) => key !== "index.md")

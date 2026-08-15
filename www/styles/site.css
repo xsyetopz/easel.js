@@ -33,6 +33,15 @@
 		--color-accent-strong: #79c0ff;
 		--color-code: #161b22;
 	}
+
+	.shiki {
+		background-color: var(--shiki-dark-bg) !important;
+		color: var(--shiki-dark) !important;
+	}
+
+	.shiki span {
+		color: var(--shiki-dark) !important;
+	}
 }
 
 * {
@@ -150,6 +159,9 @@ textarea:focus-visible {
 }
 
 .site-primary-nav {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
 	margin-inline-start: auto;
 }
 
@@ -210,6 +222,10 @@ textarea:focus-visible {
 }
 
 .site-footer nav {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-2) var(--space-4);
 	margin-inline-start: auto;
 }
 
@@ -415,6 +431,7 @@ textarea:focus-visible {
 
 	.site-primary-nav {
 		inline-size: 100%;
+		flex-wrap: wrap;
 		margin-inline-start: 0;
 	}
 
