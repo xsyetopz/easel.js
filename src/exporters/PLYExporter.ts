@@ -105,9 +105,9 @@ function collect(root: Node): PLYData {
     if (index) {
       for (let cursor = 0; cursor + 2 < index.length; cursor += 3) {
         faces.push([
-          offset + index[cursor]!,
-          offset + index[cursor + 1]!,
-          offset + index[cursor + 2]!,
+          offset + index[cursor],
+          offset + index[cursor + 1],
+          offset + index[cursor + 2],
         ]);
       }
     } else {
@@ -159,8 +159,8 @@ function encodeAscii(data: PLYData): string {
 function encodeBinary(data: PLYData): Uint8Array {
   const headerText =
     encodeAscii(data)
-      .split("end_header\n", 1)[0]!
-      .replace("format ascii 1.0", "format binary_little_endian 1.0") +
+      .split("end_header\n", 1)[0]
+      ?.replace("format ascii 1.0", "format binary_little_endian 1.0") +
     "end_header\n";
   const vertexSize =
     12 +

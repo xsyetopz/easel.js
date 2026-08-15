@@ -53,7 +53,7 @@ export class STLExporter {
       };
       if (index) {
         for (let offset = 0; offset + 2 < index.length; offset += 3)
-          emit(index[offset]!, index[offset + 1]!, index[offset + 2]!);
+          emit(index[offset], index[offset + 1], index[offset + 2]);
       } else {
         for (let offset = 0; offset + 2 < position.count; offset += 3)
           emit(offset, offset + 1, offset + 2);

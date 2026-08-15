@@ -41,9 +41,9 @@ export class OBJExporter {
       lines.push(`o ${node.name || node.type}`);
       if (node.material?.name) lines.push(`usemtl ${node.material.name}`);
       const material = node.material as
-        | (Record<string, unknown> & { map?: { uuid?: string } })
+        | { color?: unknown; map?: { uuid?: string } }
         | undefined;
-      const materialColor = material?.["color"];
+      const materialColor = material?.color;
       if (
         materialColor &&
         typeof materialColor === "object" &&
@@ -101,7 +101,7 @@ export class OBJExporter {
       };
       if (index) {
         for (let offset = 0; offset + 2 < index.length; offset += 3) {
-          emitFace(index[offset]!, index[offset + 1]!, index[offset + 2]!);
+          emitFace(index[offset], index[offset + 1], index[offset + 2]);
         }
       } else {
         for (let offset = 0; offset + 2 < position.count; offset += 3) {

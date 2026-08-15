@@ -1,6 +1,7 @@
 import type { AnimationClip } from "../animation/AnimationClip.ts";
 import { Interpolation } from "../animation/Track.ts";
 import type { Node } from "../core/Node.ts";
+import type { Geometry } from "../geometry/Geometry.ts";
 import type { Material } from "../materials/Material.ts";
 import { Mesh } from "../objects/Mesh.ts";
 import type { Texture } from "../textures/Texture.ts";
@@ -16,226 +17,258 @@ import {
   tuple4,
 } from "./_GLTFInternals.ts";
 
+const ANIMATION_TRACK_PATTERN =
+  /^(?:(?<selector>.+?)\.)?(?<path>position|quaternion|rotation|scale)(?:\[.*\])?$/u;
+const NORMAL_ATTRIBUTE = "NORMAL";
+const TANGENT_ATTRIBUTE = "TANGENT";
+const TEXCOORD_ATTRIBUTE = "TEXCOORD_0";
+const COLOR_ATTRIBUTE = "COLOR_0";
+const SELECTOR_GROUP = "selector";
+const PATH_GROUP = "path";
+const ANIMATIONS_USER_DATA = "animations";
+
 /** Options controlling deterministic CPU glTF 2.0 output. */
 export interface GLTFExporterOptions {
-  /** Embeds the binary payload as a data URI in the JSON document. Defaults to true. */
+  /** Embed the binary payload as a data URI in the buffer descriptor. */
   readonly embedBuffers?: boolean;
-  /** URI used when {@link embedBuffers} is false. Defaults to `scene.bin`. */
+  /** External URI to record when binary embedding is disabled. */
   readonly bufferUri?: string;
-  /** Animation clips to serialize as glTF animation channels. */
+  /** Animation clips to serialize instead of clips found in root user data. */
   readonly animations?: readonly AnimationClip[];
-  /** Generator label written into the glTF asset metadata. */
+  /** Generator label stored in the glTF asset metadata. */
   readonly generator?: string;
-  /** Normalizes every exported NORMAL attribute; defaults to true. */
+  /** Normalize each exported normal vector before writing it. */
   readonly normalizeNormals?: boolean;
 }
-
 /** JSON document emitted by the CPU glTF exporter. */
 export interface GLTFExportDocument {
-  /** glTF asset metadata. */
-  readonly asset: { readonly version: "2.0"; readonly generator: string };
-  /** Active scene index. */
+  /** glTF asset version and exporter identification metadata. */
+  readonly asset: {
+    /** glTF specification version emitted by this exporter. */
+    readonly version: "2.0";
+    /** Human-readable generator label for the exported document. */
+    readonly generator: string;
+  };
+  /** Index of the scene selected as the document's default scene. */
   readonly scene: number;
-  /** Scene descriptions in document order. */
+  /** Scene records containing root node indices. */
   readonly scenes: readonly GLTFExportScene[];
-  /** Node hierarchy records. */
+  /** Node hierarchy and transform records. */
   readonly nodes: readonly GLTFExportNode[];
-  /** Mesh primitive records. */
+  /** Mesh records containing triangle primitives. */
   readonly meshes: readonly GLTFExportMesh[];
-  /** Binary buffer descriptors. */
+  /** Binary buffer descriptors referenced by buffer views. */
   readonly buffers: readonly GLTFExportBuffer[];
-  /** Binary buffer-view descriptors. */
+  /** Byte ranges into the binary buffers. */
   readonly bufferViews: readonly GLTFExportBufferView[];
-  /** Accessor descriptors. */
+  /** Typed access into binary attribute and index data. */
   readonly accessors: readonly GLTFExportAccessor[];
-  /** CPU-supported material records. */
+  /** Material records when exported meshes use materials. */
   readonly materials?: readonly GLTFExportMaterial[];
-  /** Texture records referencing exported images. */
+  /** Texture records associated with exported images. */
   readonly textures?: readonly GLTFExportTexture[];
-  /** Image URI records. */
+  /** Image source records referenced by textures. */
   readonly images?: readonly GLTFExportImage[];
-  /** Nearest-neighbour sampler records. */
+  /** Sampler records used to sample exported textures. */
   readonly samplers?: readonly GLTFExportSampler[];
-  /** Exported animation records. */
+  /** Animation sampler and channel records. */
   readonly animations?: readonly GLTFExportAnimation[];
 }
-
 /** A glTF scene reference emitted by {@link GLTFExporter}. */
 export interface GLTFExportScene {
-  /** Optional scene name. */
+  /** Optional source node name retained for the scene. */
   readonly name?: string;
-  /** Root node indices. */
+  /** Indices of the scene's root nodes. */
   readonly nodes: readonly number[];
 }
-
 /** A glTF node with EASEL transform and hierarchy state. */
 export interface GLTFExportNode {
-  /** Optional node name. */
+  /** Optional scene-graph node name. */
   readonly name?: string;
-  /** Mesh index attached to the node. */
+  /** Index of the mesh attached to this node. */
   readonly mesh?: number;
-  /** Translation in parent space. */
+  /** Translation applied to the node in local coordinates. */
   readonly translation: readonly [number, number, number];
-  /** Quaternion rotation in parent space. */
+  /** Unit quaternion describing the node's local rotation. */
   readonly rotation: readonly [number, number, number, number];
-  /** Scale in parent space. */
+  /** Local scale along the x, y, and z axes. */
   readonly scale: readonly [number, number, number];
-  /** Child node indices. */
+  /** Child node indices in document order. */
   readonly children?: readonly number[];
-  /** JSON-safe application metadata. */
+  /** JSON-safe application metadata copied to glTF extras. */
   readonly extras?: Readonly<Record<string, unknown>>;
 }
-
 /** One triangle primitive and its CPU-supported material. */
 export interface GLTFExportMesh {
-  /** Optional mesh name. */
+  /** Optional mesh name retained in the glTF record. */
   readonly name?: string;
-  /** Triangle primitives in this mesh. */
+  /**
+   * The sole triangle primitive, referencing POSITION and any supported NORMAL,
+   * TANGENT, TEXCOORD_0, or COLOR_0 accessors, its index accessor, and an
+   * optional CPU-material mapping.
+   */
   readonly primitives: readonly [GLTFExportPrimitive];
 }
-
 /** glTF primitive attribute/index/material references. */
 export interface GLTFExportPrimitive {
-  /** Attribute semantic to accessor index mapping. */
+  /** Map of glTF semantic names to accessor indices. */
   readonly attributes: Readonly<Record<string, number>>;
-  /** Index accessor. */
+  /** Accessor index containing triangle vertex indices. */
   readonly indices: number;
-  /** Material index. */
+  /** Optional material index applied to the primitive. */
   readonly material?: number;
-  /** glTF primitive mode; always triangles. */
+  /** glTF triangles mode value emitted by the exporter. */
   readonly mode: 4;
 }
-
 /** Binary buffer descriptor. */
 export interface GLTFExportBuffer {
-  /** Number of bytes in the binary payload. */
+  /** Total byte length of the buffer payload. */
   readonly byteLength: number;
-  /** Embedded data URI or external buffer URI. */
+  /** Optional URI for an externally stored binary payload. */
   readonly uri?: string;
 }
-
 /** Binary buffer view descriptor. */
 export interface GLTFExportBufferView {
-  /** Buffer index; exporter emits one buffer. */
+  /** Index of the buffer containing this byte range. */
   readonly buffer: 0;
-  /** Byte offset into the buffer. */
+  /** Byte offset from the start of the referenced buffer. */
   readonly byteOffset: number;
-  /** Number of bytes in the view. */
+  /** Number of bytes in this view. */
   readonly byteLength: number;
-  /** Optional ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER target. */
+  /** Optional glTF target identifying attributes or element indices. */
   readonly target?: 34962 | 34963;
 }
-
 /** Accessor descriptor for packed float attributes or integer indices. */
 export interface GLTFExportAccessor {
-  /** Buffer-view index containing the accessor data. */
+  /** Index of the buffer view containing accessor data. */
   readonly bufferView: number;
-  /** Byte offset within the buffer view. */
+  /** Optional byte offset within the referenced buffer view. */
   readonly byteOffset?: 0;
-  /** Accessor component type. */
+  /** glTF component type for floating-point or index data. */
   readonly componentType: 5123 | 5125 | 5126;
-  /** Number of elements. */
+  /** Number of values or vectors represented by the accessor. */
   readonly count: number;
-  /** Element shape. */
+  /** Shape of each logical accessor element. */
   readonly type: "SCALAR" | "VEC2" | "VEC3" | "VEC4";
-  /** Per-component minimum values. */
+  /** Optional component-wise lower bounds for the accessor values. */
   readonly min?: readonly number[];
-  /** Per-component maximum values. */
+  /** Optional component-wise upper bounds for the accessor values. */
   readonly max?: readonly number[];
 }
-
 /** CPU material representation mapped to glTF PBR base-color semantics. */
 export interface GLTFExportMaterial {
-  /** Optional material name. */
+  /** Optional material name retained in the exported document. */
   readonly name?: string;
-  /** CPU material mapped to glTF base-color PBR fields. */
+  /** Base-color, texture, and fixed metallic/roughness values. */
   readonly pbrMetallicRoughness: {
-    /** RGBA base-color factor. */
+    /** RGBA factor multiplied with the material's base color. */
     readonly baseColorFactor: readonly [number, number, number, number];
-    /** Optional base-color texture index. */
+    /** Optional exported texture index for the base color. */
     readonly baseColorTexture?: { readonly index: number };
-    /** EASEL materials export as non-metallic. */
+    /** Fixed zero metallic factor used by the CPU export mapping. */
     readonly metallicFactor: 0;
-    /** EASEL materials export with full roughness. */
+    /** Fixed one roughness factor used by the CPU export mapping. */
     readonly roughnessFactor: 1;
   };
-  /** Blend mode when discrete opacity is below opaque. */
+  /** Blend mode marker for discrete transparent materials. */
   readonly alphaMode?: "BLEND";
-  /** Whether both triangle sides are retained. */
+  /** Whether both sides of the material's triangles should be rendered. */
   readonly doubleSided?: boolean;
-  /** Source material metadata. */
+  /** JSON-safe material metadata describing the source material type. */
   readonly extras?: Readonly<Record<string, unknown>>;
 }
-
 /** glTF texture descriptor for a source URI retained by a CPU Texture. */
 export interface GLTFExportTexture {
-  /** Sampler index. */
+  /** Optional sampler index used to read the image. */
   readonly sampler?: number;
-  /** Image source index. */
+  /** Index of the image record supplying the texture pixels. */
   readonly source: number;
 }
-
 /** Image URI descriptor. Pixel payload encoding remains the host's responsibility. */
 export interface GLTFExportImage {
-  /** Image URL or data URI. */
+  /** URI of the image payload retained by the exported document. */
   readonly uri?: string;
-  /** Optional image name. */
+  /** Optional image name from the source texture. */
   readonly name?: string;
-  /** Source image metadata. */
+  /** JSON-safe application metadata attached to the image. */
   readonly extras?: Readonly<Record<string, unknown>>;
 }
-
 /** Nearest-neighbour sampler descriptor matching EASEL's CPU texture contract. */
 export interface GLTFExportSampler {
-  /** Magnification filter; nearest only. */
+  /** Nearest-neighbour magnification filter constant. */
   readonly magFilter: 9728;
-  /** Minification filter; nearest only. */
+  /** Nearest-neighbour minification filter constant. */
   readonly minFilter: 9728;
-  /** Optional S wrapping mode. */
+  /** Optional horizontal wrapping mode for texture coordinates. */
   readonly wrapS?: number;
-  /** Optional T wrapping mode. */
+  /** Optional vertical wrapping mode for texture coordinates. */
   readonly wrapT?: number;
 }
-
 /** glTF animation sampler/channel collection. */
 export interface GLTFExportAnimation {
-  /** Optional animation name. */
+  /** Optional animation clip name. */
   readonly name?: string;
-  /** Animation sampler records. */
+  /** Accessor mappings for animation input times and output values. */
   readonly samplers: readonly GLTFExportAnimationSampler[];
-  /** Animation target channels. */
+  /** Node channels that consume the animation samplers. */
   readonly channels: readonly GLTFExportAnimationChannel[];
 }
-
 /** Animation input/output accessor references. */
 export interface GLTFExportAnimationSampler {
-  /** Input time accessor index. */
+  /** Accessor index containing keyframe input times. */
   readonly input: number;
-  /** Output value accessor index. */
+  /** Accessor index containing output transform values. */
   readonly output: number;
-  /** Interpolation mode. */
+  /** Interpolation mode supported by the exporter. */
   readonly interpolation: "LINEAR" | "STEP";
 }
-
 /** Animation target node/path reference. */
 export interface GLTFExportAnimationChannel {
-  /** Sampler index. */
+  /** Index of the animated node. */
   readonly sampler: number;
-  /** Target node and transform path. */
+  /** Node property targeted by the channel. */
   readonly target: {
+    /** Index of the node receiving sampled values. */
     readonly node: number;
+    /** Transform path updated by the channel. */
     readonly path: "translation" | "rotation" | "scale";
   };
 }
-
 /** Result containing both the JSON glTF document and its binary payload. */
 export interface GLTFExportResult {
-  /** JSON glTF document. */
+  /** JSON document describing the exported scene. */
   readonly json: GLTFExportDocument;
-  /** Binary payload used by buffer views. */
+  /** Aligned binary payload referenced by the document. */
   readonly binary: Uint8Array;
-  /** Data URI for the binary payload. */
+  /** Data URI containing the binary payload for embedded delivery. */
   readonly dataUri: string;
+}
+
+interface ExportContext {
+  readonly document: MutableDocument;
+  readonly bytes: BinaryBuilder;
+  readonly materialIndices: Map<Material, number>;
+  readonly textureIndices: Map<string, number>;
+  readonly samplerIndex: number;
+  readonly normalizeNormals: boolean;
+}
+interface AttributeOptions {
+  readonly type: "VEC2" | "VEC3" | "VEC4";
+  readonly target: 34962;
+  readonly includeBounds: boolean;
+}
+interface RawAccessorOptions {
+  readonly type: "SCALAR" | "VEC2" | "VEC3" | "VEC4";
+  readonly target?: 34962 | 34963;
+  readonly includeBounds?: boolean;
+}
+interface AttributeLike {
+  readonly count: number;
+  readonly itemSize: number;
+  getX(index: number): number;
+  getY(index: number): number;
+  getZ(index: number): number;
+  getW?(index: number): number;
 }
 
 /** Serializes EASEL CPU scene meshes to deterministic glTF 2.0 JSON and binary. */
@@ -257,7 +290,7 @@ export class GLTFExporter {
       | ((result: GLTFExportResult) => void) = {},
     onError?: (error: unknown) => void,
     callbackOptions?: GLTFExporterOptions,
-  ): GLTFExportResult | void {
+  ): GLTFExportResult | undefined {
     if (typeof optionsOrDone === "function") {
       try {
         optionsOrDone(this.#serialize(root, callbackOptions ?? {}));
@@ -268,91 +301,37 @@ export class GLTFExporter {
     }
     return this.#serialize(root, optionsOrDone);
   }
-
   /** Promise-shaped export matching THREE.GLTFExporter.parseAsync usage. */
-  async parseAsync(
+  parseAsync(
     root: Node,
     options: GLTFExporterOptions = {},
   ): Promise<GLTFExportResult> {
-    return this.#serialize(root, options);
+    return Promise.resolve(this.#serialize(root, options));
   }
-
   #serialize(root: Node, options: GLTFExporterOptions): GLTFExportResult {
     root.updateMatrixWorld(true, true, true);
-    const document: MutableDocument = {
-      asset: {
-        version: "2.0",
-        generator: options.generator ?? "EASEL.js GLTFExporter",
-      },
-      scene: 0,
-      scenes: [],
-      nodes: [],
-      meshes: [],
-      buffers: [],
-      bufferViews: [],
-      accessors: [],
-      materials: [],
-      textures: [],
-      images: [],
-      samplers: [],
-      animations: [],
-    };
-    const bytes = new BinaryBuilder();
-    const nodeIndices = new Map<Node, number>();
-    const meshIndices = new Map<Mesh, number>();
-    const materialIndices = new Map<Material, number>();
-    const textureIndices = new Map<string, number>();
-    const samplerIndex = 0;
-    const buildNode = (node: Node): number => {
-      const index = document.nodes.length;
-      nodeIndices.set(node, index);
-      document.nodes.push({
-        ...(node.name ? { name: node.name } : {}),
-        translation: tuple3(node.position.x, node.position.y, node.position.z),
-        rotation: tuple4(
-          node.quaternion.x,
-          node.quaternion.y,
-          node.quaternion.z,
-          node.quaternion.w,
-        ),
-        scale: tuple3(node.scale.x, node.scale.y, node.scale.z),
-      });
-      const mesh = node instanceof Mesh && node.geometry ? node : undefined;
-      if (mesh) {
-        const meshIndex = this.#writeMesh(
-          mesh,
-          document,
-          bytes,
-          materialIndices,
-          textureIndices,
-          samplerIndex,
-          options.normalizeNormals ?? true,
-        );
-        meshIndices.set(mesh, meshIndex);
-        document.nodes[index] = { ...document.nodes[index]!, mesh: meshIndex };
-      }
-      const children = node.children.map(buildNode);
-      if (children.length > 0)
-        document.nodes[index] = { ...document.nodes[index]!, children };
-      const extras = safeExtras(node.userData);
-      if (Object.keys(extras).length > 0)
-        document.nodes[index] = { ...document.nodes[index]!, extras };
-      return index;
-    };
-    const rootIndex = buildNode(root);
+    const document = createDocument(options),
+      context: ExportContext = {
+        document,
+        bytes: new BinaryBuilder(),
+        materialIndices: new Map(),
+        textureIndices: new Map(),
+        samplerIndex: 0,
+        normalizeNormals: options.normalizeNormals ?? true,
+      };
+    const nodeIndices = buildNodes(root, context);
     document.scenes.push({
       ...(root.name ? { name: root.name } : {}),
-      nodes: [rootIndex],
+      nodes: [nodeIndices.get(root) ?? 0],
     });
-    this.#writeAnimations(
+    writeAnimations({
       root,
-      options.animations ?? animationsFromUserData(root),
+      clips: options.animations ?? animationsFromUserData(root),
       nodeIndices,
-      document,
-      bytes,
-    );
-    const binary = bytes.finish();
-    const dataUri = `data:application/octet-stream;base64,${encodeBase64(binary)}`;
+      context,
+    });
+    const binary = context.bytes.finish(),
+      dataUri = `data:application/octet-stream;base64,${encodeBase64(binary)}`;
     document.buffers.push({
       byteLength: binary.byteLength,
       ...(options.embedBuffers === false
@@ -361,80 +340,94 @@ export class GLTFExporter {
     });
     return { json: document, binary, dataUri };
   }
+}
 
-  #writeMesh(
-    mesh: Mesh,
-    document: MutableDocument,
-    bytes: BinaryBuilder,
-    materialIndices: Map<Material, number>,
-    textureIndices: Map<string, number>,
-    samplerIndex: number,
-    normalizeNormals: boolean,
-  ): number {
-    const geometry = mesh.geometry!;
-    const position = geometry.getAttribute("position");
-    if (!position || position.itemSize < 3)
-      throw new Error(
-        `GLTFExporter: mesh "${mesh.name || mesh.type}" has no POSITION attribute.`,
-      );
-    const attributes: Record<string, number> = {};
-    attributes["POSITION"] = appendAttribute(
-      document,
-      bytes,
-      position,
-      "VEC3",
-      34962,
-      true,
+function createDocument(options: GLTFExporterOptions): MutableDocument {
+  return {
+    asset: {
+      version: "2.0",
+      generator: options.generator ?? "EASEL.js GLTFExporter",
+    },
+    scene: 0,
+    scenes: [],
+    nodes: [],
+    meshes: [],
+    buffers: [],
+    bufferViews: [],
+    accessors: [],
+    materials: [],
+    textures: [],
+    images: [],
+    samplers: [],
+    animations: [],
+  };
+}
+function buildNodes(root: Node, context: ExportContext): Map<Node, number> {
+  const nodeIndices = new Map<Node, number>();
+  const build = (node: Node): number => {
+    const index = context.document.nodes.length;
+    nodeIndices.set(node, index);
+    context.document.nodes.push({
+      ...(node.name ? { name: node.name } : {}),
+      translation: tuple3(node.position.x, node.position.y, node.position.z),
+      rotation: tuple4(
+        node.quaternion.x,
+        node.quaternion.y,
+        node.quaternion.z,
+        node.quaternion.w,
+      ),
+      scale: tuple3(node.scale.x, node.scale.y, node.scale.z),
+    });
+    if (node instanceof Mesh && node.geometry)
+      context.document.nodes[index] = {
+        ...context.document.nodes[index],
+        mesh: writeMesh(node, context),
+      };
+    const children = node.children.map(build);
+    if (children.length > 0)
+      context.document.nodes[index] = {
+        ...context.document.nodes[index],
+        children,
+      };
+    const extras = safeExtras(node.userData);
+    if (Object.keys(extras).length > 0)
+      context.document.nodes[index] = {
+        ...context.document.nodes[index],
+        extras,
+      };
+    return index;
+  };
+  build(root);
+  return nodeIndices;
+}
+
+function writeMesh(mesh: Mesh, context: ExportContext): number {
+  const geometry = mesh.geometry as Geometry,
+    position = geometry.getAttribute("position");
+  if (!position || position.itemSize < 3)
+    throw new Error(
+      `GLTFExporter: mesh "${mesh.name || mesh.type}" has no POSITION attribute.`,
     );
-    const normal = geometry.getAttribute("normal");
-    if (normal && normal.itemSize >= 3) {
-      attributes["NORMAL"] = normalizeNormals
-        ? appendNormalizedNormalAttribute(document, bytes, normal)
-        : appendAttribute(document, bytes, normal, "VEC3", 34962, false);
-    }
-    const tangent = geometry.getAttribute("tangent");
-    if (tangent && tangent.itemSize >= 4) {
-      attributes["TANGENT"] = appendAttribute(
-        document,
-        bytes,
-        tangent,
-        "VEC4",
-        34962,
-        false,
-      );
-    }
-    const uv = geometry.getAttribute("uv");
-    if (uv && uv.itemSize >= 2)
-      attributes["TEXCOORD_0"] = appendAttribute(
-        document,
-        bytes,
-        uv,
-        "VEC2",
-        34962,
-        false,
-      );
-    const color = geometry.getAttribute("color");
-    if (color && color.itemSize >= 3)
-      attributes["COLOR_0"] = appendAttribute(
-        document,
-        bytes,
-        color,
-        "VEC3",
-        34962,
-        false,
-      );
-    const indices = geometry.index
+  const attributes: Record<string, number> = {
+    POSITION: appendAttribute(context.document, context.bytes, position, {
+      type: "VEC3",
+      target: 34962,
+      includeBounds: true,
+    }),
+  };
+  appendMeshAttributes(geometry, attributes, context);
+  const indices = geometry.index
       ? Array.from(geometry.index)
-      : Array.from({ length: position.count }, (_value, index) => index);
-    const maxIndex = indices.reduce((max, value) => Math.max(max, value), 0);
-    const indexType = maxIndex > 65535 ? 5125 : 5123;
-    const indexView = bytes.append(
+      : Array.from({ length: position.count }, (_value, index) => index),
+    maxIndex = indices.reduce((max, value) => Math.max(max, value), 0),
+    indexType = maxIndex > 65535 ? 5125 : 5123;
+  const indexView = context.bytes.append(
       indexType === 5125 ? new Uint32Array(indices) : new Uint16Array(indices),
-      document,
+      context.document,
       34963,
-    );
-    const indexAccessor =
-      document.accessors.push({
+    ),
+    indexAccessor =
+      context.document.accessors.push({
         bufferView: indexView.index,
         componentType: indexType,
         count: indices.length,
@@ -442,185 +435,194 @@ export class GLTFExporter {
         min: [0],
         max: [maxIndex],
       }) - 1;
-    const primitive: GLTFExportPrimitive = {
-      attributes,
-      indices: indexAccessor,
-      mode: 4,
-      ...(mesh.material
-        ? {
-            material: this.#materialIndex(
-              mesh.material,
-              document,
-              materialIndices,
-              textureIndices,
-              samplerIndex,
-            ),
-          }
-        : {}),
-    };
-    const meshIndex = document.meshes.length;
-    document.meshes.push({
-      ...(mesh.name ? { name: mesh.name } : {}),
-      primitives: [primitive],
-    });
-    return meshIndex;
-  }
-
-  #materialIndex(
-    material: Material,
-    document: MutableDocument,
-    materialIndices: Map<Material, number>,
-    textureIndices: Map<string, number>,
-    samplerIndex: number,
-  ): number {
-    const existing = materialIndices.get(material);
-    if (existing !== undefined) return existing;
-    const source = material as MaterialLike;
-    const color = source.color;
-    const alpha = source.transparent ? 1 - source.opacity / 8 : 1;
-    const baseColor: [number, number, number, number] = [
+  const primitive: GLTFExportPrimitive = {
+    attributes,
+    indices: indexAccessor,
+    mode: 4,
+    ...(mesh.material
+      ? { material: materialIndex(mesh.material, context) }
+      : {}),
+  };
+  const meshIndex = context.document.meshes.length;
+  context.document.meshes.push({
+    ...(mesh.name ? { name: mesh.name } : {}),
+    primitives: [primitive],
+  });
+  return meshIndex;
+}
+function appendMeshAttributes(
+  geometry: Geometry,
+  attributes: Record<string, number>,
+  context: ExportContext,
+): void {
+  const normal = geometry.getAttribute("normal");
+  if (normal && normal.itemSize >= 3)
+    attributes[NORMAL_ATTRIBUTE] = context.normalizeNormals
+      ? appendNormalizedNormalAttribute(context.document, context.bytes, normal)
+      : appendAttribute(context.document, context.bytes, normal, {
+          type: "VEC3",
+          target: 34962,
+          includeBounds: false,
+        });
+  const tangent = geometry.getAttribute("tangent");
+  if (tangent && tangent.itemSize >= 4)
+    attributes[TANGENT_ATTRIBUTE] = appendAttribute(
+      context.document,
+      context.bytes,
+      tangent,
+      { type: "VEC4", target: 34962, includeBounds: false },
+    );
+  const uv = geometry.getAttribute("uv");
+  if (uv && uv.itemSize >= 2)
+    attributes[TEXCOORD_ATTRIBUTE] = appendAttribute(
+      context.document,
+      context.bytes,
+      uv,
+      { type: "VEC2", target: 34962, includeBounds: false },
+    );
+  const color = geometry.getAttribute("color");
+  if (color && color.itemSize >= 3)
+    attributes[COLOR_ATTRIBUTE] = appendAttribute(
+      context.document,
+      context.bytes,
+      color,
+      { type: "VEC3", target: 34962, includeBounds: false },
+    );
+}
+function materialIndex(material: Material, context: ExportContext): number {
+  const existing = context.materialIndices.get(material);
+  if (existing !== undefined) return existing;
+  const source = material as MaterialLike,
+    color = source.color,
+    alpha = source.transparent ? 1 - source.opacity / 8 : 1;
+  let pbr: GLTFExportMaterial["pbrMetallicRoughness"] = {
+    baseColorFactor: [
       clamp(color?.r ?? 1),
       clamp(color?.g ?? 1),
       clamp(color?.b ?? 1),
       clamp(alpha),
-    ];
-    let pbr: GLTFExportMaterial["pbrMetallicRoughness"] = {
-      baseColorFactor: baseColor,
-      metallicFactor: 0,
-      roughnessFactor: 1,
-    };
-    const map = source.map;
-    const extras: Record<string, unknown> = {
-      easelMaterialType: material.type,
-    };
-    if (map) {
-      const textureIndex = this.#textureIndex(
-        map,
-        document,
-        textureIndices,
-        samplerIndex,
-      );
-      if (textureIndex !== undefined)
-        pbr = { ...pbr, baseColorTexture: { index: textureIndex } };
-    }
-    const result: GLTFExportMaterial = {
-      ...(material.name ? { name: material.name } : {}),
-      pbrMetallicRoughness: pbr,
-      ...(source.transparent && alpha < 1
-        ? { alphaMode: "BLEND" as const }
-        : {}),
-      ...(material.side === 2 ? { doubleSided: true } : {}),
-      extras,
-    };
-    const index = document.materials.push(result) - 1;
-    materialIndices.set(material, index);
-    return index;
+    ],
+    metallicFactor: 0,
+    roughnessFactor: 1,
+  };
+  const map = source.map;
+  if (map) {
+    const texture = textureIndex(map, context);
+    if (texture !== undefined)
+      pbr = { ...pbr, baseColorTexture: { index: texture } };
   }
-
-  #textureIndex(
-    texture: Texture,
-    document: MutableDocument,
-    textureIndices: Map<string, number>,
-    samplerIndex: number,
-  ): number | undefined {
-    const source = texture.source.toJSON().url;
-    if (typeof source !== "string" || source === "") return;
-    const key = JSON.stringify([texture.uuid, source]);
-    const existing = textureIndices.get(key);
-    if (existing !== undefined) return existing;
-    const imageIndex = document.images.length;
-    document.images.push({
-      uri: source,
-      ...(texture.name ? { name: texture.name } : {}),
+  const result: GLTFExportMaterial = {
+    ...(material.name ? { name: material.name } : {}),
+    pbrMetallicRoughness: pbr,
+    ...(source.transparent && alpha < 1 ? { alphaMode: "BLEND" as const } : {}),
+    ...(material.side === 2 ? { doubleSided: true } : {}),
+    extras: { easelMaterialType: material.type },
+  };
+  const index = context.document.materials.push(result) - 1;
+  context.materialIndices.set(material, index);
+  return index;
+}
+function textureIndex(
+  texture: Texture,
+  context: ExportContext,
+): number | undefined {
+  const source = texture.source.toJSON().url;
+  if (typeof source !== "string" || source === "") return;
+  const key = JSON.stringify([texture.uuid, source]),
+    existing = context.textureIndices.get(key);
+  if (existing !== undefined) return existing;
+  const imageIndex = context.document.images.length,
+    imageName = (texture as unknown as { readonly name: string }).name;
+  context.document.images.push({
+    uri: source,
+    ...(imageName ? { name: imageName } : {}),
+  });
+  if (context.document.samplers.length === 0)
+    context.document.samplers.push({
+      magFilter: 9728,
+      minFilter: 9728,
+      wrapS: 33071,
+      wrapT: 33071,
     });
-    if (document.samplers.length === 0)
-      document.samplers.push({
-        magFilter: 9728,
-        minFilter: 9728,
-        wrapS: 33071,
-        wrapT: 33071,
-      });
-    const index =
-      document.textures.push({ sampler: samplerIndex, source: imageIndex }) - 1;
-    textureIndices.set(key, index);
-    return index;
-  }
-
-  #writeAnimations(
-    root: Node,
-    clips: readonly AnimationClip[] | undefined,
-    nodeIndices: Map<Node, number>,
-    document: MutableDocument,
-    bytes: BinaryBuilder,
-  ): void {
-    if (!clips || clips.length === 0) return;
-    const namedNodes = new Map<string, Node>();
-    root.traverse((node) => {
-      if (node.name && !namedNodes.has(node.name))
-        namedNodes.set(node.name, node);
-    });
-    for (const clip of clips) {
-      const json = clip.toJSON();
-      const samplers: GLTFExportAnimationSampler[] = [];
-      const channels: GLTFExportAnimationChannel[] = [];
-      for (const track of json.tracks ?? []) {
-        const target = animationTarget(
-          track.name,
-          root,
-          namedNodes,
-          nodeIndices,
-          track.itemSize ?? 1,
-        );
-        if (
-          !(
-            target &&
-            track.values.every(
-              (value): value is number =>
-                typeof value === "number" && Number.isFinite(value),
-            )
-          )
-        )
-          continue;
-        const input = appendRawAccessor(document, bytes, track.times, "SCALAR");
-        const output = appendRawAccessor(
-          document,
-          bytes,
-          track.values as number[],
-          track.itemSize === 4 ? "VEC4" : "VEC3",
-        );
-        const sampler = samplers.length;
-        samplers.push({
-          input,
-          output,
-          interpolation:
-            track.interpolation === Interpolation.Discrete ? "STEP" : "LINEAR",
-        });
-        channels.push({ sampler, target });
-      }
-      if (channels.length > 0)
-        document.animations.push({
-          ...(json.name ? { name: json.name } : {}),
-          samplers,
-          channels,
-        });
-    }
-  }
+  const index =
+    context.document.textures.push({
+      sampler: context.samplerIndex,
+      source: imageIndex,
+    }) - 1;
+  context.textureIndices.set(key, index);
+  return index;
 }
 
+function writeAnimations(options: {
+  readonly root: Node;
+  readonly clips: readonly AnimationClip[] | undefined;
+  readonly nodeIndices: Map<Node, number>;
+  readonly context: ExportContext;
+}): void {
+  if (!options.clips || options.clips.length === 0) return;
+  const namedNodes = new Map<string, Node>();
+  options.root.traverse((node) => {
+    if (node.name && !namedNodes.has(node.name))
+      namedNodes.set(node.name, node);
+  });
+  for (const clip of options.clips) {
+    const animation = writeAnimation({
+      clip,
+      root: options.root,
+      namedNodes,
+      nodeIndices: options.nodeIndices,
+      context: options.context,
+    });
+    if (animation) options.context.document.animations.push(animation);
+  }
+}
+function writeAnimation(options: {
+  readonly clip: AnimationClip;
+  readonly root: Node;
+  readonly namedNodes: Map<string, Node>;
+  readonly nodeIndices: Map<Node, number>;
+  readonly context: ExportContext;
+}): GLTFExportAnimation | undefined {
+  const json = options.clip.toJSON(),
+    samplers: GLTFExportAnimationSampler[] = [],
+    channels: GLTFExportAnimationChannel[] = [];
+  for (const track of json.tracks ?? []) {
+    const target = animationTarget(track.name, {
+      root: options.root,
+      namedNodes: options.namedNodes,
+      nodeIndices: options.nodeIndices,
+      itemSize: track.itemSize ?? 1,
+    });
+    if (!(target && hasFiniteValues(track.values))) continue;
+    const input = appendRawAccessor(
+        options.context.document,
+        options.context.bytes,
+        track.times,
+        { type: "SCALAR" },
+      ),
+      output = appendRawAccessor(
+        options.context.document,
+        options.context.bytes,
+        track.values as number[],
+        { type: track.itemSize === 4 ? "VEC4" : "VEC3" },
+      ),
+      sampler = samplers.length;
+    samplers.push({
+      input,
+      output,
+      interpolation:
+        track.interpolation === Interpolation.Discrete ? "STEP" : "LINEAR",
+    });
+    channels.push({ sampler, target });
+  }
+  if (channels.length === 0) return;
+  return { ...(json.name ? { name: json.name } : {}), samplers, channels };
+}
 function appendAttribute(
   document: MutableDocument,
   bytes: BinaryBuilder,
-  attribute: {
-    readonly count: number;
-    readonly itemSize: number;
-    getX(index: number): number;
-    getY(index: number): number;
-    getZ(index: number): number;
-    getW?(index: number): number;
-  },
-  type: "VEC2" | "VEC3" | "VEC4",
-  target: 34962,
-  includeBounds: boolean,
+  attribute: AttributeLike,
+  options: AttributeOptions,
 ): number {
   const values: number[] = [];
   for (let index = 0; index < attribute.count; index++) {
@@ -628,16 +630,8 @@ function appendAttribute(
     if (attribute.itemSize >= 3) values.push(attribute.getZ(index));
     if (attribute.itemSize >= 4) values.push(attribute.getW?.(index) ?? 1);
   }
-  return appendRawAccessor(
-    document,
-    bytes,
-    values,
-    type,
-    target,
-    includeBounds,
-  );
+  return appendRawAccessor(document, bytes, values, options);
 }
-
 function appendNormalizedNormalAttribute(
   document: MutableDocument,
   bytes: BinaryBuilder,
@@ -650,80 +644,78 @@ function appendNormalizedNormalAttribute(
 ): number {
   const values: number[] = [];
   for (let index = 0; index < attribute.count; index++) {
-    const x = finite(attribute.getX(index));
-    const y = finite(attribute.getY(index));
-    const z = finite(attribute.getZ(index));
-    const length = Math.sqrt(x * x + y * y + z * z);
-    if (length > 0.0005) {
-      values.push(x / length, y / length, z / length);
-    } else {
-      values.push(1, 0, 0);
-    }
+    const x = finite(attribute.getX(index)),
+      y = finite(attribute.getY(index)),
+      z = finite(attribute.getZ(index)),
+      length = Math.sqrt(x * x + y * y + z * z);
+    if (length > 0.0005) values.push(x / length, y / length, z / length);
+    else values.push(1, 0, 0);
   }
-  return appendRawAccessor(document, bytes, values, "VEC3", 34962, false);
+  return appendRawAccessor(document, bytes, values, {
+    type: "VEC3",
+    target: 34962,
+  });
 }
-
 function appendRawAccessor(
   document: MutableDocument,
   bytes: BinaryBuilder,
   values: readonly number[],
-  type: "SCALAR" | "VEC2" | "VEC3" | "VEC4",
-  target?: 34962 | 34963,
-  includeBounds = false,
+  options: RawAccessorOptions,
 ): number {
-  const components = type === "SCALAR" ? 1 : Number(type.slice(3));
+  const components =
+    options.type === "SCALAR" ? 1 : Number(options.type.slice(3));
   if (values.length % components !== 0)
     throw new RangeError(
-      `GLTFExporter: ${type} accessor has incomplete values.`,
+      `GLTFExporter: ${options.type} accessor has incomplete values.`,
     );
-  const view = bytes.append(new Float32Array(values), document, target);
-  const count = values.length / components;
-  const accessor: GLTFExportAccessor = {
-    bufferView: view.index,
-    componentType: 5126,
-    count,
-    type,
-    ...(includeBounds ? bounds(values, components) : {}),
-  };
+  const view = bytes.append(new Float32Array(values), document, options.target),
+    accessor: GLTFExportAccessor = {
+      bufferView: view.index,
+      componentType: 5126,
+      count: values.length / components,
+      type: options.type,
+      ...(options.includeBounds ? bounds(values, components) : {}),
+    };
   return document.accessors.push(accessor) - 1;
 }
-
 function animationTarget(
   name: string,
-  root: Node,
-  namedNodes: Map<string, Node>,
-  nodeIndices: Map<Node, number>,
-  itemSize: number,
+  options: {
+    readonly root: Node;
+    readonly namedNodes: Map<string, Node>;
+    readonly nodeIndices: Map<Node, number>;
+    readonly itemSize: number;
+  },
 ): GLTFExportAnimationChannel["target"] | undefined {
-  const parts = name.match(
-    /^(?:(.+?)\.)?(position|quaternion|rotation|scale)(?:\[.*\])?$/u,
-  );
+  const parts = ANIMATION_TRACK_PATTERN.exec(name);
   if (!parts) return;
-  const selector = parts[1];
-  const pathName = parts[2];
-  const node = selector ? namedNodes.get(selector) : root;
-  const index = node ? nodeIndices.get(node) : undefined;
+  const selector = parts.groups?.[SELECTOR_GROUP],
+    pathName = parts.groups?.[PATH_GROUP],
+    node = selector ? options.namedNodes.get(selector) : options.root,
+    index = node ? options.nodeIndices.get(node) : undefined;
   if (index === undefined) return;
-  const path =
-    pathName === "position"
-      ? "translation"
-      : pathName === "scale"
-        ? "scale"
-        : "rotation";
-  const expected = path === "rotation" ? 4 : 3;
-  if (itemSize !== expected) return;
+  let path: "translation" | "rotation" | "scale";
+  if (pathName === "position") path = "translation";
+  else if (pathName === "scale") path = "scale";
+  else path = "rotation";
+  if (options.itemSize !== (path === "rotation" ? 4 : 3)) return;
   return { node: index, path };
 }
-
 function animationsFromUserData(
   root: Node,
 ): readonly AnimationClip[] | undefined {
-  const value = root.userData["animations"];
+  const value = root.userData[ANIMATIONS_USER_DATA];
   if (!Array.isArray(value)) return;
   return value.filter(
     (clip): clip is AnimationClip =>
       typeof clip === "object" &&
       clip !== null &&
       typeof (clip as AnimationClip).toJSON === "function",
+  );
+}
+function hasFiniteValues(values: readonly unknown[]): values is number[] {
+  return values.every(
+    (value): value is number =>
+      typeof value === "number" && Number.isFinite(value),
   );
 }

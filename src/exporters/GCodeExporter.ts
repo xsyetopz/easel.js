@@ -104,18 +104,18 @@ export class GCodeExporter {
       const index = node.geometry.index;
       if (index) {
         for (let cursor = 0; cursor + 2 < index.length; cursor += 3) {
-          const first = transformed[index[cursor]!];
-          const second = transformed[index[cursor + 1]!];
-          const third = transformed[index[cursor + 2]!];
+          const first = transformed[index[cursor]];
+          const second = transformed[index[cursor + 1]];
+          const third = transformed[index[cursor + 2]];
           if (first && second && third)
             triangles.push({ first, second, third });
         }
       } else {
         for (let cursor = 0; cursor + 2 < transformed.length; cursor += 3) {
           triangles.push({
-            first: transformed[cursor]!,
-            second: transformed[cursor + 1]!,
-            third: transformed[cursor + 2]!,
+            first: transformed[cursor],
+            second: transformed[cursor + 1],
+            third: transformed[cursor + 2],
           });
         }
       }
@@ -162,12 +162,13 @@ export class GCodeExporter {
       (first, second) => first.z - second.z,
     );
     for (let layerIndex = 0; layerIndex < orderedSlices.length; layerIndex++) {
-      const layer = orderedSlices[layerIndex]!;
-      if (layer.paths.length === 0) continue;
+      const layer = orderedSlices[layerIndex];
+      if (!layer || layer.paths.length === 0) continue;
       lines.push(`; layer ${layerIndex} z=${format(layer.z)}`);
       for (const path of layer.paths) {
         if (path.points.length < 2) continue;
-        const first = path.points[0]!;
+        const first = path.points[0];
+        if (!first) continue;
         lines.push(
           `G0 X${format(first.x)} Y${format(first.y)} Z${format(first.z)} F${format(travelFeedRate)}`,
         );
@@ -177,7 +178,8 @@ export class GCodeExporter {
           pointIndex < path.points.length;
           pointIndex++
         ) {
-          const next = path.points[pointIndex]!;
+          const next = path.points[pointIndex];
+          if (!next) continue;
           const move = [`G1 X${format(next.x)}`, `Y${format(next.y)}`];
           if (extrusionPerUnit > 0) {
             extrusion += distance(previous, next) * extrusionPerUnit;
@@ -227,8 +229,9 @@ function intersectTriangle(
   const points: GCodePoint[] = [];
   const vertices = [triangle.first, triangle.second, triangle.third];
   for (let index = 0; index < 3; index++) {
-    const first = vertices[index]!;
-    const second = vertices[(index + 1) % 3]!;
+    const first = vertices[index];
+    const second = vertices[(index + 1) % 3];
+    if (!(first && second)) continue;
     const firstDistance = first.z - height;
     const secondDistance = second.z - height;
     if (Math.abs(firstDistance) <= epsilon) addUnique(points, first);
@@ -246,7 +249,10 @@ function intersectTriangle(
   }
   if (points.length < 2) return;
   if (points.length > 2) points.sort(comparePoints);
-  return { first: points[0]!, second: points[points.length - 1]! };
+  const firstPoint = points[0];
+  const lastPoint = points.at(-1);
+  if (!(firstPoint && lastPoint)) return;
+  return { first: firstPoint, second: lastPoint };
 }
 
 function connectSegments(segments: Segment[]): GCodePath[] {
@@ -266,18 +272,21 @@ function connectSegments(segments: Segment[]): GCodePath[] {
   );
   const paths: GCodePath[] = [];
   while (remaining.length > 0) {
-    const segment = remaining.shift()!;
+    const segment = remaining.shift();
+    if (!segment) break;
     const points = [segment.first, segment.second];
     let endpoint = segment.second;
     for (;;) {
       const nextIndex = findConnectedSegmentIndex(remaining, endpoint);
       if (nextIndex < 0) break;
-      const next = remaining.splice(nextIndex, 1)[0]!;
+      const next = remaining.splice(nextIndex, 1)[0];
+      if (!next) break;
       const nextPoint =
         pointKey(next.first) === pointKey(endpoint) ? next.second : next.first;
       points.push(nextPoint);
       endpoint = nextPoint;
-      if (pointKey(endpoint) === pointKey(points[0]!)) break;
+      const startPoint = points[0];
+      if (startPoint && pointKey(endpoint) === pointKey(startPoint)) break;
     }
     paths.push({ points: simplifyPath(points) });
   }
@@ -290,7 +299,8 @@ function findConnectedSegmentIndex(
 ): number {
   const key = pointKey(endpoint);
   for (let index = 0; index < segments.length; index++) {
-    const segment = segments[index]!;
+    const segment = segments[index];
+    if (!segment) continue;
     if (pointKey(segment.first) === key || pointKey(segment.second) === key)
       return index;
   }
@@ -299,11 +309,14 @@ function findConnectedSegmentIndex(
 
 function simplifyPath(points: GCodePoint[]): GCodePoint[] {
   if (points.length < 3) return points;
-  const simplified: GCodePoint[] = [points[0]!];
+  const firstPoint = points[0];
+  if (!firstPoint) return points;
+  const simplified: GCodePoint[] = [firstPoint];
   for (let index = 1; index < points.length - 1; index++) {
-    const previous = simplified[simplified.length - 1]!;
-    const current = points[index]!;
-    const next = points[index + 1]!;
+    const previous = simplified.at(-1);
+    const current = points[index];
+    const next = points[index + 1];
+    if (!(previous && current && next)) continue;
     const cross =
       (current.x - previous.x) * (next.y - current.y) -
       (current.y - previous.y) * (next.x - current.x);
@@ -314,7 +327,8 @@ function simplifyPath(points: GCodePoint[]): GCodePoint[] {
     )
       simplified.push(current);
   }
-  simplified.push(points[points.length - 1]!);
+  const lastPoint = points.at(-1);
+  if (lastPoint) simplified.push(lastPoint);
   return simplified;
 }
 
@@ -334,7 +348,7 @@ function scaleSegment(segment: Segment, scale: number): Segment {
 }
 
 function addUnique(points: GCodePoint[], candidate: GCodePoint): void {
-  if (!points.some((point) => distance(point, candidate) <= epsilon))
+  if (!points.some((p) => distance(p, candidate) <= epsilon))
     points.push({ x: candidate.x, y: candidate.y, z: candidate.z });
 }
 
@@ -342,8 +356,8 @@ function comparePoints(first: GCodePoint, second: GCodePoint): number {
   return first.x - second.x || first.y - second.y || first.z - second.z;
 }
 
-function pointKey(point: GCodePoint): string {
-  return `${Math.round(point.x / epsilon)}:${Math.round(point.y / epsilon)}:${Math.round(point.z / epsilon)}`;
+function pointKey(p: GCodePoint): string {
+  return `${Math.round(p.x / epsilon)}:${Math.round(p.y / epsilon)}:${Math.round(p.z / epsilon)}`;
 }
 
 function distance(first: GCodePoint, second: GCodePoint): number {

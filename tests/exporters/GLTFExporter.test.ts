@@ -9,6 +9,9 @@ import { Mesh } from "@/objects/Mesh.js";
 import { Scene } from "@/core/Scene.js";
 import { Texture } from "@/textures/Texture.js";
 
+const NORMAL_ATTRIBUTE_KEY = "NORMAL";
+const TANGENT_ATTRIBUTE_KEY = "TANGENT";
+
 describe("GLTFExporter", () => {
   it("serializes deterministic CPU geometry, attributes, transforms, and material metadata", () => {
     const texture = new Texture();
@@ -91,7 +94,7 @@ describe("GLTFExporter", () => {
     const mesh = new Mesh(geometry, new BasicMaterial());
     const result = new GLTFExporter().parse(mesh);
     const normalAccessorIndex =
-      result.json.meshes[0]?.primitives[0]?.attributes["NORMAL"];
+      result.json.meshes[0]?.primitives[0]?.attributes[NORMAL_ATTRIBUTE_KEY];
     expect(normalAccessorIndex).toBeDefined();
     if (normalAccessorIndex === undefined) return;
     const accessor = result.json.accessors[normalAccessorIndex];
@@ -120,7 +123,7 @@ describe("GLTFExporter", () => {
       new Mesh(geometry, new BasicMaterial()),
     );
     expect(
-      result.json.meshes[0]?.primitives[0]?.attributes["TANGENT"],
+      result.json.meshes[0]?.primitives[0]?.attributes[TANGENT_ATTRIBUTE_KEY],
     ).toBeDefined();
   });
 });
