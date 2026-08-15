@@ -94,9 +94,9 @@ afterEach(() => {
 
 describe("version metadata tooling", () => {
   it.each([
-    ['export const REVISION = "1.2.3";\n', "untyped"],
-    ['export const REVISION: string = "1.2.3";\n', "typed"],
-  ])("accepts a %s literal declaration", (revisionSource) => {
+    ["untyped", 'export const REVISION = "1.2.3";\n'],
+    ["typed", 'export const REVISION: string = "1.2.3";\n'],
+  ])("accepts a %s literal declaration", (_kind, revisionSource) => {
     const directory = createFixture({ revisionSource });
 
     const result = runCommand(directory, "check-version");
