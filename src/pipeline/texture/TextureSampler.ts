@@ -8,7 +8,7 @@ interface TextureData {
 
 /** Nearest-neighbor texture sampler from pixel data. */
 export class TextureSampler {
-  #clamp = new TextureClamp();
+  readonly #clamp = new TextureClamp();
 
   /**
    * Samples a texture at UV coordinates using nearest-neighbour lookup.

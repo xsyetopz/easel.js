@@ -13,8 +13,8 @@ interface BakeDrawCall {
 
 /** Bakes scene lights into per-vertex or per-face colors. */
 export class LightBaker {
-  #flatShader = new FlatShader();
-  #gouraudShader = new GouraudShader();
+  readonly #flatShader = new FlatShader();
+  readonly #gouraudShader = new GouraudShader();
 
   /** Reusable vertex shade cache (r,g,b per vertex index). */
   #shadeCache = new Float32Array(0);
@@ -44,7 +44,7 @@ export class LightBaker {
   bake(drawCall: BakeDrawCall, lights: Record<string, unknown>[]): void {
     drawCall.shadedColorStride = 0;
     if (lights.length === 0) return;
-    const matType = drawCall.material?.type;
+    const matType = drawCall.material.type;
     if (matType === "BasicMaterial" || matType === "PointsMaterial") return;
 
     const tb = drawCall.triangles;

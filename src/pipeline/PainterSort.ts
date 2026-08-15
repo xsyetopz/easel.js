@@ -10,13 +10,13 @@ import { TileDistanceSorter } from "./sorting/TileDistanceSorter.ts";
  * then transparent meshes render back-to-front for correct blending.
  */
 export class PainterSort {
-  #tileSorter = new TileDistanceSorter();
-  #prioritySorter = new DrawPrioritySorter();
-  #polygonSorter = new PolygonSorter();
-  #opaque: DrawCall[] = [];
-  #transparent: DrawCall[] = [];
-  #layerKeys: number[] = [];
-  #layerBuckets: Map<number, DrawCall[]> = new Map();
+  readonly #tileSorter = new TileDistanceSorter();
+  readonly #prioritySorter = new DrawPrioritySorter();
+  readonly #polygonSorter = new PolygonSorter();
+  readonly #opaque: DrawCall[] = [];
+  readonly #transparent: DrawCall[] = [];
+  readonly #layerKeys: number[] = [];
+  readonly #layerBuckets: Map<number, DrawCall[]> = new Map();
 
   /**
    * Runs the full painter's algorithm sort chain:

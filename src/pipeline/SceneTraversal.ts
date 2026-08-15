@@ -1,22 +1,9 @@
+import type { Matrix4 } from "../math/Matrix4.ts";
 import { LineMaterial } from "../materials/LineMaterial.ts";
 import type { Material } from "../materials/Material.ts";
-import { Frustum } from "../math/Frustum.ts";
-import { Matrix4 } from "../math/Matrix4.ts";
-import { Vector3 } from "../math/Vector3.ts";
 import { Line } from "../objects/Line.ts";
 import { DrawList } from "./DrawList.ts";
 import { buildInstancedDrawCalls } from "./InstancedMeshBuilder.ts";
-import {
-  type CameraLike,
-  type GeometryLike,
-  type SceneLike,
-  type SceneNode,
-  _bsCenter,
-  _emptyUvs,
-  _emptyViewDepths,
-  _frustum,
-  _vp,
-} from "./_SceneTraversalShared.ts";
 import { collectLight } from "./_SceneLightCollection.ts";
 import {
   type LineAssemblyState,
@@ -24,10 +11,54 @@ import {
 } from "./_SceneLineAssembly.ts";
 import {
   type MeshAssemblyState,
-  assembleTriangles,
+  type Profiler,
   buildDrawCall,
-  buildUvs,
 } from "./_SceneMeshAssembly.ts";
+import {
+  type CameraLike,
+  type GeometryLike,
+  type SceneLike,
+  type SceneNode,
+  _bsCenter,
+  _frustum,
+  _vp,
+} from "./_SceneTraversalShared.ts";
+import {
+  type BoundingSphereState,
+  isFrustumCulled,
+} from "./_SceneFrustumCulling.ts";
+import {
+  makeInstancedAssembler,
+  makeInstancedUvBuilder,
+  type TraversalContext,
+  walkScene,
+} from "./_SceneTraversalHelpers.ts";
+
+interface TraversalTimings {
+  profileTraversal?: boolean;
+  travUpdateWorldMs?: number;
+  travWalkMs?: number;
+  travProjectMs?: number;
+  travAssembleMs?: number;
+  travDrawCalls?: number;
+}
+
+type TraverseArgs = [
+  width?: number,
+  height?: number,
+  timings?: TraversalTimings,
+];
+
+interface TraversalMetrics {
+  projectMs: number;
+  assembleMs: number;
+}
+
+type RenderableNode = SceneNode & {
+  geometry: GeometryLike;
+  matrixWorld: Matrix4;
+  material: Material;
+};
 
 /** Walks the scene graph collecting visible draw calls. */
 export class SceneTraversal {
@@ -36,22 +67,22 @@ export class SceneTraversal {
   #fogLutScale = 0;
   #fogLut: Float32Array | undefined;
   #fogMode: "linear" | "exponential-squared" = "linear";
+  #fogCullingFar: number | undefined;
   #hasFog = false;
 
-  // Scratch storage set by `#isFrustumCulled` so `#walk` can reuse
-  // bounding sphere world center without recomputing it for fog checks.
-  #lastBsCenterX = 0;
-  #lastBsCenterY = 0;
-  #lastBsCenterZ = 0;
-  #lastBsWorldRadius = 0;
-
-  #sphereScratch = { centre: _bsCenter, radius: 0 };
+  readonly #bounds: BoundingSphereState = {
+    centerX: 0,
+    centerY: 0,
+    centerZ: 0,
+    worldRadius: 0,
+  };
 
   // Scalar homogeneous clipping state reused for every line segment.
-  #clipLower = 0;
-  #clipUpper = 1;
+  readonly #clipLower = 0;
+  readonly #clipUpper = 1;
 
-  #drawList = new DrawList();
+  readonly #sphereScratch = { centre: _bsCenter, radius: 0 };
+  readonly #drawList = new DrawList();
 
   #lineState(): LineAssemblyState {
     return {
@@ -63,9 +94,9 @@ export class SceneTraversal {
       fogMode: this.#fogMode,
       clipLower: this.#clipLower,
       clipUpper: this.#clipUpper,
-      lastBsCenterX: this.#lastBsCenterX,
-      lastBsCenterY: this.#lastBsCenterY,
-      lastBsCenterZ: this.#lastBsCenterZ,
+      lastBsCenterX: this.#bounds.centerX,
+      lastBsCenterY: this.#bounds.centerY,
+      lastBsCenterZ: this.#bounds.centerZ,
     };
   }
 
@@ -77,9 +108,9 @@ export class SceneTraversal {
       fogFar: this.#fogFar,
       fogLutScale: this.#fogLutScale,
       fogMode: this.#fogMode,
-      lastBsCenterX: this.#lastBsCenterX,
-      lastBsCenterY: this.#lastBsCenterY,
-      lastBsCenterZ: this.#lastBsCenterZ,
+      lastBsCenterX: this.#bounds.centerX,
+      lastBsCenterY: this.#bounds.centerY,
+      lastBsCenterZ: this.#bounds.centerZ,
     };
   }
 
@@ -87,256 +118,172 @@ export class SceneTraversal {
   traverse(
     scene: SceneLike,
     camera: CameraLike,
-    width: number = 300,
-    height: number = 150,
-    timings?: {
-      profileTraversal?: boolean;
-      travUpdateWorldMs?: number;
-      travWalkMs?: number;
-      travProjectMs?: number;
-      travAssembleMs?: number;
-      travDrawCalls?: number;
-    },
+    ...args: TraverseArgs
   ): DrawList {
+    const [width = 300, height = 150, timings] = args;
     const perf = timings ? globalThis.performance : undefined;
     const now =
       timings && typeof perf?.now === "function"
         ? perf.now.bind(perf)
         : Date.now;
-    const profile = !!timings?.profileTraversal;
-    let projectMs = 0;
-    let assembleMs = 0;
-
+    const profile = Boolean(timings?.profileTraversal);
     const tUpdate0 = timings ? now() : 0;
     if (timings) timings.travUpdateWorldMs = now() - tUpdate0;
 
-    const fog = scene.fog;
-    if (fog?.lutNeedsUpdate) {
-      throw new Error("Fog LUT is dirty; call updateLut() before traversal.");
-    }
-    this.#hasFog = !!fog;
-    this.#fogNear = fog?.near ?? 0;
-    this.#fogFar = fog?.far ?? 0;
-    this.#fogMode = fog?.mode ?? "linear";
-    this.#fogLut = fog?.lut;
-    const fogLutDomain =
-      this.#fogMode === "exponential-squared"
-        ? this.#fogFar
-        : this.#fogFar - this.#fogNear;
-    this.#fogLutScale = fog && fogLutDomain > 0 ? 255 / fogLutDomain : 0;
-
+    this.#configureFog(scene);
     _vp.copy(camera.projectionMatrix).multiply(camera.matrixWorldInverse);
     _frustum.setFromProjectionMatrix(_vp);
 
     const drawList = this.#drawList;
     drawList.clear();
-    const tWalk0 = timings ? now() : 0;
-    this.#walk(
-      scene as unknown as SceneNode,
+    const metrics = { projectMs: 0, assembleMs: 0 };
+    const profiler = this.#makeProfiler(timings, profile, now, metrics);
+    const context: TraversalContext = {
       drawList,
       camera,
-      _frustum,
+      frustum: _frustum,
       width,
       height,
-      profile
-        ? {
-            now,
-            onProject: (dt: number) => {
-              projectMs += dt;
-            },
-            onAssemble: (dt: number) => {
-              assembleMs += dt;
-            },
-          }
-        : undefined,
+      profiler,
+    };
+    const tWalk0 = timings ? now() : 0;
+    walkScene(scene as unknown as SceneNode, context, (node, nodeContext) =>
+      this.#visitNode(node, nodeContext),
     );
-    if (timings) timings.travWalkMs = now() - tWalk0;
-    if (timings) timings.travDrawCalls = drawList.calls.length;
-    if (timings && profile) {
-      timings.travProjectMs = projectMs;
-      timings.travAssembleMs = assembleMs;
+    if (timings) {
+      timings.travWalkMs = now() - tWalk0;
+      timings.travDrawCalls = drawList.calls.length;
+      if (profile) {
+        timings.travProjectMs = metrics.projectMs;
+        timings.travAssembleMs = metrics.assembleMs;
+      }
     }
-
     return drawList;
   }
 
-  #walk(
-    node: SceneNode,
-    drawList: DrawList,
-    camera: CameraLike,
-    frustum: Frustum,
-    width: number,
-    height: number,
-    profiler?:
-      | {
-          now: () => number;
-          onProject: (dt: number) => void;
-          onAssemble: (dt: number) => void;
-        }
-      | undefined,
-  ): void {
-    if (!node.visible) return;
+  #configureFog(scene: SceneLike): void {
+    const fog = scene.fog;
+    if (fog?.lutNeedsUpdate) {
+      throw new Error("Fog LUT is dirty; call updateLut() before traversal.");
+    }
+    this.#hasFog = Boolean(fog);
+    this.#fogNear = fog?.near ?? 0;
+    this.#fogFar = fog?.far ?? 0;
+    this.#fogMode = fog?.mode ?? "linear";
+    this.#fogLut = fog?.lut;
+    this.#fogCullingFar = fog ? this.#fogFar : undefined;
+    const fogLutDomain =
+      this.#fogMode === "exponential-squared"
+        ? this.#fogFar
+        : this.#fogFar - this.#fogNear;
+    this.#fogLutScale = fog && fogLutDomain > 0 ? 255 / fogLutDomain : 0;
+  }
+
+  #makeProfiler(
+    timings: TraversalTimings | undefined,
+    profile: boolean,
+    now: () => number,
+    metrics: TraversalMetrics,
+  ): Profiler | undefined {
+    if (!(timings && profile)) return;
+    const onProject = (dt: number): void => {
+      metrics.projectMs += dt;
+    };
+    const onAssemble = (dt: number): void => {
+      metrics.assembleMs += dt;
+    };
+    return { now, onProject, onAssemble };
+  }
+
+  #visitNode(node: SceneNode, context: TraversalContext): boolean {
     const isLine =
       node instanceof Line && node.material instanceof LineMaterial;
-
     if (
-      (node.type === "Mesh" || node.type === "Points" || isLine) &&
       node.geometry &&
-      node.material
+      node.material &&
+      this.#isRenderableType(node.type, isLine)
     ) {
-      if (
-        !this.#isFrustumCulled(
-          node as SceneNode & {
-            geometry: GeometryLike;
-            matrixWorld: Matrix4;
-          },
-          frustum,
-        )
-      ) {
-        // Cheap bounding-sphere fog check before vertex work.
-        if (this.#hasFog && camera.position) {
-          const dx = this.#lastBsCenterX - camera.position.x;
-          const dy = this.#lastBsCenterY - camera.position.y;
-          const dz = this.#lastBsCenterZ - camera.position.z;
-          const distSq = dx * dx + dy * dy + dz * dz;
-          const fogFarPlusRadius = this.#fogFar + this.#lastBsWorldRadius;
-          if (distSq > fogFarPlusRadius * fogFarPlusRadius) {
-            for (const child of node.children) {
-              this.#walk(
-                child,
-                drawList,
-                camera,
-                frustum,
-                width,
-                height,
-                profiler,
-              );
-            }
-            return;
-          }
-        }
-
-        {
-          const dc = isLine
-            ? buildLineDrawCall(
-                this.#lineState(),
-                node as SceneNode & {
-                  matrixWorld: Matrix4;
-                  geometry: GeometryLike;
-                  material: Material;
-                },
-                camera,
-                width,
-                height,
-              )
-            : buildDrawCall(
-                this.#meshState(),
-                node as SceneNode & {
-                  matrixWorld: Matrix4;
-                  geometry: GeometryLike;
-                  material: Material;
-                },
-                camera,
-                width,
-                height,
-                profiler,
-              );
-          drawList.add(dc);
-        }
-      }
+      this.#visitRenderable(node as RenderableNode, context, isLine);
     } else if (
       node.type === "InstancedMesh" &&
       node.geometry &&
       node.material
     ) {
-      const meshState = this.#meshState();
-      buildInstancedDrawCalls(
-        node as never,
-        camera,
-        frustum,
-        width,
-        height,
-        drawList,
-        {
-          hasFog: this.#hasFog,
-          fogFar: this.#fogFar,
-          fogLut: this.#fogLut,
-        },
-        (a, b, c, d, e, f, g, h, i) =>
-          assembleTriangles(
-            meshState,
-            a,
-            b,
-            i ?? _emptyViewDepths,
-            c,
-            d,
-            e,
-            f,
-            g,
-            h,
-          ),
-        (() => {
-          const hasTexture = !!(
-            node.material as unknown as { map?: { data?: unknown } }
-          ).map?.data;
-          return hasTexture
-            ? (n: unknown) => buildUvs(n as SceneNode)
-            : () => _emptyUvs;
-        })(),
-      );
-    } else if (
-      typeof node.type === "string" &&
-      (node.type.endsWith("Light") || node.type === "LightProbe")
-    ) {
-      collectLight(node, drawList);
+      this.#visitInstanced(node, context);
+    } else if (this.#isLightType(node.type)) {
+      collectLight(node, context.drawList);
     }
-
-    for (const child of node.children) {
-      this.#walk(child, drawList, camera, frustum, width, height, profiler);
-    }
+    return true;
   }
 
-  /**
-   * Returns true if the node is outside the frustum and should be skipped.
-   * As a side-effect, writes the bounding sphere world center and radius into
-   * scratch fields so callers can reuse them for the fog distance check.
-   */
-  #isFrustumCulled(
-    node: { geometry: GeometryLike; matrixWorld: Matrix4 },
-    frustum: Frustum,
-  ): boolean {
-    const bs = node.geometry.boundingSphere;
-    if (!bs) {
-      const me = node.matrixWorld.elements;
-      this.#lastBsCenterX = me[12];
-      this.#lastBsCenterY = me[13];
-      this.#lastBsCenterZ = me[14];
-      this.#lastBsWorldRadius = 0;
-      return false;
-    }
+  #isRenderableType(type: string | undefined, isLine: boolean): boolean {
+    return type === "Mesh" || type === "Points" || isLine;
+  }
 
-    const me = node.matrixWorld.elements;
-    const bsCenter = bs.centre;
-    let worldCenter: Vector3;
-    if (bsCenter.x === 0 && bsCenter.y === 0 && bsCenter.z === 0) {
-      _bsCenter.x = me[12];
-      _bsCenter.y = me[13];
-      _bsCenter.z = me[14];
-      worldCenter = _bsCenter;
-    } else {
-      worldCenter = _bsCenter.copy(bsCenter).applyMatrix4(node.matrixWorld);
-    }
-    const sx2 = me[0] * me[0] + me[1] * me[1] + me[2] * me[2];
-    const sy2 = me[4] * me[4] + me[5] * me[5] + me[6] * me[6];
-    const sz2 = me[8] * me[8] + me[9] * me[9] + me[10] * me[10];
-    const worldRadius = bs.radius * Math.sqrt(Math.max(sx2, sy2, sz2));
+  #isLightType(type: string | undefined): boolean {
+    return (
+      typeof type === "string" &&
+      (type.endsWith("Light") || type === "LightProbe")
+    );
+  }
 
-    this.#lastBsCenterX = worldCenter.x;
-    this.#lastBsCenterY = worldCenter.y;
-    this.#lastBsCenterZ = worldCenter.z;
-    this.#lastBsWorldRadius = worldRadius;
+  #visitRenderable(
+    node: RenderableNode,
+    context: TraversalContext,
+    isLine: boolean,
+  ): void {
+    if (
+      isFrustumCulled(node, context.frustum, this.#sphereScratch, this.#bounds)
+    )
+      return;
+    if (this.#isBeyondFog(context.camera)) return;
 
-    this.#sphereScratch.radius = worldRadius;
-    return !frustum.intersectsSphere(this.#sphereScratch);
+    const drawCall = isLine
+      ? buildLineDrawCall(
+          this.#lineState(),
+          node,
+          context.camera,
+          context.width,
+          context.height,
+        )
+      : buildDrawCall(
+          this.#meshState(),
+          node,
+          context.camera,
+          context.width,
+          context.height,
+          context.profiler,
+        );
+    context.drawList.add(drawCall);
+  }
+
+  #isBeyondFog(camera: CameraLike): boolean {
+    const dx = this.#bounds.centerX - camera.position.x;
+    const dy = this.#bounds.centerY - camera.position.y;
+    const dz = this.#bounds.centerZ - camera.position.z;
+    const distSq = dx * dx + dy * dy + dz * dz;
+    const fogFar = this.#fogCullingFar;
+    if (fogFar === undefined) return false;
+    const fogFarPlusRadius = fogFar + this.#bounds.worldRadius;
+    return distSq > fogFarPlusRadius * fogFarPlusRadius;
+  }
+
+  #visitInstanced(node: SceneNode, context: TraversalContext): void {
+    const meshState = this.#meshState();
+    buildInstancedDrawCalls(
+      node as never,
+      context.camera,
+      context.frustum,
+      context.width,
+      context.height,
+      context.drawList,
+      {
+        hasFog: this.#hasFog,
+        fogFar: this.#fogFar,
+        fogLut: this.#fogLut,
+      },
+      makeInstancedAssembler(meshState),
+      makeInstancedUvBuilder(node),
+    );
   }
 }

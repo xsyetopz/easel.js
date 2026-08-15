@@ -87,5 +87,5 @@ function quantize(value: number): number {
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
-  return value < minimum ? minimum : value > maximum ? maximum : value;
+  return value < minimum ? minimum : Math.min(value, maximum);
 }

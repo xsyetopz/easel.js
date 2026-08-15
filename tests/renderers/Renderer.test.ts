@@ -13,7 +13,7 @@ interface CapturedImageData {
 }
 
 class TestTexture extends Texture {
-  #imageData: CapturedImageData;
+  readonly #imageData: CapturedImageData;
 
   constructor(data: Uint8ClampedArray, width: number, height: number) {
     super(undefined);

@@ -364,8 +364,8 @@ export function accumulateLights(
   for (let i = 0, len = lights.length; i < len; i++) {
     accumulateOne(nx, ny, nz, wx, wy, wz, lights[i] as LightEntry, out);
   }
-  out.r = out.r < 0 ? 0 : out.r > 1 ? 1 : out.r;
-  out.g = out.g < 0 ? 0 : out.g > 1 ? 1 : out.g;
-  out.b = out.b < 0 ? 0 : out.b > 1 ? 1 : out.b;
+  out.r = out.r < 0 ? 0 : Math.min(out.r, 1);
+  out.g = out.g < 0 ? 0 : Math.min(out.g, 1);
+  out.b = out.b < 0 ? 0 : Math.min(out.b, 1);
   return out;
 }

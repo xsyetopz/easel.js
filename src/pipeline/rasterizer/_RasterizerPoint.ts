@@ -1,5 +1,22 @@
 import type { PointRasterState } from "./_RasterizerTypes.ts";
 
+/**
+ * Rasterizes a circular point into the CPU framebuffer with optional depth
+ * testing, depth writes, and discrete source-over RGB blending.
+ *
+ * The point bounds are clipped to the supplied framebuffer dimensions. The
+ * packed color is interpreted as an opaque 32-bit value with red in the least
+ * significant byte; blending preserves that opaque alpha byte.
+ *
+ * @param state Depth and framebuffer views plus the active point blend state.
+ * @param cx Horizontal point center in framebuffer coordinates.
+ * @param cy Vertical point center in framebuffer coordinates.
+ * @param radius Point radius in framebuffer pixels.
+ * @param width Framebuffer width used to clip covered columns.
+ * @param height Framebuffer height used to clip covered rows.
+ * @param depth16 Quantized depth value compared with the CPU depth buffer.
+ * @param packed Opaque packed RGB color written to covered pixels.
+ */
 export function rasterizePoint(
   state: PointRasterState,
   cx: number,
@@ -100,6 +117,20 @@ export function rasterizePoint(
   }
 }
 
+/**
+ * Writes one rasterized point pixel after applying the configured depth and
+ * blending rules.
+ *
+ * The pixel coordinates are expected to identify a valid framebuffer entry.
+ * The packed color uses red in the least significant byte, and blended output
+ * is stored with an opaque alpha byte.
+ *
+ * @param state Depth and framebuffer views plus the active point blend state.
+ * @param px Horizontal framebuffer pixel coordinate.
+ * @param py Vertical framebuffer pixel coordinate.
+ * @param depth16 Quantized depth value compared with the CPU depth buffer.
+ * @param packed Opaque packed RGB color written to the selected pixel.
+ */
 export function writePoint(
   state: PointRasterState,
   px: number,

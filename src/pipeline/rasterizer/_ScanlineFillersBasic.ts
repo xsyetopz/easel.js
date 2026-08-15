@@ -1,8 +1,7 @@
 import { textureCoordinateToTexel } from "../texture/TextureWrapping.ts";
 import { BAYER4, type RasterizerState } from "./_RasterizerTypes.ts";
 
-export function fillFlat(
-  state: RasterizerState,
+type ScanlineArgs = [
   y: number,
   xStart: number,
   xEnd: number,
@@ -10,355 +9,413 @@ export function fillFlat(
   v: number,
   duDx: number,
   dvDx: number,
-): void {
-  const w = 1 - u - v;
+];
+
+interface Scanline {
+  y: number;
+  xStart: number;
+  xEnd: number;
+  u: number;
+  v: number;
+  duDx: number;
+  dvDx: number;
+}
+
+interface DepthInterpolation {
+  index: number;
+  ndcZ: number;
+  dNdcZ: number;
+  depth16F: number;
+  dDepth16: number;
+}
+
+interface TextureInterpolation {
+  data: Uint8ClampedArray;
+  width: number;
+  height: number;
+  u: number;
+  v: number;
+  du: number;
+  dv: number;
+  wrapS: RasterizerState["wrapS"];
+  wrapT: RasterizerState["wrapT"];
+}
+
+interface GouraudInterpolation {
+  r: number;
+  g: number;
+  b: number;
+  dr: number;
+  dg: number;
+  db: number;
+}
+
+interface FogInterpolation {
+  factor: number;
+  delta: number;
+}
+
+interface Fragment {
+  r: number;
+  g: number;
+  b: number;
+  dither: number;
+  fogFactor: number | undefined;
+}
+
+function createScanline(args: ScanlineArgs): Scanline {
+  const [y, xStart, xEnd, u, v, duDx, dvDx] = args;
+  return { y, xStart, xEnd, u, v, duDx, dvDx };
+}
+
+function createDepth(
+  state: RasterizerState,
+  line: Scanline,
+): DepthInterpolation {
+  const w = 1 - line.u - line.v;
   const dNdcZ =
-    duDx * (state.ndcZ0 - state.ndcZ2) + dvDx * (state.ndcZ1 - state.ndcZ2);
-  let ndcZ = u * state.ndcZ0 + v * state.ndcZ1 + w * state.ndcZ2;
-  const dbData = state.dbData;
-  const dbW = state.dbWidth;
-  const hasFog = state.hasFog;
-  const flatR = state.flatR;
-  const flatG = state.flatG;
-  const flatB = state.flatB;
-  const fbU32 = state.fbU32;
-  let dIdx = y * dbW + xStart;
-  let dFogF = 0;
-  let fogF = 0;
-  let fogR = 0;
-  let fogG = 0;
-  let fogB = 0;
-  if (hasFog) {
-    dFogF =
-      duDx * (state.fogF0 - state.fogF2) + dvDx * (state.fogF1 - state.fogF2);
-    fogF = u * state.fogF0 + v * state.fogF1 + w * state.fogF2;
-    fogR = state.fogR;
-    fogG = state.fogG;
-    fogB = state.fogB;
-  }
-  const blend = state.blend;
-  const depthTest = state.depthTest;
-  const depthWrite = state.depthWrite;
-  const srcWeight = state.srcWeight;
-  const dDepth16 = dNdcZ * 32767.5;
-  let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
-  for (let x = xStart; x <= xEnd; x++, dIdx++, ndcZ += dNdcZ) {
-    depth16F += dDepth16;
-    const depth16 = depth16F | 0;
-    if (depthTest && depth16 > dbData[dIdx]) continue;
-    if (depthWrite) dbData[dIdx] = depth16;
-    let r = flatR;
-    let g = flatG;
-    let b = flatB;
-    if (hasFog) {
-      const d = BAYER4[((y & 3) << 2) | (x & 3)];
-      const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-      r = (r + (fogR - r) * f + d) | 0;
-      g = (g + (fogG - g) * f + d) | 0;
-      b = (b + (fogB - b) * f + d) | 0;
-    }
-    if (blend) {
-      const dstPx = fbU32[dIdx];
-      const sw = srcWeight;
-      const dw = 1 - sw;
-      fbU32[dIdx] =
-        0xff000000 |
-        (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-        (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-        ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+    line.duDx * (state.ndcZ0 - state.ndcZ2) +
+    line.dvDx * (state.ndcZ1 - state.ndcZ2);
+  const ndcZ = line.u * state.ndcZ0 + line.v * state.ndcZ1 + w * state.ndcZ2;
+  return {
+    index: line.y * state.dbWidth + line.xStart,
+    ndcZ,
+    dNdcZ,
+    depth16F: (ndcZ + 1) * 32767.5 + 0.5,
+    dDepth16: dNdcZ * 32767.5,
+  };
+}
+
+function createTexture(
+  state: RasterizerState,
+  line: Scanline,
+): TextureInterpolation {
+  const w = 1 - line.u - line.v;
+  const data = state.texData as Uint8ClampedArray;
+  return {
+    data,
+    width: state.texW,
+    height: state.texH,
+    u: line.u * state.uv0u + line.v * state.uv1u + w * state.uv2u,
+    v: line.u * state.uv0v + line.v * state.uv1v + w * state.uv2v,
+    du:
+      line.duDx * (state.uv0u - state.uv2u) +
+      line.dvDx * (state.uv1u - state.uv2u),
+    dv:
+      line.duDx * (state.uv0v - state.uv2v) +
+      line.dvDx * (state.uv1v - state.uv2v),
+    wrapS: state.wrapS,
+    wrapT: state.wrapT,
+  };
+}
+
+function createGouraud(
+  state: RasterizerState,
+  line: Scanline,
+): GouraudInterpolation {
+  const data = state.gouraudData as Float32Array;
+  const base = state.gouraudBase;
+  const w = 1 - line.u - line.v;
+  return {
+    r: line.u * data[base] + line.v * data[base + 3] + w * data[base + 6],
+    g: line.u * data[base + 1] + line.v * data[base + 4] + w * data[base + 7],
+    b: line.u * data[base + 2] + line.v * data[base + 5] + w * data[base + 8],
+    dr:
+      line.duDx * (data[base] - data[base + 6]) +
+      line.dvDx * (data[base + 3] - data[base + 6]),
+    dg:
+      line.duDx * (data[base + 1] - data[base + 7]) +
+      line.dvDx * (data[base + 4] - data[base + 7]),
+    db:
+      line.duDx * (data[base + 2] - data[base + 8]) +
+      line.dvDx * (data[base + 5] - data[base + 8]),
+  };
+}
+
+function createFog(
+  state: RasterizerState,
+  line: Scanline,
+): FogInterpolation | undefined {
+  if (!state.hasFog) return undefined;
+  const w = 1 - line.u - line.v;
+  return {
+    factor: line.u * state.fogF0 + line.v * state.fogF1 + w * state.fogF2,
+    delta:
+      line.duDx * (state.fogF0 - state.fogF2) +
+      line.dvDx * (state.fogF1 - state.fogF2),
+  };
+}
+
+function clampUnit(value: number): number {
+  return Math.max(0, Math.min(value, 1));
+}
+
+function passesDepth(
+  state: RasterizerState,
+  index: number,
+  depth16: number,
+): boolean {
+  return !state.depthTest || depth16 <= state.dbData[index];
+}
+
+function writeDepth(
+  state: RasterizerState,
+  index: number,
+  depth16: number,
+): void {
+  if (state.depthWrite) state.dbData[index] = depth16;
+}
+
+function getTexelIndex(
+  texture: TextureInterpolation,
+  u: number,
+  v: number,
+): number {
+  const tx = textureCoordinateToTexel(u, texture.width, texture.wrapS);
+  const ty = textureCoordinateToTexel(v, texture.height, texture.wrapT);
+  return (ty * texture.width + tx) << 2;
+}
+
+function setFlatColor(state: RasterizerState, fragment: Fragment): void {
+  fragment.r = state.flatR;
+  fragment.g = state.flatG;
+  fragment.b = state.flatB;
+}
+
+function setGouraudColor(
+  state: RasterizerState,
+  lighting: GouraudInterpolation,
+  fragment: Fragment,
+): void {
+  const d = fragment.dither;
+  fragment.r = (state.baseR * clampUnit(lighting.r) + d) | 0;
+  fragment.g = (state.baseG * clampUnit(lighting.g) + d) | 0;
+  fragment.b = (state.baseB * clampUnit(lighting.b) + d) | 0;
+}
+
+function setFlatTextureColor(
+  state: RasterizerState,
+  texture: TextureInterpolation,
+  texelIndex: number,
+  fragment: Fragment,
+): void {
+  const d = fragment.dither;
+  const brightTex = state.selectedBrightTex;
+  if (state.hasTextureColorTint) {
+    let sampleR: number;
+    let sampleG: number;
+    let sampleB: number;
+    if (brightTex === undefined) {
+      sampleR = texture.data[texelIndex] * state.flatTextureLightR;
+      sampleG = texture.data[texelIndex + 1] * state.flatTextureLightG;
+      sampleB = texture.data[texelIndex + 2] * state.flatTextureLightB;
     } else {
-      fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
+      sampleR = brightTex[texelIndex];
+      sampleG = brightTex[texelIndex + 1];
+      sampleB = brightTex[texelIndex + 2];
     }
-    if (hasFog) fogF += dFogF;
+    fragment.r = (sampleR * state.textureColorR + d) | 0;
+    fragment.g = (sampleG * state.textureColorG + d) | 0;
+    fragment.b = (sampleB * state.textureColorB + d) | 0;
+    return;
+  }
+  if (brightTex !== undefined) {
+    fragment.r = brightTex[texelIndex];
+    fragment.g = brightTex[texelIndex + 1];
+    fragment.b = brightTex[texelIndex + 2];
+    return;
+  }
+  fragment.r = (texture.data[texelIndex] * state.flatLitFactor + d) | 0;
+  fragment.g = (texture.data[texelIndex + 1] * state.flatLitFactor + d) | 0;
+  fragment.b = (texture.data[texelIndex + 2] * state.flatLitFactor + d) | 0;
+}
+
+function setUnlitTextureColor(
+  state: RasterizerState,
+  texture: TextureInterpolation,
+  texelIndex: number,
+  fragment: Fragment,
+): void {
+  const d = fragment.dither;
+  const scale = 0.00392156862745098;
+  fragment.r = (texture.data[texelIndex] * state.baseR * scale + d) | 0;
+  fragment.g = (texture.data[texelIndex + 1] * state.baseG * scale + d) | 0;
+  fragment.b = (texture.data[texelIndex + 2] * state.baseB * scale + d) | 0;
+}
+
+function writeFragment(
+  state: RasterizerState,
+  index: number,
+  fragment: Fragment,
+): void {
+  let { r, g, b } = fragment;
+  const fogFactor = fragment.fogFactor;
+  if (fogFactor !== undefined) {
+    const d = fragment.dither;
+    const f = clampUnit(fogFactor);
+    r = (r + (state.fogR - r) * f + d) | 0;
+    g = (g + (state.fogG - g) * f + d) | 0;
+    b = (b + (state.fogB - b) * f + d) | 0;
+  }
+  if (state.blend) {
+    const dstPx = state.fbU32[index];
+    const sw = state.srcWeight;
+    const dw = 1 - sw;
+    state.fbU32[index] =
+      0xff000000 |
+      (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
+      (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
+      ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
+    return;
+  }
+  state.fbU32[index] = 0xff000000 | (b << 16) | (g << 8) | r;
+}
+
+function advanceFog(fog: FogInterpolation | undefined): void {
+  if (fog !== undefined) fog.factor += fog.delta;
+}
+
+/** Rasterizes a flat-shaded scanline. */
+export function fillFlat(state: RasterizerState, ...args: ScanlineArgs): void {
+  const line = createScanline(args);
+  const depth = createDepth(state, line);
+  const fog = createFog(state, line);
+  const fragment: Fragment = {
+    r: 0,
+    g: 0,
+    b: 0,
+    dither: 0,
+    fogFactor: undefined,
+  };
+  for (
+    let x = line.xStart;
+    x <= line.xEnd;
+    x++, depth.index++, depth.ndcZ += depth.dNdcZ
+  ) {
+    depth.depth16F += depth.dDepth16;
+    const depth16 = depth.depth16F | 0;
+    if (!passesDepth(state, depth.index, depth16)) continue;
+    writeDepth(state, depth.index, depth16);
+    fragment.dither = BAYER4[((line.y & 3) << 2) | (x & 3)];
+    setFlatColor(state, fragment);
+    fragment.fogFactor = fog?.factor;
+    writeFragment(state, depth.index, fragment);
+    advanceFog(fog);
   }
 }
 
+/** Rasterizes a Gouraud-shaded scanline. */
 export function fillGouraud(
   state: RasterizerState,
-  y: number,
-  xStart: number,
-  xEnd: number,
-  u: number,
-  v: number,
-  duDx: number,
-  dvDx: number,
+  ...args: ScanlineArgs
 ): void {
-  const w = 1 - u - v;
-  const dNdcZ =
-    duDx * (state.ndcZ0 - state.ndcZ2) + dvDx * (state.ndcZ1 - state.ndcZ2);
-  const gd = state.gouraudData as Float32Array;
-  const b0 = state.gouraudBase;
-  const dLR = duDx * (gd[b0] - gd[b0 + 6]) + dvDx * (gd[b0 + 3] - gd[b0 + 6]);
-  const dLG =
-    duDx * (gd[b0 + 1] - gd[b0 + 7]) + dvDx * (gd[b0 + 4] - gd[b0 + 7]);
-  const dLB =
-    duDx * (gd[b0 + 2] - gd[b0 + 8]) + dvDx * (gd[b0 + 5] - gd[b0 + 8]);
-  let ndcZ = u * state.ndcZ0 + v * state.ndcZ1 + w * state.ndcZ2;
-  let lr = u * gd[b0] + v * gd[b0 + 3] + w * gd[b0 + 6];
-  let lg = u * gd[b0 + 1] + v * gd[b0 + 4] + w * gd[b0 + 7];
-  let lb = u * gd[b0 + 2] + v * gd[b0 + 5] + w * gd[b0 + 8];
-  const dbData = state.dbData;
-  const dbW = state.dbWidth;
-  const baseR = state.baseR;
-  const baseG = state.baseG;
-  const baseB = state.baseB;
-  const hasFog = state.hasFog;
-  const fbU32 = state.fbU32;
-  let dIdx = y * dbW + xStart;
-  let dFogF = 0;
-  let fogF = 0;
-  let fogR = 0;
-  let fogG = 0;
-  let fogB = 0;
-  if (hasFog) {
-    dFogF =
-      duDx * (state.fogF0 - state.fogF2) + dvDx * (state.fogF1 - state.fogF2);
-    fogF = u * state.fogF0 + v * state.fogF1 + w * state.fogF2;
-    fogR = state.fogR;
-    fogG = state.fogG;
-    fogB = state.fogB;
-  }
-  const blend = state.blend;
-  const depthTest = state.depthTest;
-  const depthWrite = state.depthWrite;
-  const srcWeight = state.srcWeight;
-  const dDepth16 = dNdcZ * 32767.5;
-  let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
+  const line = createScanline(args);
+  const depth = createDepth(state, line);
+  const lighting = createGouraud(state, line);
+  const fog = createFog(state, line);
+  const fragment: Fragment = {
+    r: 0,
+    g: 0,
+    b: 0,
+    dither: 0,
+    fogFactor: undefined,
+  };
   for (
-    let x = xStart;
-    x <= xEnd;
-    x++, dIdx++, ndcZ += dNdcZ, lr += dLR, lg += dLG, lb += dLB
+    let x = line.xStart;
+    x <= line.xEnd;
+    x++,
+      depth.index++,
+      depth.ndcZ += depth.dNdcZ,
+      lighting.r += lighting.dr,
+      lighting.g += lighting.dg,
+      lighting.b += lighting.db
   ) {
-    depth16F += dDepth16;
-    const depth16 = depth16F | 0;
-    if (depthTest && depth16 > dbData[dIdx]) continue;
-    if (depthWrite) dbData[dIdx] = depth16;
-    const d = BAYER4[((y & 3) << 2) | (x & 3)];
-    let r = (baseR * (lr < 0 ? 0 : lr > 1 ? 1 : lr) + d) | 0;
-    let g = (baseG * (lg < 0 ? 0 : lg > 1 ? 1 : lg) + d) | 0;
-    let bl = (baseB * (lb < 0 ? 0 : lb > 1 ? 1 : lb) + d) | 0;
-    if (hasFog) {
-      const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-      r = (r + (fogR - r) * f + d) | 0;
-      g = (g + (fogG - g) * f + d) | 0;
-      bl = (bl + (fogB - bl) * f + d) | 0;
-    }
-    if (blend) {
-      const dstPx = fbU32[dIdx];
-      const sw = srcWeight;
-      const dw = 1 - sw;
-      fbU32[dIdx] =
-        0xff000000 |
-        (((bl * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-        (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-        ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-    } else {
-      fbU32[dIdx] = 0xff000000 | (bl << 16) | (g << 8) | r;
-    }
-    if (hasFog) fogF += dFogF;
+    depth.depth16F += depth.dDepth16;
+    const depth16 = depth.depth16F | 0;
+    if (!passesDepth(state, depth.index, depth16)) continue;
+    writeDepth(state, depth.index, depth16);
+    fragment.dither = BAYER4[((line.y & 3) << 2) | (x & 3)];
+    setGouraudColor(state, lighting, fragment);
+    fragment.fogFactor = fog?.factor;
+    writeFragment(state, depth.index, fragment);
+    advanceFog(fog);
   }
 }
 
+/** Rasterizes a flat-shaded textured scanline. */
 export function fillFlatTex(
   state: RasterizerState,
-  y: number,
-  xStart: number,
-  xEnd: number,
-  u: number,
-  v: number,
-  duDx: number,
-  dvDx: number,
+  ...args: ScanlineArgs
 ): void {
-  const w = 1 - u - v;
-  const dNdcZ =
-    duDx * (state.ndcZ0 - state.ndcZ2) + dvDx * (state.ndcZ1 - state.ndcZ2);
-  const dTexU =
-    duDx * (state.uv0u - state.uv2u) + dvDx * (state.uv1u - state.uv2u);
-  const dTexV =
-    duDx * (state.uv0v - state.uv2v) + dvDx * (state.uv1v - state.uv2v);
-  let ndcZ = u * state.ndcZ0 + v * state.ndcZ1 + w * state.ndcZ2;
-  let texU = u * state.uv0u + v * state.uv1u + w * state.uv2u;
-  let texV = u * state.uv0v + v * state.uv1v + w * state.uv2v;
-  const dbData = state.dbData;
-  const dbW = state.dbWidth;
-  const texH = state.texH;
-  const texW = state.texW;
-  const hasFog = state.hasFog;
-  const fbU32 = state.fbU32;
-  let dIdx = y * dbW + xStart;
-  const brightTex = state.selectedBrightTex;
-  const litFactor = state.flatLitFactor;
-  const hasColorTint = state.hasTextureColorTint;
-  const colorR = state.textureColorR;
-  const colorG = state.textureColorG;
-  const colorB = state.textureColorB;
-  const lightR = state.flatTextureLightR;
-  const lightG = state.flatTextureLightG;
-  const lightB = state.flatTextureLightB;
-  const texD = state.texData as Uint8ClampedArray;
-  const wS = state.wrapS;
-  const wT = state.wrapT;
-  let dFogF = 0;
-  let fogF = 0;
-  let fogR = 0;
-  let fogG = 0;
-  let fogB = 0;
-  if (hasFog) {
-    dFogF =
-      duDx * (state.fogF0 - state.fogF2) + dvDx * (state.fogF1 - state.fogF2);
-    fogF = u * state.fogF0 + v * state.fogF1 + w * state.fogF2;
-    fogR = state.fogR;
-    fogG = state.fogG;
-    fogB = state.fogB;
-  }
-  const blend = state.blend;
-  const depthTest = state.depthTest;
-  const depthWrite = state.depthWrite;
-  const srcWeight = state.srcWeight;
-  const dDepth16 = dNdcZ * 32767.5;
-  let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
+  const line = createScanline(args);
+  const depth = createDepth(state, line);
+  const texture = createTexture(state, line);
+  const fog = createFog(state, line);
+  const fragment: Fragment = {
+    r: 0,
+    g: 0,
+    b: 0,
+    dither: 0,
+    fogFactor: undefined,
+  };
   for (
-    let x = xStart;
-    x <= xEnd;
-    x++, dIdx++, ndcZ += dNdcZ, texU += dTexU, texV += dTexV
+    let x = line.xStart;
+    x <= line.xEnd;
+    x++,
+      depth.index++,
+      depth.ndcZ += depth.dNdcZ,
+      texture.u += texture.du,
+      texture.v += texture.dv
   ) {
-    depth16F += dDepth16;
-    const depth16 = depth16F | 0;
-    if (depthTest && depth16 > dbData[dIdx]) continue;
-    const tx = textureCoordinateToTexel(texU, texW, wS);
-    const ty = textureCoordinateToTexel(texV, texH, wT);
-    const tidx = (ty * texW + tx) << 2;
-    if (texD[tidx + 3] === 0) continue;
-    if (depthWrite) dbData[dIdx] = depth16;
-    const d = BAYER4[((y & 3) << 2) | (x & 3)];
-    let r: number;
-    let g: number;
-    let b: number;
-    if (hasColorTint) {
-      const sampleR = brightTex ? brightTex[tidx] : texD[tidx] * lightR;
-      const sampleG = brightTex ? brightTex[tidx + 1] : texD[tidx + 1] * lightG;
-      const sampleB = brightTex ? brightTex[tidx + 2] : texD[tidx + 2] * lightB;
-      r = (sampleR * colorR + d) | 0;
-      g = (sampleG * colorG + d) | 0;
-      b = (sampleB * colorB + d) | 0;
-    } else if (brightTex) {
-      r = brightTex[tidx];
-      g = brightTex[tidx + 1];
-      b = brightTex[tidx + 2];
-    } else {
-      r = (texD[tidx] * litFactor + d) | 0;
-      g = (texD[tidx + 1] * litFactor + d) | 0;
-      b = (texD[tidx + 2] * litFactor + d) | 0;
-    }
-    if (hasFog) {
-      const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-      r = (r + (fogR - r) * f + d) | 0;
-      g = (g + (fogG - g) * f + d) | 0;
-      b = (b + (fogB - b) * f + d) | 0;
-    }
-    if (blend) {
-      const dstPx = fbU32[dIdx];
-      const sw = srcWeight;
-      const dw = 1 - sw;
-      fbU32[dIdx] =
-        0xff000000 |
-        (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-        (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-        ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-    } else {
-      fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-    }
-    if (hasFog) fogF += dFogF;
+    depth.depth16F += depth.dDepth16;
+    const depth16 = depth.depth16F | 0;
+    if (!passesDepth(state, depth.index, depth16)) continue;
+    const texelIndex = getTexelIndex(texture, texture.u, texture.v);
+    if (texture.data[texelIndex + 3] === 0) continue;
+    writeDepth(state, depth.index, depth16);
+    fragment.dither = BAYER4[((line.y & 3) << 2) | (x & 3)];
+    setFlatTextureColor(state, texture, texelIndex, fragment);
+    fragment.fogFactor = fog?.factor;
+    writeFragment(state, depth.index, fragment);
+    advanceFog(fog);
   }
 }
 
+/** Rasterizes an unlit textured scanline. */
 export function fillUnlitTex(
   state: RasterizerState,
-  y: number,
-  xStart: number,
-  xEnd: number,
-  u: number,
-  v: number,
-  duDx: number,
-  dvDx: number,
+  ...args: ScanlineArgs
 ): void {
-  const w = 1 - u - v;
-  const dNdcZ =
-    duDx * (state.ndcZ0 - state.ndcZ2) + dvDx * (state.ndcZ1 - state.ndcZ2);
-  const dTexU =
-    duDx * (state.uv0u - state.uv2u) + dvDx * (state.uv1u - state.uv2u);
-  const dTexV =
-    duDx * (state.uv0v - state.uv2v) + dvDx * (state.uv1v - state.uv2v);
-  let ndcZ = u * state.ndcZ0 + v * state.ndcZ1 + w * state.ndcZ2;
-  let texU = u * state.uv0u + v * state.uv1u + w * state.uv2u;
-  let texV = u * state.uv0v + v * state.uv1v + w * state.uv2v;
-  const dbData = state.dbData;
-  const dbW = state.dbWidth;
-  const texD = state.texData as Uint8ClampedArray;
-  const texH = state.texH;
-  const texW = state.texW;
-  const baseR = state.baseR;
-  const baseG = state.baseG;
-  const baseB = state.baseB;
-  const hasFog = state.hasFog;
-  const fbU32 = state.fbU32;
-  let dIdx = y * dbW + xStart;
-  const wS = state.wrapS;
-  const wT = state.wrapT;
-  let dFogF = 0;
-  let fogF = 0;
-  let fogR = 0;
-  let fogG = 0;
-  let fogB = 0;
-  if (hasFog) {
-    dFogF =
-      duDx * (state.fogF0 - state.fogF2) + dvDx * (state.fogF1 - state.fogF2);
-    fogF = u * state.fogF0 + v * state.fogF1 + w * state.fogF2;
-    fogR = state.fogR;
-    fogG = state.fogG;
-    fogB = state.fogB;
-  }
-  const blend = state.blend;
-  const depthTest = state.depthTest;
-  const depthWrite = state.depthWrite;
-  const srcWeight = state.srcWeight;
-  const dDepth16 = dNdcZ * 32767.5;
-  let depth16F = (ndcZ + 1) * 32767.5 + 0.5;
+  const line = createScanline(args);
+  const depth = createDepth(state, line);
+  const texture = createTexture(state, line);
+  const fog = createFog(state, line);
+  const fragment: Fragment = {
+    r: 0,
+    g: 0,
+    b: 0,
+    dither: 0,
+    fogFactor: undefined,
+  };
   for (
-    let x = xStart;
-    x <= xEnd;
-    x++, dIdx++, ndcZ += dNdcZ, texU += dTexU, texV += dTexV
+    let x = line.xStart;
+    x <= line.xEnd;
+    x++,
+      depth.index++,
+      depth.ndcZ += depth.dNdcZ,
+      texture.u += texture.du,
+      texture.v += texture.dv
   ) {
-    depth16F += dDepth16;
-    const depth16 = depth16F | 0;
-    if (depthTest && depth16 > dbData[dIdx]) continue;
-    const tx = textureCoordinateToTexel(texU, texW, wS);
-    const ty = textureCoordinateToTexel(texV, texH, wT);
-    const tidx = (ty * texW + tx) << 2;
-    if (texD[tidx + 3] === 0) continue;
-    if (depthWrite) dbData[dIdx] = depth16;
-    const d = BAYER4[((y & 3) << 2) | (x & 3)];
-    let r = (texD[tidx] * baseR * 0.00392156862745098 + d) | 0;
-    let g = (texD[tidx + 1] * baseG * 0.00392156862745098 + d) | 0;
-    let b = (texD[tidx + 2] * baseB * 0.00392156862745098 + d) | 0;
-    if (hasFog) {
-      const f = fogF < 0 ? 0 : fogF > 1 ? 1 : fogF;
-      r = (r + (fogR - r) * f + d) | 0;
-      g = (g + (fogG - g) * f + d) | 0;
-      b = (b + (fogB - b) * f + d) | 0;
-    }
-    if (blend) {
-      const dstPx = fbU32[dIdx];
-      const sw = srcWeight;
-      const dw = 1 - sw;
-      fbU32[dIdx] =
-        0xff000000 |
-        (((b * sw + ((dstPx >> 16) & 0xff) * dw + 0.5) | 0) << 16) |
-        (((g * sw + ((dstPx >> 8) & 0xff) * dw + 0.5) | 0) << 8) |
-        ((r * sw + (dstPx & 0xff) * dw + 0.5) | 0);
-    } else {
-      fbU32[dIdx] = 0xff000000 | (b << 16) | (g << 8) | r;
-    }
-    if (hasFog) fogF += dFogF;
+    depth.depth16F += depth.dDepth16;
+    const depth16 = depth.depth16F | 0;
+    if (!passesDepth(state, depth.index, depth16)) continue;
+    const texelIndex = getTexelIndex(texture, texture.u, texture.v);
+    if (texture.data[texelIndex + 3] === 0) continue;
+    writeDepth(state, depth.index, depth16);
+    fragment.dither = BAYER4[((line.y & 3) << 2) | (x & 3)];
+    setUnlitTextureColor(state, texture, texelIndex, fragment);
+    fragment.fogFactor = fog?.factor;
+    writeFragment(state, depth.index, fragment);
+    advanceFog(fog);
   }
 }

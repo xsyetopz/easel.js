@@ -66,20 +66,20 @@ export class Renderer {
 
   #canvas: HTMLCanvasElement | undefined;
   #context: CanvasRenderingContext2D | undefined;
-  #framebuffer: Framebuffer;
+  readonly #framebuffer: Framebuffer;
 
-  #traversal: SceneTraversal;
-  #fogCuller: FogCuller;
-  #painterSort: PainterSort;
-  #lightBaker: LightBaker;
-  #rasterizer: Rasterizer;
+  readonly #traversal: SceneTraversal;
+  readonly #fogCuller: FogCuller;
+  readonly #painterSort: PainterSort;
+  readonly #lightBaker: LightBaker;
+  readonly #rasterizer: Rasterizer;
 
   /** Whether render() sorts draw calls before CPU rasterization. */
   sortObjects: boolean = true;
 
-  #clearColor = { r: 0, g: 0, b: 0 };
-  #clear: FramebufferClear;
-  #upload: FramebufferUpload;
+  readonly #clearColor = { r: 0, g: 0, b: 0 };
+  readonly #clear: FramebufferClear;
+  readonly #upload: FramebufferUpload;
 
   /** Constructs a CPU framebuffer renderer with an optional Canvas2D target. */
   constructor(options: RendererOptions = {}) {

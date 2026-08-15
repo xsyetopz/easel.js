@@ -35,7 +35,7 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
 
 /** Precomputed HSL16-to-RGB lookup table. */
 export class ColorTable {
-  #table: Uint32Array;
+  readonly #table: Uint32Array;
 
   /** Builds the precomputed HSL16-to-RGB lookup table. */
   constructor() {

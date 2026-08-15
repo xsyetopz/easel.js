@@ -53,7 +53,7 @@ export class EdgeWalker {
 
     const maxSteps = Math.max(dx, dy) + 1;
     let steps = 0;
-    while (true) {
+    for (;;) {
       if (++steps > maxSteps) {
         throw new Error("EdgeWalker exceeded its bounded iteration count");
       }

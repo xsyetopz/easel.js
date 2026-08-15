@@ -251,7 +251,7 @@ export class LineRasterizer {
       let y = y0;
       const maxSteps = totalSteps + 1;
       let steps = 0;
-      while (true) {
+      for (;;) {
         if (++steps > maxSteps) {
           throw new Error("Line walker exceeded its bounded iteration count");
         }
@@ -401,14 +401,16 @@ function toByte(value: number): number {
 
 function clamp01(value: number): number {
   if (!Number.isFinite(value)) return 0;
-  return value < 0 ? 0 : value > 1 ? 1 : value;
+  return value < 0 ? 0 : Math.min(value, 1);
 }
 
 function clampByte(value: number): number {
   if (!Number.isFinite(value)) return 0;
-  return value < 0 ? 0 : value > 255 ? 255 : value | 0;
+  if (value < 0) return 0;
+  if (value > 255) return 255;
+  return value | 0;
 }
 
 function clampDepth(value: number): number {
-  return value < 0 ? 0 : value > 0xffff ? 0xffff : value;
+  return value < 0 ? 0 : Math.min(value, 0xffff);
 }

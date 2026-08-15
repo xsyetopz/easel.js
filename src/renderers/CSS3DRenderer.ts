@@ -150,16 +150,14 @@ function renderObject(
       element.style.display = "none";
     }
   }
-  for (let index = 0; index < object.children.length; index++) {
-    const child = object.children[index];
+  for (const child of object.children) {
     if (child) renderObject(child, cameraElement, camera, visible, managed);
   }
 }
 
 function hideObject(object: Node): void {
   if (object instanceof CSS3DObject) object.element.style.display = "none";
-  for (let index = 0; index < object.children.length; index++) {
-    const child = object.children[index];
+  for (const child of object.children) {
     if (child) hideObject(child);
   }
 }
@@ -188,10 +186,10 @@ function getObjectCSSMatrix(matrix: Matrix4): string {
     e[1],
     e[2],
     e[3],
-    -e[4]!,
-    -e[5]!,
-    -e[6]!,
-    -e[7]!,
+    -(e[4] ?? 0),
+    -(e[5] ?? 0),
+    -(e[6] ?? 0),
+    -(e[7] ?? 0),
     e[8],
     e[9],
     e[10],
@@ -208,19 +206,19 @@ function getCameraCSSMatrix(matrix: Matrix4): string {
   const e = matrix.elements;
   const values = [
     e[0],
-    -e[1]!,
+    -(e[1] ?? 0),
     e[2],
     e[3],
     e[4],
-    -e[5]!,
+    -(e[5] ?? 0),
     e[6],
     e[7],
     e[8],
-    -e[9]!,
+    -(e[9] ?? 0),
     e[10],
     e[11],
     e[12],
-    -e[13]!,
+    -(e[13] ?? 0),
     e[14],
     e[15],
   ];

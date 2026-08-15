@@ -25,14 +25,21 @@ import {
   sliceDrawRange,
 } from "./_SceneTraversalShared.ts";
 
+/** Mutable state reused while projecting and clipping line primitives. */
 export interface LineAssemblyState extends FogState {
+  /** Lower interpolation bound of the line currently being clipped. */
   clipLower: number;
+  /** Upper interpolation bound of the line currently being clipped. */
   clipUpper: number;
+  /** X coordinate of the node's latest bounding-sphere center. */
   lastBsCenterX: number;
+  /** Y coordinate of the node's latest bounding-sphere center. */
   lastBsCenterY: number;
+  /** Z coordinate of the node's latest bounding-sphere center. */
   lastBsCenterZ: number;
 }
 
+/** Builds or updates a draw call containing projected line segments. */
 export function buildLineDrawCall(
   state: LineAssemblyState,
   node: SceneNode & {
@@ -157,18 +164,21 @@ export function buildLineDrawCall(
       );
     }
     if (node instanceof LineLoop && indices.length >= 2) {
-      appendIndexedLineSegment(
-        state,
-        lineBuffer,
-        drawCall.clipVerts,
-        viewDepths,
-        indices[indices.length - 1],
-        indices[0],
-        drawCall.vertCount,
-        width,
-        height,
-        true,
-      );
+      const lastIndex = indices.at(-1);
+      if (lastIndex !== undefined) {
+        appendIndexedLineSegment(
+          state,
+          lineBuffer,
+          drawCall.clipVerts,
+          viewDepths,
+          lastIndex,
+          indices[0],
+          drawCall.vertCount,
+          width,
+          height,
+          true,
+        );
+      }
     }
   }
 
@@ -410,12 +420,16 @@ function isValidLineIndex(value: number, vertexCount: number): boolean {
 
 function pixelX(ndc: number, width: number): number {
   const value = Math.round((ndc + 1) * 0.5 * (width - 1));
-  return value < 0 ? 0 : value >= width ? width - 1 : value;
+  if (value < 0) return 0;
+  if (value >= width) return width - 1;
+  return value;
 }
 
 function pixelY(ndc: number, height: number): number {
   const value = Math.round((1 - ndc) * 0.5 * (height - 1));
-  return value < 0 ? 0 : value >= height ? height - 1 : value;
+  if (value < 0) return 0;
+  if (value >= height) return height - 1;
+  return value;
 }
 
 function unboundedPixelX(ndc: number, width: number): number {

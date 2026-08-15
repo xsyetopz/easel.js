@@ -2,7 +2,7 @@ import type { DrawCall } from "./DrawCall.ts";
 
 /** Growable list of DrawCalls collected during scene traversal. */
 export class DrawList {
-  #calls: DrawCall[] = [];
+  readonly #calls: DrawCall[] = [];
 
   /** Lights collected during scene traversal. */
   lights: Record<string, unknown>[] = [];

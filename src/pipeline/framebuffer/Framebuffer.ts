@@ -13,7 +13,7 @@ export class Framebuffer {
   #imageData: ImageDataLike;
   #data: Uint8ClampedArray;
   #u32: Uint32Array;
-  #depthBuffer: DepthBuffer;
+  readonly #depthBuffer: DepthBuffer;
 
   /** Constructs RGBA color and Uint16 depth storage for the requested dimensions. */
   constructor(width: number, height: number) {

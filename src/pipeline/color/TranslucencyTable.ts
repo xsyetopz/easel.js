@@ -25,7 +25,9 @@ export class TranslucencyTable {
     const l = dst.l + (src.l - dst.l) * t;
 
     // Normalize hue to [0, 1]
-    const hn = h < 0 ? h + 1 : h > 1 ? h - 1 : h;
+    let hn = h;
+    if (hn < 0) hn += 1;
+    else if (hn > 1) hn -= 1;
 
     return encodeHsl16(hn, s, l);
   }
