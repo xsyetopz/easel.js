@@ -7,6 +7,8 @@ semantic versioning.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-15
+
 ### Added
 
 - Added a linked API symbol table of contents and live Canvas2D figures to the
