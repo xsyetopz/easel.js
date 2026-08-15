@@ -7,7 +7,6 @@ import { publicJsDocIssues } from "./api-policy/public-jsdoc-policy.ts";
 const missing: string[] = [];
 const lowQuality: string[] = [];
 for await (const fileName of new Glob("src/**/*.ts").scan(".")) {
-  if (fileName === "src/index.ts") continue;
   const source = ts.createSourceFile(
     fileName,
     await readFile(fileName, "utf8"),

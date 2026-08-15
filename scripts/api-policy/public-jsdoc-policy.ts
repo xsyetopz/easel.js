@@ -1,4 +1,5 @@
 import * as ts from "typescript-api";
+import { isPublicDocSourcePath } from "../starlight-docs/api-model.ts";
 import { hasModifier, location } from "./ast.ts";
 import {
   declarationName,
@@ -15,6 +16,9 @@ export interface PublicJsDocIssues {
 export function publicJsDocIssues(source: ts.SourceFile): PublicJsDocIssues {
   const missing: string[] = [];
   const lowQuality: string[] = [];
+  if (!isPublicDocSourcePath(source.fileName)) {
+    return { lowQuality, missing };
+  }
   for (const statement of source.statements) {
     if (
       !hasModifier(statement, ts.SyntaxKind.ExportKeyword) ||

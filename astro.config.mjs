@@ -17,7 +17,6 @@ const apiSidebarGroups = [
   "Math",
   "Loaders",
   "Curves",
-  "Pipeline",
   "Renderers",
   "Utilities",
 ].map((label) => ({
