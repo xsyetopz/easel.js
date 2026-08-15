@@ -7,15 +7,32 @@ semantic versioning.
 
 ## [Unreleased]
 
+### Added
+
+- Added a linked API symbol table of contents and live Canvas2D figures to the
+  documentation manual.
+- Added locally pinned, license-documented example assets with integrity tests
+  for glTF, OBJ, PCD, PDB, PLY, STL, VOX, XYZ, and G-code workflows.
+
 ### Changed
 
 - Standardized clamped nearest-neighbor texture lookup to normalized texel
   cells and documented texel-center atlas UVs.
+- Refined the website examples with concise explanations, compact shared
+  controls, reliable source excerpts, and practical loader scenes.
+- Updated the `using-easeljs` and `threejs-to-easeljs` agent skills for the
+  EASEL.js 0.7.0 API and Three.js r185 migration baseline.
 
 ### Fixed
 
 - Made `Geometry.setColors()` RGB attributes render automatically with basic,
   lit, textured, and instanced meshes without splitting geometry by color.
+- Fixed light and dark syntax highlighting, example source loading, and
+  Canvas2D example framing and orientation issues.
+- Fixed orbit and map damping, pointer-lock activation, transform-gizmo
+  picking and layering, and repeated opaque overlay rendering.
+- Fixed glTF primitives without explicit materials and added explicit
+  extrusion and toolpath modes for G-code loading.
 
 ## [0.6.1] - 2026-08-02
 
