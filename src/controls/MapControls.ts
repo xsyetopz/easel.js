@@ -8,6 +8,7 @@ export class MapControls extends OrbitControls {
     domElement: ConstructorParameters<typeof OrbitControls>[1],
   ) {
     super(camera, domElement);
+    this.primaryAction = "pan";
     this.screenSpacePanning = false;
   }
 }

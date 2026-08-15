@@ -6,8 +6,13 @@ import { Vector3 } from "../math/Vector3.ts";
 interface OrbitCamera {
   position: Vector3;
   matrixWorld: { elements: ArrayLike<number> };
+  type?: string;
+  zoom?: number;
+  top?: number;
+  bottom?: number;
   lookAt: (target: Vector3) => void;
   updateMatrixWorld: (force?: boolean) => void;
+  updateProjectionMatrix?: () => void;
 }
 
 interface OrbitDomElement extends EventTarget {
@@ -53,8 +58,17 @@ export class OrbitControls extends EventDispatcher {
   /** Whether wheel input changes orbital radius. */
   enableZoom: boolean = true;
 
-  /** Whether secondary-button dragging changes the target position. */
+  /** Whether panning input changes the target position. */
   enablePan: boolean = true;
+
+  /** Action assigned to primary-button dragging. Map controls use panning. */
+  primaryAction: "pan" | "rotate" = "rotate";
+
+  /** Minimum orthographic zoom multiplier. */
+  minZoom: number = 0.01;
+
+  /** Maximum orthographic zoom multiplier. */
+  maxZoom: number = Number.POSITIVE_INFINITY;
 
   /** Multiplier applied to pointer-derived angular deltas. */
   rotateSpeed: number = 1.0;
@@ -159,9 +173,9 @@ export class OrbitControls extends EventDispatcher {
     const dt = this.#prevTime ? (now - this.#prevTime) / 1000 : 0;
     this.#prevTime = now;
 
-    if (this.autoRotate) {
-      this.#sphericalDelta.theta -= toRadians(this.autoRotateSpeed) * dt;
-    }
+    const autoRotateDelta = this.autoRotate
+      ? -toRadians(this.autoRotateSpeed) * dt
+      : 0;
 
     if (this.#needsInit) {
       const offset = new Vector3().copy(this.camera.position).sub(this.target);
@@ -169,8 +183,12 @@ export class OrbitControls extends EventDispatcher {
       this.#needsInit = false;
     }
 
-    this.#spherical.theta += this.#sphericalDelta.theta;
-    this.#spherical.phi += this.#sphericalDelta.phi;
+    const dampingScale = this.enableDamping
+      ? Math.max(0, Math.min(1, this.dampingFactor))
+      : 1;
+    this.#spherical.theta +=
+      this.#sphericalDelta.theta * dampingScale + autoRotateDelta;
+    this.#spherical.phi += this.#sphericalDelta.phi * dampingScale;
 
     this.#spherical.phi = Math.max(
       this.minPolarAngle,
@@ -184,13 +202,17 @@ export class OrbitControls extends EventDispatcher {
       Math.min(this.maxDistance, this.#spherical.radius),
     );
 
-    this.target.add(this.#panOffset);
+    this.target.addScaledVector(this.#panOffset, dampingScale);
 
     const offset = new Vector3().setFromSpherical(this.#spherical);
     this.camera.position.copy(this.target).add(offset);
+    // lookAt() reads the eye position from matrixWorld.
+    this.camera.updateMatrixWorld(true);
     this.camera.lookAt(this.target);
+    this.camera.updateMatrixWorld(true);
 
     const moved =
+      autoRotateDelta !== 0 ||
       this.#sphericalDelta.theta !== 0 ||
       this.#sphericalDelta.phi !== 0 ||
       this.#sphericalDelta.radius !== 0 ||
@@ -244,8 +266,12 @@ export class OrbitControls extends EventDispatcher {
     this.#pointerStart.x = event.clientX;
     this.#pointerStart.y = event.clientY;
 
-    if (event.button === 0 && this.enableRotate) {
-      this.#state = STATE.ROTATE;
+    if (event.button === 0) {
+      if (this.primaryAction === "pan" && this.enablePan) {
+        this.#state = STATE.PAN;
+      } else if (this.primaryAction === "rotate" && this.enableRotate) {
+        this.#state = STATE.ROTATE;
+      }
     } else if ((event.button === 1 || event.button === 2) && this.enablePan) {
       this.#state = STATE.PAN;
     }
@@ -303,14 +329,27 @@ export class OrbitControls extends EventDispatcher {
       event.deltaY > 0
         ? 1 / (1 - 0.1 * this.zoomSpeed)
         : 1 - 0.1 * this.zoomSpeed;
-    this.#spherical.radius = Math.max(
-      this.minDistance,
-      Math.min(this.maxDistance, this.#spherical.radius * delta),
-    );
-
-    const offset = new Vector3().setFromSpherical(this.#spherical);
-    this.camera.position.copy(this.target).add(offset);
-    this.camera.lookAt(this.target);
+    if (
+      this.camera.type === "OrthographicCamera" &&
+      this.camera.zoom !== undefined
+    ) {
+      this.camera.zoom = Math.max(
+        this.minZoom,
+        Math.min(this.maxZoom, this.camera.zoom / delta),
+      );
+      this.camera.updateProjectionMatrix?.();
+    } else {
+      this.#spherical.radius = Math.max(
+        this.minDistance,
+        Math.min(this.maxDistance, this.#spherical.radius * delta),
+      );
+      const offset = new Vector3().setFromSpherical(this.#spherical);
+      this.camera.position.copy(this.target).add(offset);
+      // lookAt() reads the eye position from matrixWorld.
+      this.camera.updateMatrixWorld(true);
+      this.camera.lookAt(this.target);
+      this.camera.updateMatrixWorld(true);
+    }
     this.dispatchEvent(_changeEvent);
   }
 
@@ -341,16 +380,29 @@ export class OrbitControls extends EventDispatcher {
       uy = me[5];
       uz = me[6];
     } else {
-      // World-Y as the up component so panning stays on the horizontal plane
-      ux = 0;
-      uy = 1;
-      uz = 0;
+      // Project camera-up onto the horizontal plane.
+      const horizontalLength = Math.hypot(rx, rz) || 1;
+      ux = rz / horizontalLength;
+      uy = 0;
+      uz = -rx / horizontalLength;
     }
 
-    const scale = distance * this.panSpeed * 0.001;
+    const elementHeight = this.domElement.clientHeight ?? 600;
+    const orthographicHeight =
+      this.camera.type === "OrthographicCamera" &&
+      this.camera.top !== undefined &&
+      this.camera.bottom !== undefined
+        ? Math.abs(this.camera.top - this.camera.bottom) /
+          Math.max(this.camera.zoom ?? 1, Number.EPSILON)
+        : undefined;
+    const scale =
+      orthographicHeight === undefined
+        ? distance * this.panSpeed * 0.001
+        : (orthographicHeight * this.panSpeed) / elementHeight;
 
-    this.#panOffset.x -= (rx * dx - ux * dy) * scale;
-    this.#panOffset.y -= (ry * dx - uy * dy) * scale;
-    this.#panOffset.z -= (rz * dx - uz * dy) * scale;
+    const direction = this.primaryAction === "pan" ? 1 : -1;
+    this.#panOffset.x += (rx * dx - ux * dy) * scale * direction;
+    this.#panOffset.y += (ry * dx - uy * dy) * scale * direction;
+    this.#panOffset.z += (rz * dx - uz * dy) * scale * direction;
   }
 }

@@ -324,4 +324,33 @@ describe("OrbitControls", () => {
     const r = cam.position.distanceTo(controls.target);
     expect(r).toBeLessThanOrEqual(6 + 1e-9);
   });
+
+  it("damping converges to the pointer delta without multiplying it", () => {
+    const cam = makeCamera();
+    const el = mockElement();
+    const controls = new OrbitControls(cam, el);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    el._fire("pointerdown", {
+      pointerId: 1,
+      button: 0,
+      clientX: 0,
+      clientY: 0,
+    });
+    el._fire("pointermove", {
+      pointerId: 1,
+      clientX: 64,
+      clientY: 0,
+    });
+    el._fire("pointerup", { pointerId: 1 });
+
+    controls.update();
+    const firstAngle = Math.abs(Math.atan2(cam.position.x, cam.position.z));
+    expect(firstAngle).toBeCloseTo((Math.PI * 64 * 0.05) / 800, 3);
+
+    for (let frame = 0; frame < 240; frame++) controls.update();
+    const settledAngle = Math.abs(Math.atan2(cam.position.x, cam.position.z));
+    expect(settledAngle).toBeCloseTo((Math.PI * 64) / 800, 3);
+  });
 });

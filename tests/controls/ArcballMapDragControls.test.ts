@@ -6,6 +6,7 @@ import {
   LambertMaterial,
   MapControls,
   Mesh,
+  OrthographicCamera,
   PerspectiveCamera,
   Vector3,
 } from "@/index.js";
@@ -75,7 +76,113 @@ describe("MapControls", () => {
       camera,
       element() as unknown as ConstructorParameters<typeof MapControls>[1],
     );
+    expect(controls.primaryAction).toBe("pan");
     expect(controls.screenSpacePanning).toBe(false);
+    controls.dispose();
+  });
+
+  it("pans a top-down orthographic camera on the ground plane and zooms", () => {
+    const camera = new OrthographicCamera({
+      left: -5,
+      right: 5,
+      top: 3,
+      bottom: -3,
+    });
+    camera.position.set(0, 8, 0.01);
+    camera.lookAt(new Vector3());
+    camera.updateMatrixWorld(false, true);
+    const target = element();
+    const controls = new MapControls(camera, target);
+    const initialY = camera.position.y;
+
+    target.fire("wheel", { deltaY: -120, preventDefault: vi.fn() });
+    expect(camera.zoom).toBeGreaterThan(1);
+
+    target.fire("pointerdown", {
+      pointerId: 1,
+      button: 0,
+      clientX: 400,
+      clientY: 300,
+    });
+    target.fire("pointermove", {
+      pointerId: 1,
+      clientX: 460,
+      clientY: 340,
+    });
+    target.fire("pointerup", { pointerId: 1 });
+    controls.update();
+
+    expect(camera.position.y).toBeCloseTo(initialY);
+    expect(Math.hypot(controls.target.x, controls.target.z)).toBeGreaterThan(0);
+    expect(controls.target.y).toBeCloseTo(0);
+    controls.dispose();
+  });
+
+  it("maps pointer directions directly onto a top-down view", () => {
+    const camera = new OrthographicCamera({
+      left: -5,
+      right: 5,
+      top: 3,
+      bottom: -3,
+    });
+    camera.position.set(0, 8, 0.01);
+    camera.updateMatrixWorld(false, true);
+    camera.lookAt(new Vector3());
+    camera.updateMatrixWorld(true);
+    const target = element();
+    const controls = new MapControls(camera, target);
+
+    target.fire("pointerdown", {
+      pointerId: 2,
+      button: 0,
+      clientX: 400,
+      clientY: 300,
+    });
+    target.fire("pointermove", {
+      pointerId: 2,
+      clientX: 460,
+      clientY: 240,
+    });
+    target.fire("pointerup", { pointerId: 2 });
+    controls.update();
+
+    expect(controls.target.x).toBeGreaterThan(0);
+    expect(controls.target.z).toBeLessThan(0);
+    expect(controls.target.y).toBeCloseTo(0);
+    controls.dispose();
+  });
+
+  it("does not rotate a top-down camera while damping a pan", () => {
+    const camera = new OrthographicCamera({
+      left: -5,
+      right: 5,
+      top: 3,
+      bottom: -3,
+    });
+    camera.position.set(0, 8, 0.01);
+    const target = element();
+    const controls = new MapControls(camera, target);
+    controls.enableDamping = true;
+    controls.update();
+    const initialOrientation = camera.quaternion.clone();
+
+    target.fire("pointerdown", {
+      pointerId: 1,
+      button: 0,
+      clientX: 400,
+      clientY: 300,
+    });
+    target.fire("pointermove", {
+      pointerId: 1,
+      clientX: 460,
+      clientY: 340,
+    });
+    target.fire("pointerup", { pointerId: 1 });
+
+    for (let frame = 0; frame < 10; frame++) {
+      controls.update();
+      expect(camera.quaternion.angleTo(initialOrientation)).toBeLessThan(1e-6);
+    }
     controls.dispose();
   });
 });

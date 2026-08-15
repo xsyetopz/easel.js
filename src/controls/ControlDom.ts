@@ -4,6 +4,10 @@ export interface ControlDomElement extends EventTarget {
   clientWidth?: number;
   /** Element height used to normalize pointer deltas. */
   clientHeight?: number;
+  /** Optional keyboard focus entry point for pointer-driven controls. */
+  focus?: () => void;
+  /** Optional tab order used to make a canvas keyboard-focusable. */
+  tabIndex?: number;
   /** Captures pointer events for an active control gesture. */
   setPointerCapture?: (pointerId: number) => void;
   /** Releases a previously captured pointer. */
