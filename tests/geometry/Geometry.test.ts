@@ -124,22 +124,40 @@ describe("Geometry", () => {
       expect(g.index).toBe(idx);
     });
 
-    it("converts plain array to Uint16Array when count <= 65535", () => {
+    it("converts a plain array to Uint16Array when all indices fit", () => {
       const g = new Geometry();
-      g.index = [0, 1, 2, 3, 4, 5];
+      g.index = [0, 1, 2, 3, 4, 5, 65535];
       expect(g.index).toBeInstanceOf(Uint16Array);
       expect(
         Array.from(
           defined(g.index instanceof Uint16Array ? g.index : undefined),
         ),
-      ).toEqual([0, 1, 2, 3, 4, 5]);
+      ).toEqual([0, 1, 2, 3, 4, 5, 65535]);
     });
 
-    it("converts large plain array to Uint32Array", () => {
+    it("uses Uint32Array for a sparse index above the 16-bit range", () => {
       const g = new Geometry();
-      const big = Array.from({ length: 65536 }, (_, i) => i);
-      g.index = big;
+      g.index = [65534, 65535, 65536];
       expect(g.index).toBeInstanceOf(Uint32Array);
+      expect(
+        Array.from(
+          defined(g.index instanceof Uint32Array ? g.index : undefined),
+        ),
+      ).toEqual([65534, 65535, 65536]);
+    });
+
+    it("preserves sparse 32-bit indices through CPU mesh assembly", () => {
+      const positions = new Float32Array((65536 + 1) * 3);
+      positions.set([-0.5, 0.5, 0], 65534 * 3);
+      positions.set([-0.5, -0.5, 0], 65535 * 3);
+      positions.set([0.5, 0, 0], 65536 * 3);
+      const geometry = new Geometry().setPositions(positions);
+      geometry.index = [65534, 65535, 65536];
+
+      const drawCall = defined(traverseMesh(geometry).calls[0]);
+
+      expect(Array.from(drawCall.faceIndices)).toEqual([65534, 65535, 65536]);
+      expect((drawCall.triangles as { length: number }).length).toBe(1);
     });
 
     it("accepts typed indices through the property setter", () => {

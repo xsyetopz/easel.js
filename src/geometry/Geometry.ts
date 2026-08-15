@@ -4,11 +4,6 @@ import { Matrix4 } from "../math/Matrix4.ts";
 import type { Quaternion } from "../math/Quaternion.ts";
 import { Sphere } from "../math/Sphere.ts";
 import { Vector3 } from "../math/Vector3.ts";
-import {
-  Attribute,
-  registerAttributeUpdateInvalidator,
-  unregisterAttributeUpdateInvalidator,
-} from "./Attribute.ts";
 import { invalidateGeometryCaches } from "./_geometryCache.ts";
 import {
   buildGeometryData,
@@ -19,6 +14,12 @@ import {
   mergeAttributeData,
   mergeVerticesData,
 } from "./_geometryHelpers.ts";
+import {
+  Attribute,
+  registerAttributeUpdateInvalidator,
+  unregisterAttributeUpdateInvalidator,
+} from "./Attribute.ts";
+
 export {
   registerGeometryCacheInvalidator,
   unregisterGeometryCacheInvalidator,
@@ -129,7 +130,10 @@ export class Geometry {
     return this;
   }
 
-  /** Assigns or clears the triangle index buffer. */
+  /**
+   * Assigns or clears the triangle index buffer. Plain arrays use 32-bit
+   * storage when any vertex index exceeds the 16-bit range.
+   */
   set index(array: Uint16Array | Uint32Array | number[] | undefined) {
     this.#clearSequentialIndices();
     if (array === undefined) {
@@ -139,8 +143,9 @@ export class Geometry {
     if (array instanceof Uint16Array || array instanceof Uint32Array) {
       this.#index = array;
     } else {
-      this.#index =
-        array.length > 65535 ? new Uint32Array(array) : new Uint16Array(array);
+      this.#index = array.some((index) => index > 65535)
+        ? new Uint32Array(array)
+        : new Uint16Array(array);
     }
   }
 
