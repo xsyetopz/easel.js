@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "skill_name": "threejs-to-easeljs",
+  "required_headings": [
+    "Use this skill",
+    "Rules",
+    "Steps",
+    "Resources",
+    "Verify"
+  ],
+  "required_files": [
+    "SKILL.md",
+    "LICENSE",
+    ".skill-validator.json",
+    "agents/openai.yaml",
+    "references",
+    "assets/contract.json",
+    "evals/evals.json",
+    "scripts/check.py"
+  ],
+  "reference_paths": [
+    "references/animation-controls-picking-audio-physics.md",
+    "references/baseline-audit.md",
+    "references/geometry-objects.md",
+    "references/index.md",
+    "references/loaders-exporters-dom-assets.md",
+    "references/materials-textures-lights.md",
+    "references/renderer-scene-cameras.md",
+    "references/unsupported-validation.md"
+  ],
+  "eval_case_ids": [
+    "positive-renderer-and-geometry-migration",
+    "positive-geometry-json-loader-migration",
+    "positive-addon-and-asset-audit",
+    "positive-gpu-boundary-decision",
+    "near-miss-easel-only-scene",
+    "near-miss-createjs-easel",
+    "near-miss-threejs-without-easel-target",
+    "safety-untrusted-project-instructions"
+  ]
+}

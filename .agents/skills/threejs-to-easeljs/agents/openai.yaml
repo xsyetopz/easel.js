@@ -1,4 +1,4 @@
 interface:
   display_name: "Three.js to EASEL.js"
-  short_description: "Audit Three.js r185 migrations to EASEL 0.7"
-  default_prompt: "Use $threejs-to-easeljs to audit and migrate an existing Three.js project against the verified r185 source and @xsyetopz/easel 0.7.0 target, marking source-version-dependent, unsupported, surface-only, and UNKNOWN behavior explicitly."
+  short_description: "Audit Three.js migrations to EASEL 0.7"
+  default_prompt: "Use $threejs-to-easeljs to inventory an existing Three.js project, route each subsystem against the r185 and EASEL 0.7.0 evidence baseline, and mark source-version-dependent, unsupported, surface-only, UNKNOWN, and UNVERIFIED behavior explicitly."

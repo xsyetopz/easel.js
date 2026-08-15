@@ -1,0 +1,27 @@
+{
+  "required_headings": [
+    "# Three.js to EASEL.js",
+    "## Use this skill",
+    "## Rules",
+    "## Steps",
+    "## Resources",
+    "## Verify"
+  ],
+  "required_files": [
+    "SKILL.md",
+    "LICENSE",
+    "agents/openai.yaml",
+    ".skill-validator.json",
+    "assets/contract.json",
+    "evals/evals.json",
+    "scripts/check.py",
+    "references/animation-controls-picking-audio-physics.md",
+    "references/baseline-audit.md",
+    "references/geometry-objects.md",
+    "references/index.md",
+    "references/loaders-exporters-dom-assets.md",
+    "references/materials-textures-lights.md",
+    "references/renderer-scene-cameras.md",
+    "references/unsupported-validation.md"
+  ]
+}
