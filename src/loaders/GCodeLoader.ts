@@ -5,6 +5,9 @@ import { LineSegments } from "../objects/LineSegments.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 
+/** Classifies G-code movement for additive extrusion or subtractive toolpaths. */
+export type GCodeMode = "extrusion" | "toolpath";
+
 interface GCodeState {
   x: number;
   y: number;
@@ -64,6 +67,9 @@ export class GCodeLoader extends Loader {
   /** Whether to create one travel/extrusion pair for every parsed layer. */
   splitLayer: boolean = false;
 
+  /** Classifies movement as positive-E extrusion or as G0 travel and G1 cutting. */
+  mode: GCodeMode = "extrusion";
+
   /** Loads a G-code resource through the configured loading manager. */
   override load(
     url: string,
@@ -97,12 +103,17 @@ export class GCodeLoader extends Loader {
     if (typeof data !== "string") {
       throw new TypeError("GCodeLoader.parse requires G-code text.");
     }
-    const parsed = parseGCode(data);
-    return createGroup(parsed.layers, parsed.feedRates, this.splitLayer);
+    const parsed = parseGCode(data, this.mode);
+    return createGroup(
+      parsed.layers,
+      parsed.feedRates,
+      this.splitLayer,
+      this.mode,
+    );
   }
 }
 
-function parseGCode(data: string): {
+function parseGCode(data: string, mode: GCodeMode): {
   layers: GCodeLayer[];
   feedRates: number[];
 } {
@@ -129,7 +140,7 @@ function parseGCode(data: string): {
       if (layer !== undefined) context.pendingLayer = layer;
     }
     if (line.command === undefined) continue;
-    processCommand(line.command, line.args, state, context);
+    processCommand(line.command, line.args, state, context, mode);
   }
   return { layers: context.layers, feedRates: context.feedRates };
 }
@@ -190,11 +201,12 @@ function processCommand(
   args: ReadonlyMap<string, number>,
   state: GCodeState,
   context: GCodeParseContext,
+  mode: GCodeMode,
 ): void {
   const commandNumber = Math.trunc(command.value);
   if (!Number.isFinite(commandNumber)) return;
   if (command.letter === "G") {
-    processGCommand(commandNumber, args, state, context);
+    processGCommand(commandNumber, args, state, context, mode);
     return;
   }
   if (command.letter === "M") processMCommand(commandNumber, state);
@@ -205,11 +217,12 @@ function processGCommand(
   args: ReadonlyMap<string, number>,
   state: GCodeState,
   context: GCodeParseContext,
+  mode: GCodeMode,
 ): void {
   switch (command) {
     case 0:
     case 1:
-      processMovement(args, state, context);
+      processMovement(command, args, state, context, mode);
       return;
     case 90:
       state.relative = false;
@@ -236,16 +249,19 @@ function processMCommand(command: number, state: GCodeState): void {
 }
 
 function processMovement(
+  command: number,
   args: ReadonlyMap<string, number>,
   state: GCodeState,
   context: GCodeParseContext,
+  mode: GCodeMode,
 ): void {
   const previous: GCodeState = { ...state };
   applyMovement(state, args);
   if (args.has("F")) context.feedRates.push(state.f);
-  const extruding = state.e - previous.e > epsilon;
-  const layer = ensureLayer(state.z, extruding, context);
-  if (extruding) appendSegment(layer.vertex, previous, state);
+  const active =
+    mode === "toolpath" ? command === 1 : state.e - previous.e > epsilon;
+  const layer = ensureLayer(state.z, active, context);
+  if (active) appendSegment(layer.vertex, previous, state);
   else appendSegment(layer.pathVertex, previous, state);
 }
 
@@ -325,6 +341,7 @@ function createGroup(
   layers: readonly GCodeLayer[],
   feedRates: readonly number[],
   splitLayer: boolean,
+  mode: GCodeMode,
 ): Group {
   const group = new Group();
   group.name = "gcode";
@@ -334,10 +351,11 @@ function createGroup(
     z: layer.z,
   }));
   group.userData["feedRates"] = [...feedRates];
+  group.userData["mode"] = mode;
   const pathMaterial = new LineMaterial({ color: 0xff0000 });
-  pathMaterial.name = "path";
+  pathMaterial.name = mode === "toolpath" ? "travel" : "path";
   const extrudingMaterial = new LineMaterial({ color: 0x00ff00 });
-  extrudingMaterial.name = "extruded";
+  extrudingMaterial.name = mode === "toolpath" ? "cut" : "extruded";
 
   if (splitLayer) {
     for (const [index, layer] of layers.entries()) {

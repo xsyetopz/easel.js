@@ -71,4 +71,27 @@ G1 X1 E1
       TypeError,
     );
   });
+
+  it("classifies G0 travel and G1 cutting in toolpath mode", () => {
+    const loader = new GCodeLoader();
+    loader.mode = "toolpath";
+    const group = loader.parse(`
+G90
+G0 X1 Y0
+G1 X1 Y1 F300
+G0 X0 Y1
+G1 X0 Y0
+`);
+    const cut = group.children[0];
+    const travel = group.children[1];
+    expect(group.userData["mode"]).toBe("toolpath");
+    expect(cut).toBeInstanceOf(LineSegments);
+    expect(travel).toBeInstanceOf(LineSegments);
+    if (!(cut instanceof LineSegments && travel instanceof LineSegments))
+      return;
+    expect(cut.material?.name).toBe("cut");
+    expect(travel.material?.name).toBe("travel");
+    expect(cut.geometry?.getAttribute("position")?.count).toBe(4);
+    expect(travel.geometry?.getAttribute("position")?.count).toBe(4);
+  });
 });
