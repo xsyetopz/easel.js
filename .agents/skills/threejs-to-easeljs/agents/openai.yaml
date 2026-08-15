@@ -1,4 +1,4 @@
 interface:
-  display_name: "THREE.js to EASEL.js"
-  short_description: "Translate THREE.js scenes to EASEL.js"
-  default_prompt: "Use $threejs-to-easeljs to translate or review THREE.js code against the verified EASEL.js 0.6.1 Canvas2D API."
+  display_name: "Three.js to EASEL.js"
+  short_description: "Audit Three.js r185 migrations to EASEL 0.7"
+  default_prompt: "Use $threejs-to-easeljs to audit and migrate an existing Three.js project against the verified r185 source and @xsyetopz/easel 0.7.0 target, marking source-version-dependent, unsupported, surface-only, and UNKNOWN behavior explicitly."
