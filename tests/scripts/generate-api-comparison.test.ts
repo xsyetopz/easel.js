@@ -48,20 +48,41 @@ describe("generate-api-comparison", () => {
     expect(rows.length).toBeGreaterThan(1000);
     expect(rows.every((parts) => parts.length === 5)).toBe(true);
     for (let index = 1; index < rows.length; index += 1) {
-      const previous = rows[index - 1]!;
-      const current = rows[index]!;
+      const previous = rows[index - 1];
+      const current = rows[index];
+      if (previous === undefined || current === undefined) {
+        throw new Error(
+          "Report rows must be present while checking sort order.",
+        );
+      }
+      const [previousState, previousSubject, previousKind] = previous;
+      const [currentState, currentSubject, currentKind] = current;
+      if (
+        previousState === undefined ||
+        previousSubject === undefined ||
+        previousKind === undefined ||
+        currentState === undefined ||
+        currentSubject === undefined ||
+        currentKind === undefined
+      ) {
+        throw new Error("Report rows must contain all comparison columns.");
+      }
       const subjectOrder =
-        previous[1]! < current[1]! ? -1 : previous[1]! > current[1]! ? 1 : 0;
+        previousSubject < currentSubject
+          ? -1
+          : previousSubject > currentSubject
+            ? 1
+            : 0;
       const kindOrder =
-        previous[2]! < current[2]! ? -1 : previous[2]! > current[2]! ? 1 : 0;
+        previousKind < currentKind ? -1 : previousKind > currentKind ? 1 : 0;
       const states = { "=": 0, "!": 1, "<": 2, ">": 3 } as const;
       expect(
         subjectOrder < 0 ||
           (subjectOrder === 0 &&
             (kindOrder < 0 ||
               (kindOrder === 0 &&
-                states[previous[0] as keyof typeof states] <=
-                  states[current[0] as keyof typeof states]))),
+                states[previousState as keyof typeof states] <=
+                  states[currentState as keyof typeof states]))),
       ).toBe(true);
     }
     expect(
