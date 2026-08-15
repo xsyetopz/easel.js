@@ -15,6 +15,14 @@ const releaseWorkflow = workflows.get("release.yml");
 if (releaseWorkflow === undefined) {
   throw new Error("Missing release workflow");
 }
+const cloudflarePagesWorkflow = workflows.get("cloudflare-pages.yml");
+if (cloudflarePagesWorkflow === undefined) {
+  throw new Error("Missing Cloudflare Pages workflow");
+}
+const githubPagesWorkflow = workflows.get("pages.yml");
+if (githubPagesWorkflow === undefined) {
+  throw new Error("Missing GitHub Pages workflow");
+}
 const packageJson = JSON.parse(
   readFileSync(`${root}/package.json`, "utf8"),
 ) as {
@@ -28,6 +36,15 @@ function occurrences(source: string, value: string): number {
 }
 
 describe("workflow policy", () => {
+  it("deploys both the custom-domain and fallback websites", () => {
+    expect(cloudflarePagesWorkflow).toContain(
+      "command: pages deploy dist/www --project-name=easeljs",
+    );
+    expect(cloudflarePagesWorkflow).not.toContain("EASEL_GITHUB_PAGES");
+    expect(githubPagesWorkflow).toContain('EASEL_GITHUB_PAGES: "true"');
+    expect(githubPagesWorkflow).toContain("uses: actions/deploy-pages@");
+  });
+
   it("delegates source revision validation to the canonical version check", () => {
     expect(releaseWorkflow).toContain("bun run version:check");
     expect(releaseWorkflow).not.toContain("src/index.ts");
@@ -48,7 +65,7 @@ describe("workflow policy", () => {
     expect(workflowSource).not.toContain(nodeVersion);
     expect(workflowSource).not.toContain(bunVersion);
 
-    for (const name of ["ci.yml", "pages.yml"]) {
+    for (const name of ["ci.yml", "cloudflare-pages.yml", "pages.yml"]) {
       const workflow = workflows.get(name);
       if (workflow === undefined) throw new Error(`Missing ${name}`);
 

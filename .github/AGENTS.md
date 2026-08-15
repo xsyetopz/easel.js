@@ -3,7 +3,7 @@
 Scope: `.github/`. These files describe hosted behavior but do not grant permission to perform external actions; the root policy still applies.
 
 ## Ownership map
-- `workflows/ci.yml` mirrors repository checks, `pages.yml` builds/deploys `dist/www`, and `release.yml` exclusively publishes npm/JSR and creates tags/releases.
+- `workflows/ci.yml` mirrors repository checks; `cloudflare-pages.yml` and `pages.yml` deploy `dist/www`; `release.yml` exclusively publishes npm/JSR and creates tags/releases.
 - `ISSUE_TEMPLATE/`, `PULL_REQUEST_TEMPLATE.md`, and `dependabot.yml` own contribution intake and dependency update metadata.
 
 ## Change rules
