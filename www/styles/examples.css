@@ -33,6 +33,13 @@
 	line-height: 1.05;
 }
 
+.examples-viewer-heading h2 {
+	margin-block: 1.25rem 0;
+	font-size: 0.875rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
 .examples-catalog-heading p:not(.examples-eyebrow),
 .examples-viewer-heading p:not(.examples-eyebrow) {
 	max-inline-size: 66ch;
@@ -256,13 +263,6 @@
 	display: none;
 }
 
-.examples-stage-figure figcaption {
-	margin-block-start: 0.65rem;
-	color: var(--examples-muted);
-	font-size: 0.875rem;
-	line-height: 1.45;
-}
-
 .examples-runtime-status {
 	grid-column: 2;
 	min-block-size: 1.5rem;
@@ -277,23 +277,43 @@
 	color: var(--examples-accent);
 }
 
-.examples-motion-controls {
+.examples-runtime-status[hidden],
+.examples-runtime-status a[hidden],
+.examples-motion-controls[hidden] {
+	display: none;
+}
+
+.examples-canvas-controls {
 	display: grid;
 	grid-column: 2;
-	gap: 0.45rem;
-	padding: 0.85rem 1rem;
+	justify-self: start;
+	gap: 0.75rem;
+	max-inline-size: 100%;
+	padding: 0.35rem;
 	border: 1px solid var(--examples-border);
 	background: var(--examples-surface);
 }
 
+.examples-canvas-controls:not(.examples-canvas-controls-expanded):has(
+		.examples-motion-controls[hidden]
+	) {
+	display: none;
+}
+
+.examples-canvas-controls-expanded {
+	position: relative;
+	justify-self: stretch;
+	padding: 0.85rem 1rem;
+}
+
 .examples-motion-controls button {
-	justify-self: start;
-	min-block-size: 2.25rem;
-	padding: 0.4rem 0.75rem;
+	min-block-size: 2rem;
+	padding: 0.3rem 0.6rem;
 	border: 1px solid var(--examples-border);
 	background: transparent;
 	color: inherit;
 	font: inherit;
+	font-size: 0.875rem;
 	cursor: pointer;
 }
 
@@ -301,24 +321,21 @@
 	background: var(--examples-code);
 }
 
-.examples-motion-controls p {
-	margin: 0;
-	color: var(--examples-muted);
-	font-size: 0.875rem;
-	line-height: 1.45;
+.examples-canvas-controls-expanded .examples-motion-controls {
+	position: absolute;
+	inset: 0.75rem 0.75rem auto auto;
 }
 
 .examples-controls {
-	grid-column: 2;
-	padding: 1rem;
-	border: 1px solid var(--examples-border);
-	background: var(--examples-surface);
+	min-inline-size: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
 }
 
-.examples-controls h2,
-.examples-source h2 {
-	margin: 0;
-	font-size: 1.2rem;
+.examples-controls h2 {
+	padding-inline-end: 8rem;
 }
 
 .examples-control + .examples-control {
@@ -357,9 +374,11 @@
 }
 
 .examples-source header p {
+	max-inline-size: 62ch;
 	margin-block: 0.4rem 1rem;
 	color: var(--examples-muted);
 	font-size: 0.9rem;
+	line-height: 1.45;
 }
 
 .examples-code-scroll {
@@ -374,9 +393,19 @@
 	margin: 0;
 	padding: 1rem;
 	font-family: var(--font-code, ui-monospace, monospace);
-	font-size: 0.85rem;
-	line-height: 1.55;
+	font-size: clamp(0.78rem, 1.8vw, 0.9rem);
+	line-height: 1.6;
 	white-space: pre;
+}
+
+.examples-code-scroll pre:focus-visible {
+	outline: 3px solid var(--examples-accent);
+	outline-offset: -3px;
+}
+
+.examples-code-scroll .line {
+	display: inline-block;
+	min-inline-size: 100%;
 }
 
 .examples-sequence {
@@ -424,6 +453,7 @@
 
 	.examples-stage-figure,
 	.examples-runtime-status,
+	.examples-canvas-controls,
 	.examples-motion-controls,
 	.examples-controls {
 		grid-column: 1;

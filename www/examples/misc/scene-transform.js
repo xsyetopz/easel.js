@@ -22,9 +22,22 @@ export const meta = {
   description: "Translate, rotate, and scale a selected scene object.",
 };
 
-export const controls = [];
+/** @type {import("../../types/controls.ts").ControlDefinition[]} */
+export const controls = [
+  {
+    type: "select",
+    key: "mode",
+    label: "Transform mode",
+    options: ["translate", "rotate", "scale"],
+    default: "translate",
+  },
+];
 
-export function setup(canvas) {
+function isTransformMode(value) {
+  return value === "translate" || value === "rotate" || value === "scale";
+}
+
+export function setup(canvas, params = {}) {
   const width = canvas.width;
   const height = canvas.height;
   const scene = new Scene();
@@ -35,7 +48,9 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(3, 2, 6);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   const ambient = new AmbientLight(0xffffff, 0.4);
   const directional = new DirectionalLight(0xffffff, 0.9);
@@ -43,13 +58,13 @@ export function setup(canvas) {
   scene.add(ambient, directional);
   const mesh = new Mesh(
     new BoxGeometry(1.5, 1.5, 1.5),
-    new LambertMaterial({ color: 0x4d8fd6 }),
+    new LambertMaterial({ color: 0x7f8792 }),
   );
   scene.add(mesh);
   const transform = new TransformControls(camera, canvas);
   transform.attach(mesh);
+  transform.setMode(isTransformMode(params.mode) ? params.mode : "translate");
   scene.add(transform.helper);
-  transform.axis = "XYZ";
   const orbit = new OrbitControls(camera, canvas);
   orbit.enableDamping = true;
   transform.addEventListener("mouseDown", () => {
@@ -58,7 +73,7 @@ export function setup(canvas) {
   transform.addEventListener("mouseUp", () => {
     orbit.enabled = true;
   });
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop((_timestamp) => {
     orbit.update();
     transform.update();
     renderer.prepare(scene, camera);
@@ -66,6 +81,9 @@ export function setup(canvas) {
   });
   return {
     ...animation,
+    update(nextParams = {}) {
+      if (isTransformMode(nextParams.mode)) transform.setMode(nextParams.mode);
+    },
     cleanup() {
       animation.cleanup();
       transform.dispose();
@@ -77,8 +95,8 @@ export function setup(canvas) {
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
 const controls = new EASEL.TransformControls(camera, canvas);
 controls.attach(mesh);
-controls.setMode("translate");
-controls.axis = "XYZ";`;
+controls.setMode(params.mode ?? "translate");
+`;
 
 export const example = {
   meta,

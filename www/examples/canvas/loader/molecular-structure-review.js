@@ -1,4 +1,5 @@
 import {
+  Group,
   LineMaterial,
   LineSegments,
   PDBLoader,
@@ -8,9 +9,9 @@ import {
   Renderer,
   Scene,
   Timer,
-  Vector3,
 } from "@/index.js";
 
+import source from "../../../../assets/pdb/caffeine.pdb?raw";
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 export const meta = {
@@ -18,16 +19,10 @@ export const meta = {
   name: "Molecular Structure Review",
   category: "data",
   animated: true,
-  description: "Inspect a PDB structure as a navigable molecular scene.",
+  description:
+    "Inspect the atoms, CPK colors, and bonds in a caffeine PDB structure.",
 };
 export const controls = [];
-
-const source = `ATOM      1  C   MOL A   1      -1.000   0.000   0.000                      C
-ATOM      2  O   MOL A   1       1.000   0.000   0.000                      O
-ATOM      3  N   MOL A   1       0.000   1.000   0.000                      N
-CONECT    1    2    3
-CONECT    2    1
-CONECT    3    1`;
 
 export function setup(canvas) {
   const width = canvas.width;
@@ -40,24 +35,29 @@ export function setup(canvas) {
     near: 0.1,
     far: 50,
   });
-  camera.position.set(0, 0, 4.4);
-  camera.lookAt(new Vector3(0, 0, 0));
+  camera.position.z = 7.5;
   const renderer = new Renderer({ canvas, width, height });
   const result = new PDBLoader().parse(source);
-  const atoms = new Points(
-    result.geometryAtoms,
-    new PointsMaterial({ color: 0xffffff, size: 8 }),
-  );
-  const bonds = new LineSegments(
-    result.geometryBonds,
-    new LineMaterial({ color: 0xa7b7ca, linewidth: 1 }),
-  );
-  scene.add(bonds);
-  scene.add(atoms);
+  const atomsMaterial = new PointsMaterial({ vertexColors: true, size: 7 });
+  const bondsMaterial = new LineMaterial({ color: 0xa7b7ca, linewidth: 2 });
+  const atoms = new Points(result.geometryAtoms, atomsMaterial);
+  const bonds = new LineSegments(result.geometryBonds, bondsMaterial);
+  const molecule = new Group();
+  molecule.scale.setScalar(0.75);
+  molecule.add(bonds, atoms);
+  result.geometryAtoms.computeBoundingBox();
+  const bounds = result.geometryAtoms.boundingBox;
+  if (bounds) {
+    molecule.position.set(
+      -(bounds.min.x + bounds.max.x) / 2,
+      -(bounds.min.y + bounds.max.y) / 2,
+      -(bounds.min.z + bounds.max.z) / 2,
+    );
+  }
+  scene.add(molecule);
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
-    atoms.rotation.y += timer.update().delta * 0.35;
-    bonds.rotation.y = atoms.rotation.y;
+  const animation = createExampleAnimationLoop(() => {
+    molecule.rotation.y += timer.update().delta * 0.2;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   });
@@ -65,19 +65,20 @@ export function setup(canvas) {
     ...animation,
     cleanup() {
       animation.cleanup();
+      result.geometryAtoms.dispose();
+      result.geometryBonds.dispose();
+      atomsMaterial.dispose();
+      bondsMaterial.dispose();
+      renderer.dispose();
     },
   };
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
-import { PDBLoader } from "@xsyetopz/easel";
-const pdb = new PDBLoader().parse(text);
-const atoms = new EASEL.Points(pdb.geometryAtoms, atomMaterial);
+const pdb = new EASEL.PDBLoader().parse(pdbText);
+const atoms = new EASEL.Points(
+  pdb.geometryAtoms,
+  new EASEL.PointsMaterial({ vertexColors: true, size: 7 }),
+);
 const bonds = new EASEL.LineSegments(pdb.geometryBonds, bondMaterial);`;
-
-export const example = {
-  meta,
-  controls,
-  setup,
-  easelSource,
-};
+export const example = { meta, controls, setup, easelSource };

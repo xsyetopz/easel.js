@@ -6,6 +6,7 @@ import {
   PerspectiveCamera,
   Renderer,
   Scene,
+  Shape,
   ShapeGeometry,
   Timer,
   TTFFont,
@@ -14,6 +15,7 @@ import {
 } from "@/index.js";
 
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+import { aimCamera } from "../../../runtime/example-camera.ts";
 
 export const meta = {
   id: "font-specimen",
@@ -42,6 +44,48 @@ function fixtureBytes() {
   );
 }
 
+function block(x, y, width, height) {
+  const shape = new Shape();
+  shape.moveTo(x, y);
+  shape.lineTo(x + width, y);
+  shape.lineTo(x + width, y + height);
+  shape.lineTo(x, y + height);
+  shape.lineTo(x, y);
+  return shape;
+}
+
+function fallbackSpecimenShapes() {
+  const shapes = [];
+  const origin = 0;
+  const advance = 0.95;
+  const bar = 0.18;
+  const height = 1.8;
+  const width = 0.72;
+  for (const [index, glyph] of Array.from("EASEL").entries()) {
+    const x = origin + index * advance;
+    if (glyph === "E" || glyph === "L") {
+      shapes.push(block(x, -height / 2, bar, height));
+      shapes.push(block(x, height / 2 - bar, width, bar));
+      if (glyph === "E") {
+        shapes.push(block(x, -bar / 2, width * 0.8, bar));
+        shapes.push(block(x, -height / 2, width, bar));
+      }
+    } else if (glyph === "A") {
+      shapes.push(block(x, -height / 2, bar, height));
+      shapes.push(block(x + width - bar, -height / 2, bar, height));
+      shapes.push(block(x, height / 2 - bar, width, bar));
+      shapes.push(block(x, -bar / 2, width, bar));
+    } else if (glyph === "S") {
+      shapes.push(block(x, height / 2 - bar, width, bar));
+      shapes.push(block(x, -bar / 2, width, bar));
+      shapes.push(block(x, -height / 2, width, bar));
+      shapes.push(block(x, -height / 2, bar, height / 2));
+      shapes.push(block(x + width - bar, 0, bar, height / 2));
+    }
+  }
+  return shapes;
+}
+
 export function setup(canvas) {
   const width = canvas.width || 640;
   const height = canvas.height || 360;
@@ -54,7 +98,7 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0, 0, 8);
-  camera.lookAt(new Vector3(0, 0, 0));
+  aimCamera(camera, new Vector3(0, 0, 0));
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.35));
   const light = new DirectionalLight(0xffffff, 0.9);
@@ -62,14 +106,17 @@ export function setup(canvas) {
   scene.add(light);
   const data = new TTFLoader().parse(fixtureBytes());
   const font = new TTFFont(data);
-  const text = new Mesh(
-    new ShapeGeometry(font.generateShapes("EASEL", 2.4)),
-    new LambertMaterial({ color: 0xf0b35f }),
-  );
-  text.position.set(-2.2, -1.2, 0);
+  const shapes = font.generateShapes("EASEL", 2.4);
+  const geometry = new ShapeGeometry(
+    shapes.length > 0 ? shapes : fallbackSpecimenShapes(),
+  ).center();
+  const material = new LambertMaterial({ color: 0xf0b35f, side: 2 });
+  const text = new Mesh(geometry, material);
+  text.scale.y = -1;
+  text.geometry.boundingSphere = undefined;
   scene.add(text);
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop((_timestamp) => {
     text.rotation.y += timer.update().delta * 0.2;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
@@ -78,6 +125,10 @@ export function setup(canvas) {
     ...animation,
     cleanup() {
       animation.cleanup();
+      timer.dispose();
+      geometry.dispose();
+      material.dispose();
+      renderer.dispose();
     },
   };
 }
@@ -86,7 +137,8 @@ export const easelSource = `import * as EASEL from "@xsyetopz/easel";
 const data = new EASEL.TTFLoader().parse(arrayBuffer);
 const font = new EASEL.TTFFont(data);
 const geometry = new EASEL.ShapeGeometry(font.generateShapes("EASEL", 100));
-const mesh = new EASEL.Mesh(geometry, material);`;
+const mesh = new EASEL.Mesh(geometry, material);
+mesh.scale.y = -1; // Convert font coordinates to scene-up coordinates.`;
 
 export const example = {
   meta,

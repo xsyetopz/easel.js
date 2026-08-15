@@ -1,13 +1,13 @@
 import {
   GCodeLoader,
   OrbitControls,
-  PerspectiveCamera,
+  OrthographicCamera,
   Renderer,
   Scene,
-  Timer,
   Vector3,
 } from "@/index.js";
 
+import source from "../../../../assets/gcode/Circle_Diamond_Square_Calibration.gcode?raw";
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 export const meta = {
@@ -15,51 +15,40 @@ export const meta = {
   name: "CNC Toolpath Preview",
   category: "data",
   animated: true,
-  description: "Review G-code layers and travel moves before machining.",
+  description:
+    "Separate G0 travel moves from G1 cuts in a real calibration program.",
 };
 export const controls = [];
-
-const source = `;LAYER:0
-M82
-G90
-G0 X-1 Y-1 Z0 F3600
-G1 X1 Y-1 E0.2 F1200
-G1 X1 Y1 E0.4
-G1 X-1 Y1 E0.6
-G1 X-1 Y-1 E0.8
-;LAYER:1
-G0 Z0.5 F3600
-G1 X-0.7 Y-0.7 E1.0 F1200
-G1 X0.7 Y-0.7 E1.2
-G1 X0.7 Y0.7 E1.4
-G1 X-0.7 Y0.7 E1.6
-G1 X-0.7 Y-0.7 E1.8`;
 
 export function setup(canvas) {
   const width = canvas.width;
   const height = canvas.height;
   const scene = new Scene();
   scene.background = 0x121826;
-  const camera = new PerspectiveCamera({
-    fov: 50,
-    aspect: width / height,
+  const aspect = width / height;
+  const camera = new OrthographicCamera({
+    left: -40 * aspect,
+    right: 40 * aspect,
+    top: 40,
+    bottom: -40,
     near: 0.1,
     far: 100,
   });
-  camera.position.set(3.6, 3.2, 5.2);
-  camera.lookAt(new Vector3(0, 0, 0));
+  camera.position.set(35, 55, 35);
+  camera.lookAt(new Vector3());
+  camera.updateMatrixWorld(false, false, true);
   const renderer = new Renderer({ canvas, width, height });
   const orbit = new OrbitControls(camera, canvas);
   orbit.target.set(0, 0, 0);
-  orbit.minDistance = 2;
-  orbit.maxDistance = 20;
+  orbit.enableRotate = false;
+  orbit.screenSpacePanning = false;
+  orbit.minZoom = 0.65;
+  orbit.maxZoom = 4;
   const loader = new GCodeLoader();
-  loader.splitLayer = true;
+  loader.mode = "toolpath";
   const model = loader.parse(source);
   scene.add(model);
-  const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
-    model.rotation.z += timer.update().delta * 0.12;
+  const animation = createExampleAnimationLoop(() => {
     orbit.update();
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
@@ -80,13 +69,7 @@ export function setup(canvas) {
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
 const loader = new EASEL.GCodeLoader();
-loader.splitLayer = true;
-const model = loader.parse(data);
+loader.mode = "toolpath";
+const model = loader.parse(gcodeText);
 scene.add(model);`;
-
-export const example = {
-  meta,
-  controls,
-  setup,
-  easelSource,
-};
+export const example = { meta, controls, setup, easelSource };

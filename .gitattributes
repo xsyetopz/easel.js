@@ -1,0 +1,5 @@
+# Preserve byte-for-byte third-party fixtures; upstream formatting is intentional.
+assets/licenses/*.txt -whitespace
+assets/pdb/*.pdb -whitespace
+assets/ply/*.ply -whitespace
+assets/xyz/*.xyz -whitespace

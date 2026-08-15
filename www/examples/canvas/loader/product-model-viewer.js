@@ -8,6 +8,7 @@ import {
   Vector3,
 } from "@/index.js";
 
+import boxGltf from "../../../../fixtures/models/box/Box.gltf?raw";
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 export const meta = {
@@ -15,45 +16,10 @@ export const meta = {
   name: "Product Model Viewer",
   category: "assets",
   animated: true,
-  description: "Review a glTF asset with a fixed camera and clean lighting.",
+  description:
+    "Frame the canonical Khronos Box glTF asset with fixed camera lighting.",
 };
 export const controls = [];
-
-function makeDocument() {
-  const bytes = new Uint8Array(36);
-  const view = new DataView(bytes.buffer);
-  [0, 0, 0, 1, 0, 0, 0, 1, 0].forEach((value, index) => {
-    view.setFloat32(index * 4, value, true);
-  });
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return {
-    asset: { version: "2.0" },
-    buffers: [
-      {
-        uri: `data:application/octet-stream;base64,${globalThis.btoa(binary)}`,
-        byteLength: bytes.length,
-      },
-    ],
-    bufferViews: [{ buffer: 0, byteOffset: 0, byteLength: bytes.length }],
-    accessors: [{ bufferView: 0, componentType: 5126, count: 3, type: "VEC3" }],
-    materials: [
-      {
-        name: "Triangle",
-        pbrMetallicRoughness: { baseColorFactor: [0.35, 0.7, 1, 1] },
-      },
-    ],
-    meshes: [
-      {
-        name: "Triangle",
-        primitives: [{ attributes: { POSITION: 0 }, material: 0 }],
-      },
-    ],
-    nodes: [{ mesh: 0 }],
-    scenes: [{ nodes: [0] }],
-    scene: 0,
-  };
-}
 
 export function setup(canvas) {
   const width = canvas.width || 640;
@@ -67,15 +33,17 @@ export function setup(canvas) {
     far: 50,
   });
   camera.position.set(0, 0, 4);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.35));
-  const result = new GLTFLoader().parse(makeDocument(), {
+  const result = new GLTFLoader().parse(JSON.parse(boxGltf), {
     materialType: "lambert",
   });
   scene.add(result.scene);
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop(() => {
     result.scene.rotation.y += timer.update().delta * 0.35;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);

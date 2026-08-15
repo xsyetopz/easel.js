@@ -21,7 +21,7 @@ export const meta = {
   name: "NURBS Surface Review",
   category: "geometry",
   animated: true,
-  description: "Inspect a smooth control-point surface used in modeling.",
+  description: "A smooth control-point surface represents a modeling form.",
 };
 
 export const controls = [];
@@ -38,7 +38,9 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0, 2.2, 8.4);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.35));
   const light = new DirectionalLight(0xffffff, 0.95);
@@ -99,7 +101,7 @@ export function setup(canvas) {
   scene.add(surfaceMesh);
 
   const clock = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop((_timestamp) => {
     mesh.rotation.y += clock.update().delta * 0.3;
     surfaceMesh.rotation.y -= clock.delta * 0.15;
     renderer.prepare(scene, camera);

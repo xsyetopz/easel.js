@@ -1,8 +1,8 @@
 import {
   AmbientLight,
-  BasicMaterial,
+  BoxGeometry,
   DirectionalLight,
-  Geometry,
+  LambertMaterial,
   Mesh,
   PerspectiveCamera,
   Renderer,
@@ -12,66 +12,31 @@ import {
 } from "@/index.js";
 
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+import { aimCamera } from "../../../runtime/example-camera.ts";
 
 export const meta = {
   id: "vertex-color-review",
   name: "Vertex Color Review",
   category: "materials",
   animated: true,
-  description: "Inspect authored vertex colors on a lit mesh.",
+  description: "Authored vertex colors remain visible on a lit mesh.",
 };
 
 export const controls = [];
 
-function createColoredCube() {
-  const positions = [];
-  const colors = [];
-  const indices = [];
-  const faces = [
-    [[0, 0, 1], 0xe85d5d],
-    [[0, 0, -1], 0x5d9de8],
-    [[0, 1, 0], 0x63c78c],
-    [[0, -1, 0], 0xe2b84d],
-    [[1, 0, 0], 0xb07be0],
-    [[-1, 0, 0], 0xe18a58],
-  ];
-  for (const [[nx, ny, nz], color] of faces) {
-    const corners =
-      nz !== 0
-        ? [
-            [-1, -1, nz],
-            [1, -1, nz],
-            [1, 1, nz],
-            [-1, 1, nz],
-          ]
-        : nx !== 0
-          ? [
-              [nx, -1, -1],
-              [nx, 1, -1],
-              [nx, 1, 1],
-              [nx, -1, 1],
-            ]
-          : [
-              [-1, ny, -1],
-              [1, ny, -1],
-              [1, ny, 1],
-              [-1, ny, 1],
-            ];
-    const base = positions.length / 3;
-    for (const [x, y, z] of corners) {
-      positions.push(x, y, z);
-      const r = ((color >> 16) & 255) / 255;
-      const g = ((color >> 8) & 255) / 255;
-      const b = (color & 255) / 255;
-      colors.push(r, g, b);
-    }
-    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+function createVertexColorCube(size = 2.5) {
+  const geometry = new BoxGeometry(size, size, size);
+  const position = geometry.getAttribute("position");
+  const colors = new Float32Array(position.count * 3);
+
+  for (let vertex = 0; vertex < position.count; vertex++) {
+    const offset = vertex * 3;
+    colors[offset] = 0.35 + 0.65 * (position.getX(vertex) / size + 0.5);
+    colors[offset + 1] = 0.35 + 0.65 * (position.getY(vertex) / size + 0.5);
+    colors[offset + 2] = 0.35 + 0.65 * (position.getZ(vertex) / size + 0.5);
   }
-  const geometry = new Geometry();
-  geometry.setPositions(positions);
+
   geometry.setColors(colors);
-  geometry.index = indices;
-  geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
   return geometry;
 }
@@ -88,17 +53,19 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0, 1, 5.5);
-  camera.lookAt(new Vector3(0, 0, 0));
+  aimCamera(camera, new Vector3());
   const renderer = new Renderer({ canvas, width, height });
-  scene.add(new AmbientLight(0xffffff, 0.5));
+  scene.add(new AmbientLight(0xffffff, 0.65));
   const key = new DirectionalLight(0xffffff, 0.85);
   key.position.set(3, 4, 5);
   scene.add(key);
 
-  const cube = new Mesh(
-    createColoredCube(),
-    new BasicMaterial({ color: 0xffffff, vertexColors: true }),
-  );
+  const geometry = createVertexColorCube();
+  const material = new LambertMaterial({
+    color: 0xffffff,
+    vertexColors: true,
+  });
+  const cube = new Mesh(geometry, material);
   scene.add(cube);
   const clock = new Timer();
   const animation = createExampleAnimationLoop((timestamp) => {
@@ -112,14 +79,28 @@ export function setup(canvas) {
     ...animation,
     cleanup() {
       animation.cleanup();
+      clock.dispose();
+      geometry.dispose();
+      material.dispose();
+      renderer.dispose();
     },
   };
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
-geometry.setColors(faceColors);
-geometry.index = faceIndices;
-const mesh = new EASEL.Mesh(geometry, new EASEL.BasicMaterial({ color: 0xffffff, vertexColors: true }));`;
+const geometry = new EASEL.BoxGeometry(2.5, 2.5, 2.5);
+const position = geometry.getAttribute("position");
+const colors = new Float32Array(position.count * 3);
+for (let vertex = 0; vertex < position.count; vertex++) {
+  const offset = vertex * 3;
+  colors[offset] = 0.35 + 0.65 * (position.getX(vertex) / 2.5 + 0.5);
+  colors[offset + 1] = 0.35 + 0.65 * (position.getY(vertex) / 2.5 + 0.5);
+  colors[offset + 2] = 0.35 + 0.65 * (position.getZ(vertex) / 2.5 + 0.5);
+}
+geometry.setColors(colors);
+
+const material = new EASEL.LambertMaterial({ color: 0xffffff, vertexColors: true });
+const mesh = new EASEL.Mesh(geometry, material);`;
 
 export const example = {
   meta,

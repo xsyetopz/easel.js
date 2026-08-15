@@ -15,6 +15,7 @@ import {
 } from "@/index.js";
 
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+import { aimCamera } from "../../../runtime/example-camera.ts";
 
 export const meta = {
   id: "terrain-placement",
@@ -54,7 +55,6 @@ function makeTerrain(size = 18) {
   geometry.setPositions(positions);
   geometry.index = indices;
   geometry.computeVertexNormals();
-  geometry.computeBoundingSphere();
   return geometry;
 }
 
@@ -70,7 +70,7 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0, 5.6, 8.5);
-  camera.lookAt(new Vector3(0, 0, 0));
+  aimCamera(camera, new Vector3(0, 0, 0));
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.45));
   const light = new DirectionalLight(0xffffff, 0.9);
@@ -78,7 +78,7 @@ export function setup(canvas) {
   scene.add(light);
   const terrain = new Mesh(
     makeTerrain(),
-    new LambertMaterial({ color: 0x5e9b67 }),
+    new LambertMaterial({ color: 0x5e9b67, side: 2 }),
   );
   scene.add(terrain);
   const marker = new Mesh(
@@ -104,7 +104,7 @@ export function setup(canvas) {
   };
   canvas.addEventListener("click", handleClick);
   const clock = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop((_timestamp) => {
     terrain.rotation.y += clock.update().delta * 0.03;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);

@@ -11,8 +11,9 @@ import {
   Timer,
   Vector3,
 } from "@/index.js";
-
+import { createClickActivatedControls } from "../../../runtime/canvas-input-focus.ts";
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+import { aimCamera } from "../../../runtime/example-camera.ts";
 
 export const meta = {
   id: "heightfield-explorer",
@@ -20,7 +21,7 @@ export const meta = {
   category: "worlds",
   animated: true,
   description:
-    "Navigate a generated terrain surface with a stable outdoor composition.",
+    "Click to lock the pointer, then use WASD and the mouse to explore the terrain.",
 };
 
 export const controls = [];
@@ -57,7 +58,6 @@ function makeTerrain(size = 18) {
   geometry.setPositions(positions);
   geometry.index = indices;
   geometry.computeVertexNormals();
-  geometry.computeBoundingSphere();
   return geometry;
 }
 
@@ -73,24 +73,27 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0, 5.6, 8.5);
-  camera.lookAt(new Vector3(0, 0, 0));
+  aimCamera(camera, new Vector3(0, 0, 0));
   const renderer = new Renderer({ canvas, width, height });
-  const cameraControls = new FirstPersonControls(camera, canvas);
-  cameraControls.movementSpeed = 2.4;
-  cameraControls.lookSpeed = 0.003;
+  const cameraInput = createClickActivatedControls(canvas, () => {
+    const controls = new FirstPersonControls(camera, canvas);
+    controls.movementSpeed = 2.4;
+    controls.lookSpeed = 0.003;
+    return controls;
+  });
   scene.add(new AmbientLight(0xffffff, 0.45));
   const light = new DirectionalLight(0xffffff, 0.9);
   light.position.set(4, 8, 6);
   scene.add(light);
   const terrain = new Mesh(
     makeTerrain(),
-    new LambertMaterial({ color: 0x5e9b67 }),
+    new LambertMaterial({ color: 0x5e9b67, side: 2 }),
   );
   scene.add(terrain);
   const clock = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop((_timestamp) => {
     const delta = clock.update().delta;
-    cameraControls.update(delta);
+    cameraInput.controls.update(delta);
     terrain.rotation.y += delta * 0.03;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
@@ -99,7 +102,7 @@ export function setup(canvas) {
     ...animation,
     cleanup() {
       animation.cleanup();
-      cameraControls.dispose();
+      cameraInput.dispose();
     },
   };
 }

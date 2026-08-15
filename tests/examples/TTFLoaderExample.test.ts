@@ -33,6 +33,7 @@ describe("font specimen example", () => {
 
       expect(example.meta.id).toBe("font-specimen");
       expect(example.easelSource).toContain("TTFLoader");
+      expect(example.easelSource).toContain("mesh.scale.y = -1");
       const instance = example.setup(canvas);
       expect(instance).toBeDefined();
       instance?.cleanup();

@@ -1,14 +1,14 @@
 import {
-  AmbientLight,
-  BasicMaterial,
   PCDLoader,
   PerspectiveCamera,
   Points,
+  PointsMaterial,
   Renderer,
   Scene,
   Timer,
 } from "@/index.js";
 
+import source from "../../../../assets/pcd/simple.pcd?raw";
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
 
 export const meta = {
@@ -16,11 +16,11 @@ export const meta = {
   name: "Point Cloud Review",
   category: "assets",
   animated: true,
-  description: "Inspect a PCD scan as selectable rendered points.",
+  description:
+    "Inspect 213 authored positions and RGB samples from an ASCII PCD file.",
 };
 export const controls = [];
-const source =
-  "VERSION .7\nFIELDS x y z rgb\nSIZE 4 4 4 4\nTYPE F F F F\nCOUNT 1 1 1 1\nWIDTH 4\nHEIGHT 1\nPOINTS 4\nDATA ascii\n-1 0 0 16711680\n0 1 0 65280\n1 0 0 255\n0 -1 0 16776960";
+
 export function setup(canvas) {
   const width = canvas.width;
   const height = canvas.height;
@@ -32,15 +32,19 @@ export function setup(canvas) {
     near: 0.1,
     far: 50,
   });
-  camera.position.z = 4;
+  camera.position.z = 4.6;
   const renderer = new Renderer({ canvas, width, height });
-  scene.add(new AmbientLight(0xffffff, 0.8));
   const geometry = new PCDLoader().parse(source);
-  const points = new Points(geometry, new BasicMaterial({ color: 0xffffff }));
+  geometry.center();
+  const points = new Points(
+    geometry,
+    new PointsMaterial({ vertexColors: true, size: 3 }),
+  );
+  points.scale.setScalar(1.8);
   scene.add(points);
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
-    points.rotation.y += timer.update().delta * 0.4;
+  const animation = createExampleAnimationLoop(() => {
+    points.rotation.y += timer.update().delta * 0.18;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   });
@@ -48,16 +52,17 @@ export function setup(canvas) {
     ...animation,
     cleanup() {
       animation.cleanup();
+      geometry.dispose();
+      renderer.dispose();
     },
   };
 }
-export const easelSource = `import * as EASEL from "@xsyetopz/easel";
-const geometry = new EASEL.PCDLoader().parse(text);
-const points = new EASEL.Points(geometry, material);`;
 
-export const example = {
-  meta,
-  controls,
-  setup,
-  easelSource,
-};
+export const easelSource = `import * as EASEL from "@xsyetopz/easel";
+const geometry = new EASEL.PCDLoader().parse(pcdText);
+geometry.center();
+const points = new EASEL.Points(
+  geometry,
+  new EASEL.PointsMaterial({ vertexColors: true, size: 3 }),
+);`;
+export const example = { meta, controls, setup, easelSource };

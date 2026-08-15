@@ -54,7 +54,9 @@ export function setup(canvas) {
     far: 50,
   });
   camera.position.set(0, 0, 4);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.8));
   const volume = new NRRDLoader().parse(makeVolume());
@@ -65,7 +67,7 @@ export function setup(canvas) {
   );
   scene.add(plane);
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop((_timestamp) => {
     plane.rotation.z += timer.update().delta * 0.2;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);

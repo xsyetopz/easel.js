@@ -1,303 +1,426 @@
 ---
 import "../styles/examples.css";
 import type {
-	ExampleCatalogData,
-	ExampleControl,
-	ExampleRouteData,
+  ExampleCatalogData,
+  ExampleControl,
+  ExampleRouteData,
 } from "../loaders/examples.ts";
+import { highlightSourceExcerpt } from "../loaders/examples.ts";
 import { sitePath } from "../utils/site-path.ts";
 
 interface Props {
-	catalog: ExampleCatalogData;
-	example: ExampleRouteData;
+  catalog: ExampleCatalogData;
+  example: ExampleRouteData;
 }
 
 const { catalog, example } = Astro.props as Props;
 const controls = example.controls ?? [];
 const defaults = Object.fromEntries(
-	controls.map((control: ExampleControl) => [control.key, control.default]),
+  controls.map((control: ExampleControl) => [control.key, control.default]),
 );
 const activeIndex = catalog.examples.findIndex(
-	(entry) => entry.meta.id === example.meta.id,
+  (entry) => entry.meta.id === example.meta.id,
 );
 const previous = activeIndex > 0 ? catalog.examples[activeIndex - 1] : undefined;
 const next =
-	activeIndex >= 0 && activeIndex < catalog.examples.length - 1
-		? catalog.examples[activeIndex + 1]
-		: undefined;
+  activeIndex >= 0 && activeIndex < catalog.examples.length - 1
+    ? catalog.examples[activeIndex + 1]
+    : undefined;
 const statusId = `example-status-${example.meta.id}`;
 const sourceId = `example-source-${example.meta.id}`;
+const highlightedSource = await highlightSourceExcerpt(example.sourceExcerpt);
 const isAnimated = example.meta.animated;
 ---
 
 <article class="examples-viewer" data-example-viewer={example.meta.id}>
-	<script type="application/json" data-example-params set:html={JSON.stringify(defaults)}></script>
-	<nav class="examples-breadcrumbs" aria-label="Breadcrumb">
-		<ol>
-			<li><a href={sitePath("/examples/")}>Examples</a></li>
-			<li aria-current="page">{example.meta.name}</li>
-		</ol>
-	</nav>
+  <script
+    type="application/json"
+    data-example-params
+    set:html={JSON.stringify(defaults)}
+  ></script>
+  <nav class="examples-breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href={sitePath("/examples/")}>Examples</a></li>
+      <li aria-current="page">{example.meta.name}</li>
+    </ol>
+  </nav>
 
-	<header class="examples-viewer-heading">
-		<p class="examples-eyebrow">{catalog.categoryLabels[example.meta.category] ?? example.meta.category}</p>
-		<h1>{example.meta.name}</h1>
-		<p>{example.meta.description}</p>
-	</header>
+  <header class="examples-viewer-heading">
+    <p class="examples-eyebrow">
+      {catalog.categoryLabels[example.meta.category] ?? example.meta.category}
+    </p>
+    <h1>{example.meta.name}</h1>
+    <h2>What this shows</h2>
+    <p>{example.meta.description}</p>
+  </header>
 
-	<div class="examples-stage-layout">
-		<figure class="examples-stage-figure">
-			<div class="examples-stage" data-example-stage>
-				<canvas
-					data-example-canvas
-					width="16"
-					height="9"
-					role="img"
-					aria-label={`${example.meta.name} Canvas2D output`}
-					aria-describedby={`${statusId} ${sourceId}`}
-				>
-					Canvas2D output for {example.meta.name}.
-				</canvas>
-				<p class="examples-stage-message" data-example-stage-message>Loading scene…</p>
-			</div>
-			<figcaption>
-				Canvas2D output. The renderer uses a CPU rasterization pipeline; no WebGL
-				or WebGPU is required.
-			</figcaption>
-		</figure>
+  <div class="examples-stage-layout">
+    <figure class="examples-stage-figure">
+      <div class="examples-stage" data-example-stage>
+        <canvas
+          data-example-canvas
+          width="16"
+          height="9"
+          role="img"
+          aria-label={`${example.meta.name} rendered frame`}
+          aria-describedby={statusId}
+        >
+          This example needs a Canvas2D-capable browser.
+        </canvas>
+        <p class="examples-stage-message" data-example-stage-message>
+          Loading scene…
+        </p>
+      </div>
+    </figure>
 
-		<div class="examples-runtime-status" id={statusId} role="status" aria-live="polite" data-example-status>
-			<span data-example-status-message>Loading scene…</span>
-			<a href={`#${sourceId}`} data-example-status-source hidden>Open API excerpt</a>
-		</div>
+    <div
+      class="examples-runtime-status"
+      id={statusId}
+      role="status"
+      aria-live="polite"
+      data-example-status
+    >
+      <span data-example-status-message>Loading scene…</span>
+      <a href={`#${sourceId}`} data-example-status-source hidden
+        >Key API excerpt</a
+      >
+    </div>
 
-		{isAnimated && (
-			<div class="examples-motion-controls" data-example-motion-controls hidden>
-				<button type="button" data-example-motion-toggle aria-pressed="false">Pause animation</button>
-				<p data-example-motion-note>Animation starts automatically; pause it to inspect a static frame.</p>
-			</div>
-		)}
+    {
+      (isAnimated || controls.length > 0) && (
+        <aside
+          class:list={[
+            "examples-canvas-controls",
+            { "examples-canvas-controls-expanded": controls.length > 0 },
+          ]}
+          aria-label="Canvas controls"
+        >
+      {
+        isAnimated && (
+          <div class="examples-motion-controls" data-example-motion-controls hidden>
+            <button
+              type="button"
+              data-example-motion-toggle
+              aria-pressed="false"
+            >
+              Pause animation
+            </button>
+          </div>
+        )
+      }
 
-		{controls.length > 0 && (
-			<form class="examples-controls" data-example-controls aria-labelledby="example-controls-title">
-				<h2 id="example-controls-title">Controls</h2>
-				{controls.map((control: ExampleControl) => {
-					const inputId = `example-${example.meta.id}-${control.key}`;
-					const outputId = `${inputId}-output`;
-					return (
-						<div class="examples-control">
-							<label for={inputId}>{control.label}</label>
-							{control.type === "slider" && (
-								<div class="examples-control-input">
-									<input
-										id={inputId}
-										name={control.key}
-										data-example-control={control.key}
-										type="range"
-										min={control.min}
-										max={control.max}
-										step={control.step}
-										value={control.default}
-										aria-describedby={outputId}
-									/>
-									<output id={outputId} for={inputId} data-example-output={control.key}>{control.default}</output>
-								</div>
-							)}
-							{control.type === "color" && (
-								<div class="examples-control-input">
-									<input
-										id={inputId}
-										name={control.key}
-										data-example-control={control.key}
-										type="color"
-										value={control.default}
-										aria-describedby={outputId}
-									/>
-									<output id={outputId} for={inputId} data-example-output={control.key}>{control.default}</output>
-								</div>
-							)}
-							{control.type === "select" && (
-								<div class="examples-control-input">
-									<select
-										id={inputId}
-										name={control.key}
-										data-example-control={control.key}
-										aria-describedby={outputId}
-									>
-										{control.options.map((option) => (
-											<option value={option} selected={option === control.default}>{option}</option>
-										))}
-									</select>
-									<output id={outputId} for={inputId} data-example-output={control.key}>{control.default}</output>
-								</div>
-							)}
-						</div>
-					);
-				})}
-			</form>
-		)}
-	</div>
+      {
+        controls.length > 0 && (
+          <form
+            class="examples-controls"
+            data-example-controls
+            aria-labelledby="example-controls-title"
+          >
+            <h2 id="example-controls-title">Controls</h2>
+            {
+              controls.map((control: ExampleControl) => {
+                const inputId = `example-${example.meta.id}-${control.key}`;
+                const outputId = `${inputId}-output`;
+                return (
+                  <div class="examples-control">
+                    <label for={inputId}>{control.label}</label>
+                    {
+                      control.type === "slider" && (
+                        <div class="examples-control-input">
+                          <input
+                            id={inputId}
+                            name={control.key}
+                            data-example-control={control.key}
+                            type="range"
+                            min={control.min}
+                            max={control.max}
+                            step={control.step}
+                            value={control.default}
+                            aria-describedby={outputId}
+                          />
+                          <output
+                            id={outputId}
+                            for={inputId}
+                            data-example-output={control.key}
+                            >{control.default}</output
+                          >
+                        </div>
+                      )
+                    }
+                    {
+                      control.type === "color" && (
+                        <div class="examples-control-input">
+                          <input
+                            id={inputId}
+                            name={control.key}
+                            data-example-control={control.key}
+                            type="color"
+                            value={control.default}
+                            aria-describedby={outputId}
+                          />
+                          <output
+                            id={outputId}
+                            for={inputId}
+                            data-example-output={control.key}
+                            >{control.default}</output
+                          >
+                        </div>
+                      )
+                    }
+                    {
+                      control.type === "select" && (
+                        <div class="examples-control-input">
+                          <select
+                            id={inputId}
+                            name={control.key}
+                            data-example-control={control.key}
+                          >
+                            {control.options.map((option) => (
+                              <option
+                                value={option}
+                                selected={option === control.default}
+                                >{option}</option
+                              >
+                            ))}
+                          </select>
+                        </div>
+                      )
+                    }
+                  </div>
+                );
+              })
+            }
+          </form>
+        )
+      }
+        </aside>
+      )
+    }
 
-	<section class="examples-source" id={sourceId} aria-labelledby={`${sourceId}-title`}>
-		<header>
-			<h2 id={`${sourceId}-title`}>API excerpt</h2>
-			<p>A focused ESM excerpt highlighting the EASEL APIs used by this example. The complete module is loaded separately by the page.</p>
-		</header>
-		<div class="examples-code-scroll">
-			<pre><code>{example.easelSource}</code></pre>
-		</div>
-	</section>
+  </div>
 
-	<nav class="examples-sequence" aria-label="Example navigation">
-		{previous ? (
-			<a href={sitePath(`/examples/${previous.meta.id}/`)}>
-				<span>Previous</span>
-				<strong>{previous.meta.name}</strong>
-			</a>
-		) : <span aria-hidden="true" />}
-		<a class="examples-sequence-index" href={sitePath("/examples/")}>All examples</a>
-		{next ? (
-			<a class="examples-sequence-next" href={sitePath(`/examples/${next.meta.id}/`)}>
-				<span>Next</span>
-				<strong>{next.meta.name}</strong>
-			</a>
-		) : <span aria-hidden="true" />}
-	</nav>
+  <section
+    class="examples-source"
+    id={sourceId}
+    aria-labelledby={`${sourceId}-title`}
+  >
+    <header>
+      <h2 id={`${sourceId}-title`}>Key API excerpt</h2>
+    </header>
+    <div
+      class="examples-code-scroll"
+      data-source-excerpt
+      set:html={highlightedSource}
+    ></div>
+  </section>
+
+  <nav class="examples-sequence" aria-label="Example navigation">
+    {
+      previous ? (
+        <a href={sitePath(`/examples/${previous.meta.id}/`)}>
+          <span>Previous</span>
+          <strong>{previous.meta.name}</strong>
+        </a>
+      ) : (
+        <span aria-hidden="true" />
+      )
+    }
+    <a class="examples-sequence-index" href={sitePath("/examples/")}
+      >All examples</a
+    >
+    {
+      next ? (
+        <a
+          class="examples-sequence-next"
+          href={sitePath(`/examples/${next.meta.id}/`)}
+        >
+          <span>Next</span>
+          <strong>{next.meta.name}</strong>
+        </a>
+      ) : (
+        <span aria-hidden="true" />
+      )
+    }
+  </nav>
 </article>
 
 <script>
-	import { examples } from "../examples/registry.ts";
-	import { mountExampleRuntime } from "../runtime/example-viewport.ts";
-	import type { ExampleParams } from "../loaders/examples.ts";
+  import { examples } from "../examples/registry.ts";
+  import { mountExampleRuntime } from "../runtime/example-viewport.ts";
+  import type { ExampleParams } from "../loaders/examples.ts";
 
-	const root = document.querySelector<HTMLElement>("[data-example-viewer]");
-	if (root) {
-		const id = root.dataset.exampleViewer;
-		const entry = examples.find((candidate) => candidate.meta.id === id);
-		const canvas = root.querySelector<HTMLCanvasElement>("[data-example-canvas]");
-		const stage = root.querySelector<HTMLElement>("[data-example-stage]");
-		const message = root.querySelector<HTMLElement>("[data-example-stage-message]");
-		const status = root.querySelector<HTMLElement>("[data-example-status-message]");
-		const sourceLink = root.querySelector<HTMLAnchorElement>("[data-example-status-source]");
-		const motionControls = root.querySelector<HTMLElement>("[data-example-motion-controls]");
-		const motionToggle = root.querySelector<HTMLButtonElement>("[data-example-motion-toggle]");
-		const motionNote = root.querySelector<HTMLElement>("[data-example-motion-note]");
-		const paramsNode = root.querySelector<HTMLScriptElement>("[data-example-params]");
-		let params: ExampleParams = {};
-		try {
-			params = paramsNode?.textContent ? JSON.parse(paramsNode.textContent) as ExampleParams : {};
-		} catch {
-			params = {};
-		}
+  const root = document.querySelector<HTMLElement>("[data-example-viewer]");
+  if (root) {
+    const id = root.dataset.exampleViewer;
+    const entry = examples.find((candidate) => candidate.meta.id === id);
+    const canvas = root.querySelector<HTMLCanvasElement>("[data-example-canvas]");
+    const stage = root.querySelector<HTMLElement>("[data-example-stage]");
+    const message = root.querySelector<HTMLElement>(
+      "[data-example-stage-message]",
+    );
+    const statusRegion = root.querySelector<HTMLElement>(
+      "[data-example-status]",
+    );
+    const status = root.querySelector<HTMLElement>(
+      "[data-example-status-message]",
+    );
+    const sourceLink = root.querySelector<HTMLAnchorElement>(
+      "[data-example-status-source]",
+    );
+    const motionControls = root.querySelector<HTMLElement>(
+      "[data-example-motion-controls]",
+    );
+    const motionToggle = root.querySelector<HTMLButtonElement>(
+      "[data-example-motion-toggle]",
+    );
+    const paramsNode = root.querySelector<HTMLScriptElement>(
+      "[data-example-params]",
+    );
+    let params: ExampleParams = {};
+    try {
+      params = paramsNode?.textContent
+        ? (JSON.parse(paramsNode.textContent) as ExampleParams)
+        : {};
+    } catch {
+      params = {};
+    }
 
-		if (!entry || !canvas) {
-			if (status) status.textContent = "This scene could not start.";
-			if (sourceLink) sourceLink.hidden = false;
-		} else {
-			void entry.load().then((module) => {
-				const controller = mountExampleRuntime({
-					canvas,
-					container: stage,
-					module,
-					params,
-					onState(state, error) {
-						if (state === "loading") {
-							if (status) status.textContent = "Loading scene…";
-							if (message) {
-								message.hidden = false;
-								message.textContent = "Loading scene…";
-							}
-							return;
-						}
-						if (state === "unsupported") {
-							if (motionControls) motionControls.hidden = true;
-							if (status) status.textContent = "Canvas2D is unavailable in this browser.";
-							if (message) {
-								message.hidden = false;
-								message.textContent = "Canvas2D is unavailable in this browser. Read the source instead.";
-							}
-							if (sourceLink) sourceLink.hidden = false;
-							return;
-						}
-						if (state === "error") {
-							if (motionControls) motionControls.hidden = true;
-							if (status) status.textContent = "This scene could not start. Open the source or choose another example.";
-							if (message) {
-								message.hidden = false;
-								message.textContent = "This scene could not start. Open the source or choose another example.";
-							}
-							if (sourceLink) sourceLink.hidden = false;
-							if (error) console.error(`Example ${id ?? "unknown"} failed`, error);
-							return;
-						}
-						if (status) status.textContent = "Scene ready. Canvas2D output is shown above.";
-						if (message) message.hidden = true;
-						if (sourceLink) sourceLink.hidden = true;
-						if (motionControls) motionControls.hidden = false;
-						},
-				});
+    if (!entry || !canvas) {
+      if (status) status.textContent = "This scene could not start.";
+      if (sourceLink) sourceLink.hidden = false;
+    } else {
+      void entry
+        .load()
+        .then((module) => {
+          const controller = mountExampleRuntime({
+            canvas,
+            container: stage,
+            module,
+            params,
+            onState(state, error) {
+              if (state === "loading") {
+                if (statusRegion) statusRegion.hidden = false;
+                if (status) status.textContent = "Loading scene…";
+                if (message) {
+                  message.hidden = false;
+                  message.textContent = "Loading scene…";
+                }
+                return;
+              }
+              if (state === "unsupported") {
+                if (statusRegion) statusRegion.hidden = false;
+                if (motionControls) motionControls.hidden = true;
+                if (status)
+                  status.textContent = "Canvas2D is unavailable in this browser.";
+                if (message) {
+                  message.hidden = false;
+                  message.textContent =
+                    "Canvas2D is unavailable in this browser.";
+                }
+                if (sourceLink) sourceLink.hidden = false;
+                return;
+              }
+              if (state === "error") {
+                if (statusRegion) statusRegion.hidden = false;
+                if (motionControls) motionControls.hidden = true;
+                if (status)
+                  status.textContent =
+                    "This example failed to load.";
+                if (message) {
+                  message.hidden = false;
+                  message.textContent =
+                    "This example failed to load.";
+                }
+                if (sourceLink) sourceLink.hidden = false;
+                if (error) console.error(`Example ${id ?? "unknown"} failed`, error);
+                return;
+              }
+              if (status) status.textContent = "";
+              if (statusRegion) statusRegion.hidden = true;
+              if (message) message.hidden = true;
+              if (sourceLink) sourceLink.hidden = true;
+              if (motionControls) motionControls.hidden = false;
+            },
+          });
 
-				const reducedMotionQuery =
-					typeof globalThis.matchMedia === "function"
-						? globalThis.matchMedia("(prefers-reduced-motion: reduce)")
-						: undefined;
-				let motionPaused = controller.paused;
-				const setMotionState = (paused: boolean): void => {
-					motionPaused = paused;
-					if (!motionToggle) return;
-					motionToggle.setAttribute("aria-pressed", String(paused));
-					motionToggle.textContent = paused ? "Play animation" : "Pause animation";
-					if (motionNote) {
-						motionNote.textContent = paused
-							? "Animation is paused. Play it when you want to inspect motion."
-							: "Animation starts automatically; pause it to inspect a static frame.";
-					}
-				};
-				setMotionState(motionPaused);
-				const onMotionToggle = (): void => {
-					if (motionPaused) {
-						controller.resume();
-						setMotionState(false);
-					} else {
-						controller.pause();
-						setMotionState(true);
-					}
-				};
-				motionToggle?.addEventListener("click", onMotionToggle);
-				const onReducedMotionChange = (): void => {
-					setMotionState(controller.paused);
-				};
-				reducedMotionQuery?.addEventListener?.("change", onReducedMotionChange);
+          const reducedMotionQuery =
+            typeof globalThis.matchMedia === "function"
+              ? globalThis.matchMedia("(prefers-reduced-motion: reduce)")
+              : undefined;
+          let motionPaused = controller.paused;
+          const setMotionState = (paused: boolean): void => {
+            motionPaused = paused;
+            if (!motionToggle) return;
+            motionToggle.setAttribute("aria-pressed", String(paused));
+            motionToggle.textContent = paused
+              ? "Play animation"
+              : "Pause animation";
+          };
+          setMotionState(motionPaused);
+          const onMotionToggle = (): void => {
+            if (motionPaused) {
+              controller.resume();
+              setMotionState(false);
+            } else {
+              controller.pause();
+              setMotionState(true);
+            }
+          };
+          motionToggle?.addEventListener("click", onMotionToggle);
+          const onReducedMotionChange = (): void => {
+            setMotionState(controller.paused);
+          };
+          reducedMotionQuery?.addEventListener?.(
+            "change",
+            onReducedMotionChange,
+          );
 
-				for (const control of root.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-example-control]")) {
-					const key = control.dataset.exampleControl;
-					if (!key) continue;
-					const output = root.querySelector<HTMLOutputElement>(`[data-example-output="${CSS.escape(key)}"]`);
-					const update = (): void => {
-						const value = control instanceof HTMLInputElement && control.type === "range"
-							? Number(control.value)
-							: control.value;
-						if (output) output.value = String(value);
-						controller.update({ [key]: value });
-					};
-					control.addEventListener("input", update);
-					control.addEventListener("change", update);
-				}
+          for (const control of root.querySelectorAll<
+            HTMLInputElement | HTMLSelectElement
+          >("[data-example-control]")) {
+            const key = control.dataset.exampleControl;
+            if (!key) continue;
+            const output = root.querySelector<HTMLOutputElement>(
+              `[data-example-output="${CSS.escape(key)}"]`,
+            );
+            const update = (): void => {
+              const value =
+                control instanceof HTMLInputElement && control.type === "range"
+                  ? Number(control.value)
+                  : control.value;
+              if (output) output.value = String(value);
+              controller.update({ [key]: value });
+            };
+            control.addEventListener("input", update);
+            control.addEventListener("change", update);
+          }
 
-				globalThis.addEventListener("pagehide", () => {
-					controller.cleanup();
-					motionToggle?.removeEventListener("click", onMotionToggle);
-					reducedMotionQuery?.removeEventListener?.("change", onReducedMotionChange);
-				}, { once: true });
-			}).catch((error: unknown) => {
-				if (status) status.textContent = "This scene could not start. Open the source or choose another example.";
-				if (message) {
-					message.hidden = false;
-					message.textContent = "This scene could not start. Open the source or choose another example.";
-				}
-				if (sourceLink) sourceLink.hidden = false;
-				console.error(`Example ${id ?? "unknown"} failed to load`, error);
-			});
-		}
-	}
+          globalThis.addEventListener(
+            "pagehide",
+            () => {
+              controller.cleanup();
+              motionToggle?.removeEventListener("click", onMotionToggle);
+              reducedMotionQuery?.removeEventListener?.(
+                "change",
+                onReducedMotionChange,
+              );
+            },
+            { once: true },
+          );
+        })
+        .catch((error: unknown) => {
+          if (statusRegion) statusRegion.hidden = false;
+          if (status)
+            status.textContent =
+              "This example failed to load.";
+          if (message) {
+            message.hidden = false;
+            message.textContent =
+              "This example failed to load.";
+          }
+          if (sourceLink) sourceLink.hidden = false;
+          console.error(`Example ${id ?? "unknown"} failed to load`, error);
+        });
+    }
+  }
 </script>

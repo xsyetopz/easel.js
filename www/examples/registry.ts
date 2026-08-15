@@ -7,7 +7,6 @@ import type {
 export interface ExampleRegistryEntry {
   meta: ExampleMeta;
   controls: ExampleControl[];
-  easelSource: string;
   load: () => Promise<ExampleModule>;
 }
 
@@ -17,7 +16,7 @@ export const categoryLabels = {
   interaction: "Interaction Tools",
   materials: "Materials & Lighting",
   geometry: "Geometry & Paths",
-  assets: "Asset Review",
+  assets: "Assets",
   data: "Data & Export",
 } as const;
 
@@ -28,16 +27,9 @@ export const examples: ExampleRegistryEntry[] = [
       name: "Character Motion Review",
       category: "motion",
       animated: true,
-      description:
-        "Inspect a skeletal motion clip with its animated hierarchy.",
+      description: "A skeletal motion clip drives an animated bone hierarchy.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const result = new EASEL.BVHLoader().parse(text);
-scene.add(result.root, new EASEL.SkeletonHelper(result.root));
-const animator = new EASEL.Animator(result.root);
-animator.clipAction(result.clip).play();
-animator.update(delta);`,
     load: async () =>
       (await import("./canvas/loader/character-motion-review.js")).example,
   },
@@ -51,14 +43,6 @@ animator.update(delta);`,
         "Switch between named clips on a grouped mechanical assembly.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const group = new EASEL.AnimationGroup(meshA, meshB, meshC);
-const clip = new EASEL.AnimationClip("spin", 2, [
-  new EASEL.NumberTrack("rotation.y", [0, 1, 2], [0, Math.PI, Math.PI * 2]),
-]);
-const animator = new EASEL.Animator(group);
-animator.clipAction(clip).setLoop(EASEL.Loop.Repeat, Number.POSITIVE_INFINITY).play();
-animator.update(delta);`,
     load: async () => (await import("./misc/clip-switcher.js")).example,
   },
   {
@@ -71,18 +55,6 @@ animator.update(delta);`,
         "Keep several moving parts in sync with one animation group.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const group = new EASEL.AnimationGroup(meshA, meshB, meshC, meshD);
-const spin = new EASEL.AnimationClip("spin", 2.8, [
-  new EASEL.NumberTrack("rotation.y", [0, 1.4, 2.8], [0, Math.PI, Math.PI * 2]),
-]);
-const bounce = new EASEL.AnimationClip("bounce", 1.4, [
-  new EASEL.NumberTrack("position.y", [0, 0.7, 1.4], [0.7, 1.55, 0.7]),
-]);
-const animator = new EASEL.Animator(group);
-animator.clipAction(spin).setLoop(EASEL.Loop.Repeat, Number.POSITIVE_INFINITY).play();
-animator.clipAction(bounce).setLoop(EASEL.Loop.Repeat, Number.POSITIVE_INFINITY).play();
-animator.update(delta);`,
     load: async () =>
       (await import("./canvas/animation/coordinated-motion.js")).example,
   },
@@ -96,14 +68,6 @@ animator.update(delta);`,
         "Scrub a keyed prop through position, rotation, and scale tracks.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const clip = new EASEL.AnimationClip("keyframes", 2.4, [
-  new EASEL.NumberTrack("position.y", [0, 0.6, 1.2, 1.8, 2.4], [0.8, 1.8, 0.8, 1.8, 0.8]),
-  new EASEL.NumberTrack("rotation.y", [0, 2.4], [0, Math.PI * 2]),
-]);
-const animator = new EASEL.Animator(mesh);
-animator.clipAction(clip).setLoop(EASEL.Loop.Repeat, Number.POSITIVE_INFINITY).play();
-animator.update(delta);`,
     load: async () =>
       (await import("./canvas/animation/keyframe-timeline.js")).example,
   },
@@ -127,11 +91,6 @@ animator.update(delta);`,
         default: 36,
       },
     ],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const mesh = new EASEL.InstancedMesh(geometry, material, 64);
-mesh.setMatrixAt(index, matrix);
-mesh.setColorAt(index, new EASEL.Color(0x5da8e8));
-mesh.count = activeCount;`,
     load: async () =>
       (await import("./canvas/interaction/crowd-budget.js")).example,
   },
@@ -144,14 +103,6 @@ mesh.count = activeCount;`,
       description: "Visualize oriented bounds around a moving object.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const bounds = new EASEL.Box3().setFromCenterAndSize(
-  new EASEL.Vector3(),
-  new EASEL.Vector3(1.8, 1.8, 1.8),
-);
-const a = new EASEL.OBB().fromBox3(bounds).applyMatrix4(boxA.matrixWorld);
-const b = new EASEL.OBB().fromBox3(bounds).applyMatrix4(boxB.matrixWorld);
-const overlaps = a.intersectsOBB(b);`,
     load: async () =>
       (await import("./canvas/scene/collision-bounds.js")).example,
   },
@@ -162,14 +113,9 @@ const overlaps = a.intersectsOBB(b);`,
       category: "worlds",
       animated: true,
       description:
-        "Navigate a generated terrain surface with a stable outdoor composition.",
+        "Click to lock the pointer, then use WASD and the mouse to explore the terrain.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const terrain = new EASEL.Geometry();
-terrain.setPositions(heightField);
-terrain.index = gridIndices;
-terrain.computeVertexNormals();`,
     load: async () =>
       (await import("./canvas/geometry/heightfield-explorer.js")).example,
   },
@@ -183,11 +129,6 @@ terrain.computeVertexNormals();`,
         "Compare near and distant mesh detail while moving the camera.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const lod = new EASEL.LOD();
-lod.addLevel(highMesh, 0, 0.08);
-lod.addLevel(lowMesh, 8, 0.08);
-lod.update(camera);`,
     load: async () =>
       (await import("./canvas/interaction/lod-budget.js")).example,
   },
@@ -200,10 +141,6 @@ lod.update(camera);`,
       description: "Place a marker on terrain by clicking a world position.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-raycaster.setFromCamera(pointer, camera);
-const hit = raycaster.intersectObject(terrain)[0];
-if (hit) marker.position.copy(hit.point);`,
     load: async () =>
       (await import("./canvas/geometry/terrain-placement.js")).example,
   },
@@ -217,11 +154,6 @@ if (hit) marker.position.copy(hit.point);`,
         "Pan an orthographic map view across a layered level blockout.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const camera = new EASEL.OrthographicCamera({ left: -5.5, right: 5.5, top: 3.1, bottom: -3.1 });
-const controls = new EASEL.MapControls(camera, renderer.domElement);
-controls.screenSpacePanning = false;
-controls.update();`,
     load: async () => (await import("./misc/top-down-map.js")).example,
   },
   {
@@ -230,11 +162,10 @@ controls.update();`,
       name: "Voxel Level",
       category: "worlds",
       animated: true,
-      description: "Build a small blockout from reusable voxel materials.",
+      description:
+        "Batch a small island, path, pond, and watchtower by voxel material.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-world.add(new EASEL.Mesh(sharedCube, grassMaterial));`,
     load: async () =>
       (await import("./canvas/geometry/voxel-level.js")).example,
   },
@@ -244,14 +175,10 @@ world.add(new EASEL.Mesh(sharedCube, grassMaterial));`,
       name: "First-Person Walkthrough",
       category: "interaction",
       animated: true,
-      description: "Walk through a small scene with keyboard-look controls.",
+      description:
+        "Click to lock the pointer, then use WASD and the mouse to explore a compact corridor.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const controls = new EASEL.FlyControls(camera, renderer.domElement);
-controls.movementSpeed = 3;
-controls.rollSpeed = 0.7;
-controls.update(delta);`,
     load: async () =>
       (await import("./misc/first-person-walkthrough.js")).example,
   },
@@ -264,10 +191,6 @@ controls.update(delta);`,
       description: "Select one repeated prop inside a dense scene.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-raycaster.setFromCamera(pointer, camera);
-const hit = raycaster.intersectObject(instancedMesh, false)[0];
-const selectedId = hit?.instanceId ?? -1;`,
     load: async () =>
       (await import("./canvas/interaction/instance-selection.js")).example,
   },
@@ -280,9 +203,6 @@ const selectedId = hit?.instanceId ?? -1;`,
       description: "Drag scene objects into place with pointer controls.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const controls = new EASEL.DragControls(objects, camera, renderer.domElement);
-controls.addEventListener("drag", ({ object }) => object.updateMatrix());`,
     load: async () => (await import("./misc/object-placement.js")).example,
   },
   {
@@ -291,17 +211,10 @@ controls.addEventListener("drag", ({ object }) => object.updateMatrix());`,
       name: "Orthographic Blueprint",
       category: "interaction",
       animated: true,
-      description: "Pan a measured plan view for layout and annotation work.",
+      description:
+        "Pan and zoom a layered floor plan with openings, fixtures, and dimensions.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const camera = new EASEL.OrthographicCamera({ left: -6, right: 6, top: 3.375, bottom: -3.375 });
-camera.position.set(0, 8, 0.01);
-camera.lookAt(new EASEL.Vector3(0, 0, 0));
-const grid = new EASEL.GridHelper(10, 10, 0x2e607c, 0x163448);
-const controls = new EASEL.MapControls(camera, canvas);
-controls.enableRotate = false;
-scene.add(grid, footprint, partitions, measurements);`,
     load: async () =>
       (await import("./canvas/direct/orthographic-blueprint.js")).example,
   },
@@ -315,10 +228,6 @@ scene.add(grid, footprint, partitions, measurements);`,
         "Select map objects from a plan view without perspective distortion.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const camera = new EASEL.OrthographicCamera({ left: -6, right: 6, top: 3.5, bottom: -3.5 });
-raycaster.setFromCamera(pointer, camera);
-const hit = raycaster.intersectObjects(cubes, false)[0];`,
     load: async () =>
       (await import("./canvas/interaction/orthographic-selection.js")).example,
   },
@@ -331,11 +240,6 @@ const hit = raycaster.intersectObjects(cubes, false)[0];`,
       description: "Pick a point in a dense measurement cloud.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-raycaster.pointsThreshold = 0.14;
-raycaster.setFromCamera(pointer, camera);
-const hit = raycaster.intersectObject(points, false)[0];
-colors.setXYZ(hit.index, 1, 0.86, 0.28);`,
     load: async () =>
       (await import("./canvas/interaction/point-selection.js")).example,
   },
@@ -345,15 +249,9 @@ colors.setXYZ(hit.index, 1, 0.86, 0.28);`,
       name: "Product Turntable",
       category: "interaction",
       animated: true,
-      description:
-        "Inspect a prop from every angle with a damped turntable camera.",
+      description: "A damped turntable camera rotates around a prop.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const controls = new EASEL.OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.target.set(0, 0, 0);
-controls.update();`,
     load: async () => (await import("./misc/product-turntable.js")).example,
   },
   {
@@ -365,10 +263,6 @@ controls.update();`,
       description: "Pick a scene object and highlight the current selection.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-raycaster.setFromCamera(pointer, camera);
-const hit = raycaster.intersectObjects(cubes, false)[0];
-selected.material.color.set(0xffe16b);`,
     load: async () =>
       (await import("./canvas/interaction/scene-picking.js")).example,
   },
@@ -380,12 +274,15 @@ selected.material.color.set(0xffe16b);`,
       animated: true,
       description: "Translate, rotate, and scale a selected scene object.",
     },
-    controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const controls = new EASEL.TransformControls(camera, canvas);
-controls.attach(mesh);
-controls.setMode("translate");
-controls.axis = "XYZ";`,
+    controls: [
+      {
+        type: "select",
+        key: "mode",
+        label: "Transform mode",
+        options: ["translate", "rotate", "scale"],
+        default: "translate",
+      },
+    ],
     load: async () => (await import("./misc/scene-transform.js")).example,
   },
   {
@@ -394,14 +291,9 @@ controls.axis = "XYZ";`,
       name: "Texture Picking",
       category: "interaction",
       animated: true,
-      description:
-        "Pick a texture coordinate on a board and report its location.",
+      description: "A marker follows pointer hits across a patterned board.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const hit = raycaster.intersectObject(board)[0];
-const uv = { x: (hit.point.x + 2.2) / 4.4, y: (hit.point.y + 1.6) / 3.2 };
-marker.position.copy(hit.point);`,
     load: async () =>
       (await import("./canvas/scene/texture-picking.js")).example,
   },
@@ -415,9 +307,6 @@ marker.position.copy(hit.point);`,
         "Render camera-facing particles for smoke, debris, or markers.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const points = new EASEL.Points(geometry, new EASEL.PointsMaterial({ color: 0x73d5ec, size: 4 }));
-scene.add(points);`,
     load: async () =>
       (await import("./canvas/scene/billboard-particles.js")).example,
   },
@@ -428,7 +317,7 @@ scene.add(points);`,
       category: "materials",
       animated: true,
       description:
-        "Compare a controlled daylight rig against a neutral studio setup.",
+        "Compare two light rigs against the same fixed forms and materials.",
     },
     controls: [
       {
@@ -439,14 +328,6 @@ scene.add(points);`,
         default: "daylight",
       },
     ],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const studio = params.rig === "studio";
-scene.background = new EASEL.Color(studio ? 0x1b2230 : 0x8fc7eb);
-scene.add(new EASEL.HemisphereLight(0x9edcff, 0x493c37, studio ? 0 : 1.05));
-scene.add(new EASEL.AmbientLight(0xffffff, studio ? 0.72 : 0.12));
-const key = new EASEL.DirectionalLight(studio ? 0xffffff : 0xfff5d6, studio ? 0.28 : 0.55);
-const fill = new EASEL.DirectionalLight(0x9ec9ff, studio ? 0.45 : 0);
-scene.add(key, fill);`,
     load: async () =>
       (await import("./canvas/scene/lighting-bench.js")).example,
   },
@@ -460,9 +341,6 @@ scene.add(key, fill);`,
         "Lay colored linework over a scene for routes and annotations.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-geometry.setColors(colors);
-const lines = new EASEL.LineSegments(geometry, new EASEL.LineMaterial({ color: 0xffffff }));`,
     load: async () =>
       (await import("./canvas/direct/linework-overlay.js")).example,
   },
@@ -472,16 +350,9 @@ const lines = new EASEL.LineSegments(geometry, new EASEL.LineMaterial({ color: 0
       name: "Normal Inspection",
       category: "materials",
       animated: true,
-      description: "Inspect mesh topology with wireframe and edge overlays.",
+      description: "Wireframe and edge overlays show mesh topology.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-geometry.computeVertexNormals();
-const wireframe = new EASEL.LineSegments(
-  new EASEL.WireframeGeometry(geometry),
-  new EASEL.LineMaterial({ color: 0xe9f0ff }),
-);
-scene.add(wireframe, new EASEL.BoxHelper(mesh));`,
     load: async () =>
       (await import("./canvas/scene/normal-inspection.js")).example,
   },
@@ -494,10 +365,6 @@ scene.add(wireframe, new EASEL.BoxHelper(mesh));`,
       description: "Update a live point emitter with deterministic motion.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-position.setXYZ(index, x, y, z);
-position.needsUpdate = true;
-geometry.computeBoundingSphere();`,
     load: async () =>
       (await import("./canvas/scene/particle-emitter.js")).example,
   },
@@ -507,14 +374,9 @@ geometry.computeBoundingSphere();`,
       name: "Texture Atlas Review",
       category: "materials",
       animated: true,
-      description:
-        "Inspect nearest-neighbor atlas regions on a textured surface.",
+      description: "Nearest-neighbor atlas regions cover a textured surface.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-uv.setXY(vertex, random(), random());
-uv.needsUpdate = true;
-const material = new EASEL.BasicMaterial({ map: new EASEL.DataTexture(gridPixels, 32, 32) });`,
     load: async () =>
       (await import("./canvas/scene/texture-atlas-review.js")).example,
   },
@@ -524,14 +386,9 @@ const material = new EASEL.BasicMaterial({ map: new EASEL.DataTexture(gridPixels
       name: "Texture Surface Review",
       category: "materials",
       animated: true,
-      description:
-        "Check a textured prop under a stable camera before shipping an asset.",
+      description: "A textured prop rotates under a stable camera.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const texture = new EASEL.DataTexture(checkerPixels, 32, 32);
-const cube = new EASEL.Mesh(new EASEL.BoxGeometry(2.5, 2.5, 2.5),
-  new EASEL.BasicMaterial({ map: texture }));`,
     load: async () =>
       (await import("./canvas/scene/texture-surface-review.js")).example,
   },
@@ -541,13 +398,9 @@ const cube = new EASEL.Mesh(new EASEL.BoxGeometry(2.5, 2.5, 2.5),
       name: "Vertex Color Review",
       category: "materials",
       animated: true,
-      description: "Inspect authored vertex colors on a lit mesh.",
+      description: "Authored vertex colors remain visible on a lit mesh.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-geometry.setColors(faceColors);
-geometry.index = faceIndices;
-const mesh = new EASEL.Mesh(geometry, new EASEL.BasicMaterial({ color: 0xffffff, vertexColors: true }));`,
     load: async () =>
       (await import("./canvas/scene/vertex-color-review.js")).example,
   },
@@ -557,12 +410,9 @@ const mesh = new EASEL.Mesh(geometry, new EASEL.BasicMaterial({ color: 0xffffff,
       name: "Wave Surface",
       category: "materials",
       animated: true,
-      description: "Inspect a moving water surface built from sampled points.",
+      description: "Sampled points form a moving water surface.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-for (const vertex of vertices) position.setXYZ(vertex, x, wave, z);
-position.needsUpdate = true;`,
     load: async () => (await import("./canvas/scene/wave-surface.js")).example,
   },
   {
@@ -574,9 +424,6 @@ position.needsUpdate = true;`,
       description: "Wrap authored points in a convex hull for collision setup.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const geometry = new EASEL.ConvexGeometry(points);
-const mesh = new EASEL.Mesh(geometry, material);`,
     load: async () =>
       (await import("./canvas/geometry/convex-collision-hull.js")).example,
   },
@@ -589,10 +436,6 @@ const mesh = new EASEL.Mesh(geometry, material);`,
       description: "Move path control points and preview the resulting curve.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-points[selected].set(pointer.x, pointer.y, 0);
-path.points = points;
-tube.geometry = new EASEL.TubeGeometry(path, 36, 0.2, 8);`,
     load: async () =>
       (await import("./canvas/geometry/curve-editor.js")).example,
   },
@@ -602,14 +445,9 @@ tube.geometry = new EASEL.TubeGeometry(path, 36, 0.2, 8);`,
       name: "NURBS Surface Review",
       category: "geometry",
       animated: true,
-      description: "Inspect a smooth control-point surface used in modeling.",
+      description: "A smooth control-point surface represents a modeling form.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const curve = new EASEL.NURBSCurve(degree, knots, controlPoints);
-const geometry = new EASEL.TubeGeometry(curve, 42, 0.22, 12);
-const surface = new EASEL.NURBSSurface(degree1, degree2, knots1, knots2, surfaceControlPoints);
-const surfaceGeometry = new EASEL.ParametricGeometry((u, v, target) => surface.getPoint(u, v, target), 18, 18);`,
     load: async () =>
       (await import("./canvas/geometry/nurbs-surface-review.js")).example,
   },
@@ -622,9 +460,6 @@ const surfaceGeometry = new EASEL.ParametricGeometry((u, v, target) => surface.g
       description: "Turn a path into a swept cable, rail, or road section.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const plate = new EASEL.ExtrudeGeometry(shape, { depth: 0.5, steps: 3 });
-const ribbon = new EASEL.TubeGeometry(new EASEL.CatmullRomCurve3(points), 28, 0.16, 8);`,
     load: async () =>
       (await import("./canvas/geometry/swept-cable.js")).example,
   },
@@ -637,11 +472,6 @@ const ribbon = new EASEL.TubeGeometry(new EASEL.CatmullRomCurve3(points), 28, 0.
       description: "Turn TTF glyph outlines into a readable 3D specimen.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const data = new EASEL.TTFLoader().parse(arrayBuffer);
-const font = new EASEL.TTFFont(data);
-const geometry = new EASEL.ShapeGeometry(font.generateShapes("EASEL", 100));
-const mesh = new EASEL.Mesh(geometry, material);`,
     load: async () =>
       (await import("./canvas/loader/font-specimen.js")).example,
   },
@@ -654,10 +484,6 @@ const mesh = new EASEL.Mesh(geometry, material);`,
       description: "Check packed RGBA data on a neutral textured surface.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const texture = new EASEL.DataTexture(rgbaBytes, 4, 2);
-texture.buildBrightnessLevels();
-const material = new EASEL.BasicMaterial({ map: texture });`,
     load: async () =>
       (await import("./canvas/loader/data-texture-review.js")).example,
   },
@@ -668,28 +494,22 @@ const material = new EASEL.BasicMaterial({ map: texture });`,
       category: "assets",
       animated: true,
       description:
-        "Review repeated glTF parts without duplicating source geometry.",
+        "Review 125 transforms from the Khronos Simple Instancing asset.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const result = new EASEL.GLTFLoader().parse(document);
-scene.add(result.scene);`,
     load: async () =>
       (await import("./canvas/loader/instanced-asset-review.js")).example,
   },
   {
     meta: {
       id: "obj-model-review",
-      name: "OBJ Model Review",
+      name: "OBJ Asset Import",
       category: "assets",
       animated: true,
-      description: "Open an OBJ model for a quick browser-side mesh check.",
+      description:
+        "Load the canonical Suzanne test model from a Wavefront OBJ file.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-import { OBJLoader } from "@xsyetopz/easel";
-const group = new EASEL.OBJLoader().parse(text);
-scene.add(group);`,
     load: async () =>
       (await import("./canvas/loader/obj-model-review.js")).example,
   },
@@ -699,12 +519,10 @@ scene.add(group);`,
       name: "Point Cloud Review",
       category: "assets",
       animated: true,
-      description: "Inspect a PCD scan as selectable rendered points.",
+      description:
+        "Inspect 213 authored positions and RGB samples from an ASCII PCD file.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const geometry = new EASEL.PCDLoader().parse(text);
-const points = new EASEL.Points(geometry, material);`,
     load: async () =>
       (await import("./canvas/loader/point-cloud-review.js")).example,
   },
@@ -714,13 +532,10 @@ const points = new EASEL.Points(geometry, material);`,
       name: "Print Model Review",
       category: "assets",
       animated: true,
-      description: "Check an STL shell before it reaches a slicer.",
+      description:
+        "Check the surface and slot of a triangulated STL disk before slicing.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-import { STLLoader } from "@xsyetopz/easel";
-const geometry = new STLLoader().parse(text);
-const mesh = new EASEL.Mesh(geometry, material);`,
     load: async () =>
       (await import("./canvas/loader/print-model-review.js")).example,
   },
@@ -731,12 +546,9 @@ const mesh = new EASEL.Mesh(geometry, material);`,
       category: "assets",
       animated: true,
       description:
-        "Review a glTF asset with a fixed camera and clean lighting.",
+        "Frame the canonical Khronos Box glTF asset with fixed camera lighting.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const result = new EASEL.GLTFLoader().parse(document);
-scene.add(result.scene);`,
     load: async () =>
       (await import("./canvas/loader/product-model-viewer.js")).example,
   },
@@ -746,13 +558,10 @@ scene.add(result.scene);`,
       name: "Scan Mesh Review",
       category: "assets",
       animated: true,
-      description: "Inspect a PLY scan with its authored vertex data.",
+      description:
+        "Triangulate a polygon PLY dolphin scan and reconstruct smooth normals.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-import { PLYLoader } from "@xsyetopz/easel";
-const geometry = new PLYLoader().parse(data);
-const mesh = new EASEL.Mesh(geometry, material);`,
     load: async () =>
       (await import("./canvas/loader/scan-mesh-review.js")).example,
   },
@@ -762,13 +571,10 @@ const mesh = new EASEL.Mesh(geometry, material);`,
       name: "Voxel Asset Review",
       category: "assets",
       animated: true,
-      description: "Open a VOX blockout and inspect its palette and structure.",
+      description:
+        "Inspect a MagicaVoxel knight while preserving its authored palette.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const result = new EASEL.VOXLoader().parse(arrayBuffer);
-const mesh = EASEL.buildVOXMesh(result.chunks[0]);
-scene.add(mesh);`,
     load: async () =>
       (await import("./canvas/loader/voxel-asset-review.js")).example,
   },
@@ -779,13 +585,9 @@ scene.add(mesh);`,
       category: "assets",
       animated: true,
       description:
-        "Review XYZ point samples as a lightweight measurement cloud.",
+        "Review a 201-sample helix stored as plain XYZ measurements.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-import { XYZLoader } from "@xsyetopz/easel";
-const geometry = new XYZLoader().parse(text);
-const points = new EASEL.Points(geometry, material);`,
     load: async () =>
       (await import("./canvas/loader/xyz-point-cloud-review.js")).example,
   },
@@ -795,14 +597,10 @@ const points = new EASEL.Points(geometry, material);`,
       name: "CNC Toolpath Preview",
       category: "data",
       animated: true,
-      description: "Review G-code layers and travel moves before machining.",
+      description:
+        "Separate G0 travel moves from G1 cuts in a real calibration program.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const loader = new EASEL.GCodeLoader();
-loader.splitLayer = true;
-const model = loader.parse(data);
-scene.add(model);`,
     load: async () =>
       (await import("./canvas/loader/cnc-toolpath-preview.js")).example,
   },
@@ -812,13 +610,9 @@ scene.add(model);`,
       name: "G-code Export Check",
       category: "data",
       animated: true,
-      description:
-        "Generate a compact toolpath from scene geometry for review.",
+      description: "A rotating mesh supplies geometry to a G-code export call.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const exporter = new EASEL.GCodeExporter();
-const text = exporter.parse(scene, { layerHeight: 0.2 });`,
     load: async () => (await import("./misc/gcode-export-check.js")).example,
   },
   {
@@ -827,12 +621,9 @@ const text = exporter.parse(scene, { layerHeight: 0.2 });`,
       name: "glTF Export Check",
       category: "data",
       animated: true,
-      description: "Export a scene to glTF and inspect the resulting document.",
+      description: "A rotating mesh supplies a scene to a glTF export call.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const exporter = new EASEL.GLTFExporter();
-const result = exporter.parse(scene);`,
     load: async () => (await import("./misc/gltf-export-check.js")).example,
   },
   {
@@ -842,12 +633,9 @@ const result = exporter.parse(scene);`,
       category: "data",
       animated: true,
       description:
-        "Export vertex normals with a glTF scene for downstream shading.",
+        "Two lit planes supply normalized normals to a glTF export call.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const exporter = new EASEL.GLTFExporter();
-const result = exporter.parse(scene, { normalizeNormals: true });`,
     load: async () => (await import("./misc/gltf-normal-check.js")).example,
   },
   {
@@ -856,14 +644,10 @@ const result = exporter.parse(scene, { normalizeNormals: true });`,
       name: "Molecular Structure Review",
       category: "data",
       animated: true,
-      description: "Inspect a PDB structure as a navigable molecular scene.",
+      description:
+        "Inspect the atoms, CPK colors, and bonds in a caffeine PDB structure.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-import { PDBLoader } from "@xsyetopz/easel";
-const pdb = new PDBLoader().parse(text);
-const atoms = new EASEL.Points(pdb.geometryAtoms, atomMaterial);
-const bonds = new EASEL.LineSegments(pdb.geometryBonds, bondMaterial);`,
     load: async () =>
       (await import("./canvas/loader/molecular-structure-review.js")).example,
   },
@@ -873,13 +657,9 @@ const bonds = new EASEL.LineSegments(pdb.geometryBonds, bondMaterial);`,
       name: "OBJ Export Check",
       category: "data",
       animated: true,
-      description:
-        "Round-trip a selected mesh as OBJ text for a downstream tool.",
+      description: "A rotating mesh supplies geometry to an OBJ export call.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const exporter = new EASEL.OBJExporter();
-const text = exporter.parse(scene);`,
     load: async () => (await import("./misc/obj-export-check.js")).example,
   },
   {
@@ -888,13 +668,9 @@ const text = exporter.parse(scene);`,
       name: "PLY Export Check",
       category: "data",
       animated: true,
-      description:
-        "Write a selected mesh as PLY for scan and point-cloud tooling.",
+      description: "A rotating mesh supplies geometry to a PLY export call.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const exporter = new EASEL.PLYExporter();
-const text = exporter.parse(scene);`,
     load: async () => (await import("./misc/ply-export-check.js")).example,
   },
   {
@@ -903,12 +679,9 @@ const text = exporter.parse(scene);`,
       name: "STL Export Check",
       category: "data",
       animated: true,
-      description: "Write a watertight mesh as STL for fabrication workflows.",
+      description: "A rotating mesh supplies geometry to an STL export call.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const exporter = new EASEL.STLExporter();
-const text = exporter.parse(scene, "EASELBox");`,
     load: async () => (await import("./misc/stl-export-check.js")).example,
   },
   {
@@ -921,10 +694,6 @@ const text = exporter.parse(scene, "EASELBox");`,
         "Step through an NRRD slice while keeping its orientation visible.",
     },
     controls: [],
-    easelSource: `import * as EASEL from "@xsyetopz/easel";
-const volume = new EASEL.NRRDLoader().parse(nrrdText);
-const texture = volume.toDataTexture("z", 0);
-scene.add(new EASEL.Mesh(new EASEL.PlaneGeometry(2, 2), new EASEL.BasicMaterial({ map: texture })));`,
     load: async () =>
       (await import("./canvas/loader/volume-slice-review.js")).example,
   },

@@ -19,8 +19,7 @@ export const meta = {
   name: "Product Turntable",
   category: "interaction",
   animated: true,
-  description:
-    "Inspect a prop from every angle with a damped turntable camera.",
+  description: "A damped turntable camera rotates around a prop.",
 };
 
 export const controls = [];
@@ -36,10 +35,15 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(3, 2, 6);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const orbit = new OrbitControls(camera, canvas);
   orbit.target.set(0, 0, 0);
   orbit.enableDamping = true;
+  orbit.rotateSpeed = 0.35;
+  orbit.zoomSpeed = 0.5;
+  orbit.panSpeed = 0.5;
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.35));
   const light = new DirectionalLight(0xffffff, 0.9);
@@ -51,7 +55,7 @@ export function setup(canvas) {
   );
   scene.add(mesh);
   const clock = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop((_timestamp) => {
     mesh.rotation.y += clock.update().delta * 0.35;
     orbit.update();
     renderer.prepare(scene, camera);

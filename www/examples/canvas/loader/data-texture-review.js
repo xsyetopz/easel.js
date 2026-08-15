@@ -55,7 +55,9 @@ export function setup(canvas) {
     far: 50,
   });
   camera.position.set(0, 0, 4);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   const texture = new DataTexture(makeRgbaBytes(), 4, 2);
   texture.buildBrightnessLevels();
@@ -69,7 +71,7 @@ export function setup(canvas) {
   );
   scene.add(mesh);
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop((_timestamp) => {
     mesh.rotation.y += timer.update().delta * 0.3;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);

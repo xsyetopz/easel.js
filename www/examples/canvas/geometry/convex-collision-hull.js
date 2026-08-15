@@ -35,7 +35,9 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0.2, 1.2, 6.8);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.35));
   const light = new DirectionalLight(0xffffff, 1);
@@ -53,7 +55,7 @@ export function setup(canvas) {
   const mesh = new Mesh(geometry, new LambertMaterial({ color: 0xe9a65a }));
   scene.add(mesh);
   const clock = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop((_timestamp) => {
     mesh.rotation.y += clock.update().delta * 0.42;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);

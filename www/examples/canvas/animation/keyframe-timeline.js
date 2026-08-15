@@ -39,7 +39,9 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0, 1.2, 6.5);
-  camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrixWorld(false, false, true);
+  camera.lookAt(new Vector3(0, 1.3, 0));
+  camera.updateMatrix();
 
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.35));

@@ -3,8 +3,9 @@ import {
   BoxGeometry,
   DirectionalLight,
   Group,
+  InstancedMesh,
   LambertMaterial,
-  Mesh,
+  Matrix4,
   PerspectiveCamera,
   Renderer,
   Scene,
@@ -13,16 +14,27 @@ import {
 } from "@/index.js";
 
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+import { aimCamera } from "../../../runtime/example-camera.ts";
 
 export const meta = {
   id: "voxel-level",
   name: "Voxel Level",
   category: "worlds",
   animated: true,
-  description: "Build a small blockout from reusable voxel materials.",
+  description:
+    "Batch a small island, path, pond, and watchtower by voxel material.",
 };
-
 export const controls = [];
+
+function addBatch(group, geometry, color, positions) {
+  const material = new LambertMaterial({ color });
+  const mesh = new InstancedMesh(geometry, material, positions.length);
+  positions.forEach(([x, y, z], index) => {
+    mesh.setMatrixAt(index, new Matrix4().makeTranslation(x, y, z));
+  });
+  group.add(mesh);
+  return { material, mesh };
+}
 
 export function setup(canvas) {
   const width = canvas.width;
@@ -35,50 +47,61 @@ export function setup(canvas) {
     near: 0.1,
     far: 100,
   });
-  camera.position.set(7, 6.5, 9);
-  camera.lookAt(new Vector3(0, 0.6, 0));
+  camera.position.set(9, 7.5, 11);
+  aimCamera(camera, new Vector3(0, 0.8, 0));
   const renderer = new Renderer({ canvas, width, height });
-  scene.add(new AmbientLight(0xffffff, 0.45));
-  const light = new DirectionalLight(0xffffff, 0.85);
-  light.position.set(4, 8, 6);
+  scene.add(new AmbientLight(0xffffff, 0.42));
+  const light = new DirectionalLight(0xfff1cf, 1.05);
+  light.position.set(5, 9, 6);
   scene.add(light);
+
+  const blocks = {
+    dirt: [],
+    grass: [],
+    path: [],
+    water: [],
+    wood: [],
+    roof: [],
+  };
+  for (let x = -5; x <= 5; x++) {
+    for (let z = -4; z <= 4; z++) {
+      if ((x / 5.5) ** 2 + (z / 4.5) ** 2 > 1) continue;
+      const pond = x >= 2 && x <= 4 && z >= 1 && z <= 3;
+      const path = Math.abs(z) <= (x < 0 ? 0 : 1) && !pond;
+      const top = Math.abs(x) + Math.abs(z) > 7 ? 0 : 1;
+      blocks.dirt.push([x, -0.55, z]);
+      if (top > 0) blocks.dirt.push([x, 0.35, z]);
+      if (pond) blocks.water.push([x, 1.25, z]);
+      else if (path) blocks.path.push([x, top + 0.35, z]);
+      else blocks.grass.push([x, top + 0.35, z]);
+    }
+  }
+  for (const [x, z] of [
+    [-3, -2],
+    [-1, -2],
+    [-3, 0],
+    [-1, 0],
+  ]) {
+    for (let y = 1.35; y <= 3.15; y += 0.9) blocks.wood.push([x, y, z]);
+  }
+  for (let x = -3; x <= -1; x++)
+    for (let z = -2; z <= 0; z++) blocks.roof.push([x, 4.05, z]);
+  blocks.wood.push([-2, 1.35, -2], [-2, 2.25, -2], [-2, 3.15, -2]);
+
   const world = new Group();
   scene.add(world);
-  const cube = new BoxGeometry(0.9, 0.9, 0.9);
-  cube.computeBoundingSphere();
-  const materials = {
-    grass: new LambertMaterial({ color: 0x6fae4d }),
-    dirt: new LambertMaterial({ color: 0x8f633b }),
-    roof: new LambertMaterial({ color: 0xb54e46 }),
-    wood: new LambertMaterial({ color: 0xb98b55 }),
-  };
-  for (let x = -3; x <= 3; x++) {
-    for (let z = -3; z <= 3; z++) {
-      const heightAt = Math.max(
-        0,
-        Math.floor(1.5 + Math.sin(x * 0.9) * 0.8 + Math.cos(z * 0.8) * 0.7),
-      );
-      for (let y = 0; y <= heightAt; y++) {
-        const block = new Mesh(
-          cube,
-          y === heightAt ? materials.grass : materials.dirt,
-        );
-        block.position.set(x * 0.92, y * 0.9 - 0.8, z * 0.92);
-        world.add(block);
-      }
-    }
-  }
-  for (let x = -1; x <= 1; x++) {
-    for (let z = -1; z <= 1; z++) {
-      const roof = new Mesh(cube, materials.roof);
-      roof.position.set(x * 0.92, 1.9, z * 0.92);
-      roof.scale.set(1, 0.45, 1);
-      world.add(roof);
-    }
-  }
+  const cube = new BoxGeometry(0.88, 0.88, 0.88);
+  const batches = [
+    addBatch(world, cube, 0x795333, blocks.dirt),
+    addBatch(world, cube, 0x68a84c, blocks.grass),
+    addBatch(world, cube, 0xc5a36a, blocks.path),
+    addBatch(world, cube, 0x4c9bd6, blocks.water),
+    addBatch(world, cube, 0x8c5b32, blocks.wood),
+    addBatch(world, cube, 0xa8463f, blocks.roof),
+  ];
   const clock = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
-    world.rotation.y += clock.update().delta * 0.12;
+  const animation = createExampleAnimationLoop(() => {
+    world.rotation.y += clock.update().delta * 0.055;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
   });
@@ -86,16 +109,19 @@ export function setup(canvas) {
     ...animation,
     cleanup() {
       animation.cleanup();
+      cube.dispose();
+      batches.forEach(({ material }) => {
+        material.dispose();
+      });
+      renderer.dispose();
     },
   };
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
-world.add(new EASEL.Mesh(sharedCube, grassMaterial));`;
-
-export const example = {
-  meta,
-  controls,
-  setup,
-  easelSource,
-};
+const grass = new EASEL.InstancedMesh(sharedCube, grassMaterial, grassBlocks.length);
+grassBlocks.forEach((position, index) => {
+  grass.setMatrixAt(index, new EASEL.Matrix4().makeTranslation(...position));
+});
+world.add(grass);`;
+export const example = { meta, controls, setup, easelSource };

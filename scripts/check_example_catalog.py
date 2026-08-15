@@ -22,7 +22,6 @@ _REGISTRY_ENTRY_PATTERN = re.compile(
     r"    meta: \{(?P<meta>[\s\S]*?)\n"
     r"    \},\n"
     r"    controls: (?P<controls>[\s\S]*?),\n"
-    r"    easelSource: `(?P<source>(?:\\`|[^`])*)`,\n"
     r"    load:\s*async \(\) =>\s*\(await import\(\"\./(?P<path>[^\"]+)\"\)\)\.example,\n"
     r"  \},",
     re.MULTILINE,
@@ -108,9 +107,6 @@ def check_catalog(repo_root: Path) -> list[str]:
         if not path.is_file():
             _error(failures, f"registry module is missing: {relative_path}")
             continue
-        registry_source_body = entry.group("source")
-        if "@xsyetopz/easel" not in registry_source_body:
-            _error(failures, f"{display_path}: registry source is not a package example")
         if registry_fields.get("category") not in _EXPECTED_CATEGORIES:
             _error(failures, f"{display_path}: registry category is not in the catalog")
 
