@@ -23,7 +23,7 @@ export class AudioGraph {
   readonly #nodes = new Set<AudioNodeLike>();
   readonly #analyzers = new Set<AudioAnalyzer>();
   readonly #ownsContext: boolean;
-  #disposed = false;
+  #disposed: boolean = false;
 
   /** Creates a graph using an injected context or the browser's AudioContext. */
   constructor(options: AudioGraphOptions = {}) {

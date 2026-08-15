@@ -13,14 +13,22 @@ function context(): CanvasAudioContext & { fills: number; strokes: number } {
     lineWidth: 0,
     fills: 0,
     strokes: 0,
-    clearRect() {},
-    fillRect(_x, _y, _width, _height) {
+    clearRect(): void {
+      // Intentionally unused by these assertions.
+    },
+    fillRect(_x: number, _y: number, _width: number, _height: number): void {
       this.fills += 1;
     },
-    beginPath() {},
-    lineTo() {},
-    moveTo() {},
-    stroke() {
+    beginPath(): void {
+      // Intentionally unused by these assertions.
+    },
+    lineTo(_x: number, _y: number): void {
+      // Intentionally unused by these assertions.
+    },
+    moveTo(_x: number, _y: number): void {
+      // Intentionally unused by these assertions.
+    },
+    stroke(): void {
       this.strokes += 1;
     },
   };

@@ -22,7 +22,7 @@ export class AudioAnalyzer {
   readonly #frequencyData: Uint8Array;
   readonly #timeDomainData: Uint8Array;
   readonly #fallbackFftSize: number;
-  #disposed = false;
+  #disposed: boolean = false;
 
   /** Creates an analyser from an AudioContext or an existing analyser node. */
   constructor(
@@ -56,7 +56,7 @@ export class AudioAnalyzer {
         // Browser implementations may reject updates while a context is closed.
       }
     }
-    const fftSize = this.#node?.fftSize || requestedFftSize;
+    const fftSize = this.#node?.fftSize ?? requestedFftSize;
     this.#fallbackFftSize = fftSize;
     this.#frequencyData = new Uint8Array(Math.max(1, Math.floor(fftSize / 2)));
     this.#timeDomainData = new Uint8Array(Math.max(1, fftSize));
@@ -175,7 +175,7 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function normalizeFftSize(value: number) {
+function normalizeFftSize(value: number): number {
   if (!Number.isFinite(value) || value < 32) return 128;
   let size = 32;
   while (size < value && size < 32768) size *= 2;

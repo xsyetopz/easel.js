@@ -56,7 +56,7 @@ export function drawFrequencyBars(
   const y = Math.max(0, options.y ?? 0);
   const width = Math.max(0, options.width ?? context.canvas.width - x);
   const height = Math.max(0, options.height ?? context.canvas.height - y);
-  clearCanvas(context, options.background, x, y, width, height);
+  clearCanvas({ context, background: options.background, x, y, width, height });
   if (data.length === 0 || width === 0 || height === 0) return;
   context.fillStyle = options.foreground ?? "#ffe600";
   const count = Math.max(
@@ -91,7 +91,7 @@ export function drawTimeDomainWaveform(
   const y = Math.max(0, options.y ?? 0);
   const width = Math.max(0, options.width ?? context.canvas.width - x);
   const height = Math.max(0, options.height ?? context.canvas.height - y);
-  clearCanvas(context, options.background, x, y, width, height);
+  clearCanvas({ context, background: options.background, x, y, width, height });
   if (data.length === 0 || width === 0 || height === 0) return;
   context.strokeStyle = options.foreground ?? "#59c5d6";
   context.lineWidth = Math.max(1, options.lineWidth ?? 2);
@@ -120,14 +120,17 @@ export function drawAudioAnalyzer(
   }
 }
 
-function clearCanvas(
-  context: CanvasAudioContext,
-  background: string | undefined,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-): void {
+interface ClearCanvasOptions {
+  context: CanvasAudioContext;
+  background: string | undefined;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function clearCanvas(opts: ClearCanvasOptions): void {
+  const { context, background, x, y, width, height } = opts;
   context.clearRect(x, y, width, height);
   if (background === undefined) return;
   context.fillStyle = background;

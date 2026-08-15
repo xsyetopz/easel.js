@@ -31,7 +31,7 @@ export class Audio extends Node {
   /** String identifier used by runtime type checks and serialization. */
   override type: string = "Audio";
 
-  /** The global audio listener backing this audio. */
+  /** Listener that supplies the shared audio context and output destination. */
   readonly listener: AudioListener;
 
   /** The native audio context, or `undefined` when unavailable. */
@@ -154,7 +154,7 @@ export class Audio extends Node {
       warn("Audio", "this Audio has no playback control.");
       return;
     }
-    if (!this.context?.createBufferSource || !this.buffer) return this;
+    if (!(this.context?.createBufferSource && this.buffer)) return this;
 
     this.#startedAt = this.context.currentTime + delay;
     const source = this.context.createBufferSource();
@@ -216,14 +216,17 @@ export class Audio extends Node {
 
   /** Connects the source through the filter chain to the output. */
   connect(): this {
-    if (!this.source || !this.gain) return this;
+    if (!(this.source && this.gain)) return this;
     try {
       if (this.filters.length > 0) {
-        this.source.connect(this.filters[0]!);
+        const first = this.filters.at(0);
+        if (first) this.source.connect(first);
         for (let i = 1; i < this.filters.length; i++) {
-          this.filters[i - 1]!.connect(this.filters[i]!);
+          const prev = this.filters[i - 1];
+          const next = this.filters[i];
+          if (prev && next) prev.connect(next);
         }
-        this.filters[this.filters.length - 1]!.connect(this.gain);
+        this.filters.at(-1)?.connect(this.gain);
       } else {
         this.source.connect(this.gain);
       }
@@ -236,14 +239,17 @@ export class Audio extends Node {
 
   /** Disconnects the source from the output. */
   disconnect(): this | undefined {
-    if (!this.#connected || !this.source || !this.gain) return;
+    if (!(this.#connected && this.source && this.gain)) return;
     try {
       if (this.filters.length > 0) {
-        this.source.disconnect?.(this.filters[0]!);
+        const first = this.filters.at(0);
+        if (first) this.source.disconnect?.(first);
         for (let i = 1; i < this.filters.length; i++) {
-          this.filters[i - 1]!.disconnect?.(this.filters[i]!);
+          const prev = this.filters[i - 1];
+          const next = this.filters[i];
+          if (prev && next) prev?.disconnect?.(next);
         }
-        this.filters[this.filters.length - 1]!.disconnect?.(this.gain);
+        this.filters.at(-1)?.disconnect?.(this.gain);
       } else {
         this.source.disconnect?.(this.gain);
       }
@@ -267,7 +273,7 @@ export class Audio extends Node {
     this.detune = value;
     if (this.isPlaying) {
       const source = this.source as AudioBufferSourceNodeLike;
-      if (source?.detune) {
+      if (source.detune) {
         try {
           source.detune.setTargetAtTime?.(
             value,
@@ -306,7 +312,7 @@ export class Audio extends Node {
     this.playbackRate = value;
     if (this.isPlaying) {
       const source = this.source as AudioBufferSourceNodeLike;
-      if (source?.playbackRate) {
+      if (source.playbackRate) {
         try {
           source.playbackRate.setTargetAtTime?.(
             value,
@@ -360,7 +366,7 @@ export class Audio extends Node {
 
   /** Sets the volume in [0, 1]. */
   set volume(value: number) {
-    if (!isGainNode(this.gain) || !this.context) return;
+    if (!(isGainNode(this.gain) && this.context)) return;
     try {
       this.gain.gain.setTargetAtTime?.(value, this.context.currentTime, 0.01);
     } catch {
@@ -373,7 +379,7 @@ export class Audio extends Node {
     this.detune = value;
     if (this.isPlaying) {
       const source = this.source as AudioBufferSourceNodeLike;
-      if (source?.detune) {
+      if (source.detune) {
         try {
           source.detune.setTargetAtTime?.(
             value,
@@ -420,7 +426,7 @@ export class Audio extends Node {
     this.playbackRate = value;
     if (this.isPlaying) {
       const source = this.source as AudioBufferSourceNodeLike;
-      if (source?.playbackRate) {
+      if (source.playbackRate) {
         try {
           source.playbackRate.setTargetAtTime?.(
             value,

@@ -129,7 +129,7 @@ export class PositionalAudio extends Audio {
   /** Updates the panner position and orientation from the world matrix. */
   override updateMatrixWorld(force: boolean = false): void {
     super.updateMatrixWorld(force);
-    if (!this.panner || !this.context) return;
+    if (!(this.panner && this.context)) return;
     if (this.hasPlaybackControl && !this.isPlaying) return;
 
     this.matrixWorld.decompose(_position, _quaternion, _scale);

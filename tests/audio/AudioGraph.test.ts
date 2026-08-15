@@ -12,7 +12,7 @@ import {
 function parameter(value = 0): AudioParamLike {
   return {
     value,
-    setValueAtTime(next) {
+    setValueAtTime(next: number): AudioParamLike {
       this.value = next;
       return this;
     },
@@ -22,7 +22,9 @@ function parameter(value = 0): AudioParamLike {
 function node(): AudioNodeLike & { connections: AudioNodeLike[] } {
   return {
     connections: [],
-    connect(destination) {
+    connect(
+      destination: AudioNodeLike | AudioParamLike,
+    ): AudioNodeLike | AudioParamLike {
       if ("connections" in destination) {
         (
           destination as AudioNodeLike & { connections: AudioNodeLike[] }
@@ -30,7 +32,7 @@ function node(): AudioNodeLike & { connections: AudioNodeLike[] } {
       }
       return destination;
     },
-    disconnect() {
+    disconnect(): void {
       this.connections.length = 0;
     },
   };
@@ -51,10 +53,10 @@ function context(): {
     smoothingTimeConstant: 0,
     minDecibels: -100,
     maxDecibels: -30,
-    getByteFrequencyData(array) {
+    getByteFrequencyData(array: Uint8Array): void {
       array.fill(64);
     },
-    getByteTimeDomainData(array) {
+    getByteTimeDomainData(array: Uint8Array): void {
       array.fill(128);
     },
   };
@@ -62,32 +64,36 @@ function context(): {
     ...node(),
     type: "sine",
     frequency: parameter(440),
-    start() {},
-    stop() {},
+    start(): void {
+      // The test double does not produce audio.
+    },
+    stop(): void {
+      // The test double does not produce audio.
+    },
   };
   const state = { resumed: false, closed: false };
-  const context: AudioContextLike = {
+  const audioContext: AudioContextLike = {
     currentTime: 1,
     destination,
-    createGain() {
+    createGain(): AudioNodeLike & { gain: AudioParamLike } {
       return { ...node(), gain: parameter(1) };
     },
-    createAnalyser() {
+    createAnalyser(): AnalyserNodeLike {
       return analyser;
     },
-    createOscillator() {
+    createOscillator(): OscillatorNodeLike {
       return oscillator;
     },
-    resume() {
+    resume(): Promise<void> {
       state.resumed = true;
       return Promise.resolve();
     },
-    close() {
+    close(): Promise<void> {
       state.closed = true;
       return Promise.resolve();
     },
   };
-  return { context, analyser, oscillator, destination, state };
+  return { context: audioContext, analyser, oscillator, destination, state };
 }
 
 describe("AudioGraph", () => {

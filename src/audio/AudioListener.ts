@@ -80,7 +80,7 @@ export class AudioListener extends Node {
 
   /** Removes the current filter and reconnects gain to the destination. */
   removeFilter(): this {
-    if (!this.#filter || !this.context || !this.gain) return this;
+    if (!(this.#filter && this.context && this.gain)) return this;
     try {
       this.gain.disconnect?.(this.#filter);
       this.#filter.disconnect?.(this.context.destination);
@@ -99,7 +99,7 @@ export class AudioListener extends Node {
 
   /** Sets a filter between the gain and the destination. */
   applyFilter(value: AudioNodeLike): this {
-    if (!this.context || !this.gain) return this;
+    if (!(this.context && this.gain)) return this;
     if (this.#filter !== undefined) {
       try {
         this.gain.disconnect?.(this.#filter);
@@ -132,7 +132,7 @@ export class AudioListener extends Node {
 
   /** Sets the master volume affecting all connected audio nodes. */
   set masterVolume(value: number) {
-    if (!isGainNode(this.gain) || !this.context) return;
+    if (!(isGainNode(this.gain) && this.context)) return;
     try {
       this.gain.gain.setTargetAtTime?.(value, this.context.currentTime, 0.01);
     } catch {
