@@ -26,7 +26,7 @@ export class LOD extends Node {
     return true;
   }
 
-  #levels: LODLevel[] = [];
+  readonly #levels: LODLevel[] = [];
   #currentLevel = 0;
 
   /** Read-only levels sorted by ascending distance; use `addLevel` or `removeLevel` to mutate. */
@@ -67,12 +67,12 @@ export class LOD extends Node {
     if (!Number.isFinite(distance)) return false;
     const normalizedDistance = Math.abs(distance);
     const index = this.#levels.findIndex(
-      (level) => level.distance === normalizedDistance,
+      (entry) => entry.distance === normalizedDistance,
     );
     if (index === -1) return false;
 
-    const [level] = this.#levels.splice(index, 1);
-    if (level) this.remove(level.object);
+    const [removed] = this.#levels.splice(index, 1);
+    if (removed) this.remove(removed.object);
     this.#currentLevel = Math.min(
       this.#currentLevel,
       Math.max(0, this.#levels.length - 1),
@@ -135,7 +135,8 @@ export class LOD extends Node {
 
     this.#currentLevel = selectedIndex;
     for (let index = 0; index < this.#levels.length; index++) {
-      this.#levels[index]!.object.visible = index === selectedIndex;
+      const level = this.#levels[index];
+      if (level !== undefined) level.object.visible = index === selectedIndex;
     }
     return this;
   }

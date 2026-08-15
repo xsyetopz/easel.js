@@ -95,8 +95,8 @@ export class VehicleController {
   };
 
   #heading = 0;
-  #initialPosition: Vector3;
-  #initialVelocity: Vector3;
+  readonly #initialPosition: Vector3;
+  readonly #initialVelocity: Vector3;
 
   /** Creates a controller around an existing dynamic chassis body. */
   constructor(options: VehicleControllerOptions) {

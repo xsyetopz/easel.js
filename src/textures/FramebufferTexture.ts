@@ -11,8 +11,8 @@ export class FramebufferTexture extends Texture {
   }
 
   #framebufferData: ImageData | undefined;
-  #targetWidth: number;
-  #targetHeight: number;
+  readonly #targetWidth: number;
+  readonly #targetHeight: number;
 
   /** Constructs a CPU render-to-texture target with the requested dimensions. */
   constructor(width = 1, height = 1) {

@@ -297,10 +297,10 @@ export {
 export { STLExporter } from "./exporters/STLExporter.ts";
 // geometry
 export {
-	Attribute,
-	type AttributeArray,
-	toNormalizedTypeName,
-	toType,
+  Attribute,
+  type AttributeArray,
+  toNormalizedTypeName,
+  toType,
 } from "./geometry/Attribute.ts";
 export { Geometry } from "./geometry/Geometry.ts";
 export { InterleavedAttribute } from "./geometry/InterleavedAttribute.ts";

@@ -35,6 +35,15 @@ export interface SourceSerializationMeta {
   images: Record<string, SourceJSON>;
 }
 
+type SourceRecord = Record<string, unknown> & {
+  data?: unknown;
+  depth?: unknown;
+  height?: unknown;
+  src?: unknown;
+  toDataURL?: unknown;
+  width?: unknown;
+};
+
 let sourceId = 0;
 
 /** A shared texture data source with versioned mutation state. */
@@ -74,7 +83,7 @@ export class Source {
     } else if (isRecord(data)) {
       width = finiteDimension(data.width);
       height = finiteDimension(data.height);
-      depth = finiteDimension(data["depth"]);
+      depth = finiteDimension(data.depth);
     }
 
     if (depth > 0) {
@@ -106,7 +115,7 @@ export class Source {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(value: unknown): value is SourceRecord {
   return typeof value === "object" && value !== null;
 }
 
@@ -135,9 +144,9 @@ function serializeImage(data: SourceImage): string | SourcePixelJSON {
   }
 
   if (isRecord(data)) {
-    const source = data["src"];
+    const source = data.src;
     if (typeof source === "string") return source;
-    const toDataURL = data["toDataURL"];
+    const toDataURL = data.toDataURL;
     if (typeof toDataURL === "function") {
       const result = toDataURL.call(data);
       if (typeof result === "string") return result;
@@ -147,17 +156,17 @@ function serializeImage(data: SourceImage): string | SourcePixelJSON {
   return "";
 }
 
-function isPixelData(value: Record<string, unknown>): value is {
+function isPixelData(value: SourceRecord): value is {
   data: ImagePixelArray;
   width: number;
   height: number;
 } {
-  const data = value["data"];
+  const data = value.data;
   return (
     (data instanceof Uint8Array ||
       data instanceof Uint8ClampedArray ||
       data instanceof Float32Array) &&
-    typeof value["width"] === "number" &&
-    typeof value["height"] === "number"
+    typeof value.width === "number" &&
+    typeof value.height === "number"
   );
 }

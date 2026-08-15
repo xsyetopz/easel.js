@@ -94,13 +94,13 @@ export class CharacterController {
   /** Whether floor probes update {@link grounded}. */
   enableGrounding: boolean;
   /** Whether the capsule currently rests on a walkable surface. */
-  grounded = false;
+  grounded: boolean = false;
   /** Number of fixed steps performed by the most recent update. */
   lastStepCount = 0;
 
   #accumulator = 0;
-  #running = false;
-  #disposed = false;
+  #running: boolean = false;
+  #disposed: boolean = false;
   #frameHandle: number | undefined;
   #previousTimestamp: number | undefined;
   #host: CharacterControllerFrameHost | undefined;

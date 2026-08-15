@@ -33,9 +33,9 @@ export class SkinnedMesh extends Mesh {
   /** Whether bind matrices follow the mesh or remain detached. */
   bindMode: BindModeValue = BindMode.Attached;
 
-  #bindMatrix = new Matrix4();
+  readonly #bindMatrix = new Matrix4();
 
-  #bindMatrixInverse = new Matrix4();
+  readonly #bindMatrixInverse = new Matrix4();
 
   #skeleton: Skeleton | undefined = undefined;
 

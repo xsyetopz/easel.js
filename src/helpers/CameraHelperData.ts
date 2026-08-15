@@ -213,8 +213,7 @@ function writeColorRange(
 /** Validates that a camera-helper matrix contains finite values. */
 export function assertCameraHelperMatrix(matrix: Matrix4, label: string): void {
   const elements = matrix.elements;
-  for (let index = 0; index < elements.length; index++) {
-    const element = elements[index];
+  for (const element of elements) {
     if (!Number.isFinite(element)) {
       throw new Error(
         `CameraHelper.update requires a finite prepared ${label} matrix.`,

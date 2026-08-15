@@ -43,11 +43,6 @@ export class CSS3DSprite extends CSS3DObject {
   /** Additional rotation applied in the camera-facing plane, in radians. */
   rotation2D = 0;
 
-  /** Wraps an element as a camera-facing CSS3D sprite. */
-  constructor(element?: HTMLElement) {
-    super(element);
-  }
-
   /** Returns an independent sprite with a cloned DOM subtree. */
   override clone(): CSS3DSprite {
     return new CSS3DSprite(this.element.cloneNode(true) as HTMLElement).copy(

@@ -112,7 +112,7 @@ export function raycastLineGeometry(
     .applyMatrix4(_inverseMatrix.copy(matrixWorld).invert());
   const averageScale =
     (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z)) / 3;
-  const localThreshold = (raycaster.lineThreshold ?? 1) / (averageScale || 1);
+  const localThreshold = raycaster.lineThreshold / (averageScale || 1);
   const localThresholdSq = localThreshold * localThreshold;
   const index = geometry.index;
   const count = index === undefined ? position.count : index.length;
@@ -199,7 +199,7 @@ export function raycastPointsGeometry(
     .applyMatrix4(_inverseMatrix.copy(matrixWorld).invert());
   const averageScale =
     (Math.abs(scale.x) + Math.abs(scale.y) + Math.abs(scale.z)) / 3;
-  const localThreshold = (raycaster.pointsThreshold ?? 1) / (averageScale || 1);
+  const localThreshold = raycaster.pointsThreshold / (averageScale || 1);
   const localThresholdSq = localThreshold * localThreshold;
   const index = geometry.index;
   const count = index === undefined ? position.count : index.length;
@@ -262,7 +262,7 @@ function intersectTriangle(
     face: { a, b, c, normal: _normal.clone() },
     object,
   });
-  const hit = intersects[intersects.length - 1] as Intersection & {
+  const hit = intersects.at(-1) as Intersection & {
     faceIndex?: number;
   };
   hit.faceIndex = faceIndex;

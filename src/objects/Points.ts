@@ -53,7 +53,8 @@ export class Points extends Node {
   updateMorphTargets(): void {
     const morphAttributes = this.geometry?.morphAttributes;
     const keys = morphAttributes ? Object.keys(morphAttributes) : [];
-    const first = keys.length > 0 ? morphAttributes?.[keys[0]!] : undefined;
+    const first =
+      keys.length > 0 ? morphAttributes?.[keys[0] ?? ""] : undefined;
     if (first === undefined || first.length === 0) {
       this.morphTargetDictionary = undefined;
       this.morphTargetInfluences = undefined;

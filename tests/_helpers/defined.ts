@@ -1,8 +1,8 @@
 export function defined<T>(
-  value: T | null | undefined,
+  value: NonNullable<T> | null | undefined,
   label = "value",
 ): NonNullable<T> {
-  if (value == null) {
+  if (value === null || value === undefined) {
     throw new Error(`${label} is missing`);
   }
   return value;

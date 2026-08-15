@@ -5,6 +5,8 @@ import { Matrix4 } from "../../src/math/Matrix4.ts";
 import { Quaternion } from "../../src/math/Quaternion.ts";
 import { Vector3 } from "../../src/math/Vector3.ts";
 
+const SELF_KEY = "self";
+
 describe("Node", () => {
   class TestNode extends Node {
     updateCalls = 0;
@@ -249,7 +251,7 @@ describe("Node", () => {
   it("preserves cyclic user-data failure instead of silently coercing it", () => {
     const node = new Node();
     const userData: Record<string, unknown> = {};
-    userData["self"] = userData;
+    userData[SELF_KEY] = userData;
     node.userData = userData;
 
     expect(() => node.toJSON()).toThrow(TypeError);

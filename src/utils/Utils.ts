@@ -93,9 +93,10 @@ export const TextureUtils = {
   },
 
   /** Returns a UV transform that stretches a texture to fill the target. */
-  fill(
-    _texture: { width: number; height: number },
-  ): { offset: { x: number; y: number }; repeat: { x: number; y: number } } {
+  fill(_texture: { width: number; height: number }): {
+    offset: { x: number; y: number };
+    repeat: { x: number; y: number };
+  } {
     return {
       offset: { x: 0, y: 0 },
       repeat: { x: 1, y: 1 },

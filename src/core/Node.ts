@@ -117,8 +117,8 @@ export class Node extends EventDispatcher {
   up: Vector3 = new Vector3(0, 1, 0);
   /** Optional local pivot applied when composing the matrix. */
   pivot: Vector3 | undefined = undefined;
-  #rotation: Euler = new Euler();
-  #quaternion: Quaternion = new Quaternion();
+  readonly #rotation: Euler = new Euler();
+  readonly #quaternion: Quaternion = new Quaternion();
   /** Local scale along each axis. */
   scale: Vector3 = new Vector3(1, 1, 1);
 

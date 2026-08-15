@@ -1,5 +1,5 @@
-import type { Intersection, Raycaster } from "../core/Raycaster.ts";
 import { Node } from "../core/Node.ts";
+import type { Intersection, Raycaster } from "../core/Raycaster.ts";
 import {
   type Geometry,
   registerGeometryCacheInvalidator,
@@ -33,15 +33,15 @@ export class Mesh extends Node {
 
   readonly #invalidateGeometryCaches = (): void => {
     const caches = this as unknown as {
-      _worldNormalCache?: Float32Array;
-      _worldNormalCacheKey?: Float32Array;
-      _instWorldNormals?: Float32Array[];
-      _instWorldNormalKey?: Float32Array[];
+      _worldNormalCache: Float32Array | undefined;
+      _worldNormalCacheKey: Float32Array | undefined;
+      _instWorldNormals: Float32Array[] | undefined;
+      _instWorldNormalKey: Float32Array[] | undefined;
     };
-    delete caches._worldNormalCache;
-    delete caches._worldNormalCacheKey;
-    delete caches._instWorldNormals;
-    delete caches._instWorldNormalKey;
+    caches._worldNormalCache = undefined;
+    caches._worldNormalCacheKey = undefined;
+    caches._instWorldNormals = undefined;
+    caches._instWorldNormalKey = undefined;
   };
 
   /** Material used to rasterize the triangulated surface. */
@@ -110,7 +110,7 @@ export class Mesh extends Node {
     }
 
     const keys = Object.keys(morphAttributes);
-    const first = keys.length > 0 ? morphAttributes[keys[0]!] : undefined;
+    const first = keys.length > 0 ? morphAttributes[keys[0] ?? ""] : undefined;
     if (first === undefined || first.length === 0) {
       this.morphTargetDictionary = undefined;
       this.morphTargetInfluences = undefined;
@@ -141,9 +141,10 @@ export class Mesh extends Node {
     );
 
     const geometry = this.#geometry;
-    const morphPosition = geometry?.morphAttributes?.["position"] as
-      | MorphAttributeLike[]
+    const morphAttributes = geometry?.morphAttributes as
+      | { position?: MorphAttributeLike[] }
       | undefined;
+    const morphPosition = morphAttributes?.position;
     const influences = this.morphTargetInfluences;
     if (morphPosition === undefined || influences === undefined) return target;
 

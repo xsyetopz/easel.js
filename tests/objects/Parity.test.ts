@@ -53,7 +53,12 @@ describe("scene-object parity", () => {
     ]);
     const line = new Line(geometry, new LineMaterial()).computeLineDistances();
     expect(line).toBe(line);
-    expect(Array.from(geometry.getAttribute("lineDistance")!.array)).toEqual([
+    const lineDistance = geometry.getAttribute("lineDistance");
+    expect(lineDistance).toBeDefined();
+    if (lineDistance === undefined) {
+      throw new Error("Expected line distance attribute");
+    }
+    expect(Array.from(lineDistance.array)).toEqual([
       0, 3, 7, 15.062257766723633,
     ]);
 
@@ -64,9 +69,12 @@ describe("scene-object parity", () => {
       segmentGeometry,
       new LineMaterial(),
     ).computeLineDistances();
-    expect(
-      Array.from(segmentGeometry.getAttribute("lineDistance")!.array),
-    ).toEqual([0, 3, 3, 7]);
+    const segmentLineDistance = segmentGeometry.getAttribute("lineDistance");
+    expect(segmentLineDistance).toBeDefined();
+    if (segmentLineDistance === undefined) {
+      throw new Error("Expected segment line distance attribute");
+    }
+    expect(Array.from(segmentLineDistance.array)).toEqual([0, 3, 3, 7]);
   });
 
   it("round-trips instance transforms and colors with chainable mutators", () => {

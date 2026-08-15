@@ -24,7 +24,7 @@ export const DEFAULT_ANISOTROPY = 1;
 export const DEFAULT_IMAGE: undefined = undefined;
 
 /** Default UV mapping mode for textures; matches the THREE.js UVMapping constant. */
-export const DEFAULT_MAPPING = UV_MAPPING;
+export const DEFAULT_MAPPING: number = UV_MAPPING;
 
 let textureId = 0;
 
@@ -206,7 +206,7 @@ export class Texture extends EventDispatcher {
   rotation = 0;
 
   /** Whether transformUv derives matrix from UV properties. */
-  matrixAutoUpdate = true;
+  matrixAutoUpdate: boolean = true;
 
   /** UV transform matrix. */
   matrix = new Matrix3();
@@ -224,7 +224,7 @@ export class Texture extends EventDispatcher {
   }
 
   /** Whether to flip V coordinates. */
-  flipY = true;
+  flipY: boolean = true;
 
   /** Serialized row alignment for tightly packed RGBA inputs. */
   get unpackAlignment(): 1 | 4 {
@@ -290,7 +290,7 @@ export class Texture extends EventDispatcher {
   #unpackAlignment: 1 | 4 = 4;
   #data: ImageData | undefined = undefined;
   #brightnessLevels: Uint8ClampedArray[] | undefined = undefined;
-  #needsUpdate = false;
+  #needsUpdate: boolean = false;
 
   /** Constructs a CPU-sampled texture around an optional image or pixel source. */
   constructor(
@@ -603,11 +603,15 @@ function getDimension(
   name: "width" | "height" | "depth",
 ): number {
   if (!isRecord(source)) return 0;
-  if (name === "width" && typeof source["videoWidth"] === "number") {
-    return source["videoWidth"];
+  const dimensions = source as Record<string, unknown> & {
+    videoWidth?: unknown;
+    videoHeight?: unknown;
+  };
+  if (name === "width" && typeof dimensions.videoWidth === "number") {
+    return dimensions.videoWidth;
   }
-  if (name === "height" && typeof source["videoHeight"] === "number") {
-    return source["videoHeight"];
+  if (name === "height" && typeof dimensions.videoHeight === "number") {
+    return dimensions.videoHeight;
   }
   const value = source[name];
   return typeof value === "number" && Number.isFinite(value) && value > 0
@@ -619,13 +623,18 @@ function isPixelSource(
   source: TextureImageSource,
 ): source is ImageDataLike<ImagePixelArray> {
   if (!isRecord(source)) return false;
-  const data = source["data"];
+  const pixelSource = source as Record<string, unknown> & {
+    data?: unknown;
+    width?: unknown;
+    height?: unknown;
+  };
+  const data = pixelSource.data;
   return (
     (data instanceof Uint8Array ||
       data instanceof Uint8ClampedArray ||
       data instanceof Float32Array) &&
-    typeof source["width"] === "number" &&
-    typeof source["height"] === "number"
+    typeof pixelSource.width === "number" &&
+    typeof pixelSource.height === "number"
   );
 }
 
@@ -681,15 +690,23 @@ function cloneUserData(data: Record<string, unknown>): Record<string, unknown> {
 
 function copyMutableValue(current: unknown, next: unknown): boolean {
   if (!(isRecord(current) && isRecord(next))) return false;
-  const copy = current["copy"];
+  const currentValue = current as Record<string, unknown> & {
+    copy?: unknown;
+    set?: unknown;
+  };
+  const nextValue = next as Record<string, unknown> & {
+    x?: unknown;
+    y?: unknown;
+  };
+  const copy = currentValue.copy;
   if (typeof copy === "function") {
     copy.call(current, next);
     return true;
   }
-  const x = next["x"];
-  const y = next["y"];
+  const x = nextValue.x;
+  const y = nextValue.y;
   if (typeof x === "number" && typeof y === "number") {
-    const set = current["set"];
+    const set = currentValue.set;
     if (typeof set === "function") {
       set.call(current, x, y);
       return true;

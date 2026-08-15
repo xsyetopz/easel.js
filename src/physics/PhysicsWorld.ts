@@ -231,7 +231,7 @@ export class PhysicsWorld {
   lastStepCount = 0;
 
   #accumulator = 0;
-  #running = false;
+  #running: boolean = false;
   #frameHandle: number | undefined;
   #previousTimestamp: number | undefined;
   #host: PhysicsFrameHost | undefined;
@@ -312,9 +312,11 @@ export class PhysicsWorld {
       body.position.addScaledVector(body.velocity, deltaSeconds);
     }
     for (let i = 0; i < this.bodies.length; i++) {
-      const bodyA = this.bodies[i]!;
+      const bodyA = this.bodies[i];
+      if (!bodyA) continue;
       for (let j = i + 1; j < this.bodies.length; j++) {
-        const bodyB = this.bodies[j]!;
+        const bodyB = this.bodies[j];
+        if (!bodyB) continue;
         if (bodyA.inverseMass === 0 && bodyB.inverseMass === 0) continue;
         const manifold = collide(bodyA, bodyB);
         if (!manifold) continue;

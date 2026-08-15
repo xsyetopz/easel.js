@@ -42,16 +42,20 @@ export class Sprite extends Node {
     if (camera === undefined) return;
 
     const world = this.matrixWorld.elements;
-    _spriteCenter.set(world[12]!, world[13]!, world[14]!);
-    _spriteRight.set(world[0]!, world[1]!, world[2]!);
-    _spriteUp.set(world[4]!, world[5]!, world[6]!);
+    _spriteCenter.set(world[12] ?? 0, world[13] ?? 0, world[14] ?? 0);
+    _spriteRight.set(world[0] ?? 0, world[1] ?? 0, world[2] ?? 0);
+    _spriteUp.set(world[4] ?? 0, world[5] ?? 0, world[6] ?? 0);
     const scaleX = _spriteRight.length || 1;
     const scaleY = _spriteUp.length || 1;
     _spriteRight.multiplyScalar(1 / scaleX);
     _spriteUp.multiplyScalar(1 / scaleY);
 
     const cameraWorld = camera.matrixWorld.elements;
-    _spriteNormal.set(-cameraWorld[8]!, -cameraWorld[9]!, -cameraWorld[10]!);
+    _spriteNormal.set(
+      -(cameraWorld[8] ?? 0),
+      -(cameraWorld[9] ?? 0),
+      -(cameraWorld[10] ?? 0),
+    );
     if (_spriteNormal.lengthSq === 0) _spriteNormal.set(0, 0, 1);
     else _spriteNormal.normalize();
 

@@ -105,7 +105,7 @@ export class Fog {
   #mode: FogModeType;
   #density: number;
   readonly #lut = new Float32Array(FOG_LUT_SIZE);
-  #lutNeedsUpdate = false;
+  #lutNeedsUpdate: boolean = false;
 
   /** Creates bounded fog and defers lookup-table rebuilding until `updateLut()`. */
   constructor(options: FogOptions = {}) {

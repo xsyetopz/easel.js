@@ -98,7 +98,7 @@ export class Skeleton {
     for (let index = 0; index < bones.length; index++) {
       const inverse = boneInverses[index];
       if (inverse === undefined) continue;
-      _offsetMatrix.multiplyMatrices(bones[index]!.matrixWorld, inverse);
+      _offsetMatrix.multiplyMatrices(bones[index]?.matrixWorld, inverse);
       boneMatrices.set(_offsetMatrix.elements, index * 16);
     }
   }

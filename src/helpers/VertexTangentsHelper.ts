@@ -25,6 +25,7 @@ const _tangent = new Vector3();
 
 /** Displays each prepared vertex tangent as a CPU-rendered line segment. */
 export class VertexTangentsHelper extends LineSegments {
+  /** Identifies this line-segment object as a vertex-tangent helper. */
   override type: string = "VertexTangentsHelper";
 
   /** Returns `true` for this concrete type. */
@@ -42,6 +43,7 @@ export class VertexTangentsHelper extends LineSegments {
     return this.#size;
   }
 
+  /** Sets the positive finite length multiplier for every tangent line. */
   set size(value: number) {
     if (!Number.isFinite(value) || value <= 0) {
       throw new RangeError(
@@ -59,6 +61,7 @@ export class VertexTangentsHelper extends LineSegments {
     return this.material.color;
   }
 
+  /** Updates the line color from a supported color value. */
   set color(value: ColorValue) {
     this.color.set(value);
   }

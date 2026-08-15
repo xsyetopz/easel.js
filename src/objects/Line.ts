@@ -83,16 +83,20 @@ export class Line extends Node {
 
   /** Appends CPU ray intersections for this line to the supplied array. */
   raycast(raycaster: Raycaster, intersects: Intersection[]): void {
+    let lineType: "loop" | "segments" | "line";
+    if (this.type === "LineLoop") {
+      lineType = "loop";
+    } else if (this.type === "LineSegments") {
+      lineType = "segments";
+    } else {
+      lineType = "line";
+    }
     raycastLineGeometry(
       this,
       this.geometry,
       this.matrixWorld,
       this.scale,
-      this.type === "LineLoop"
-        ? "loop"
-        : this.type === "LineSegments"
-          ? "segments"
-          : "line",
+      lineType,
       raycaster,
       intersects,
     );
@@ -102,7 +106,8 @@ export class Line extends Node {
   updateMorphTargets(): void {
     const morphAttributes = this.geometry?.morphAttributes;
     const keys = morphAttributes ? Object.keys(morphAttributes) : [];
-    const first = keys.length > 0 ? morphAttributes?.[keys[0]!] : undefined;
+    const first =
+      keys.length > 0 ? morphAttributes?.[keys[0] ?? ""] : undefined;
     if (first === undefined || first.length === 0) {
       this.morphTargetDictionary = undefined;
       this.morphTargetInfluences = undefined;

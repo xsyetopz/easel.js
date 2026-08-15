@@ -28,6 +28,7 @@ const _normalMatrix = new Matrix3();
 
 /** Displays each prepared vertex normal as a CPU-rendered line segment. */
 export class VertexNormalsHelper extends LineSegments {
+  /** Identifies this line-segment object as a vertex-normal helper. */
   override type: string = "VertexNormalsHelper";
 
   /** Returns `true` for this concrete type. */
@@ -45,6 +46,7 @@ export class VertexNormalsHelper extends LineSegments {
     return this.#size;
   }
 
+  /** Sets the positive finite length multiplier for every normal line. */
   set size(value: number) {
     if (!Number.isFinite(value) || value <= 0) {
       throw new RangeError(
@@ -62,6 +64,7 @@ export class VertexNormalsHelper extends LineSegments {
     return this.material.color;
   }
 
+  /** Updates the line color from a supported color value. */
   set color(value: ColorValue) {
     this.color.set(value);
   }

@@ -66,7 +66,7 @@ describe("RectAreaLight", () => {
 
   it("rejects non-finite height in toJSON", () => {
     const light = new RectAreaLight();
-    light.height = Infinity;
+    light.height = Number.POSITIVE_INFINITY;
     expect(() => light.toJSON()).toThrow("finite");
   });
 });

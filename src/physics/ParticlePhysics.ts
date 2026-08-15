@@ -178,7 +178,7 @@ export class ParticleWorld {
   lastStepCount = 0;
 
   #accumulator = 0;
-  #running = false;
+  #running: boolean = false;
   #frameHandle: number | undefined;
   #previousTimestamp: number | undefined;
   #host: ParticleFrameHost | undefined;
