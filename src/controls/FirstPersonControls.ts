@@ -34,17 +34,17 @@ export class FirstPersonControls extends EventDispatcher {
   /** Event target receiving pointer, keyboard, and context-menu listeners. */
   domElement: ControlDomElement;
   /** When false, input and movement are ignored. */
-  enabled = true;
+  enabled: boolean = true;
   /** Whether pointer motion controls the view. */
-  activeLook = true;
+  activeLook: boolean = true;
   /** Move forward while no backward key is pressed. */
-  autoForward = false;
+  autoForward: boolean = false;
   /** Clamp vertical look between verticalMin and verticalMax. */
-  constrainVertical = false;
+  constrainVertical: boolean = false;
   /** Scale movement speed by camera height. */
-  heightSpeed = false;
+  heightSpeed: boolean = false;
   /** Enable vertical pointer look. */
-  lookVertical = true;
+  lookVertical: boolean = true;
   /** World units moved per second. */
   movementSpeed = 1;
   /** Radians turned per pointer pixel. */
@@ -56,7 +56,7 @@ export class FirstPersonControls extends EventDispatcher {
   /** Maximum constrained vertical angle in radians. */
   verticalMax = Math.PI;
 
-  #move: {
+  readonly #move: {
     forward: boolean;
     backward: boolean;
     left: boolean;
@@ -71,12 +71,12 @@ export class FirstPersonControls extends EventDispatcher {
     up: false,
     down: false,
   };
-  #look: { x: number; y: number; lastX?: number; lastY?: number } = {
+  readonly #look: { x: number; y: number; lastX?: number; lastY?: number } = {
     x: 0,
     y: 0,
   };
-  #listeners: Array<[string, EventListener]> = [];
-  #globalListeners: Array<[string, EventListener]> = [];
+  readonly #listeners: Array<[string, EventListener]> = [];
+  readonly #globalListeners: Array<[string, EventListener]> = [];
   #lastTime = 0;
 
   /** Creates controls and installs listeners on the supplied event target. */
@@ -102,7 +102,7 @@ export class FirstPersonControls extends EventDispatcher {
   update(delta?: number): boolean {
     if (!this.enabled) return false;
     const seconds =
-      delta ?? (this.#lastTime ? (now() - this.#lastTime) / 1000 : 0);
+      delta ?? (this.#lastTime !== 0 ? (now() - this.#lastTime) / 1000 : 0);
     this.#lastTime = now();
     const dt = Math.max(0, Number.isFinite(seconds) ? seconds : 0);
     const lookX = this.#look.x;
@@ -110,6 +110,16 @@ export class FirstPersonControls extends EventDispatcher {
     this.#look.x = 0;
     this.#look.y = 0;
 
+    const distance = this.#computeDistance(dt);
+    this.#applyMovement(distance);
+    this.#applyLook(lookX, lookY);
+    this.camera.updateMatrixWorld(false, true);
+    const changed = distance !== 0 || lookX !== 0 || lookY !== 0;
+    if (changed) this.dispatchEvent({ type: "change" });
+    return changed;
+  }
+
+  #computeDistance(dt: number): number {
     let speed = this.movementSpeed;
     if (this.heightSpeed) {
       speed *= this.heightCoef;
@@ -118,7 +128,10 @@ export class FirstPersonControls extends EventDispatcher {
         Math.min(1, this.camera.position.y / Math.max(1, this.heightCoef)),
       );
     }
-    const distance = speed * dt;
+    return speed * dt;
+  }
+
+  #applyMovement(distance: number): void {
     _forward.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
     _right.set(1, 0, 0).applyQuaternion(this.camera.quaternion);
     if (this.#move.forward || (this.autoForward && !this.#move.backward))
@@ -131,21 +144,18 @@ export class FirstPersonControls extends EventDispatcher {
       this.camera.position.addScaledVector(_right, -distance);
     if (this.#move.up) this.camera.position.addScaledVector(_up, distance);
     if (this.#move.down) this.camera.position.addScaledVector(_up, -distance);
+  }
 
-    if (this.activeLook) {
-      this.camera.rotation.y -= lookX * this.lookSpeed;
-      if (this.lookVertical) this.camera.rotation.x -= lookY * this.lookSpeed;
-      if (this.constrainVertical) {
-        this.camera.rotation.x = Math.max(
-          this.verticalMin,
-          Math.min(this.verticalMax, this.camera.rotation.x),
-        );
-      }
+  #applyLook(lookX: number, lookY: number): void {
+    if (!this.activeLook) return;
+    this.camera.rotation.y -= lookX * this.lookSpeed;
+    if (this.lookVertical) this.camera.rotation.x -= lookY * this.lookSpeed;
+    if (this.constrainVertical) {
+      this.camera.rotation.x = Math.max(
+        this.verticalMin,
+        Math.min(this.verticalMax, this.camera.rotation.x),
+      );
     }
-    this.camera.updateMatrixWorld(false, true);
-    const changed = distance !== 0 || lookX !== 0 || lookY !== 0;
-    if (changed) this.dispatchEvent({ type: "change" });
-    return changed;
   }
 
   /** Removes all installed DOM listeners. */

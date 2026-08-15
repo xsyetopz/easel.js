@@ -42,7 +42,7 @@ export class ArcballControls extends EventDispatcher {
   /** World-space point at the center of the arcball. */
   target = new Vector3();
   /** Enables all user input when true. */
-  enabled = true;
+  enabled: boolean = true;
   /** Enables left-button arcball rotation. */
   enableRotate = true;
   /** Enables middle/right-button panning. */
@@ -64,16 +64,20 @@ export class ArcballControls extends EventDispatcher {
 
   #state: ArcballState = "none";
   #pointerId = -1;
-  #pointer = { x: 0, y: 0 };
-  #startArcball = new Vector3();
-  #startOffset = new Vector3();
-  #initialPosition: Vector3;
-  #initialTarget: Vector3;
-  #savedPosition: Vector3;
-  #savedTarget: Vector3;
+  readonly #pointer = { x: 0, y: 0 };
+  readonly #startArcball = new Vector3();
+  readonly #startOffset = new Vector3();
+  readonly #initialPosition: Vector3;
+  readonly #initialTarget: Vector3;
+  readonly #savedPosition: Vector3;
+  readonly #savedTarget: Vector3;
   #changed = false;
-  #listeners: Array<[string, EventListener]> = [];
-  #actions: Record<number, MouseAction> = { 0: "rotate", 1: "pan", 2: "pan" };
+  readonly #listeners: Array<[string, EventListener]> = [];
+  readonly #actions: Record<number, MouseAction> = {
+    0: "rotate",
+    1: "pan",
+    2: "pan",
+  };
 
   /** Creates arcball controls and installs listeners on `domElement`. */
   constructor(camera: ArcballCamera, domElement: ControlDomElement) {

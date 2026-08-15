@@ -25,7 +25,7 @@ export class TrackballControls extends EventDispatcher {
   /** World-space point the camera revolves around. */
   target = new Vector3();
   /** When false, all interaction is ignored. */
-  enabled = true;
+  enabled: boolean = true;
   /** Pointer rotation multiplier. */
   rotateSpeed = 1;
   /** Pointer and wheel zoom multiplier. */
@@ -39,7 +39,7 @@ export class TrackballControls extends EventDispatcher {
   /** Disable secondary-button panning. */
   noPan = false;
   /** Apply input immediately instead of damping it over successive updates. */
-  staticMoving = false;
+  staticMoving: boolean = false;
   /** Fraction of pending input retained when staticMoving is disabled. */
   dynamicDampingFactor = 0.2;
   /** Legacy key mapping retained for three.js example compatibility. */
@@ -49,16 +49,16 @@ export class TrackballControls extends EventDispatcher {
   /** Maximum camera distance from target. */
   maxDistance = Number.POSITIVE_INFINITY;
 
-  #initialPosition: Vector3;
-  #initialTarget: Vector3;
+  readonly #initialPosition: Vector3;
+  readonly #initialTarget: Vector3;
 
   #state: (typeof STATE)[keyof typeof STATE] = STATE.NONE;
-  #pointer = { x: 0, y: 0 };
+  readonly #pointer = { x: 0, y: 0 };
   #pointerId = -1;
-  #spherical = new Spherical();
-  #delta = new Spherical(0, 0, 0);
-  #pan = new Vector3();
-  #listeners: Array<[string, EventListener]> = [];
+  readonly #spherical = new Spherical();
+  readonly #delta = new Spherical(0, 0, 0);
+  readonly #pan = new Vector3();
+  readonly #listeners: Array<[string, EventListener]> = [];
 
   /** Creates controls and installs listeners on the supplied event target. */
   constructor(camera: TrackballCamera, domElement: ControlDomElement) {

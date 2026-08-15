@@ -33,18 +33,18 @@ export class DragControls extends EventDispatcher {
   /** Reusable CPU raycaster. */
   raycaster: Raycaster;
   /** Enables input when true. */
-  enabled = true;
+  enabled: boolean = true;
   /** Recursively tests descendants of objects. */
   recursive = false;
   /** Moves the selected group root instead of the intersected child. */
-  transformGroup = false;
+  transformGroup: boolean = false;
 
   #selected: Node | undefined;
   #hovered: Node | undefined;
-  #offset = new Vector3();
-  #planePoint = new Vector3();
+  readonly #offset = new Vector3();
+  readonly #planePoint = new Vector3();
   #planeConstant = 0;
-  #listeners: Array<[string, EventListener]> = [];
+  readonly #listeners: Array<[string, EventListener]> = [];
   #pointerId = -1;
 
   /** Creates drag controls and installs listeners on `domElement`. */

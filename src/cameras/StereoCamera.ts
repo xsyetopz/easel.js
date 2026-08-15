@@ -36,7 +36,7 @@ export class StereoCamera {
   /** Right-eye perspective camera; rendered on layer 2. */
   cameraR: PerspectiveCamera;
 
-  #cache: StereoCameraCache = {
+  readonly #cache: StereoCameraCache = {
     focus: undefined,
     fov: undefined,
     aspect: undefined,

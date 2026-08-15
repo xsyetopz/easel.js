@@ -1,16 +1,21 @@
 import { EventDispatcher } from "../core/EventDispatcher.ts";
-import { Node } from "../core/Node.ts";
+import type { Node } from "../core/Node.ts";
 
 /**
- * Abstract base class for controls. Provides the shared `object`, `domElement`,
- * and `enabled` state plus no-op `connect`, `disconnect`, `dispose`, and
- * `update` stubs that concrete controls override.
+ * Base class for input controls that manipulate a scene-graph node.
+ *
+ * Stores the controlled {@link Node}, an optional event target, and the common
+ * enabled state shared by concrete controls. The lifecycle methods define the
+ * control contract: subclasses can attach and remove input listeners in
+ * `connect` and `disconnect`, release them in `dispose`, and advance their
+ * state from a render loop with `update`.
  *
  * Extends {@link EventDispatcher} so subclasses can dispatch and listen for
- * events using the standard `addEventListener` / `dispatchEvent` API.
+ * control events using the standard `addEventListener` and `dispatchEvent`
+ * API.
  */
 export class Controls extends EventDispatcher {
-  /** The scene-graph object managed by the controls. */
+  /** Scene-graph node whose transform or state the controls manipulate. */
   object: Node;
 
   /** Event target that receives pointer, wheel, and keyboard listeners. */
@@ -43,15 +48,21 @@ export class Controls extends EventDispatcher {
   }
 
   /** Disconnects the controls from the current DOM element. Subclasses override to remove listeners. */
-  disconnect(): void {}
+  disconnect(): void {
+    /* no-op base stub; subclasses override to remove listeners */
+  }
 
   /** Frees internal resources and removes all event listeners. Subclasses override to clean up. */
-  dispose(): void {}
+  dispose(): void {
+    /* no-op base stub; subclasses override to clean up */
+  }
 
   /**
    * Per-frame update hook. Subclasses override to advance internal state.
    *
    * @param _delta Time delta in seconds (unused by default).
    */
-  update(_delta?: number): void {}
+  update(_delta?: number): void {
+    /* no-op base stub; subclasses override */
+  }
 }

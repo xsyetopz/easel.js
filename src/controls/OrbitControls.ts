@@ -106,21 +106,21 @@ export class OrbitControls extends EventDispatcher {
   /** When true, panning moves in screen space. When false, panning moves along the horizontal plane. */
   screenSpacePanning: boolean = true;
 
-  #spherical: Spherical = new Spherical();
+  readonly #spherical: Spherical = new Spherical();
 
   /** Pending spherical rotation and radius deltas consumed by `update()`. */
-  #sphericalDelta: Spherical = new Spherical(0, 0, 0);
+  readonly #sphericalDelta: Spherical = new Spherical(0, 0, 0);
 
   /** Pending world-space target offset accumulated across pointer moves. */
-  #panOffset: Vector3 = new Vector3();
+  readonly #panOffset: Vector3 = new Vector3();
 
   /** Camera position and target captured by the constructor for `reset()`. */
-  #initialState: { position: Vector3; target: Vector3 };
+  readonly #initialState: { position: Vector3; target: Vector3 };
 
   #state: (typeof STATE)[keyof typeof STATE] = STATE.NONE;
 
   /** Screen-space pointer position at last pointerdown/pointermove. */
-  #pointerStart = { x: 0, y: 0 };
+  readonly #pointerStart = { x: 0, y: 0 };
 
   #activePointerId = -1;
 
@@ -128,11 +128,11 @@ export class OrbitControls extends EventDispatcher {
 
   #prevTime = 0;
 
-  #onPointerDown: (event: Event) => void;
-  #onPointerMove: (event: Event) => void;
-  #onPointerUp: (event: Event) => void;
-  #onWheel: (event: Event) => void;
-  #onContextMenu: (event: Event) => void;
+  readonly #onPointerDown: (event: Event) => void;
+  readonly #onPointerMove: (event: Event) => void;
+  readonly #onPointerUp: (event: Event) => void;
+  readonly #onWheel: (event: Event) => void;
+  readonly #onContextMenu: (event: Event) => void;
 
   /** Creates controls and installs listeners on the supplied event target. */
   constructor(camera: OrbitCamera, domElement: OrbitDomElement) {
