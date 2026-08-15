@@ -10,6 +10,7 @@ src/**/*.d.ts.map
 .tmp/
 
 .astro/
+__pycache__/
 
 # Starlight generated API docs
 www/astro/content/docs/docs/
