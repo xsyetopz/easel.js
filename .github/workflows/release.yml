@@ -21,9 +21,6 @@ defaults:
   run:
     shell: bash
 
-env:
-  JSR_CLI_VERSION: 0.14.3
-
 jobs:
   validate:
     name: Validate release
@@ -216,11 +213,6 @@ jobs:
           test "$(bun --version)" = "$EXPECTED_BUN_VERSION"
       - name: Install dependencies and run release gate
         run: bun run release:check
-      - name: Build and dry-run JSR package
-        run: |
-          set -euo pipefail
-          bun run jsr:build
-          bunx "jsr@$JSR_CLI_VERSION" publish --dry-run
 
   publish:
     name: Publish packages
@@ -287,9 +279,8 @@ jobs:
         id: jsr_publish
         run: |
           set -euo pipefail
-          bun run jsr:build
           JSR_PUBLISH_LOG="$(mktemp)"
-          bunx "jsr@$JSR_CLI_VERSION" publish 2>&1 | tee "$JSR_PUBLISH_LOG"
+          bun run jsr:publish 2>&1 | tee "$JSR_PUBLISH_LOG"
           REKOR_URL="$(grep -Eo 'https://search\.sigstore\.dev/\?logIndex=[0-9]+' "$JSR_PUBLISH_LOG" | tail -n 1 || true)"
           REKOR_LOG_INDEX="${REKOR_URL##*=}"
           if ! [[ "$REKOR_LOG_INDEX" =~ ^[0-9]+$ ]]; then

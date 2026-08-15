@@ -15,6 +15,13 @@ const releaseWorkflow = workflows.get("release.yml");
 if (releaseWorkflow === undefined) {
   throw new Error("Missing release workflow");
 }
+const packageJson = JSON.parse(
+  readFileSync(`${root}/package.json`, "utf8"),
+) as {
+  scripts: Record<string, string>;
+  devDependencies: { jsr: string };
+};
+const lockfile = readFileSync(`${root}/bun.lock`, "utf8");
 
 function occurrences(source: string, value: string): number {
   return source.split(value).length - 1;
@@ -110,18 +117,36 @@ describe("workflow policy", () => {
     ).toBe(2);
   });
 
-  it("keeps the pinned JSR CLI version centralized without a dependency", () => {
-    const versionMatch = releaseWorkflow.match(
-      /^ {2}JSR_CLI_VERSION: ([^\s#]+)$/mu,
-    );
-    expect(versionMatch).not.toBeNull();
-    const version = versionMatch?.[1];
-    if (version === undefined) return;
+  it("uses one exact, locked JSR CLI through the canonical package scripts", () => {
+    const jsrVersion = packageJson.devDependencies.jsr;
+    expect(jsrVersion).toMatch(/^\d+\.\d+\.\d+$/u);
+    expect(lockfile).toContain(`"jsr": "${jsrVersion}",`);
+    expect(lockfile).toContain(`"jsr": ["jsr@${jsrVersion}"`);
 
-    expect(version).toMatch(/^\d+\.\d+\.\d+$/u);
-    expect(occurrences(releaseWorkflow, version)).toBe(1);
-    expect(
-      occurrences(releaseWorkflow, 'bunx "jsr@$JSR_CLI_VERSION" publish'),
-    ).toBe(2);
+    expect(packageJson.scripts["jsr:dry-run"]).toBe(
+      "bun run jsr:build && jsr publish --dry-run --allow-dirty; status=$?; bun run clean:declarations; exit $status",
+    );
+    expect(packageJson.scripts["jsr:publish"]).toBe(
+      "bun run jsr:build && jsr publish",
+    );
+    expect(packageJson.scripts["release:check"]).toEndWith(
+      " && bun run jsr:dry-run",
+    );
+
+    expect(occurrences(releaseWorkflow, "bun run release:check")).toBe(1);
+    expect(occurrences(releaseWorkflow, "bun run jsr:publish")).toBe(1);
+    expect(releaseWorkflow.indexOf("bun run jsr:publish")).toBeGreaterThan(
+      releaseWorkflow.indexOf("- run: bun install --frozen-lockfile"),
+    );
+    expect(releaseWorkflow).not.toContain("JSR_CLI_VERSION");
+    expect(releaseWorkflow).not.toContain("bunx jsr@");
+    expect(releaseWorkflow).not.toContain('bunx "jsr@');
+
+    const jsrCommands = [
+      packageJson.scripts["jsr:dry-run"],
+      packageJson.scripts["jsr:publish"],
+      releaseWorkflow,
+    ].join("\n");
+    expect(jsrCommands).not.toContain("--allow-slow-types");
   });
 });
