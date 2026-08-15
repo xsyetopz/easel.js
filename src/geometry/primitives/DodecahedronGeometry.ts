@@ -1,9 +1,9 @@
 import { PolyhedronGeometry } from "./PolyhedronGeometry.ts";
 
-const t = (1 + Math.sqrt(5)) / 2;
-const r = 1 / t;
+const t: number = (1 + Math.sqrt(5)) / 2;
+const r: number = 1 / t;
 
-const _vertices = [
+const _vertices: number[] = [
   -1,
   -1,
   -1,

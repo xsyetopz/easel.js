@@ -2,6 +2,27 @@ import type { Shape } from "../../curves/Shape.ts";
 import { triangulateShape } from "../../math/ShapeUtils.ts";
 import { Geometry } from "../Geometry.ts";
 
+interface Point2D {
+  x: number;
+  y: number;
+}
+
+function extractFlatCoords(
+  shapePoints: Point2D[],
+  holes: Point2D[][],
+): number[] {
+  const flatCoords: number[] = [];
+  for (const pt of shapePoints) {
+    flatCoords.push(pt.x, pt.y);
+  }
+  for (const hole of holes) {
+    for (const pt of hole) {
+      flatCoords.push(pt.x, pt.y);
+    }
+  }
+  return flatCoords;
+}
+
 /** Triangulates flat `Shape` contours into filled XY-plane geometry. */
 export class ShapeGeometry extends Geometry {
   /** Triangulates one or more `Shape` contours on the XY plane. */
@@ -23,18 +44,7 @@ export class ShapeGeometry extends Geometry {
     for (const shape of shapeArray) {
       const { shape: shapePoints, holes } = shape.extractPoints(curveSegments);
 
-      // Flat vertex list: outer contour + all hole contours
-      const flatCoords: number[] = [];
-      for (const pt of shapePoints) {
-        flatCoords.push(pt.x, pt.y);
-      }
-
-      for (const hole of holes) {
-        for (const pt of hole) {
-          flatCoords.push(pt.x, pt.y);
-        }
-      }
-
+      const flatCoords = extractFlatCoords(shapePoints, holes);
       const faces = triangulateShape(shapePoints, holes);
 
       // Emit vertices

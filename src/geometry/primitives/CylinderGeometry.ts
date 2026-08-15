@@ -1,5 +1,34 @@
 import { Geometry } from "../Geometry.ts";
 
+/** Mutable buffers shared across torso and cap builders. */
+interface CylinderBuffers {
+  positions: number[];
+  normals: number[];
+  uvs: number[];
+  indices: number[];
+  vertexCount: number;
+}
+
+/** Vertex/index payload produced by {@link buildCylinderData}. */
+interface CylinderData {
+  positions: number[];
+  normals: number[];
+  uvs: number[];
+  indices: number[];
+}
+
+/** Parameters for {@link buildCylinderData}. */
+interface CylinderBuildOptions {
+  radiusTop: number;
+  radiusBottom: number;
+  height: number;
+  radialSegments: number;
+  heightSegments: number;
+  openEnded: boolean;
+  thetaStart: number;
+  thetaLength: number;
+}
+
 /** Cylinder or truncated cone with optional end caps. */
 export class CylinderGeometry extends Geometry {
   /** Serialization discriminator for this runtime type. */
@@ -32,108 +61,146 @@ export class CylinderGeometry extends Geometry {
       thetaLength,
     };
 
-    const rs = Math.floor(radialSegments);
-    const hs = Math.floor(heightSegments);
+    const data = buildCylinderData({
+      radiusTop,
+      radiusBottom,
+      height,
+      radialSegments,
+      heightSegments,
+      openEnded,
+      thetaStart,
+      thetaLength,
+    });
 
-    const positions: number[] = [];
-    const normals: number[] = [];
-    const uvs: number[] = [];
-    const indices: number[] = [];
+    this.setPositions(new Float32Array(data.positions));
+    this.setNormals(new Float32Array(data.normals));
+    this.setUVs(new Float32Array(data.uvs));
+    const IndexArray =
+      data.positions.length / 3 > 65535 ? Uint32Array : Uint16Array;
+    this.index = new IndexArray(data.indices);
+  }
+}
 
-    let index = 0;
-    const indexArray: number[][] = [];
+/** Builds the torso and optional cap geometry for a cylinder or truncated cone. */
+function buildCylinderData(opts: CylinderBuildOptions): CylinderData {
+  const buffers: CylinderBuffers = {
+    positions: [],
+    normals: [],
+    uvs: [],
+    indices: [],
+    vertexCount: 0,
+  };
 
-    // torso
-    const slope = (radiusBottom - radiusTop) / height;
-    const halfHeight = height / 2;
+  buildTorso(buffers, opts);
 
-    for (let y = 0; y <= hs; y++) {
-      const row: number[] = [];
-      const v = y / hs;
-      const radius = v * (radiusBottom - radiusTop) + radiusTop;
+  if (!opts.openEnded) {
+    buildCap(buffers, opts, true);
+    buildCap(buffers, opts, false);
+  }
 
-      for (let x = 0; x <= rs; x++) {
-        const u = x / rs;
-        const theta = u * thetaLength + thetaStart;
-        const sinTheta = Math.sin(theta);
-        const cosTheta = Math.cos(theta);
+  return {
+    positions: buffers.positions,
+    normals: buffers.normals,
+    uvs: buffers.uvs,
+    indices: buffers.indices,
+  };
+}
 
-        positions.push(
-          radius * sinTheta,
-          -v * height + halfHeight,
-          radius * cosTheta,
-        );
+/** Builds the segmented torso (side wall) vertices and indices. */
+function buildTorso(
+  buffers: CylinderBuffers,
+  opts: CylinderBuildOptions,
+): void {
+  const { radiusTop, radiusBottom, height, thetaStart, thetaLength } = opts;
+  const rs = Math.floor(opts.radialSegments);
+  const hs = Math.floor(opts.heightSegments);
 
-        const nx = sinTheta;
-        const ny = slope;
-        const nz = cosTheta;
-        const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
-        normals.push(nx / len, ny / len, nz / len);
+  const slope = (radiusBottom - radiusTop) / height;
+  const halfHeight = height / 2;
+  const indexArray: number[][] = [];
 
-        uvs.push(u, 1 - v);
-        row.push(index++);
-      }
-      indexArray.push(row);
+  for (let y = 0; y <= hs; y++) {
+    const row: number[] = [];
+    const v = y / hs;
+    const radius = v * (radiusBottom - radiusTop) + radiusTop;
+
+    for (let x = 0; x <= rs; x++) {
+      const u = x / rs;
+      const theta = u * thetaLength + thetaStart;
+      const sinTheta = Math.sin(theta);
+      const cosTheta = Math.cos(theta);
+
+      buffers.positions.push(
+        radius * sinTheta,
+        -v * height + halfHeight,
+        radius * cosTheta,
+      );
+
+      const nx = sinTheta;
+      const ny = slope;
+      const nz = cosTheta;
+      const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+      buffers.normals.push(nx / len, ny / len, nz / len);
+
+      buffers.uvs.push(u, 1 - v);
+      row.push(buffers.vertexCount++);
     }
+    indexArray.push(row);
+  }
 
-    for (let x = 0; x < rs; x++) {
-      for (let y = 0; y < hs; y++) {
-        const a = indexArray[y][x];
-        const b = indexArray[y + 1][x];
-        const c = indexArray[y + 1][x + 1];
-        const d = indexArray[y][x + 1];
-        indices.push(a, b, d);
-        indices.push(b, c, d);
-      }
+  for (let x = 0; x < rs; x++) {
+    for (let y = 0; y < hs; y++) {
+      const a = indexArray[y][x];
+      const b = indexArray[y + 1][x];
+      const c = indexArray[y + 1][x + 1];
+      const d = indexArray[y][x + 1];
+      buffers.indices.push(a, b, d);
+      buffers.indices.push(b, c, d);
     }
+  }
+}
 
-    // caps
-    if (!openEnded) {
-      buildCap(true);
-      buildCap(false);
+/** Builds a single end cap (top or bottom) vertices and indices. */
+function buildCap(
+  buffers: CylinderBuffers,
+  opts: CylinderBuildOptions,
+  top: boolean,
+): void {
+  const { radiusTop, radiusBottom, height, thetaStart, thetaLength } = opts;
+  const rs = Math.floor(opts.radialSegments);
+
+  const radius = top ? radiusTop : radiusBottom;
+  if (radius === 0) return;
+
+  const sign = top ? 1 : -1;
+  const halfHeight = height / 2;
+  const centerY = sign * halfHeight;
+  const centerIndex = buffers.vertexCount;
+
+  buffers.positions.push(0, centerY, 0);
+  buffers.normals.push(0, sign, 0);
+  buffers.uvs.push(0.5, 0.5);
+  buffers.vertexCount++;
+
+  for (let x = 0; x <= rs; x++) {
+    const u = x / rs;
+    const theta = u * thetaLength + thetaStart;
+    const cosTheta = Math.cos(theta);
+    const sinTheta = Math.sin(theta);
+
+    buffers.positions.push(radius * sinTheta, centerY, radius * cosTheta);
+    buffers.normals.push(0, sign, 0);
+    buffers.uvs.push(cosTheta * 0.5 + 0.5, sinTheta * 0.5 * sign + 0.5);
+    buffers.vertexCount++;
+  }
+
+  for (let x = 0; x < rs; x++) {
+    const first = centerIndex + x + 1;
+    const second = centerIndex + x + 2;
+    if (top) {
+      buffers.indices.push(centerIndex, first, second);
+    } else {
+      buffers.indices.push(second, first, centerIndex);
     }
-
-    function buildCap(top: boolean): void {
-      const radius = top ? radiusTop : radiusBottom;
-      if (radius === 0) return;
-
-      const sign = top ? 1 : -1;
-      const centerY = sign * halfHeight;
-      const centerIndex = index;
-
-      positions.push(0, centerY, 0);
-      normals.push(0, sign, 0);
-      uvs.push(0.5, 0.5);
-      index++;
-
-      for (let x = 0; x <= rs; x++) {
-        const u = x / rs;
-        const theta = u * thetaLength + thetaStart;
-        const cosTheta = Math.cos(theta);
-        const sinTheta = Math.sin(theta);
-
-        positions.push(radius * sinTheta, centerY, radius * cosTheta);
-        normals.push(0, sign, 0);
-        uvs.push(cosTheta * 0.5 + 0.5, sinTheta * 0.5 * sign + 0.5);
-        index++;
-      }
-
-      for (let x = 0; x < rs; x++) {
-        const first = centerIndex + x + 1;
-        const second = centerIndex + x + 2;
-        if (top) {
-          indices.push(centerIndex, first, second);
-        } else {
-          indices.push(second, first, centerIndex);
-        }
-      }
-    }
-
-    const IndexArray = index > 65535 ? Uint32Array : Uint16Array;
-
-    this.setPositions(new Float32Array(positions));
-    this.setNormals(new Float32Array(normals));
-    this.setUVs(new Float32Array(uvs));
-    this.index = new IndexArray(indices);
   }
 }

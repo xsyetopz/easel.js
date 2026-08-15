@@ -112,7 +112,7 @@ describe("CylinderGeometry cap winding", () => {
   it("top cap normals point +Y", () => {
     const geo = new CylinderGeometry(1, 1, 2, 8, 1, false);
     const pos = defined(geo.getAttribute("position")).array;
-    const idx = defined(geo.index);
+    const idx = defined<Uint16Array | Uint32Array>(geo.index);
 
     // Body: 8 cols * 1 row * 2 triangles = 16 triangles = 48 indices
     // Top cap starts at 48
@@ -127,7 +127,7 @@ describe("CylinderGeometry cap winding", () => {
   it("bottom cap normals point -Y", () => {
     const geo = new CylinderGeometry(1, 1, 2, 8, 1, false);
     const pos = defined(geo.getAttribute("position")).array;
-    const idx = defined(geo.index);
+    const idx = defined<Uint16Array | Uint32Array>(geo.index);
 
     // Body: 48 indices, top cap: 8*3=24, bottom cap starts at 72
     const bodyIdxCount = 8 * 1 * 2 * 3;

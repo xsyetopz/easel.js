@@ -1,5 +1,34 @@
 import { Geometry } from "../Geometry.ts";
 
+function buildPlaneIndices(
+  gridX: number,
+  gridY: number,
+): Uint16Array | Uint32Array {
+  const gridX1 = gridX + 1;
+  const gridY1 = gridY + 1;
+  const indexCount = gridX * gridY * 6;
+  const IndexArray = gridX1 * gridY1 > 65535 ? Uint32Array : Uint16Array;
+  const indices = new IndexArray(indexCount);
+  let ii = 0;
+
+  for (let iy = 0; iy < gridY; iy++) {
+    for (let ix = 0; ix < gridX; ix++) {
+      const a = ix + gridX1 * iy;
+      const b = ix + gridX1 * (iy + 1);
+      const c = ix + 1 + gridX1 * (iy + 1);
+      const d = ix + 1 + gridX1 * iy;
+      indices[ii++] = a;
+      indices[ii++] = d;
+      indices[ii++] = b;
+      indices[ii++] = b;
+      indices[ii++] = d;
+      indices[ii++] = c;
+    }
+  }
+
+  return indices;
+}
+
 /** Flat rectangular grid on the XY plane with +Z normals. */
 export class PlaneGeometry extends Geometry {
   /** Constructs a centered XY-plane grid from dimensions and segment counts. */
@@ -46,25 +75,7 @@ export class PlaneGeometry extends Geometry {
       }
     }
 
-    const indexCount = gridX * gridY * 6;
-    const IndexArray = gridX1 * gridY1 > 65535 ? Uint32Array : Uint16Array;
-    const indices = new IndexArray(indexCount);
-    let ii = 0;
-
-    for (let iy = 0; iy < gridY; iy++) {
-      for (let ix = 0; ix < gridX; ix++) {
-        const a = ix + gridX1 * iy;
-        const b = ix + gridX1 * (iy + 1);
-        const c = ix + 1 + gridX1 * (iy + 1);
-        const d = ix + 1 + gridX1 * iy;
-        indices[ii++] = a;
-        indices[ii++] = d;
-        indices[ii++] = b;
-        indices[ii++] = b;
-        indices[ii++] = d;
-        indices[ii++] = c;
-      }
-    }
+    const indices = buildPlaneIndices(gridX, gridY);
 
     this.setPositions(positions);
     this.setNormals(normals);

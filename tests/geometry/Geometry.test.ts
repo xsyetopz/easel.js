@@ -128,7 +128,11 @@ describe("Geometry", () => {
       const g = new Geometry();
       g.index = [0, 1, 2, 3, 4, 5];
       expect(g.index).toBeInstanceOf(Uint16Array);
-      expect(Array.from(defined(g.index))).toEqual([0, 1, 2, 3, 4, 5]);
+      expect(
+        Array.from(
+          defined(g.index instanceof Uint16Array ? g.index : undefined),
+        ),
+      ).toEqual([0, 1, 2, 3, 4, 5]);
     });
 
     it("converts large plain array to Uint32Array", () => {

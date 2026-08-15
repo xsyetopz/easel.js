@@ -62,7 +62,7 @@ function _faceNormal(
   i: number,
   j: number,
   k: number,
-) {
+): { nx: number; ny: number; nz: number } {
   const ax = srcPositions[i * 3];
   const ay = srcPositions[i * 3 + 1];
   const az = srcPositions[i * 3 + 2];
@@ -82,9 +82,10 @@ function _faceNormal(
   const ny = ez * fx - ex * fz;
   const nz = ex * fy - ey * fx;
   const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
-  return len > 0
-    ? { nx: nx / len, ny: ny / len, nz: nz / len }
-    : { nx: 0, ny: 0, nz: 0 };
+  if (len > 0) {
+    return { nx: nx / len, ny: ny / len, nz: nz / len };
+  }
+  return { nx: 0, ny: 0, nz: 0 };
 }
 
 function _buildEdgeMap(

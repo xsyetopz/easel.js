@@ -12,9 +12,9 @@ describe("SphereGeometry vs THREE.SphereGeometry", () => {
   });
 
   it("default - index count matches", () => {
-    expect(defined(new SphereGeometry().index).length).toBe(
-      defined(new THREE.SphereGeometry().getIndex()).array.length,
-    );
+    expect(
+      defined<Uint16Array | Uint32Array>(new SphereGeometry().index).length,
+    ).toBe(defined(new THREE.SphereGeometry().getIndex()).array.length);
   });
 
   it("default - bounding box matches", () => {
@@ -34,9 +34,10 @@ describe("SphereGeometry vs THREE.SphereGeometry", () => {
   });
 
   it("custom (2,16,8) - index count matches", () => {
-    expect(defined(new SphereGeometry(2, 16, 8).index).length).toBe(
-      defined(new THREE.SphereGeometry(2, 16, 8).getIndex()).array.length,
-    );
+    expect(
+      defined<Uint16Array | Uint32Array>(new SphereGeometry(2, 16, 8).index)
+        .length,
+    ).toBe(defined(new THREE.SphereGeometry(2, 16, 8).getIndex()).array.length);
   });
 
   it("custom (2,16,8) - radius 2 bounding box", () => {

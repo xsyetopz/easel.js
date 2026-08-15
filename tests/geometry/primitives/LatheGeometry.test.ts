@@ -20,7 +20,10 @@ describe("LatheGeometry vs THREE.LatheGeometry", () => {
   });
 
   it("default segments - index count matches", () => {
-    expect(defined(new LatheGeometry(points).index).length).toBe(
+    expect(
+      defined<Uint16Array | Uint32Array>(new LatheGeometry(points).index)
+        .length,
+    ).toBe(
       defined(new THREE.LatheGeometry(THREEPoints).getIndex()).array.length,
     );
   });
@@ -145,7 +148,7 @@ describe("LatheGeometry winding order", () => {
     ];
     const geo = new LatheGeometry(pts, 8);
     const pos = defined(geo.getAttribute("position")).array;
-    const idx = defined(geo.index);
+    const idx = defined<Uint16Array | Uint32Array>(geo.index);
 
     for (let f = 0; f < Math.min(16, idx.length / 3); f++) {
       const ai = idx[f * 3];
@@ -165,7 +168,7 @@ describe("LatheGeometry winding order", () => {
     const pts = [new Vector2(0.5, -1), new Vector2(0.5, 1)];
     const geo = new LatheGeometry(pts, 8);
     const pos = defined(geo.getAttribute("position")).array;
-    const idx = defined(geo.index);
+    const idx = defined<Uint16Array | Uint32Array>(geo.index);
 
     // 1 row * 8 segments * 2 tris = 16 body tris
     const bodyIdxCount = 1 * 8 * 2 * 3;
@@ -189,7 +192,7 @@ describe("CapsuleGeometry winding order", () => {
   it("body face normals point outward", () => {
     const geo = new CapsuleGeometry(0.5, 1, 4, 8);
     const pos = defined(geo.getAttribute("position")).array;
-    const idx = defined(geo.index);
+    const idx = defined<Uint16Array | Uint32Array>(geo.index);
 
     for (let f = 0; f < Math.min(16, idx.length / 3); f++) {
       const ai = idx[f * 3];

@@ -12,9 +12,9 @@ describe("CapsuleGeometry vs THREE.CapsuleGeometry", () => {
   });
 
   it("default - index count matches", () => {
-    expect(defined(new CapsuleGeometry().index).length).toBe(
-      defined(new THREE.CapsuleGeometry().getIndex()).array.length,
-    );
+    expect(
+      defined<Uint16Array | Uint32Array>(new CapsuleGeometry().index).length,
+    ).toBe(defined(new THREE.CapsuleGeometry().getIndex()).array.length);
   });
 
   it("default - normals are unit length", () => {
@@ -32,7 +32,11 @@ describe("CapsuleGeometry vs THREE.CapsuleGeometry", () => {
   });
 
   it("custom (0.5,2,4,8) - index count matches", () => {
-    expect(defined(new CapsuleGeometry(0.5, 2, 4, 8).index).length).toBe(
+    expect(
+      defined<Uint16Array | Uint32Array>(
+        new CapsuleGeometry(0.5, 2, 4, 8).index,
+      ).length,
+    ).toBe(
       defined(new THREE.CapsuleGeometry(0.5, 2, 4, 8).getIndex()).array.length,
     );
   });

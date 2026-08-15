@@ -190,6 +190,7 @@ export class InterleavedAttribute {
 
   /** Writes an xyzw tuple at a vertex index. */
   setXYZW(index: number, x: number, y: number, z: number, w: number): this;
+  /** Writes four scalar components into an interleaved vertex record. */
   setXYZW(index: number, ...values: [number, number, number, number]): this {
     const [x, y, z, w] = values;
     const offset = this.#validateRange(index, 4);

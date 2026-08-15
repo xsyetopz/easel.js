@@ -1,5 +1,20 @@
 import { Geometry } from "../Geometry.ts";
 
+function buildTorusIndices(rs: number, ts: number): number[] {
+  const indices: number[] = [];
+  for (let j = 1; j <= rs; j++) {
+    for (let i = 1; i <= ts; i++) {
+      const a = (ts + 1) * j + i - 1;
+      const b = (ts + 1) * (j - 1) + i - 1;
+      const c = (ts + 1) * (j - 1) + i;
+      const d = (ts + 1) * j + i;
+      indices.push(a, b, d);
+      indices.push(b, c, d);
+    }
+  }
+  return indices;
+}
+
 /** Parametric torus around the Y axis. */
 export class TorusGeometry extends Geometry {
   /** Constructs a torus from major and tube radii and radial subdivisions. */
@@ -21,8 +36,6 @@ export class TorusGeometry extends Geometry {
     const positions: number[] = [];
     const normals: number[] = [];
     const uvs: number[] = [];
-    const indices: number[] = [];
-
     for (let j = 0; j <= rs; j++) {
       for (let i = 0; i <= ts; i++) {
         const u = (i / ts) * arc;
@@ -50,17 +63,7 @@ export class TorusGeometry extends Geometry {
       }
     }
 
-    for (let j = 1; j <= rs; j++) {
-      for (let i = 1; i <= ts; i++) {
-        const a = (ts + 1) * j + i - 1;
-        const b = (ts + 1) * (j - 1) + i - 1;
-        const c = (ts + 1) * (j - 1) + i;
-        const d = (ts + 1) * j + i;
-        indices.push(a, b, d);
-        indices.push(b, c, d);
-      }
-    }
-
+    const indices = buildTorusIndices(rs, ts);
     const vertexCount = (rs + 1) * (ts + 1);
     const IndexArray = vertexCount > 65535 ? Uint32Array : Uint16Array;
 

@@ -1,5 +1,20 @@
 import { Geometry } from "../Geometry.ts";
 
+function buildRingIndices(grid: number[][], ps: number, ts: number): number[] {
+  const indices: number[] = [];
+  for (let j = 0; j < ps; j++) {
+    for (let i = 0; i < ts; i++) {
+      const a = grid[j][i];
+      const b = grid[j + 1][i];
+      const c = grid[j + 1][i + 1];
+      const d = grid[j][i + 1];
+      indices.push(a, b, d);
+      indices.push(b, c, d);
+    }
+  }
+  return indices;
+}
+
 /** Flat annulus on the XY plane with optional angular and radial segments. */
 export class RingGeometry extends Geometry {
   /** Constructs a flat annulus from inner and outer radii and angular spans. */
@@ -29,8 +44,6 @@ export class RingGeometry extends Geometry {
     const positions: number[] = [];
     const normals: number[] = [];
     const uvs: number[] = [];
-    const indices: number[] = [];
-
     let index = 0;
     const grid: number[][] = [];
 
@@ -50,16 +63,7 @@ export class RingGeometry extends Geometry {
       grid.push(row);
     }
 
-    for (let j = 0; j < ps; j++) {
-      for (let i = 0; i < ts; i++) {
-        const a = grid[j][i];
-        const b = grid[j + 1][i];
-        const c = grid[j + 1][i + 1];
-        const d = grid[j][i + 1];
-        indices.push(a, b, d);
-        indices.push(b, c, d);
-      }
-    }
+    const indices = buildRingIndices(grid, ps, ts);
 
     const IndexArray = index > 65535 ? Uint32Array : Uint16Array;
 

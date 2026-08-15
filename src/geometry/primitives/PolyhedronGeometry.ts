@@ -40,7 +40,13 @@ export class PolyhedronGeometry extends Geometry {
       const cy = vertices[indices[i + 2] * 3 + 1];
       const cz = vertices[indices[i + 2] * 3 + 2];
 
-      subdivide([ax, ay, az], [bx, by, bz], [cx, cy, cz], detail, positions);
+      subdivide({
+        a: [ax, ay, az],
+        b: [bx, by, bz],
+        c: [cx, cy, cz],
+        detail,
+        out: positions,
+      });
     }
 
     // Project onto sphere and compute normals/uvs
@@ -70,27 +76,47 @@ export class PolyhedronGeometry extends Geometry {
   }
 }
 
+interface SubdivideOptions {
+  a: number[];
+  b: number[];
+  c: number[];
+  detail: number;
+  out: number[];
+}
+
 /** Recursively subdivide a triangle into 4^detail sub-triangles. */
-function subdivide(
-  a: number[],
-  b: number[],
-  c: number[],
-  detail: number,
-  out: number[],
-): void {
-  if (detail === 0) {
-    out.push(...a, ...b, ...c);
+function subdivide(opts: SubdivideOptions): void {
+  if (opts.detail === 0) {
+    opts.out.push(...opts.a, ...opts.b, ...opts.c);
     return;
   }
 
-  const ab = midpoint(a, b);
-  const bc = midpoint(b, c);
-  const ca = midpoint(c, a);
+  const ab = midpoint(opts.a, opts.b);
+  const bc = midpoint(opts.b, opts.c);
+  const ca = midpoint(opts.c, opts.a);
 
-  subdivide(a, ab, ca, detail - 1, out);
-  subdivide(b, bc, ab, detail - 1, out);
-  subdivide(c, ca, bc, detail - 1, out);
-  subdivide(ab, bc, ca, detail - 1, out);
+  subdivide({
+    a: opts.a,
+    b: ab,
+    c: ca,
+    detail: opts.detail - 1,
+    out: opts.out,
+  });
+  subdivide({
+    a: opts.b,
+    b: bc,
+    c: ab,
+    detail: opts.detail - 1,
+    out: opts.out,
+  });
+  subdivide({
+    a: opts.c,
+    b: ca,
+    c: bc,
+    detail: opts.detail - 1,
+    out: opts.out,
+  });
+  subdivide({ a: ab, b: bc, c: ca, detail: opts.detail - 1, out: opts.out });
 }
 
 function midpoint(a: number[], b: number[]): number[] {

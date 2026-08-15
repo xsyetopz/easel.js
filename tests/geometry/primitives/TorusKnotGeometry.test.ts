@@ -39,7 +39,9 @@ describe("TorusKnotGeometry", () => {
   it("has index buffer", () => {
     const geo = new TorusKnotGeometry(1, 0.4, 64, 8);
     expect(geo.index).toBeDefined();
-    expect(defined(geo.index).length).toBe(64 * 8 * 6);
+    expect(defined<Uint16Array | Uint32Array>(geo.index).length).toBe(
+      64 * 8 * 6,
+    );
   });
 });
 

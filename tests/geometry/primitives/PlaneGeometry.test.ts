@@ -69,7 +69,7 @@ describe("PlaneGeometry winding order", () => {
   it("face normals point +Z (CCW from +Z)", () => {
     const geo = new PlaneGeometry(2, 2, 2, 2);
     const pos = defined(geo.getAttribute("position")).array;
-    const idx = defined(geo.index);
+    const idx = defined<Uint16Array | Uint32Array>(geo.index);
 
     for (let t = 0; t < idx.length / 3; t++) {
       const ai = idx[t * 3];

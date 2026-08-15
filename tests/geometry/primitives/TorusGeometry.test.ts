@@ -30,6 +30,8 @@ describe("TorusGeometry", () => {
   it("has index buffer", () => {
     const geo = new TorusGeometry(1, 0.4, 8, 16);
     expect(geo.index).toBeDefined();
-    expect(defined(geo.index).length).toBe(8 * 16 * 6);
+    expect(defined<Uint16Array | Uint32Array>(geo.index).length).toBe(
+      8 * 16 * 6,
+    );
   });
 });
