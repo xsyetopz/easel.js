@@ -4,9 +4,6 @@ Read this only for a Deno-managed browser application. For shared package
 identity and import choices, start with the
 [getting-started guide](getting-started.md).
 
-Use when a project uses Deno to manage TypeScript, imports, tasks, or browser
-app serving.
-
 ## Contents
 
 - [Agent Rule](#agent-rule)

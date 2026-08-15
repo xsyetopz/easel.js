@@ -1,0 +1,41 @@
+{
+  "required_headings": [
+    "# Using EASEL.js",
+    "## Use this skill",
+    "## Rules",
+    "## Steps",
+    "## Resources",
+    "## Verify"
+  ],
+  "required_files": [
+    "SKILL.md",
+    "LICENSE",
+    "agents/openai.yaml",
+    ".skill-validator.json",
+    "assets/contract.json",
+    "evals/evals.json",
+    "scripts/check.py",
+    "references/animation.md",
+    "references/api-constants.md",
+    "references/api-exports.md",
+    "references/api-signatures.md",
+    "references/audio.md",
+    "references/boundaries.md",
+    "references/controls.md",
+    "references/deno.md",
+    "references/geometry.md",
+    "references/getting-started.md",
+    "references/index.md",
+    "references/loaders-and-serialization.md",
+    "references/materials-and-lighting.md",
+    "references/performance-and-lifecycle.md",
+    "references/picking.md",
+    "references/pipeline.md",
+    "references/primitives.md",
+    "references/rendering.md",
+    "references/scene-and-cameras.md",
+    "references/templates.md",
+    "references/textures.md",
+    "references/voxel-worlds.md"
+  ]
+}

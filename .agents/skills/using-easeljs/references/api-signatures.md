@@ -186,7 +186,11 @@ class Geometry {
 }
 ```
 
-There is no `Geometry.setIndex()` in 0.7.0; assign `geometry.index = indices`.
+The writable `Geometry.index` accessor is the 0.7.0 index-buffer API. Assignment
+retains typed indices, converts plain arrays, or clears the buffer with
+`undefined`. It replaced the historical `setIndex()` method; index buffers are
+still supported. See [Geometry](geometry.md#manual-geometry) for conversion
+rules.
 
 ## Materials and textures
 
@@ -293,8 +297,8 @@ new BVHLoader(manager?, options?).load(url, onLoad?: (result: BVHLoaderResult) =
 new TTFLoader().load(url, onLoad?: (fontData: TTFLoaderResult) => void, onProgress?, onError?)
 ```
 
-The root also exports `AnimationLoader`, `AudioLoader`, `BufferGeometryLoader`,
-`DataTextureLoader`, `DDSLoader`, `FileLoader`, `GCodeLoader`, `HDRLoader`
+The root also exports `AnimationLoader`, `AudioLoader`, `DataTextureLoader`,
+`DDSLoader`, `FileLoader`, `GCodeLoader`, `HDRLoader`
 (`RGBELoader` alias), `ImageBitmapLoader`, `ImageLoader`, `MaterialLoader`,
 `ObjectLoader`, `PCDLoader`, `PDBLoader`, `TGALoader`, `TIFFLoader`,
 `VOXLoader`, and `XYZLoader`. Format parse results are not interchangeable;

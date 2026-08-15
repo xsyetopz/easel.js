@@ -1,7 +1,7 @@
 # Geometry
 
-Read this for built-in primitive constructors or manual attributes, indices,
-UVs, normals, and bounding spheres.
+Built-in primitives and manual `Geometry` cover attributes, index buffers, UVs,
+normals, and bounds.
 
 ## Built-in geometry
 
@@ -45,18 +45,19 @@ under `dist/geometry/primitives/`.
 
 ## Manual geometry
 
-`Geometry` stores vertex attributes and an optional triangle index.
+`Geometry` stores vertex attributes and an optional triangle index buffer.
 
-Public methods:
+Public members:
 
 - `setPositions(Float32Array | number[])`
 - `setUVs(Float32Array | number[])`
 - `setColors(Float32Array | number[])`
 - `setNormals(Float32Array | number[])`
-- `index = Uint16Array | Uint32Array | number[] | undefined`
+- `index`: assign `Uint16Array | Uint32Array | number[] | undefined`; read
+  `Uint16Array | Uint32Array | undefined`
 - `setFromPoints(points)`
 - `getAttribute(name)`
-- `hasAttribute(name)
+- `hasAttribute(name)`
 - `setAttribute(name, attribute)`
 - `deleteAttribute(name)`
 - `setDrawRange(start, count)`
@@ -67,8 +68,15 @@ Public methods:
 - `computeBoundingSphere()`
 - `dispose()`
 
-For a complete manual triangle function, use the
-[manual geometry example](#complete-example-manual-triangle-mesh) below.
+`Geometry.index` is an accessor in 0.7.0 and the writable index-buffer API. A
+`Uint16Array` or `Uint32Array` is retained directly. A plain `number[]` becomes
+`Uint32Array` when any index exceeds 65,535 and `Uint16Array` otherwise;
+`undefined` clears the index buffer and selects sequential vertices. This
+accessor replaced the historical `setIndex()` method; index support remains
+present.
+
+The [manual triangle example](#complete-example-manual-triangle-mesh) assigns a
+typed index buffer through the accessor.
 
 Voxel face recipe:
 

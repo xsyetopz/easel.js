@@ -28,7 +28,7 @@ and an `AbortController`; `manager.abort()` cancels active managed work.
 | animation JSON | `AnimationLoader` | `AnimationClip[]` |
 | audio | `AudioLoader` | `AudioBufferLike` |
 | BVH motion | `BVHLoader` | skeleton, root/bones, clip, frame metadata |
-| geometry JSON | `GeometryLoader`, `BufferGeometryLoader` | `Geometry` |
+| geometry JSON | `GeometryLoader` | `Geometry` |
 | glTF/GLB CPU data | `GLTFLoader` | `GLTFLoaderResult` with scenes, cameras, animations, materials and extension metadata |
 | Wavefront material/object | `MTLLoader`, `OBJLoader` | `MTLMaterialTable`, `Group` |
 | PLY/STL/PCD/XYZ | matching loader | `Geometry` |
@@ -80,9 +80,13 @@ objects themselves generally have no `dispose()`.
 
 `Node`, `Scene`, `Geometry`, `Material`, `Texture`, cameras, lights, fog, and
 animation clips expose source-specific `toJSON`/standalone serialization APIs.
-Use `ObjectLoader`, `GeometryLoader`, `MaterialLoader`, or `AnimationLoader` for
-the corresponding JSON format. Do not assume an `ObjectLoader` JSON document is
-a glTF document.
+`GeometryLoader` is the single geometry-JSON loader. It accepts complete
+`Geometry.toJSON()` records, their flat `data` payloads, the loader's historical
+flat attribute form, and compatible nested geometry records. Supported typed
+attributes, index width, morph channels, draw range, bounds, names, parameters,
+and user data are retained. Use `ObjectLoader`, `GeometryLoader`,
+`MaterialLoader`, or `AnimationLoader` for the corresponding JSON format. Do
+not assume an `ObjectLoader` JSON document is a glTF document.
 
 ## Exporters
 

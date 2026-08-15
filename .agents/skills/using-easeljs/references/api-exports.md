@@ -173,7 +173,6 @@ are runtime imports; types require `import type` when `verbatimModuleSyntax` is 
 - `./loaders/FileLoader.ts` — values: `FileLoader`; types: `FileResponseType`
 - `./loaders/GCodeLoader.ts` — values: `GCodeLoader`
 - `./loaders/GeometryLoader.ts` — values: `GeometryLoader`
-- `./loaders/BufferGeometryLoader.ts` — values: `BufferGeometryLoader`
 - `./loaders/HDRLoader.ts` — values: `HDRLoader`, `RGBELoader`; types: `HDRFormat`, `HDRParseResult`, `HDRTextureOptions`, `HDRToneMapping`
 - `./loaders/GLTFLoader.ts` — values: `GLTFLoader`; types: `GLTFAnimation`, `GLTFAnimationChannel`, `GLTFAnimationTarget`, `GLTFDocument`, `GLTFInstanceAttributeInfo`, `GLTFLoaderOptions`, `GLTFLoaderResult`, `GLTFMaterialInfo`, `GLTFNodeInstancingInfo`, `GLTFNodeLODInfo`, `GLTFTextureMap`, `GLTFTextureReference`, `GLTFVariantInfo`, `GLTFVariantMapping`
 - `./loaders/ImageBitmapLoader.ts` — values: `ImageBitmapLoader`

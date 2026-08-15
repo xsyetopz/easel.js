@@ -1,6 +1,6 @@
 ---
 name: using-easeljs
-description: Source-grounded EASEL.js 0.7.0 guidance for browser CPU Canvas2D scenes.
+description: EASEL.js 0.7.0 browser scenes, CPU Canvas2D APIs, lifecycle; excludes GPU rendering.
 ---
 
 # Using EASEL.js
@@ -38,16 +38,20 @@ shadow maps, or headless/server rendering without a supplied DOM/canvas host.
 - Use `requestAnimationFrame`; stop it and dispose controls, replaced geometry,
   materials, textures, audio graphs/analyzers, and the renderer as applicable.
 - Do not infer APIs from three.js. Notable 0.7.0 spellings include
-  `Loop.Repeat`, `new Track(..., { itemSize })`, `geometry.index = indices`,
-  `renderer.clearColor = value`, and standalone audio visualizer functions.
+  `Loop.Repeat`, `new Track(..., { itemSize })`, `renderer.clearColor = value`,
+  and standalone audio visualizer functions.
+- Geometry index buffers use the writable `index` accessor. Assign typed indices
+  directly, assign a number array for conversion to `Uint16Array` or
+  `Uint32Array`, or assign `undefined` to clear it. This accessor replaced the
+  historical `setIndex()` method; index buffers remain supported.
 
 ## Steps
 
 1. Inspect project runtime, lockfile, installed package version, canvas owner,
    and existing render loop.
-2. Choose one topic in the [reference router](references/index.md). Read the
-   matching focused guide and then check [API signatures](references/api-signatures.md)
-   for exact constructors and lifecycle methods.
+2. Choose the closest task in the [reference router](references/index.md) and
+   read its focused guide. Use the router's API catalog rows only when that
+   guide omits the exact export name or call shape.
 3. Build the smallest browser scene: real `HTMLCanvasElement`, `Renderer`,
    `Scene`, concrete camera, renderable object, `prepare`, and `render`.
 4. Add controls/loaders/audio only after the base frame renders. Attach browser
@@ -58,21 +62,15 @@ shadow maps, or headless/server rendering without a supplied DOM/canvas host.
 
 ## Resources
 
-- Route all topics through the [reference router](references/index.md).
-- Starter project trees live under `assets/templates/`; the router links their
-  package-local catalog.
+- The [reference router](references/index.md) maps each supported subsystem to
+  one focused guide. It also routes exact API lookups and starter templates.
 
 ## Verify
 
 Done means imports exist in the 0.7.0 root surface, call shapes match owning
 source declarations, the frame uses `prepare` then `render`, teardown is
-present, and browser Canvas2D behavior was checked. For this skill package run:
-
-```bash
-(cd .agents/skills/using-easeljs && python3 scripts/check.py)
-python3 /Users/krystian/.agents/scripts/validate_skill.py .agents/skills/using-easeljs
-python3 /Users/krystian/.agents/skills/skill-creator/scripts/check_skill_structure.py .agents/skills/using-easeljs
-```
-
-Also grep the package for stale versions and removed APIs. Mark registry,
-network, Deno, browser, or template checks `UNVERIFIED` when they were not run.
+present, and browser Canvas2D behavior was checked. From this package, run
+`python3 scripts/check.py`; from a host project, run its typecheck and browser
+render check. Report commands, exit codes, and changed paths separately. Mark
+registry, network, Deno, browser, template, or behavioral eval checks
+`UNVERIFIED` when they were not run.

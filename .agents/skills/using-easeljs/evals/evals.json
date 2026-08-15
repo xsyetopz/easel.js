@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "skill_name": "using-easeljs",
+  "static": [
+    {
+      "id": "package-contract",
+      "command": "python3 scripts/check.py",
+      "expect_exit": 0
+    }
+  ],
+  "codex_cases": [
+    {
+      "id": "positive-minimal-browser-scene",
+      "prompt": "Build a minimal browser scene with @xsyetopz/easel 0.7.0 on an existing HTML canvas, including resize, a frame loop, and teardown.",
+      "expected_outcome": "Activates using-easeljs, checks the installed revision and declarations, uses Renderer with a concrete camera and renderable object, calls prepare before render, updates projection state on resize, and retains animation/disposal handles."
+    },
+    {
+      "id": "positive-manual-indexed-geometry",
+      "prompt": "Create an indexed triangle with manual positions, normals, and UVs in EASEL.js 0.7.0, then explain how to clear its index.",
+      "expected_outcome": "Activates using-easeljs, assigns geometry.index rather than calling setIndex(), accepts typed or plain index arrays, clears with undefined, computes needed bounds, and does not claim fluent setter chaining."
+    },
+    {
+      "id": "positive-geometry-json-round-trip",
+      "prompt": "Load JSON produced by EASEL Geometry.toJSON(), including packed color attributes, a Uint32 index, morph targets, draw range, bounds, and user metadata.",
+      "expected_outcome": "Activates using-easeljs, uses the single root GeometryLoader, preserves supported typed attributes and serialized CPU geometry state, and does not suggest a second geometry loader under the removed name."
+    },
+    {
+      "id": "positive-subsystem-export-lookup",
+      "prompt": "Find the root exports and owning source areas for EASEL.js curves, helpers, physics, and math, then give only verified 0.7.0 call shapes.",
+      "expected_outcome": "Activates using-easeljs, routes through the root API subsystem lookup, checks api-exports and installed declarations, uses api-signatures only for covered high-use calls, and marks absent or unverified names UNKNOWN."
+    },
+    {
+      "id": "near-miss-threejs-migration",
+      "prompt": "Migrate a Three.js WebGL scene with OrbitControls and GLTFLoader to EASEL.js, preserving only CPU-relevant features.",
+      "expected_outcome": "Routes primarily to threejs-to-easeljs and uses using-easeljs for verified target API details; it rejects shader, PBR, shadow-map, and other GPU-only assumptions."
+    },
+    {
+      "id": "near-miss-createjs-easel",
+      "prompt": "Animate a CreateJS EaselJS Stage and Bitmap on a 2D canvas.",
+      "expected_outcome": "Does not activate using-easeljs because CreateJS EaselJS is a different package and API."
+    },
+    {
+      "id": "near-miss-gpu-shader",
+      "prompt": "Design a WebGPU shader pipeline, GPU vertex buffers, PBR environment maps, and shadow maps.",
+      "expected_outcome": "Does not activate using-easeljs and does not translate the request into unsupported EASEL.js APIs."
+    }
+  ]
+}
