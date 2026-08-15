@@ -67,8 +67,8 @@ export class PainterSort {
           if (!bucket) {
             bucket = [];
             buckets.set(layer, bucket);
-            keys.push(layer);
           }
+          if (bucket.length === 0) keys.push(layer);
           bucket.push(dc);
         }
 

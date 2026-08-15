@@ -161,6 +161,20 @@ describe("PainterSort", () => {
     expect(list.calls[1].material.layer).toBe(1);
   });
 
+  it("retains opaque layered calls across consecutive frames", () => {
+    for (let frame = 0; frame < 3; frame++) {
+      const list = new DrawList();
+      const scene = makeDrawCall(5, 0, 0);
+      const overlay = makeDrawCall(5, 0, 3);
+      addDrawCall(list, overlay);
+      addDrawCall(list, scene);
+      sorter.sort(list, camera);
+      expect(list.calls).toHaveLength(2);
+      expect(list.calls[0]).toBe(scene);
+      expect(list.calls[1]).toBe(overlay);
+    }
+  });
+
   it("does not throw on empty DrawList", () => {
     const list = new DrawList();
     expect(() => sorter.sort(list, camera)).not.toThrow();
