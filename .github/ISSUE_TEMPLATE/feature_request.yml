@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        EASEL.js is a CPU-only Canvas2D software renderer. Requests should fit that renderer boundary.
+        EASEL.js is a CPU-only Canvas2D software renderer. Describe how the proposal fits that renderer.
   - type: dropdown
     id: area
     attributes:
@@ -55,6 +55,4 @@ body:
         - label: This would exist in a CPU scanline rasterizer with no z-buffer.
           required: true
         - label: This does not require WebGL state, GPU buffers, shader programs, PBR materials, environment maps, or shadow maps.
-          required: true
-        - label: I can describe how this should be tested or documented.
           required: true

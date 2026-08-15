@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting a bug. Keep the report focused on EASEL.js behavior and include a minimal reproduction.
+        Include the observed behavior, version, environment, and smallest available reproduction.
   - type: dropdown
     id: area
     attributes:
@@ -86,9 +86,5 @@ body:
     attributes:
       label: Checks
       options:
-        - label: I searched existing issues and docs.
-          required: true
-        - label: I included a minimal reproduction, not just a full app.
-          required: true
-        - label: This report fits the CPU Canvas2D renderer scope, not WebGL/GPU feature parity.
+        - label: The report includes a focused reproduction or a link to one.
           required: true

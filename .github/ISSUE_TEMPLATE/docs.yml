@@ -15,7 +15,7 @@ body:
     id: problem
     attributes:
       label: What is wrong or missing?
-      description: Be specific about the confusing wording, missing example, or incorrect detail.
+      description: Describe the confusing wording, missing example, or incorrect detail.
     validations:
       required: true
   - type: textarea
@@ -25,12 +25,3 @@ body:
       description: Proposed wording, example, or source reference.
     validations:
       required: true
-  - type: checkboxes
-    id: checks
-    attributes:
-      label: Checks
-      options:
-        - label: I checked the current docs and examples site.
-          required: true
-        - label: This is documentation-only, not a feature request or bug report.
-          required: true

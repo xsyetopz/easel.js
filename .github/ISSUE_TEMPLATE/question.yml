@@ -1,5 +1,5 @@
 name: Question
-description: Ask a focused usage or migration question.
+description: Ask about EASEL.js usage or migration.
 title: "[Question]: "
 labels: [question]
 body:
@@ -20,15 +20,6 @@ body:
     id: question
     attributes:
       label: Question
-      description: Ask one focused question and include the code or page you are looking at.
+      description: Include the relevant code or documentation page when available.
     validations:
       required: true
-  - type: checkboxes
-    id: checks
-    attributes:
-      label: Checks
-      options:
-        - label: I checked the docs and examples first.
-          required: true
-        - label: I understand EASEL.js is CPU Canvas2D, not WebGL feature parity.
-          required: true

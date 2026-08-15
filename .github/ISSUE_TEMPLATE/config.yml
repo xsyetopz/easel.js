@@ -2,10 +2,10 @@ blank_issues_enabled: false
 contact_links:
   - name: Read the API docs
     url: https://easeljs.org/docs
-    about: Check the generated API reference before opening an issue.
+    about: Browse the API reference by category and symbol.
   - name: Browse runnable examples
     url: https://easeljs.org/examples
-    about: Compare against known Canvas2D renderer examples and source snippets.
+    about: Open runnable Canvas2D examples and source snippets.
   - name: View the package on npm
     url: https://www.npmjs.com/package/@xsyetopz/easel
     about: Check published package metadata and available versions.
