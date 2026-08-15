@@ -9,6 +9,9 @@ const root = `${import.meta.dir}/../..`;
 const packageVersion = JSON.parse(
   readFileSync(`${root}/package.json`, "utf8"),
 ) as { version: string };
+const threePackageVersion = JSON.parse(
+  readFileSync(`${root}/node_modules/three/package.json`, "utf8"),
+) as { version: string };
 const privateNamePattern = /(?:^|\.)#/u;
 const cacheMemberPattern = /^Cache\.(?!constructor$)/u;
 let cachedReport: string | undefined;
@@ -204,7 +207,7 @@ describe("generate-api-comparison", () => {
     const report = checkedReport();
     const rows = reportRows(report);
     expect(report).toContain(
-      `# EASEL=@xsyetopz/easel@${packageVersion.version}\tTHREE=three@0.185.1\tentry=src/Three.Core.js`,
+      `# EASEL=@xsyetopz/easel@${packageVersion.version}\tTHREE=three@${threePackageVersion.version}\tentry=src/Three.Core.js`,
     );
     expect(report).toContain(
       "EASEL limits: CPU/Canvas2D; affine UV; baked flat/Gouraud",

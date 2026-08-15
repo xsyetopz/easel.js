@@ -21,6 +21,9 @@ defaults:
   run:
     shell: bash
 
+env:
+  JSR_CLI_VERSION: 0.14.3
+
 jobs:
   validate:
     name: Validate release
@@ -34,17 +37,37 @@ jobs:
       candidate_sha: ${{ steps.release_state.outputs.candidate_sha }}
       npm_exists: ${{ steps.release_state.outputs.npm_exists }}
       jsr_exists: ${{ steps.release_state.outputs.jsr_exists }}
+      node_version: ${{ steps.tool_versions.outputs.node_version }}
+      bun_version: ${{ steps.tool_versions.outputs.bun_version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           ref: ${{ github.sha }}
+      - name: Read current tool versions
+        id: tool_versions
+        run: |
+          set -euo pipefail
+          NODE_VERSION="$(cat .node-version)"
+          BUN_VERSION="$(cat .bun-version)"
+          if ! [[ "$NODE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::.node-version must contain exactly X.Y.Z"
+            exit 1
+          fi
+          if ! [[ "$BUN_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::.bun-version must contain exactly X.Y.Z"
+            exit 1
+          fi
+          {
+            echo "node_version=$NODE_VERSION"
+            echo "bun_version=$BUN_VERSION"
+          } >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24.18.1
+          node-version: ${{ steps.tool_versions.outputs.node_version }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.3.14
+          bun-version: ${{ steps.tool_versions.outputs.bun_version }}
       - name: Assert release source and version
         id: release_state
         env:
@@ -73,17 +96,16 @@ jobs:
             exit 1
           fi
 
+          bun run version:check
           PACKAGE_VERSION="$(bun -p "require('./package.json').version")"
           PACKAGE_NAME="$(bun -p "require('./package.json').name")"
           JSR_NAME="$(bun -p "require('./jsr.json').name")"
-          JSR_VERSION="$(bun -p "require('./jsr.json').version")"
-          REVISION="$(sed -n 's/^export const REVISION = "\([^\"]*\)";$/\1/p' src/index.ts)"
           if [ "$PACKAGE_NAME" != "@xsyetopz/easel" ] || [ "$JSR_NAME" != "@xsyetopz/easel" ]; then
             echo "::error::Unexpected package identity: npm=$PACKAGE_NAME jsr=$JSR_NAME"
             exit 1
           fi
-          if [ "$PACKAGE_VERSION" != "$VERSION" ] || [ "$JSR_VERSION" != "$VERSION" ] || [ "$REVISION" != "$VERSION" ]; then
-            echo "::error::Version mismatch package=$PACKAGE_VERSION jsr=$JSR_VERSION revision=$REVISION input=$VERSION"
+          if [ "$PACKAGE_VERSION" != "$VERSION" ]; then
+            echo "::error::Package version $PACKAGE_VERSION does not match release input $VERSION"
             exit 1
           fi
 
@@ -172,9 +194,12 @@ jobs:
             echo "jsr_exists=$JSR_EXISTS"
           } >> "$GITHUB_OUTPUT"
       - name: Assert publishing toolchain
+        env:
+          EXPECTED_NODE_VERSION: ${{ steps.tool_versions.outputs.node_version }}
+          EXPECTED_BUN_VERSION: ${{ steps.tool_versions.outputs.bun_version }}
         run: |
           set -euo pipefail
-          test "$(node --version)" = "v24.18.1"
+          test "$(node --version)" = "v$EXPECTED_NODE_VERSION"
           npm --version
           NPM_VERSION="$(npm --version)"
           node - "$NPM_VERSION" <<'NODE'
@@ -188,14 +213,14 @@ jobs:
             process.exit(1);
           }
           NODE
-          test "$(bun --version)" = "1.3.14"
+          test "$(bun --version)" = "$EXPECTED_BUN_VERSION"
       - name: Install dependencies and run release gate
         run: bun run release:check
       - name: Build and dry-run JSR package
         run: |
           set -euo pipefail
           bun run jsr:build
-          bunx jsr@0.14.3 publish --dry-run
+          bunx "jsr@$JSR_CLI_VERSION" publish --dry-run
 
   publish:
     name: Publish packages
@@ -214,15 +239,17 @@ jobs:
           ref: ${{ needs.validate.outputs.candidate_sha }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24.18.1
+          node-version: ${{ needs.validate.outputs.node_version }}
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.3.14
+          bun-version: ${{ needs.validate.outputs.bun_version }}
       - name: Assert approved release candidate
         env:
           CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
+          EXPECTED_NODE_VERSION: ${{ needs.validate.outputs.node_version }}
+          EXPECTED_BUN_VERSION: ${{ needs.validate.outputs.bun_version }}
         run: |
           set -euo pipefail
           if [ "$GITHUB_REPOSITORY" != "xsyetopz/easel.js" ] || [ "$GITHUB_REF" != "refs/heads/main" ]; then
@@ -235,6 +262,8 @@ jobs:
             echo "HEAD=$HEAD_SHA candidate=$CANDIDATE_SHA"
             exit 1
           fi
+          test "$(node --version)" = "v$EXPECTED_NODE_VERSION"
+          test "$(bun --version)" = "$EXPECTED_BUN_VERSION"
           npm --version
           NPM_VERSION="$(npm --version)"
           node - "$NPM_VERSION" <<'NODE'
@@ -260,7 +289,7 @@ jobs:
           set -euo pipefail
           bun run jsr:build
           JSR_PUBLISH_LOG="$(mktemp)"
-          bunx jsr@0.14.3 publish 2>&1 | tee "$JSR_PUBLISH_LOG"
+          bunx "jsr@$JSR_CLI_VERSION" publish 2>&1 | tee "$JSR_PUBLISH_LOG"
           REKOR_URL="$(grep -Eo 'https://search\.sigstore\.dev/\?logIndex=[0-9]+' "$JSR_PUBLISH_LOG" | tail -n 1 || true)"
           REKOR_LOG_INDEX="${REKOR_URL##*=}"
           if ! [[ "$REKOR_LOG_INDEX" =~ ^[0-9]+$ ]]; then

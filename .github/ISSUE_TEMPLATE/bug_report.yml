@@ -30,7 +30,7 @@ body:
     attributes:
       label: Version
       description: EASEL.js version, git SHA, or branch.
-      placeholder: "0.5.0"
+      placeholder: "Package version, git SHA, or branch"
     validations:
       required: true
   - type: dropdown
@@ -75,10 +75,10 @@ body:
       label: Environment
       description: Browser/runtime version, OS, package manager, and canvas size if relevant.
       placeholder: |
-        Browser: Chrome 126
-        Runtime: Bun 1.x
-        OS: macOS / Linux / Windows
-        Canvas: 800x600
+        Browser: name and version
+        Runtime: name and version
+        OS: name and version
+        Canvas: width x height
     validations:
       required: true
   - type: checkboxes
