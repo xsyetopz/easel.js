@@ -3,6 +3,7 @@ import type { PerspectiveCamera } from "../../cameras/PerspectiveCamera.ts";
 import type { Node } from "../../core/Node.ts";
 import type { Scene } from "../../core/Scene.ts";
 import { Geometry } from "../../geometry/Geometry.ts";
+import type { Material } from "../../materials/Material.ts";
 import { Matrix4 } from "../../math/Matrix4.ts";
 import { Quaternion } from "../../math/Quaternion.ts";
 import { Vector3 } from "../../math/Vector3.ts";
@@ -121,6 +122,7 @@ export function buildNode(
   cameras: readonly (PerspectiveCamera | OrthographicCamera)[],
   readAccessor: (index: number) => number[],
   materials: readonly GLTFMaterialInfo[],
+  defaultMaterial: Material,
   collectCameras: (PerspectiveCamera | OrthographicCamera)[] | undefined,
   context: BuildContext,
 ): Group | Mesh | LOD | Scene | PerspectiveCamera | OrthographicCamera {
@@ -143,6 +145,7 @@ export function buildNode(
         cameras,
         readAccessor,
         materials,
+        defaultMaterial,
         collectCameras,
         context,
         false,
@@ -169,6 +172,7 @@ export function buildNode(
     cameras,
     readAccessor,
     materials,
+    defaultMaterial,
     collectCameras,
     context,
   );
@@ -181,6 +185,7 @@ export function buildNodeContent(
   cameras: readonly (PerspectiveCamera | OrthographicCamera)[],
   readAccessor: (index: number) => number[],
   materials: readonly GLTFMaterialInfo[],
+  defaultMaterial: Material,
   collectCameras: (PerspectiveCamera | OrthographicCamera)[] | undefined,
   context: BuildContext,
   applyTransform: boolean = true,
@@ -201,6 +206,7 @@ export function buildNodeContent(
       meshes,
       readAccessor,
       materials,
+      defaultMaterial,
       context.instancing.get(index),
     );
   } else {
@@ -221,6 +227,7 @@ export function buildNodeContent(
         cameras,
         readAccessor,
         materials,
+        defaultMaterial,
         collectCameras,
         context,
       ),
@@ -233,6 +240,7 @@ export function buildMesh(
   meshes: Readonly<Record<string, unknown>>[],
   readAccessor: (index: number) => number[],
   materials: readonly GLTFMaterialInfo[],
+  defaultMaterial: Material,
   instancing?: InstancingData,
 ): Group | InstancedMesh | Mesh {
   const meshDef = meshes[index];
@@ -326,8 +334,12 @@ export function buildMesh(
     const info =
       materialIndex === undefined ? undefined : materials[materialIndex];
     const object = instancing
-      ? new InstancedMesh(geometry, info?.material, instancing.info.count)
-      : new Mesh(geometry, info?.material);
+      ? new InstancedMesh(
+          geometry,
+          info?.material ?? defaultMaterial,
+          instancing.info.count,
+        )
+      : new Mesh(geometry, info?.material ?? defaultMaterial);
     if (instancing) {
       const translation = instancing.translations;
       const rotation = instancing.rotations;

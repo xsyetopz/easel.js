@@ -10,6 +10,15 @@ import type {
 } from "../GLTFLoader.ts";
 import { array, finite, integer, numberArray, record } from "./validation.ts";
 
+/** Creates the glTF default material for primitives without a material index. */
+export function createDefaultMaterial(
+  options: GLTFLoaderOptions,
+): BasicMaterial | LambertMaterial {
+  return options.materialType === "basic"
+    ? new BasicMaterial()
+    : new LambertMaterial();
+}
+
 export function textureFor(
   options: GLTFLoaderOptions,
   index: number,

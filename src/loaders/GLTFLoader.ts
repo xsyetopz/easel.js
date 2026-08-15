@@ -19,7 +19,11 @@ import {
   parseLOD,
   parseVariants,
 } from "./_gltf/extensions.ts";
-import { parseMaterials, parseTextureReferences } from "./_gltf/materials.ts";
+import {
+  createDefaultMaterial,
+  parseMaterials,
+  parseTextureReferences,
+} from "./_gltf/materials.ts";
 import { buildNode } from "./_gltf/nodes.ts";
 import type { NodeRecord } from "./_gltf/nodes.ts";
 import { array, finite, integer, record } from "./_gltf/validation.ts";
@@ -252,6 +256,7 @@ export class GLTFLoader extends Loader {
     const readAccessorFn = (index: number): number[] =>
       readAccessor(index, accessors, bufferViews, buffers);
     const materialResult = parseMaterials(document, options);
+    const defaultMaterial = createDefaultMaterial(options);
     const meshDefs = array(document["meshes"] ?? [], "meshes").map(
       (item, index) => record(item, `meshes[${index}]`),
     );
@@ -322,6 +327,7 @@ export class GLTFLoader extends Loader {
             cameras,
             readAccessorFn,
             materialResult.materials,
+            defaultMaterial,
             sceneIndex === selectedScene ? firstSceneCameras : undefined,
             context,
           ),

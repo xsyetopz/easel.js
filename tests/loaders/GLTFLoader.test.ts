@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { readFileSync } from "node:fs";
 import { GLTFLoader } from "@/loaders/GLTFLoader.js";
 import { LambertMaterial } from "@/materials/LambertMaterial.js";
 import { InstancedMesh } from "@/objects/InstancedMesh.js";
@@ -315,5 +316,53 @@ describe("GLTFLoader", () => {
     expect(channels?.[0]?.values).toEqual([0, 0, 0, 1, 0, 0]);
     expect(channels?.[1]?.interpolation).toBe("STEP");
     expect(channels?.[1]?.values).toEqual([1, 0, 1, 0, 0, 1, 1, 0]);
+  });
+
+  it("parses the canonical Khronos Box fixture", () => {
+    const document = JSON.parse(
+      readFileSync(
+        new URL("../../fixtures/models/box/Box.gltf", import.meta.url),
+        "utf8",
+      ),
+    ) as Record<string, unknown>;
+    const result = new GLTFLoader().parse(document);
+    const group = result.scene.children[0];
+    const mesh = group?.children[0];
+
+    expect(result.scene.name).toBe("Scene0");
+    expect(result.scene.children).toHaveLength(1);
+    expect(mesh).toBeInstanceOf(Mesh);
+    if (!(mesh instanceof Mesh)) return;
+    expect(mesh.geometry?.getAttribute("position")?.count).toBe(24);
+    expect(mesh.geometry?.getAttribute("normal")?.count).toBe(24);
+    expect(mesh.geometry?.index).toHaveLength(36);
+    expect(result.materials[0]?.name).toBe("Red");
+  });
+
+  it("parses Khronos Simple Instancing with a default material", () => {
+    const document = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../assets/gltf/simple-instancing/SimpleInstancing.gltf",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as Record<string, unknown>;
+    const binary = readFileSync(
+      new URL(
+        "../../assets/gltf/simple-instancing/SimpleInstancing.bin",
+        import.meta.url,
+      ),
+    );
+    const result = new GLTFLoader().parse(document, { buffers: [binary] });
+    const mesh = result.scene.children[0];
+
+    expect(mesh).toBeInstanceOf(InstancedMesh);
+    if (!(mesh instanceof InstancedMesh)) return;
+    expect(mesh.count).toBe(125);
+    expect(mesh.material).toBeInstanceOf(LambertMaterial);
+    expect(mesh.geometry?.getAttribute("position")?.count).toBe(24);
+    expect(mesh.geometry?.index).toHaveLength(36);
   });
 });
