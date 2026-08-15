@@ -39,7 +39,8 @@ function classFact(
       subject: name,
     },
   ];
-  if (declaration) facts.push(...classFacts(context, symbol, declaration, name));
+  if (declaration)
+    facts.push(...classFacts(context, symbol, declaration, name));
   return facts;
 }
 
@@ -111,7 +112,9 @@ export function exportedFactsForSymbol(
   }
   if (
     symbol.flags &
-    (SymbolFlags.Variable | SymbolFlags.BlockScopedVariable | SymbolFlags.ConstEnum)
+    (SymbolFlags.Variable |
+      SymbolFlags.BlockScopedVariable |
+      SymbolFlags.ConstEnum)
   ) {
     facts.push(...constFact(context, symbol));
   }

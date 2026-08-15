@@ -1,11 +1,5 @@
-import {
-  isInterfaceDeclaration,
-  isTypeAliasDeclaration,
-} from "typescript-api";
-import type {
-  Declaration,
-  Symbol as TypeScriptSymbol,
-} from "typescript-api";
+import { isInterfaceDeclaration, isTypeAliasDeclaration } from "typescript-api";
+import type { Declaration, Symbol as TypeScriptSymbol } from "typescript-api";
 import {
   heritageText,
   MEMBER_TERMINATOR_PATTERN,

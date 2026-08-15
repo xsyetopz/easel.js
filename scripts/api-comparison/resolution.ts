@@ -127,7 +127,11 @@ function resolveDeclaration(
     symbol.name,
   );
   if (imported) return resolveExport(context, imported, seen);
-  const direct = directExport(context, symbol, moduleSymbols(context, declaration));
+  const direct = directExport(
+    context,
+    symbol,
+    moduleSymbols(context, declaration),
+  );
   if (direct) return resolveExport(context, direct, seen);
   return undefined;
 }
@@ -179,10 +183,7 @@ export function publicDeclaration(
   return !(docs.private || docs.internal);
 }
 
-export function publicSymbol(
-  symbol: TypeScriptSymbol,
-  name: string,
-): boolean {
+export function publicSymbol(symbol: TypeScriptSymbol, name: string): boolean {
   const declarations = (symbol.declarations ?? []).filter(
     (declaration) =>
       !(isExportSpecifier(declaration) || isDocOnlyDeclaration(declaration)),

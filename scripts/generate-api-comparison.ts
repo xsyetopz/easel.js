@@ -70,12 +70,9 @@ export function generateReport(): string {
     undefined,
     ["**/*"],
   );
-  const threeRoots = sys.readDirectory(
-    THREE_SOURCE_ROOT,
-    [".js"],
-    undefined,
-    ["**/*"],
-  );
+  const threeRoots = sys.readDirectory(THREE_SOURCE_ROOT, [".js"], undefined, [
+    "**/*",
+  ]);
   const easelFacts = extractSide(EASEL_ROOT, [
     EASEL_ROOT,
     ...easelRoots.filter((root) => root !== EASEL_ROOT),

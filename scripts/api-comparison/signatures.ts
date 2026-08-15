@@ -202,8 +202,7 @@ export function signatureText(
       docs,
       ...(documented ? { documented } : {}),
       index,
-      signatureRest:
-        signatureRest && index === signature.parameters.length - 1,
+      signatureRest: signatureRest && index === signature.parameters.length - 1,
       symbol: parameter,
       ...(options.typeContext ? { typeContext: options.typeContext } : {}),
     });
@@ -230,9 +229,10 @@ export function signatureText(
       returnType = "unknown";
     }
   }
-  const typeParameters = options.includeTypeParameters === false
-    ? ""
-    : signatureTypeParametersText(context, signature, declarationNode);
+  const typeParameters =
+    options.includeTypeParameters === false
+      ? ""
+      : signatureTypeParametersText(context, signature, declarationNode);
   return `${typeParameters}(${parameters.join(", ")}) => ${returnType}`;
 }
 

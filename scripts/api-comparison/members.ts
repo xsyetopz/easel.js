@@ -26,10 +26,7 @@ import {
   typeParameterNamesText,
 } from "./text.ts";
 import { signatureList, signatureText } from "./signatures.ts";
-import {
-  isDocOnlyDeclaration,
-  publicDeclaration,
-} from "./resolution.ts";
+import { isDocOnlyDeclaration, publicDeclaration } from "./resolution.ts";
 import type { ExtractionContext, ParsedDoc, PublicFact } from "./types.ts";
 
 function isNodeWithin(node: Node, container: Node): boolean {
@@ -191,9 +188,7 @@ function classMemberDeclarations(
   if (allDeclarations.some((node) => !publicDeclaration(node, member.name))) {
     return [];
   }
-  return allDeclarations.filter((node) =>
-    publicDeclaration(node, member.name),
-  );
+  return allDeclarations.filter((node) => publicDeclaration(node, member.name));
 }
 
 interface ClassMembersOptions {
@@ -216,9 +211,7 @@ function classMembers(options: ClassMembersOptions): PublicFact[] {
       scope,
     );
     if (declarations.length > 0) {
-      facts.push(
-        memberFact({ context, declarations, member, owner, scope }),
-      );
+      facts.push(memberFact({ context, declarations, member, owner, scope }));
     }
   }
   return facts;
@@ -233,16 +226,18 @@ export function classFacts(
   const facts: PublicFact[] = [];
   const genericOwner = `${owner}${isClassDeclaration(declaration) ? typeParameterNamesText(declaration) : ""}`;
   const instanceType = context.checker.getDeclaredTypeOfSymbol(symbol);
-  const staticType = context.checker.getTypeOfSymbolAtLocation(symbol, declaration);
+  const staticType = context.checker.getTypeOfSymbolAtLocation(
+    symbol,
+    declaration,
+  );
   const constructorSignatures = context.checker.getSignaturesOfType(
     staticType,
     SignatureKind.Construct,
   );
   const constructorDeclarations = constructorSignatures
     .map((signature) => signature.getDeclaration())
-    .filter(
-      (item): item is import("typescript-api").SignatureDeclaration =>
-        Boolean(item),
+    .filter((item): item is import("typescript-api").SignatureDeclaration =>
+      Boolean(item),
     );
   const constructorsPublic = constructorDeclarations.every((item) =>
     publicDeclaration(item, "constructor"),

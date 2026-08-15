@@ -30,8 +30,7 @@ export const PARAM_NAME_PATTERN =
   /^\s+(?<name>\[[^\]]+\]|\.\.\.[\w$]+|[\w$]+)/u;
 export const OPTIONAL_PARAMETER_PATTERN = /^\[|\]$/gu;
 export const REST_PARAMETER_PATTERN = /^\.\.\./u;
-export const DEFAULT_PARAMETER_PATTERN =
-  /^(?<name>[^=]+)=\s*(?<default>.*)$/u;
+export const DEFAULT_PARAMETER_PATTERN = /^(?<name>[^=]+)=\s*(?<default>.*)$/u;
 export const MEMBER_TERMINATOR_PATTERN = /;$/u;
 export const WHITESPACE_PATTERN = /\s+/gu;
 
@@ -74,7 +73,9 @@ export function typeParametersText(node: Node): string {
   const parameters = declarationTypeParameters(node);
   if (!parameters || parameters.length === 0) return "";
   return `<${parameters
-    .map((parameter) => normalizeWhitespace(parameter.getText(parameter.getSourceFile())))
+    .map((parameter) =>
+      normalizeWhitespace(parameter.getText(parameter.getSourceFile())),
+    )
     .join(", ")}>`;
 }
 
@@ -82,7 +83,9 @@ export function typeParameterNamesText(node: Node): string {
   const parameters = declarationTypeParameters(node);
   if (!parameters || parameters.length === 0) return "";
   return `<${parameters
-    .map((parameter) => normalizeWhitespace(parameter.name.getText(parameter.getSourceFile())))
+    .map((parameter) =>
+      normalizeWhitespace(parameter.name.getText(parameter.getSourceFile())),
+    )
     .join(", ")}>`;
 }
 
@@ -136,7 +139,15 @@ export function balancedTagType(
 function parseParameterDoc(
   text: string,
   match: RegExpMatchArray,
-): { name: string; type: string; optional: boolean; rest: boolean; defaultText?: string } | undefined {
+):
+  | {
+      name: string;
+      type: string;
+      optional: boolean;
+      rest: boolean;
+      defaultText?: string;
+    }
+  | undefined {
   const index = match.index;
   if (index === undefined) return;
   const type = balancedTagType(text, index + match[0].length - 1);

@@ -1,8 +1,4 @@
-import {
-  ModuleKind,
-  ModuleResolutionKind,
-  ScriptTarget,
-} from "typescript-api";
+import { ModuleKind, ModuleResolutionKind, ScriptTarget } from "typescript-api";
 import type { Program } from "typescript-api";
 import { exportedFactsForSymbol } from "./facts.ts";
 import type { ExtractionContext, PublicFact } from "./types.ts";

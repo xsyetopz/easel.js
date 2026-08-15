@@ -66,7 +66,8 @@ function normalizeThreeFact(
 }
 
 function factSort(left: PublicFact, right: PublicFact): number {
-  if (left.subject !== right.subject) return left.subject < right.subject ? -1 : 1;
+  if (left.subject !== right.subject)
+    return left.subject < right.subject ? -1 : 1;
   if (left.kind !== right.kind) return left.kind < right.kind ? -1 : 1;
   if (left.shape !== right.shape) return left.shape < right.shape ? -1 : 1;
   return 0;
