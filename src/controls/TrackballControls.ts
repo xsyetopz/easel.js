@@ -23,7 +23,7 @@ export class TrackballControls extends EventDispatcher {
   /** Event target receiving pointer and wheel listeners. */
   domElement: ControlDomElement;
   /** World-space point the camera revolves around. */
-  target = new Vector3();
+  target: Vector3 = new Vector3();
   /** When false, all interaction is ignored. */
   enabled: boolean = true;
   /** Pointer rotation multiplier. */

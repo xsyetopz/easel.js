@@ -19,6 +19,6 @@ export function decodeHsl16(packed: number): {
 }
 
 /** Packed HSL16 value for black (zero hue, saturation, and lightness). */
-export const HSL16_BLACK = encodeHsl16(0, 0, 0);
+export const HSL16_BLACK: number = encodeHsl16(0, 0, 0);
 /** Packed HSL16 value for white (full lightness). */
-export const HSL16_WHITE = encodeHsl16(0, 0, 1);
+export const HSL16_WHITE: number = encodeHsl16(0, 0, 1);

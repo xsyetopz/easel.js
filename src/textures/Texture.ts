@@ -103,7 +103,7 @@ export class Texture extends EventDispatcher {
   readonly id = textureId++;
 
   /** Stable texture identifier. */
-  readonly uuid = globalThis.crypto.randomUUID();
+  readonly uuid: string = globalThis.crypto.randomUUID();
 
   /** Display name. */
   name = "";
@@ -194,13 +194,13 @@ export class Texture extends EventDispatcher {
   }
 
   /** UV offset. */
-  offset = new Vector2();
+  offset: Vector2 = new Vector2();
 
   /** UV repeat. */
-  repeat = new Vector2(1, 1);
+  repeat: Vector2 = new Vector2(1, 1);
 
   /** UV rotation center. */
-  center = new Vector2();
+  center: Vector2 = new Vector2();
 
   /** UV rotation in radians. */
   rotation = 0;
@@ -209,7 +209,7 @@ export class Texture extends EventDispatcher {
   matrixAutoUpdate: boolean = true;
 
   /** UV transform matrix. */
-  matrix = new Matrix3();
+  matrix: Matrix3 = new Matrix3();
 
   /** Alpha remains straight because the rasterizer owns discrete compositing. */
   get premultiplyAlpha(): false {

@@ -11,7 +11,7 @@ export class ShapePath {
   #currentPath: Path | undefined;
 
   /** Optional fill color metadata associated with the source subpaths. */
-  color = new Color();
+  color: Color = new Color();
   /** Loader and style metadata used when resolving fill rules. */
   userData: Record<string, unknown> = {};
 

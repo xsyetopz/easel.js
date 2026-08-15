@@ -201,6 +201,8 @@ describe("generate-api-comparison", () => {
     expect(rows.some((parts) => privateNamePattern.test(parts[1] ?? ""))).toBe(
       false,
     );
+    expect(checkedReport()).not.toContain("__@iterator@");
+    expect(row("Vector3.[Symbol.iterator]")?.[2]).toBe("method");
   });
 
   it("targets installed THREE core and records the CPU renderer boundary", () => {

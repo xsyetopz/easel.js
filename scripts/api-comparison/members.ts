@@ -140,9 +140,13 @@ interface MemberFactOptions {
   scope: "instance" | "static";
 }
 
+function stableMemberName(name: string): string {
+  return /^__@iterator@\d+$/u.test(name) ? "[Symbol.iterator]" : name;
+}
+
 function memberFact(options: MemberFactOptions): PublicFact {
   const { context, declarations, member, owner, scope } = options;
-  const subject = `${owner}.${member.name}`;
+  const subject = `${owner}.${stableMemberName(member.name)}`;
   if (isAccessorMember(declarations)) {
     return {
       kind: "accessor",

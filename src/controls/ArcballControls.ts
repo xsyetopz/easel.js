@@ -40,7 +40,7 @@ export class ArcballControls extends EventDispatcher {
   /** Event target receiving pointer and wheel listeners. */
   domElement: ControlDomElement;
   /** World-space point at the center of the arcball. */
-  target = new Vector3();
+  target: Vector3 = new Vector3();
   /** Enables all user input when true. */
   enabled: boolean = true;
   /** Enables left-button arcball rotation. */

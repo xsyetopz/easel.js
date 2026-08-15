@@ -55,7 +55,7 @@ export class Source {
   readonly id = sourceId++;
 
   /** Stable source identifier. */
-  readonly uuid = globalThis.crypto.randomUUID();
+  readonly uuid: string = globalThis.crypto.randomUUID();
 
   /** Image or raw pixel payload shared by texture instances. */
   data: SourceImage;

@@ -1,14 +1,87 @@
 import { fromHalfFloat, toHalfFloat } from "../math/DataUtils.ts";
-import { getDataUrl, srgbToLinear, type ImageDataLike } from "./ImageUtils.ts";
 import {
   isShapeClockwise,
   type ShapePoint2D,
   shapeArea,
   triangulateShape,
 } from "../math/ShapeUtils.ts";
+import { getDataUrl, type ImageDataLike, srgbToLinear } from "./ImageUtils.ts";
+
+interface ShapeUtilsObject {
+  /** Calculate the signed area of a 2D contour polygon. */
+  area(contour: readonly ShapePoint2D[]): number;
+
+  /** Returns `true` when the contour uses clockwise winding. */
+  isClockWise(points: readonly ShapePoint2D[]): boolean;
+
+  /** Triangulates a contour and its holes into source-indexed faces. */
+  triangulateShape(
+    contour: readonly ShapePoint2D[],
+    holes: readonly (readonly ShapePoint2D[])[],
+  ): [number, number, number][];
+}
+
+interface ImageUtilsObject {
+  /** Encodes image data as a data URL. */
+  getDataUrl(
+    image: HTMLImageElement | HTMLCanvasElement | ImageData,
+    type?: string,
+  ): string;
+
+  /** Converts an sRGB image to linear-light space. */
+  srgbToLinear<
+    TImage extends
+      | HTMLImageElement
+      | HTMLCanvasElement
+      | ImageBitmap
+      | ImageDataLike,
+  >(
+    image: TImage,
+  ): TImage extends ImageDataLike<infer TArray>
+    ? ImageDataLike<TArray>
+    : HTMLCanvasElement;
+}
+
+interface TextureSize {
+  width: number;
+  height: number;
+}
+
+interface TextureTransform {
+  offset: { x: number; y: number };
+  repeat: { x: number; y: number };
+}
+
+interface TextureUtilsObject {
+  /** Encodes texture image data as a data URL. */
+  getDataUrl(
+    image: HTMLImageElement | HTMLCanvasElement | ImageData,
+    type?: string,
+  ): string;
+
+  /** Returns a UV transform that fits a texture inside an aspect ratio without cropping. */
+  contain(texture: TextureSize, aspect: number): TextureTransform;
+
+  /** Returns a UV transform that covers an aspect ratio, cropping excess texture. */
+  cover(texture: TextureSize, aspect: number): TextureTransform;
+
+  /** Returns a UV transform that stretches a texture to fill the target. */
+  fill(texture: TextureSize): TextureTransform;
+
+  /** Returns the byte length of a texture's RGBA pixel data. */
+  getByteLength(texture: TextureSize): number;
+}
+
+interface DataUtilsObject {
+  /** Encodes a JavaScript number as an IEEE 754 binary16 value. */
+  toHalfFloat(value: number): number;
+
+  /** Decodes an IEEE 754 binary16 value into a JavaScript number. */
+  fromHalfFloat(value: number): number;
+}
 
 /** Utility namespace for 2D shape operations. */
-export const ShapeUtils = {
+export const ShapeUtils: ShapeUtilsObject = {
   /** Calculate the signed area of a 2D contour polygon. */
   area(contour: readonly ShapePoint2D[]): number {
     return shapeArea(contour);
@@ -29,7 +102,7 @@ export const ShapeUtils = {
 };
 
 /** Utility namespace for image operations. */
-export const ImageUtils = {
+export const ImageUtils: ImageUtilsObject = {
   /** Encodes image data as a data URL. */
   getDataUrl(
     image: HTMLImageElement | HTMLCanvasElement | ImageData,
@@ -57,7 +130,7 @@ export const ImageUtils = {
 };
 
 /** Utility namespace for texture operations. */
-export const TextureUtils = {
+export const TextureUtils: TextureUtilsObject = {
   /** Encodes texture image data as a data URL. */
   getDataUrl(
     image: HTMLImageElement | HTMLCanvasElement | ImageData,
@@ -124,7 +197,7 @@ export const Utils = {
 };
 
 /** Utility namespace for data format conversions. */
-export const DataUtils = {
+export const DataUtils: DataUtilsObject = {
   /** Encodes a JavaScript number as an IEEE 754 binary16 value. */
   toHalfFloat(value: number): number {
     return toHalfFloat(value);

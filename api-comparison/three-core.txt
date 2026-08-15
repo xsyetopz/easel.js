@@ -849,7 +849,7 @@
 >	ClampToEdgeWrapping	const	-	const number
 =	Color	class	class	class
 >	Color.NAMES	field	-	static rw Object
->	Color.__@iterator@6220	method	-	instance () => Generator<number, void, unknown>
+>	Color.[Symbol.iterator]	method	-	instance () => Generator<number, void, unknown>
 !	Color.add	method	instance (c: Color) => this	instance (color: Color) => Color
 !	Color.addColors	method	instance (c1: Color, c2: Color) => this	instance (color1: Color, color2: Color) => Color
 !	Color.addScalar	method	instance (s: number) => this	instance (s: number) => Color
@@ -1122,7 +1122,7 @@
 >	DataTextureLoader.createDataTexture	method	-	instance (buffer: ArrayBuffer) => DataTexture
 !	DataTextureLoader.load	method	instance (url: string, onLoad?: (texture: DataTexture) => void, onProgress?: (event: ProgressEvent) => void, onError?: (err: unknown) => void) => void	instance (url: string, onLoad: function(DataTexture), onProgress: onProgressCallback, onError: onErrorCallback) => DataTexture
 <	DataTextureLoader.parse	method	instance (_data: ArrayBuffer) => ParseResult | undefined	-
-!	DataUtils	const/class	const { toHalfFloat(value: number): number; fromHalfFloat(value: number): number; }	class
+!	DataUtils	const/class	const DataUtilsObject	class
 >	DataUtils.constructor	constructor	-	instance () => DataUtils
 >	DataUtils.fromHalfFloat	method	-	static (val: number) => number
 >	DataUtils.toHalfFloat	method	-	static (val: number) => number
@@ -1232,7 +1232,7 @@
 <	DrawCall.vertexColorItemSize	field	instance rw number	-
 <	DrawCall.worldPositions	field	instance rw Float32Array<ArrayBufferLike>	-
 <	DrawList	class	class	-
-<	DrawList.__@iterator@3211	method	instance () => Iterator<DrawCall, any, any>	-
+<	DrawList.[Symbol.iterator]	method	instance () => Iterator<DrawCall, any, any>	-
 <	DrawList.add	method	instance (drawCall: DrawCall) => void	-
 <	DrawList.calls	accessor	instance r DrawCall[]	-
 <	DrawList.clear	method	instance () => void	-
@@ -1294,7 +1294,7 @@
 >	EquirectangularRefractionMapping	const	-	const number
 =	Euler	class	class	class
 >	Euler.DEFAULT_ORDER	field	-	static rw string
->	Euler.__@iterator@6220	method	-	instance () => Generator<string | number, void, unknown>
+>	Euler.[Symbol.iterator]	method	-	instance () => Generator<string | number, void, unknown>
 >	Euler._onChange	method	-	instance (callback: any) => this
 >	Euler._onChangeCallback	method	-	instance () => void
 >	Euler._order	field	-	instance rw string
@@ -1730,7 +1730,7 @@
 !	ImageLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => ImageLoader	instance (manager?: LoadingManager) => ImageLoader
 !	ImageLoader.load	method	instance (url: string, onLoad?: ((image: HTMLImageElement) => void) | undefined, _onProgress?: ((event: ProgressEvent) => void) | undefined, onError?: ((err: Event | string | DOMException) => void) | undefined) => void	instance (url: string, onLoad: function(Image), onProgress: onProgressCallback, onError: onErrorCallback) => Image
 <	ImagePixelArray	record	type = Uint8Array | Uint8ClampedArray | Float32Array	-
-!	ImageUtils	const/class	const { getDataUrl(image: HTMLImageElement | HTMLCanvasElement | ImageData, type?: string): string; srgbToLinear<TImage extends HTMLImageElement | HTMLCanvasElement | ImageBitmap | ImageDataLike>(image: TImage): TImage extends ImageDataLike<infer TArray> ? ImageDataLike<TArray> : HTMLCanvasElement; }	class
+!	ImageUtils	const/class	const ImageUtilsObject	class
 >	ImageUtils.constructor	constructor	-	instance () => ImageUtils
 >	ImageUtils.getDataURL	method	-	static (image: (HTMLImageElement|HTMLCanvasElement), type: string = 'image/png') => string
 >	ImageUtils.sRGBToLinear	method	-	static (image: (HTMLImageElement|HTMLCanvasElement|ImageBitmap|Object)) => HTMLCanvasElement|Object
@@ -2298,7 +2298,7 @@
 !	Matrix2.identity	method	instance () => this	instance () => Matrix2
 !	Matrix2.set	method	instance (n11: number, n12: number, n21: number, n22: number) => this	instance (n11: number, n12: number, n21: number, n22: number) => Matrix2
 =	Matrix3	class	class	class
-<	Matrix3.__@iterator@3211	method	instance () => Generator<number, any, any>	-
+<	Matrix3.[Symbol.iterator]	method	instance () => Generator<number, any, any>	-
 =	Matrix3.clone	method	instance () => Matrix3	instance () => Matrix3
 <	Matrix3.compose	method	instance (position: Vector2, rotation: number, scale: Vector2) => this	-
 !	Matrix3.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix3	instance (n11?: number, n12?: number, n13?: number, n21?: number, n22?: number, n23?: number, n31?: number, n32?: number, n33?: number) => Matrix3
@@ -2333,7 +2333,7 @@
 <	Matrix3.transposeInto	method	instance (values: number[] | Float32Array<ArrayBufferLike>) => this	-
 >	Matrix3.transposeIntoArray	method	-	instance (r: Array<number>) => Matrix3
 =	Matrix4	class	class	class
-<	Matrix4.__@iterator@3211	method	instance () => Generator<number, any, any>	-
+<	Matrix4.[Symbol.iterator]	method	instance () => Generator<number, any, any>	-
 =	Matrix4.clone	method	instance () => Matrix4	instance () => Matrix4
 !	Matrix4.compose	method	instance (position: Vector3, q: Quaternion, scale: Vector3) => this	instance (position: Vector3, quaternion: Quaternion, scale: Vector3) => Matrix4
 !	Matrix4.constructor	constructor	instance (elements?: Float32Array<ArrayBufferLike>) => Matrix4	instance (n11?: number, n12?: number, n13?: number, n14?: number, n21?: number, n22?: number, n23?: number, n24?: number, n31?: number, n32?: number, n33?: number, n34?: number, n41?: number, n42?: number, n43?: number, n44?: number) => Matrix4
@@ -3170,8 +3170,7 @@
 !	QuadraticBezierCurve3.v1	accessor/field	instance rw Vector3	instance rw Vector3
 !	QuadraticBezierCurve3.v2	accessor/field	instance rw Vector3	instance rw Vector3
 =	Quaternion	class	class	class
-<	Quaternion.__@iterator@3211	method	instance () => Generator<number, any, any>	-
->	Quaternion.__@iterator@6220	method	-	instance () => Generator<number, void, unknown>
+!	Quaternion.[Symbol.iterator]	method	instance () => Generator<number, any, any>	instance () => Generator<number, void, unknown>
 >	Quaternion._onChange	method	-	instance (callback: any) => this
 >	Quaternion._onChangeCallback	method	-	instance () => void
 >	Quaternion._w	field	-	instance rw number
@@ -3531,7 +3530,7 @@
 =	ShapePath.type	field	instance rw string	instance rw string
 !	ShapePath.userData	field	instance rw Record<string, unknown>	instance rw Object
 <	ShapePoint2D	record	interface { readonly x: number; readonly y: number }	-
-!	ShapeUtils	const/class	const { area(contour: readonly ShapePoint2D[]): number; isClockWise(points: readonly ShapePoint2D[]): boolean; triangulateShape(contour: readonly ShapePoint2D[], holes: readonly (readonly ShapePoint2D[])[]): [number, number, number][]; }	class
+!	ShapeUtils	const/class	const ShapeUtilsObject	class
 >	ShapeUtils.area	method	-	static (contour: Array<Vector2>) => number
 >	ShapeUtils.constructor	constructor	-	instance () => ShapeUtils
 >	ShapeUtils.isClockWise	method	-	static (pts: Array<Vector2>) => boolean
@@ -3605,7 +3604,7 @@
 =	Source.needsUpdate	accessor	instance w boolean	instance w boolean
 <	Source.sizeInto	method	instance <TTarget extends { set: (...values: number[]) => unknown }>(target: TTarget) => TTarget	-
 !	Source.toJSON	method	instance (meta?: SourceSerializationMeta | string) => SourceJSON	instance (meta: ?(Object|string)) => Object
-!	Source.uuid	field	instance ro `${string}-${string}-${string}-${string}-${string}`	instance ro string
+=	Source.uuid	field	instance ro string	instance ro string
 !	Source.version	field	instance rw number	instance ro number
 <	SourceImage	record	type = | ImageDataLike<ImagePixelArray> | HTMLImageElement | HTMLCanvasElement | ImageBitmap | HTMLVideoElement | undefined	-
 <	SourceJSON	record	interface { uuid: string; url: string | SourcePixelJSON }	-
@@ -3878,7 +3877,7 @@
 =	Texture.updateMatrix	method	instance () => void	instance () => void
 >	Texture.updateRanges	field	-	instance rw Array<Object>
 !	Texture.userData	field	instance rw Record<string, unknown>	instance rw Object
-!	Texture.uuid	field	instance ro `${string}-${string}-${string}-${string}-${string}`	instance ro string
+=	Texture.uuid	field	instance ro string	instance ro string
 !	Texture.version	field	instance rw number	instance ro number
 !	Texture.width	accessor	instance r number	instance r any
 !	Texture.wrapS	field	instance rw Wrapping	instance rw (RepeatWrapping|ClampToEdgeWrapping|MirroredRepeatWrapping)
@@ -3895,7 +3894,7 @@
 <	TextureSampler.constructor	constructor	instance () => TextureSampler	-
 <	TextureSampler.sample	method	instance (texture: TextureData, u: number, v: number) => { r: number; g: number; b: number; a: number; }	-
 <	TextureSerializationMeta	record	interface extends SourceSerializationMeta { textures: Record<string, TextureJSON> }	-
-!	TextureUtils	const/class	const { getDataUrl(image: HTMLImageElement | HTMLCanvasElement | ImageData, type?: string): string; contain(texture: { width: number; height: number; }, aspect: number): { offset: { x: number; y: number; }; repeat: { x: number; y: number; }; }; cover(texture: { width: number; height: number; }, aspect: number): { offset: { x: number; y: number; }; repeat: { x: number; y: number; }; }; fill(_texture: { width: number; height: number; }): { offset: { x: number; y: number; }; repeat: { x: number; y: number; }; }; getByteLength(texture: { width: number; height: number; }): number; }	class
+!	TextureUtils	const/class	const TextureUtilsObject	class
 >	TextureUtils.constructor	constructor	-	instance () => TextureUtils
 >	TextureUtils.contain	method	-	static (texture: Texture, aspect: number) => Texture
 >	TextureUtils.cover	method	-	static (texture: Texture, aspect: number) => Texture
@@ -4147,8 +4146,7 @@
 <	VOXVoxelVolume	record	interface { readonly size: VOXSize; readonly occupancy: Uint8Array; readonly colors: Uint8Array; readonly palette: readonly number[] }	-
 >	VSMShadowMap	const	-	const number
 =	Vector2	class	class	class
-<	Vector2.__@iterator@3211	method	instance () => Generator<number, any, any>	-
->	Vector2.__@iterator@6220	method	-	instance () => Generator<number, void, unknown>
+!	Vector2.[Symbol.iterator]	method	instance () => Generator<number, any, any>	instance () => Generator<number, void, unknown>
 !	Vector2.add	method	instance (v: Vector2) => this	instance (v: Vector2) => Vector2
 !	Vector2.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector2
 !	Vector2.addScaledVector	method	instance (v: Vector2, s: number) => this	instance (v: Vector2, s: number) => Vector2
@@ -4207,8 +4205,7 @@
 !	Vector2.y	accessor	instance rw number	instance (y: number) => Vector2
 >	Vector2.y	field	-	instance rw number
 =	Vector3	class	class	class
-<	Vector3.__@iterator@3211	method	instance () => Generator<number, any, any>	-
->	Vector3.__@iterator@6220	method	-	instance () => Generator<number, void, unknown>
+!	Vector3.[Symbol.iterator]	method	instance () => Generator<number, any, any>	instance () => Generator<number, void, unknown>
 !	Vector3.add	method	instance (v: Vector3) => this	instance (v: Vector3) => Vector3
 !	Vector3.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector3
 !	Vector3.addScaledVector	method	instance (v: Vector3 | Vector4, s: number) => this	instance (v: Vector3|Vector4, s: number) => Vector3
@@ -4287,8 +4284,7 @@
 !	Vector3.z	accessor	instance rw number	instance (z: number) => Vector3
 >	Vector3.z	field	-	instance rw number
 =	Vector4	class	class	class
-<	Vector4.__@iterator@3211	method	instance () => Generator<number, any, any>	-
->	Vector4.__@iterator@6220	method	-	instance () => Generator<number, void, unknown>
+!	Vector4.[Symbol.iterator]	method	instance () => Generator<number, any, any>	instance () => Generator<number, void, unknown>
 !	Vector4.add	method	instance (v: Vector4) => this	instance (v: Vector4) => Vector4
 !	Vector4.addScalar	method	instance (scalar: number) => this	instance (s: number) => Vector4
 !	Vector4.addScaledVector	method	instance (v: Vector4, s: number) => this	instance (v: Vector4, s: number) => Vector4
