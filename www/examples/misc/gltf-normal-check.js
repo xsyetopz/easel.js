@@ -20,7 +20,7 @@ export const meta = {
   category: "data",
   animated: true,
   description:
-    "Export vertex normals with a glTF scene for downstream shading.",
+    "Two lit planes supply normalized normals to a glTF export call.",
 };
 export const controls = [];
 
@@ -58,7 +58,9 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0, 0, 8);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.4));
   const light = new DirectionalLight(0xffffff, 1.8);
@@ -71,7 +73,7 @@ export function setup(canvas) {
   const exported = new GLTFExporter().parse(scene, { normalizeNormals: true });
   canvas.dataset.gltfBytes = String(exported.binary.byteLength);
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop(() => {
     const delta = timer.update().delta;
     mesh1.rotation.y += delta * 0.2;
     mesh2.rotation.y -= delta * 0.2;
@@ -88,8 +90,9 @@ export function setup(canvas) {
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
+
 const exporter = new EASEL.GLTFExporter();
-const result = exporter.parse(scene, { normalizeNormals: true });`;
+const exported = exporter.parse(scene, { normalizeNormals: true });`;
 
 export const example = {
   meta,

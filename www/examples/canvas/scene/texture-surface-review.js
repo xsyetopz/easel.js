@@ -19,8 +19,7 @@ export const meta = {
   name: "Texture Surface Review",
   category: "materials",
   animated: true,
-  description:
-    "Check a textured prop under a stable camera before shipping an asset.",
+  description: "A textured prop rotates under a stable camera.",
 };
 
 export const controls = [];
@@ -52,7 +51,9 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(2.8, 2.2, 5.8);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.4));
   const key = new DirectionalLight(0xffffff, 0.95);

@@ -17,7 +17,7 @@ export const meta = {
   name: "Wave Surface",
   category: "materials",
   animated: true,
-  description: "Inspect a moving water surface built from sampled points.",
+  description: "Sampled points form a moving water surface.",
 };
 
 export const controls = [];
@@ -49,7 +49,9 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0, 4.6, 7.8);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.18));
 

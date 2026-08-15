@@ -18,7 +18,7 @@ export const meta = {
   name: "OBJ Export Check",
   category: "data",
   animated: true,
-  description: "Round-trip a selected mesh as OBJ text for a downstream tool.",
+  description: "A rotating mesh supplies geometry to an OBJ export call.",
 };
 export const controls = [];
 
@@ -34,7 +34,9 @@ export function setup(canvas) {
     far: 50,
   });
   camera.position.set(0, 0, 4);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.7));
   const mesh = new Mesh(
@@ -45,7 +47,7 @@ export function setup(canvas) {
   const exported = new OBJExporter().parse(mesh);
   mesh.userData.exportedLength = exported.length;
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop(() => {
     mesh.rotation.y += timer.update().delta * 0.4;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
@@ -59,8 +61,9 @@ export function setup(canvas) {
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
+
 const exporter = new EASEL.OBJExporter();
-const text = exporter.parse(scene);`;
+const exported = exporter.parse(mesh);`;
 
 export const example = {
   meta,

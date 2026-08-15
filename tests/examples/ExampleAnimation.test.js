@@ -117,6 +117,7 @@ describe("example animation lifecycle", () => {
         setup() {
           calls.push("setup");
           return {
+            firstFrameRendered: true,
             pause() {
               calls.push("pause");
             },
@@ -160,5 +161,41 @@ describe("example animation lifecycle", () => {
         });
       }
     }
+  });
+
+  it("does not report ready when setup skipped its first frame", () => {
+    const states = [];
+    const canvas = {
+      width: 16,
+      height: 9,
+      parentElement: { clientWidth: 640 },
+      getContext() {
+        return {};
+      },
+    };
+    const module = {
+      meta: {
+        id: "runtime-no-frame",
+        name: "Runtime no frame",
+        category: "motion",
+        animated: true,
+        description: "Exercise the missing first-frame diagnostic.",
+      },
+      controls: [],
+      easelSource: 'import * as EASEL from "@xsyetopz/easel";',
+      setup() {
+        return {};
+      },
+    };
+    const controller = mountExampleRuntime({
+      canvas,
+      module,
+      params: {},
+      onState(state) {
+        states.push(state);
+      },
+    });
+    expect(states).toEqual(["loading", "error"]);
+    controller.cleanup();
   });
 });

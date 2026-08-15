@@ -18,7 +18,7 @@ export const meta = {
   name: "G-code Export Check",
   category: "data",
   animated: true,
-  description: "Generate a compact toolpath from scene geometry for review.",
+  description: "A rotating mesh supplies geometry to a G-code export call.",
 };
 export const controls = [];
 
@@ -34,7 +34,9 @@ export function setup(canvas) {
     far: 50,
   });
   camera.position.set(0, 0, 4);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.7));
   const mesh = new Mesh(
@@ -48,7 +50,7 @@ export function setup(canvas) {
   });
   mesh.userData.exportedLength = gcode.length;
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop(() => {
     mesh.rotation.y += timer.update().delta * 0.4;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
@@ -62,8 +64,14 @@ export function setup(canvas) {
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
+
 const exporter = new EASEL.GCodeExporter();
-const text = exporter.parse(scene, { layerHeight: 0.2 });`;
+const gcode = exporter.parse(mesh, {
+  layerHeight: 0.25,
+  extrusionPerUnit: 0.04,
+});
+
+mesh.userData.exportedLength = gcode.length;`;
 
 export const example = {
   meta,

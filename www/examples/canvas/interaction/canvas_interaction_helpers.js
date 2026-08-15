@@ -35,7 +35,9 @@ export function createScene(canvas, options = {}) {
         far: 100,
       });
   camera.position.set(...(options.cameraPosition ?? [4, 3, 8]));
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(...(options.target ?? [0, 0, 0])));
+  camera.updateMatrix();
   scene.background = new Color(options.background ?? 0x101622);
   scene.add(new AmbientLight(0xffffff, 0.35));
   const key = new DirectionalLight(0xffffff, 0.95);

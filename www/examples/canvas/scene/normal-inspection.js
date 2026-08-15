@@ -25,7 +25,7 @@ export const meta = {
   name: "Normal Inspection",
   category: "materials",
   animated: true,
-  description: "Inspect mesh topology with wireframe and edge overlays.",
+  description: "Wireframe and edge overlays show mesh topology.",
 };
 
 export const controls = [];

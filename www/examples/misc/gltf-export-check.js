@@ -18,7 +18,7 @@ export const meta = {
   name: "glTF Export Check",
   category: "data",
   animated: true,
-  description: "Export a scene to glTF and inspect the resulting document.",
+  description: "A rotating mesh supplies a scene to a glTF export call.",
 };
 export const controls = [];
 
@@ -34,7 +34,9 @@ export function setup(canvas) {
     far: 50,
   });
   camera.position.set(0, 0, 4);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.7));
   const mesh = new Mesh(
@@ -46,7 +48,7 @@ export function setup(canvas) {
   mesh.userData.exportedBytes = exported.binary.byteLength;
   mesh.userData.exportedJson = JSON.stringify(exported.json).length;
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop(() => {
     mesh.rotation.y += timer.update().delta * 0.4;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
@@ -61,8 +63,9 @@ export function setup(canvas) {
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
+
 const exporter = new EASEL.GLTFExporter();
-const result = exporter.parse(scene);`;
+const exported = exporter.parse(scene);`;
 
 export const example = {
   meta,

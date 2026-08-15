@@ -18,7 +18,7 @@ export const meta = {
   name: "STL Export Check",
   category: "data",
   animated: true,
-  description: "Write a watertight mesh as STL for fabrication workflows.",
+  description: "A rotating mesh supplies geometry to an STL export call.",
 };
 export const controls = [];
 
@@ -34,7 +34,9 @@ export function setup(canvas) {
     far: 50,
   });
   camera.position.set(0, 0, 4);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.7));
   const mesh = new Mesh(
@@ -45,7 +47,7 @@ export function setup(canvas) {
   const exported = new STLExporter().parse(mesh, "EASELBox");
   mesh.userData.exportedLength = exported.length;
   const timer = new Timer();
-  const animation = createExampleAnimationLoop((timestamp) => {
+  const animation = createExampleAnimationLoop(() => {
     mesh.rotation.y += timer.update().delta * 0.4;
     renderer.prepare(scene, camera);
     renderer.render(scene, camera);
@@ -59,8 +61,9 @@ export function setup(canvas) {
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
+
 const exporter = new EASEL.STLExporter();
-const text = exporter.parse(scene, "EASELBox");`;
+const exported = exporter.parse(mesh, "EASELBox");`;
 
 export const example = {
   meta,

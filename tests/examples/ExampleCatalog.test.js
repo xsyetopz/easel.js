@@ -22,24 +22,7 @@ describe("EASEL.js example catalog", () => {
     ).toBe(true);
     expect(examples.every((example) => example.meta.animated)).toBe(true);
     expect(
-      examples.every((example) =>
-        example.easelSource.includes("@xsyetopz/easel"),
-      ),
-    ).toBe(true);
-    expect(
       examples.some((example) => example.meta.id.includes("buffergeometry")),
-    ).toBe(false);
-    expect(
-      examples.some((example) =>
-        /three|webgl|webgpu/iu.test(example.easelSource),
-      ),
-    ).toBe(false);
-    expect(
-      examples.some((example) =>
-        /HDRLoader|VertexNormalsHelper|VertexTangentsHelper/u.test(
-          example.easelSource,
-        ),
-      ),
     ).toBe(false);
   });
 
@@ -55,9 +38,15 @@ describe("EASEL.js example catalog", () => {
     ]);
   });
 
-  it("keeps every source panel syntactically valid", () => {
+  it("keeps every source panel syntactically valid", async () => {
     for (const example of examples) {
-      const source = example.easelSource.replace(/^import[^\n]*\n/gm, "");
+      const module = await example.load();
+      expect(module.easelSource).toContain("@xsyetopz/easel");
+      expect(module.easelSource).not.toMatch(/three|webgl|webgpu/iu);
+      expect(module.easelSource).not.toMatch(
+        /HDRLoader|VertexNormalsHelper|VertexTangentsHelper/u,
+      );
+      const source = module.easelSource.replace(/^import[^\n]*\n/gm, "");
       expect(() => new Function(source)).not.toThrow();
     }
   });
@@ -78,7 +67,6 @@ describe("EASEL.js example catalog", () => {
       const module = await entry.load();
       expect(module.meta).toEqual(entry.meta);
       expect(module.controls ?? []).toEqual(entry.controls);
-      expect(module.easelSource).toBe(entry.easelSource);
       expect(typeof module.setup).toBe("function");
     }
   });

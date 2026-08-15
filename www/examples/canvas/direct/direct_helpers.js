@@ -36,7 +36,9 @@ function base(canvas, orthographic = false) {
         far: 100,
       });
   camera.position.set(0, 0.4, 6.5);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
   scene.add(new AmbientLight(0xffffff, 0.4));
   const light = new DirectionalLight(0xffffff, 0.9);

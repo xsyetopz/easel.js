@@ -120,7 +120,11 @@ export function mountExampleRuntime({
     try {
       instance = module.setup(canvas, params);
       applyReducedMotion();
-      report("ready");
+      if (instance?.firstFrameRendered === true) {
+        report("ready");
+      } else {
+        report("error", new Error("Example did not render its first frame."));
+      }
     } catch (error) {
       instance = undefined;
       report("error", error);

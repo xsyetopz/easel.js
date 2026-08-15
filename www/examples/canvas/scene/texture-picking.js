@@ -19,7 +19,7 @@ export const meta = {
   name: "Texture Picking",
   category: "interaction",
   animated: true,
-  description: "Pick a texture coordinate on a board and report its location.",
+  description: "A marker follows pointer hits across a patterned board.",
 };
 
 export const controls = [];
@@ -51,7 +51,9 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(0, 0.5, 6.5);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
 
   const texture = checkerTexture();
@@ -107,9 +109,21 @@ export function setup(canvas) {
 }
 
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
+
+raycaster.setFromCamera(pointer, camera);
 const hit = raycaster.intersectObject(board)[0];
-const uv = { x: (hit.point.x + 2.2) / 4.4, y: (hit.point.y + 1.6) / 3.2 };
-marker.position.copy(hit.point);`;
+
+if (hit) {
+  const localHit = board.worldToLocal(hit.point.clone());
+  const uvX = (localHit.x + 2.2) / 4.4;
+  const uvY = (localHit.y + 1.6) / 3.2;
+
+  marker.visible = true;
+  marker.position.set(hit.point.x, hit.point.y, 0.08);
+  marker.scale.set(0.7 + uvX * 0.5, 0.7 + uvY * 0.5, 0.7 + uvX * 0.5);
+} else {
+  marker.visible = false;
+}`;
 
 export const example = {
   meta,

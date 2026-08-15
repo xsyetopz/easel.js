@@ -7,6 +7,7 @@
  * uses the host's public animation APIs rather than patching global functions.
  */
 export interface ExampleAnimationController {
+  readonly firstFrameRendered: boolean;
   pause(): void;
   resume(): void;
   setReducedMotion(reduced: boolean): void;
@@ -27,6 +28,7 @@ export function createExampleAnimationLoop(
   let frameHandle: number | undefined;
   let running = true;
   let disposed = false;
+  let firstFrameRendered = false;
 
   function schedule(): void {
     if (
@@ -43,6 +45,7 @@ export function createExampleAnimationLoop(
     if (disposed || !running) return;
     frameHandle = undefined;
     render(timestamp);
+    firstFrameRendered = true;
     schedule();
   }
 
@@ -75,5 +78,13 @@ export function createExampleAnimationLoop(
   }
 
   tick(currentTimestamp());
-  return { pause, resume, setReducedMotion, cleanup };
+  return {
+    get firstFrameRendered(): boolean {
+      return firstFrameRendered;
+    },
+    pause,
+    resume,
+    setReducedMotion,
+    cleanup,
+  };
 }

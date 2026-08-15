@@ -10,13 +10,14 @@ import {
   Vector3,
 } from "@/index.js";
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+import { aimCamera } from "../../../runtime/example-camera.ts";
 
 export const meta = {
   id: "character-motion-review",
   name: "Character Motion Review",
   category: "motion",
   animated: true,
-  description: "Inspect a skeletal motion clip with its animated hierarchy.",
+  description: "A skeletal motion clip drives an animated bone hierarchy.",
 };
 export const controls = [];
 
@@ -59,7 +60,7 @@ export function setup(canvas) {
     far: 50,
   });
   camera.position.set(3.4, 2.1, 6.4);
-  camera.lookAt(new Vector3(0, 1.1, 0));
+  aimCamera(camera, new Vector3(0, 1.1, 0));
   const renderer = new Renderer({ canvas, width, height });
   const result = new BVHLoader().parse(source);
   const helper = new SkeletonHelper(result.root);

@@ -17,7 +17,7 @@ export const meta = {
   name: "Texture Atlas Review",
   category: "materials",
   animated: true,
-  description: "Inspect nearest-neighbor atlas regions on a textured surface.",
+  description: "Nearest-neighbor atlas regions cover a textured surface.",
 };
 
 export const controls = [];
@@ -49,7 +49,9 @@ export function setup(canvas) {
     far: 100,
   });
   camera.position.set(2.7, 2.2, 5.7);
+  camera.updateMatrixWorld(false, false, true);
   camera.lookAt(new Vector3(0, 0, 0));
+  camera.updateMatrix();
   const renderer = new Renderer({ canvas, width, height });
 
   const geometry = new BoxGeometry(2.4, 2.4, 2.4);
