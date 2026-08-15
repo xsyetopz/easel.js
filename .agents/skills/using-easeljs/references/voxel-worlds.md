@@ -41,6 +41,7 @@ if (attr) {
         pos[i] += offsetX;
         pos[i + 2] += offsetZ;
     }
+    attr.needsUpdate = true;
     geometry.computeBoundingSphere();
 }
 ```

@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xsyetopz/easel": "0.6.1",
+    "@xsyetopz/easel": "0.7.0",
     "astro": "^7.1.6"
   },
   "devDependencies": {

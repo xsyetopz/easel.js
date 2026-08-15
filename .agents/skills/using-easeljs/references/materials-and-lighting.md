@@ -14,18 +14,18 @@ lights, and fog/background precedence.
 Base `Material` fields:
 
 - `layer`: draw order within tile; higher draws later
-- `opacity`: discrete translucency, 0 opaque through 8 nearly transparent
+- `opacity`: discrete translucency, 0 opaque through 8 fully transparent
 - `shading`: `Shading.Flat` or `Shading.Gouraud`
 - `side`: `Side.Front`, `Side.Back`, or `Side.Double`
-- `visible`
-- `needsUpdate`
+- `visible`, `wireframe`, `vertexColors`
+- `depthTest`, `depthWrite`, `needsUpdate`
 
 Material classes:
 
 - `BasicMaterial`: solid or textured, not lit
 - `LambertMaterial`: diffuse lighting from scene lights
 - `ToonMaterial`: toon-styled material
-- `LineMaterial`, `DashedLineMaterial`, `PointsMaterial`
+- `LineMaterial`, `DashedLineMaterial`, `PointsMaterial`, `SpriteMaterial`
 
 Options common to `BasicMaterial` and `LambertMaterial`:
 
@@ -38,6 +38,11 @@ Options common to `BasicMaterial` and `LambertMaterial`:
  transparent?: boolean;
  shading?: number;
  side?: number;
+ depthTest?: boolean;
+ depthWrite?: boolean;
+ visible?: boolean;
+ wireframe?: boolean;
+ vertexColors?: boolean;
 }
 ```
 
@@ -74,7 +79,7 @@ water.opacity = 3;
 
 Set `transparent: true` to enable blending; `opacity` alone does not blend.
 Opacity is discrete and inverted relative to a usual alpha value: `0` is fully
-opaque and `8` is nearly transparent. For an approximate THREE.js alpha `alpha`
+opaque and `8` is fully transparent. For an approximate THREE.js alpha `alpha`
 in the usual `0..1` scale, use `Math.round((1 - alpha) * 8)` and visually verify
 the result.
 
@@ -87,6 +92,7 @@ Light exports:
 - `HemisphereLight`
 - `PointLight`
 - `SpotLight`
+- `RectAreaLight`, `LightProbe`
 - helpers: `DirectionalLightHelper`, `PointLightHelper`, `SpotLightHelper`
 
 Use lights with lit materials such as `LambertMaterial`. `BasicMaterial` is
@@ -101,11 +107,22 @@ sun.position.set(1, 2, 1);
 scene.add(sun);
 ```
 
-Fog constructor:
+Fog constructors:
 
 ```ts
-new EASEL.Fog({ color?: EASEL.Color | number | string, near?: number, far?: number, density?: number })
+new EASEL.Fog({
+  color?: EASEL.Color | number | string,
+  name?: string,
+  near?: number,
+  far?: number,
+  mode?: EASEL.FogModeType,
+  density?: number,
+})
+new EASEL.FogExp2(color?, density?, far?)
 ```
+
+After changing `near`, `far`, `mode`, or `density`, call `fog.updateLut()` before
+rendering; traversal rejects a dirty fog lookup table.
 
 Fog recipe:
 

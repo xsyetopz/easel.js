@@ -11,15 +11,28 @@ const camera = new EASEL.PerspectiveCamera({
   far: 100,
 });
 camera.position.set(2, 2, 4);
+camera.updateMatrixWorld(false, false, true);
 camera.lookAt(0, 0, 0);
-const mesh = new EASEL.Mesh(
-  new EASEL.BoxGeometry(1, 1, 1),
-  new EASEL.BasicMaterial({ color: 0xffcc00 }),
-);
+camera.updateMatrix();
+const geometry = new EASEL.BoxGeometry(1, 1, 1);
+const material = new EASEL.BasicMaterial({ color: 0xffcc00 });
+const mesh = new EASEL.Mesh(geometry, material);
 scene.add(mesh);
-function frame() {
+let frameId = 0;
+function frame(): void {
   mesh.rotation.y += 0.02;
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
-  requestAnimationFrame(frame);
+  frameId = requestAnimationFrame(frame);
 }
-frame();
+frameId = requestAnimationFrame(frame);
+window.addEventListener(
+  "pagehide",
+  () => {
+    cancelAnimationFrame(frameId);
+    geometry.dispose();
+    material.dispose();
+    renderer.dispose();
+  },
+  { once: true },
+);

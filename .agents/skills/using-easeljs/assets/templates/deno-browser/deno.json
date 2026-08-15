@@ -12,7 +12,7 @@
     "noUnusedParameters": true
   },
   "imports": {
-    "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.6.1"
+    "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.7.0"
   },
   "exclude": [],
   "lint": {
@@ -50,7 +50,7 @@
   },
   "fmt": {
     "exclude": [],
-    "useTabs": true,
+    "useTabs": false,
     "semiColons": true,
     "proseWrap": "preserve",
     "quoteProps": "asNeeded"

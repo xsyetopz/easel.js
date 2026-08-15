@@ -23,7 +23,7 @@ Practical constraints:
   work.
 - Texture sampling is CPU-side. Use compact atlases and small pixel-art textures
   for retro scenes.
-- `Material.opacity` is discrete in the base material: 0 opaque, 8 nearly
+- `Material.opacity` is discrete in the base material: 0 opaque, 8 fully
   transparent.
 - Transparent or semi-transparent surfaces need predictable draw order. Split
   transparent geometry when needed.
@@ -105,7 +105,7 @@ scene.add(mesh);
 Renderer lifecycle:
 
 - create one renderer per canvas
-- stop animation loop before disposal
+- cancel the application-owned animation frame before disposal
 - remove input listeners separately
 - call `renderer.dispose()` when canvas renderer is no longer needed
 
@@ -116,9 +116,8 @@ Material sharing:
 
 ## Structural profiler
 
-`RenderTimings` is an internal renderer type rather than a root package export;
-pass a structural object to the third `render` argument. Inspect returned timing
-fields such as `totalMs`, `shadeRasterMs`, and `uploadMs` when present.
+`RenderTimings` is a root-exported type. Pass an object to the third `render`
+argument and inspect fields such as `totalMs`, `shadeRasterMs`, and `uploadMs`.
 
 ```ts
 import type * as EASEL from "@xsyetopz/easel";
@@ -127,10 +126,9 @@ export function renderWithTiming(
   renderer: EASEL.Renderer,
   scene: EASEL.Scene,
   camera: EASEL.PerspectiveCamera,
-): Record<string, number | boolean | undefined> {
-  const timings: Record<string, number | boolean | undefined> = {
-    profileTraversal: true,
-  };
+): EASEL.RenderTimings {
+  const timings: EASEL.RenderTimings = { profileTraversal: true };
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera, timings);
   return timings;
 }

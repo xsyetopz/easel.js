@@ -26,21 +26,25 @@ and Canvas2D.
 Use `npm:` when matching npm/Bun/Node examples:
 
 ```ts
-import * as EASEL from "npm:@xsyetopz/easel@0.6.1";
+import * as EASEL from "npm:@xsyetopz/easel@0.7.0";
 ```
 
 Use `jsr:` for JSR-native Deno projects:
 
 ```ts
-import * as EASEL from "jsr:@xsyetopz/easel@0.6.1";
+import * as EASEL from "jsr:@xsyetopz/easel@0.7.0";
 ```
+
+This pin requires a published JSR 0.7.0 package. If it does not resolve, use a
+local 0.7.0 checkout/declaration build for validation rather than downgrading
+the code to an older API.
 
 Use `deno.json` imports when code should keep bare package imports:
 
 ```json
 {
     "imports": {
-        "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.6.1"
+        "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.7.0"
     },
     "compilerOptions": {
         "lib": ["dom", "dom.iterable", "es2022"],
@@ -54,9 +58,8 @@ Use `deno.json` imports when code should keep bare package imports:
 }
 ```
 
-The template intentionally omits `deno.lock` until the pinned 0.6.1 JSR release
-is published; run `deno cache src/main.ts` (or `deno task check`) in the
-generated project to create a lockfile then.
+The template omits a lockfile so the copied project can resolve and create its
+own lock with `deno cache src/main.ts` or `deno task check`.
 
 ## Minimal Browser Entry
 
@@ -76,7 +79,9 @@ const camera = new EASEL.PerspectiveCamera({
 });
 
 camera.position.set(2, 2, 4);
+camera.updateMatrixWorld(false, false, true);
 camera.lookAt(0, 0, 0);
+camera.updateMatrix();
 scene.add(
     new EASEL.Mesh(
         new EASEL.BoxGeometry(1, 1, 1),
@@ -85,15 +90,16 @@ scene.add(
 );
 
 function frame(): void {
+    renderer.prepare(scene, camera);
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
 }
 frame();
 ```
 
-The public `Scene` is accepted directly by `Renderer.render` in the 0.6.1
-declarations, including projects that enable `exactOptionalPropertyTypes`; no
-render-boundary adapter is required.
+The public `Scene` and concrete camera are accepted directly by
+`Renderer.prepare` and `Renderer.render`, including with
+`exactOptionalPropertyTypes`.
 
 ## Validate
 
@@ -110,7 +116,7 @@ Browser console check:
 console.log(EASEL.REVISION);
 ```
 
-Expected API revision: `0.6.1`.
+Expected API revision: `0.7.0`.
 
 ## Do Not
 

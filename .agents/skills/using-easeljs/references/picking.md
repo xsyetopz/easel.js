@@ -30,24 +30,15 @@ coordinates:
 const ndc = { x: (x / canvas.width) * 2 - 1, y: 1 - (y / canvas.height) * 2 };
 const raycaster = new EASEL.Raycaster();
 
-// Raycaster needs the inverse projection matrix; build the structural camera
-// adapter because the public Camera classes do not expose that inverse.
-camera.updateMatrixWorld();
-const rayCamera = {
-    type: camera.type,
-    matrixWorld: camera.matrixWorld,
-    projectionMatrixInverse: new EASEL.Matrix4()
-        .copy(camera.projectionMatrix)
-        .invert(),
-    isOrthographic: camera.type === "OrthographicCamera",
-};
-raycaster.setFromCamera(ndc, rayCamera);
+renderer.prepare(scene, camera);
+raycaster.setFromCamera(ndc, camera);
 const hits = raycaster.intersectObject(scene, true);
 ```
 
-Do not pass a public `PerspectiveCamera` or `OrthographicCamera` instance
-directly: `setFromCamera` accepts a structural `RaycastCamera` containing
-`type`, `matrixWorld`, and `projectionMatrixInverse`.
+The public `PerspectiveCamera` and `OrthographicCamera` expose the
+`matrixWorld` and `projectionMatrixInverse` required by `RaycastCamera`. Prepare
+the camera before constructing the ray. Use `raycaster.lineThreshold` and
+`raycaster.pointsThreshold` for those primitive types.
 
 Voxel worlds often use custom DDA picking instead of mesh triangle picking.
 Recipe:

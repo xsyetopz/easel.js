@@ -18,10 +18,11 @@ perspective-correct. Textures viewed through a `PerspectiveCamera` can therefore
 warp, which is an expected CPU-rasterizer tradeoff rather than a missing GPU
 feature.
 
-Image-backed `Texture` sources are clamped to a maximum of 128×128 pixels when
-`needsUpdate = true`. The clamp uses nearest-neighbor resampling
-(`imageSmoothingEnabled = false`). `DataTexture` remains a direct typed-array
-source, so keep atlases compact and choose dimensions deliberately.
+Every CPU texture cache, including `DataTexture`, is bounded to 128×128.
+Image-backed `Texture` updates use nearest-neighbor resampling
+(`imageSmoothingEnabled = false`); oversized `DataTexture` data keeps the
+upper-left bounded region. Keep atlases compact and choose dimensions
+deliberately.
 
 ## Textures and assets
 
@@ -38,14 +39,14 @@ Texture exports:
 `DataTexture` constructor:
 
 ```ts
-new EASEL.DataTexture(data: Uint8ClampedArray, width: number, height: number)
+new EASEL.DataTexture(data?: Uint8ClampedArray, width?: number, height?: number)
 ```
 
 Pixel-art guidance:
 
 - Build compact atlases.
 - Use deterministic UV rectangles.
-- Set `needsUpdate = true` after mutating texture data/source.
+- After mutating texture data/source, set `needsUpdate = true` and call `update()`.
 - Keep texture dimensions small enough for CPU sampling costs.
 
 ## Texture atlas pipeline
@@ -60,7 +61,7 @@ Pattern:
 - Read `ImageData` from a context created with `{ willReadFrequently: true }`.
 - Copy selected tile pixels into a compact atlas `Uint8ClampedArray`.
 - Create `DataTexture` from atlas bytes.
-- Set `texture.needsUpdate = true` after data changes.
+- After data changes, set `texture.needsUpdate = true` and call `texture.update()`.
 
 Use typed-array copying for predictable CPU performance; the complete canvas and
 checkerboard functions below are complete examples.
@@ -82,6 +83,7 @@ export function dataTextureFromCanvas(
         image.height,
     );
     texture.needsUpdate = true;
+    texture.update();
     return texture;
 }
 ```
@@ -105,6 +107,7 @@ export function makeCheckerAtlas(size = 16): EASEL.DataTexture {
     }
     const texture = new EASEL.DataTexture(data, size, size);
     texture.needsUpdate = true;
+    texture.update();
     return texture;
 }
 ```

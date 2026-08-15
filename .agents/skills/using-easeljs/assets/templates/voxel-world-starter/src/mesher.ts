@@ -71,7 +71,9 @@ function isVisibleFace(
 ): boolean {
   const [nx, ny, nz] = FACE_NORMALS[face];
   const neighbor = world.getBlock(x + nx, y + ny, z + nz);
-  return neighbor === 0 || (world.isTransparent(block) && neighbor !== block);
+  if (neighbor === 0) return true;
+  if (world.isTransparent(block) && neighbor !== block) return true;
+  return !world.isTransparent(block) && world.isTransparent(neighbor);
 }
 
 function createGeometry(buffers: MeshBuffers): EASEL.Geometry {
@@ -79,7 +81,7 @@ function createGeometry(buffers: MeshBuffers): EASEL.Geometry {
   geometry.setPositions(buffers.positions);
   geometry.setNormals(buffers.normals);
   geometry.setUVs(buffers.uvs);
-  geometry.setIndex(createIndexBuffer(buffers.indices));
+  geometry.index = createIndexBuffer(buffers.indices);
   geometry.computeBoundingSphere();
   return geometry;
 }

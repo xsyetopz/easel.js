@@ -12,21 +12,32 @@ const camera = new EASEL.PerspectiveCamera({
   far: 100,
 });
 camera.position.set(6, 6, 8);
+camera.updateMatrixWorld(false, false, true);
 camera.lookAt(4, 0, 4);
+camera.updateMatrix();
 scene.add(new EASEL.AmbientLight(0xffffff, 0.4));
 const world: BlockWorld = {
   getBlock: (_x, y) => (y === 0 ? 1 : 0),
   isTransparent: () => false,
   uvFor: () => [0, 0, 1, 1],
 };
-scene.add(
-  new EASEL.Mesh(
-    buildSimpleVoxelChunk(world, 8, 2, 8),
-    new EASEL.BasicMaterial({ color: 0x44aa44 }),
-  ),
-);
-function frame() {
+const geometry = buildSimpleVoxelChunk(world, 8, 2, 8);
+const material = new EASEL.BasicMaterial({ color: 0x44aa44 });
+scene.add(new EASEL.Mesh(geometry, material));
+let frameId = 0;
+function frame(): void {
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
-  requestAnimationFrame(frame);
+  frameId = requestAnimationFrame(frame);
 }
-frame();
+frameId = requestAnimationFrame(frame);
+window.addEventListener(
+  "pagehide",
+  () => {
+    cancelAnimationFrame(frameId);
+    geometry.dispose();
+    material.dispose();
+    renderer.dispose();
+  },
+  { once: true },
+);

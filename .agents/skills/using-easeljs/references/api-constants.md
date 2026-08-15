@@ -1,43 +1,54 @@
 # API constants
 
-Generated from `@xsyetopz/easel@0.6.1` `dist/core/Constants.d.ts`.
+Source: `src/core/Constants.ts` and root exports at EASEL 0.7.0.
 
 ```ts
-/** Face culling sides. */
-export declare const Side: {
-    readonly Front: 0;
-    readonly Back: 1;
-    readonly Double: 2;
-};
-export type Side = (typeof Side)[keyof typeof Side];
-/** Shading models available in the scanline rasterizer. */
-export declare const Shading: {
-    readonly Flat: 0;
-    readonly Gouraud: 1;
-};
-export type Shading = (typeof Shading)[keyof typeof Shading];
-/** Draw order layers within a tile. Higher values draw later (on top). */
-export declare const Layer: {
-    readonly GROUND: 0;
-    readonly SCENERY: 1;
-    readonly ENTITY: 2;
-    readonly OVERLAY: 3;
-};
-export type Layer = (typeof Layer)[keyof typeof Layer];
-/** Texture UV wrapping modes. */
-export declare const Wrapping: {
-    readonly ClampToEdge: 0;
-    readonly Repeat: 1;
-};
-export type Wrapping = (typeof Wrapping)[keyof typeof Wrapping];
-/** Numeric light type identifiers for fast dispatch in the shading pipeline. */
-export declare const LightType: {
-    readonly Ambient: 0;
-    readonly Hemisphere: 1;
-    readonly Directional: 2;
-    readonly Point: 3;
-    readonly Spot: 4;
-};
-export type LightType = (typeof LightType)[keyof typeof LightType];
-//# sourceMappingURL=Constants.d.ts.map
+Side = { Front: 0, Back: 1, Double: 2 }
+Shading = { Flat: 0, Gouraud: 1 }
+Layer = { GROUND: 0, SCENERY: 1, ENTITY: 2, OVERLAY: 3 }
+Wrapping = { ClampToEdge: 0, Repeat: 1, MirroredRepeat: 2 }
+BindMode = { Attached: "attached", Detached: "detached" }
+LightType = {
+  Ambient: 0,
+  Hemisphere: 1,
+  Directional: 2,
+  Point: 3,
+  Spot: 4,
+  RectArea: 5,
+}
+MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2, ROTATE: 0, DOLLY: 1, PAN: 2 }
+TOUCH = { ROTATE: 0, PAN: 1, DOLLY_PAN: 2, DOLLY_ROTATE: 3 }
+TrianglesDrawMode = 0
+TriangleStripDrawMode = 1
+TriangleFanDrawMode = 2
+LinearTransfer = "linear"
+SRGBTransfer = "srgb"
+NoNormalPacking = ""
+NormalRGPacking = "rg"
+NormalGAPacking = "ga"
+InterpolationSamplingMode = {
+  NORMAL: "normal",
+  CENTROID: "centroid",
+  SAMPLE: "sample",
+  FIRST: "first",
+  EITHER: "either",
+}
+InterpolationSamplingType = {
+  PERSPECTIVE: "perspective",
+  LINEAR: "linear",
+  FLAT: "flat",
+}
+Compatibility = { TEXTURE_COMPARE: "depthTextureCompare" }
+```
+
+`ColorManagement` is exported but disabled for the Canvas2D path:
+`enabled === false`, `workingColorSpace === "srgb"`, and its conversion
+functions return the input unchanged.
+
+Animation constants are owned separately:
+
+```ts
+Loop = { Once: 2200, Repeat: 2201, PingPong: 2202 }
+AnimationBlend = { Normal: 2500, Additive: 2501 }
+Interpolation = { Discrete: 2300, Linear: 2301, Smooth: 2302, Bezier: 2303 }
 ```

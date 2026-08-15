@@ -5,11 +5,13 @@ UVs, normals, and bounding spheres.
 
 ## Built-in geometry
 
-Built-in geometry exports in `@xsyetopz/easel@0.6.1`:
+Built-in geometry exports in `@xsyetopz/easel@0.7.0`:
 
 - `BoxGeometry`
 - `CapsuleGeometry`
+- `CircleGeometry`
 - `ConeGeometry`
+- `ConvexGeometry`
 - `CylinderGeometry`
 - `DodecahedronGeometry`
 - `EdgesGeometry`
@@ -17,6 +19,7 @@ Built-in geometry exports in `@xsyetopz/easel@0.6.1`:
 - `IcosahedronGeometry`
 - `LatheGeometry`
 - `OctahedronGeometry`
+- `ParametricGeometry`
 - `PlaneGeometry`
 - `PolyhedronGeometry`
 - `RingGeometry`
@@ -50,11 +53,17 @@ Public methods:
 - `setUVs(Float32Array | number[])`
 - `setColors(Float32Array | number[])`
 - `setNormals(Float32Array | number[])`
-- `setIndex(Uint16Array | Uint32Array | number[])`
+- `index = Uint16Array | Uint32Array | number[] | undefined`
+- `setFromPoints(points)`
 - `getAttribute(name)`
+- `hasAttribute(name)
 - `setAttribute(name, attribute)`
 - `deleteAttribute(name)`
+- `setDrawRange(start, count)`
 - `computeVertexNormals()`
+- `normalizeNormals()`
+- `computeTangents()`
+- `computeBoundingBox()`
 - `computeBoundingSphere()`
 - `dispose()`
 
@@ -82,7 +91,7 @@ export function createTriangleMesh(): EASEL.Mesh {
 	geometry.setPositions(new Float32Array([0, 1, 0, -1, -1, 0, 1, -1, 0]));
 	geometry.setNormals(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]));
 	geometry.setUVs(new Float32Array([0.5, 0, 0, 1, 1, 1]));
-	geometry.setIndex(new Uint16Array([0, 1, 2]));
+	geometry.index = new Uint16Array([0, 1, 2]);
 	geometry.computeBoundingSphere();
 	return new EASEL.Mesh(
 		geometry,

@@ -1,192 +1,93 @@
 # Getting started
 
-Use this guide when adding `@xsyetopz/easel`, identifying EASEL.js, or checking
-the package/version before writing a scene. The bundled baseline is
-`@xsyetopz/easel@0.6.1`; preserve the installed project version when one is
-already present.
-
-## Contents
-
-- [Identity and runtime](#identity-and-runtime)
-- [Install and first validation](#install-and-first-validation)
-- [Import modes](#import-modes)
-- [Version provenance](#version-provenance)
-- [Boundaries](#boundaries)
+Baseline: `@xsyetopz/easel@0.7.0`. Preserve an existing installed version
+unless the task explicitly upgrades it, then inspect that version's declarations.
 
 ## Identity and runtime
 
-This skill covers `@xsyetopz/easel`, also called EASEL.js in the project docs.
+- Package: `@xsyetopz/easel`
+- Revision constant: `REVISION === "0.7.0"`
+- Target: browser `HTMLCanvasElement` and Canvas2D
+- Backend: CPU software rasterizer followed by `ImageData` upload
+- Root entries: ESM `dist/index.es.js`, CommonJS `dist/index.cjs`, declarations
+  `dist/index.d.ts`
+- Exported package subpaths: root (`.`) only
 
-Package identity:
+This is not CreateJS EaselJS. `createjs.Stage`, `Ticker`, `Bitmap`, and display
+list recipes do not apply.
 
-- npm/JSR name: `@xsyetopz/easel`
-- Runtime target: browser Canvas2D
-- Rendering model: CPU software rasterizer
-- Scene API style: THREE.js-like scene graph
-- Baseline version in this skill: `0.6.1`
+## Install and import
 
-Capability boundary framing:
+```bash
+bun add @xsyetopz/easel@0.7.0
+```
 
-| If the task says...               | Ground to...                                                                    |
-| --------------------------------- | ------------------------------------------------------------------------------- |
-| "EASEL.js"                        | `@xsyetopz/easel` package unless the repo imports something else                |
-| "easeljs.org"                     | This package’s docs/site                                                        |
-| "EaselJS" with `createjs` imports | Different library family; inspect actual package/imports before mixing patterns |
-| "CPU/Canvas 3D"                   | `Renderer` + software rasterizer + Canvas2D upload                              |
-| "like THREE.js"                   | Use concept mapping, then confirm class names/signatures in API docs            |
-
-Preferred import style:
+If 0.7.0 is not yet available from the selected registry, validate against the
+repository source/declaration build or wait for publication; do not silently
+downgrade examples to an older API.
 
 ```ts
 import * as EASEL from "@xsyetopz/easel";
-```
-
-Named imports are also valid when the symbol appears in the
-[API exports](api-exports.md) index:
-
-```ts
+// or verified root names
 import { PerspectiveCamera, Renderer, Scene } from "@xsyetopz/easel";
-```
 
-## Install and first validation
-
-1. Detect the runtime and package manager from project files.
-2. Prefer the installed project version unless the user asks to upgrade.
-3. Use `@xsyetopz/easel@0.6.1` when no project version exists.
-4. Verify the import with `EASEL.REVISION` before writing larger scene code.
-5. Verify a real `HTMLCanvasElement` render before adding controls, loaders, or
-   game logic.
-
-Do not infer the package manager from a filename alone; reconcile lockfiles and
-existing imports first.
-
-Install with Bun:
-
-```bash
-bun add @xsyetopz/easel@0.6.1
-```
-
-These commands intentionally pin the 0.6.1 API. If the selected registry has not
-published 0.6.1 yet, validate against the local EASEL.js source rather than
-silently installing an older release. For Deno, use the [Deno guide](deno.md).
-
-Minimal runtime requirements:
-
-- Browser DOM with `HTMLCanvasElement`.
-- Canvas2D support.
-- TypeScript or JavaScript ESM support.
-- A render loop using `requestAnimationFrame`.
-
-First validation:
-
-```ts
-console.log(EASEL.REVISION);
-```
-
-Expected API revision: `0.6.1`.
-
-## Import modes
-
-Choose one import mode from project evidence. Do not mix npm bare imports, Deno
-`npm:` specifiers, and Deno `jsr:` specifiers in the same file unless the
-existing project already does.
-
-The package exports root ESM, CommonJS, and declarations (app code should not
-guess source subpaths):
-
-```json
-{
-  ".": {
-    "types": "./dist/index.d.ts",
-    "import": "./dist/index.es.js",
-    "require": "./dist/index.cjs"
-  },
-  "./src/*": "./src/*"
+if (EASEL.REVISION !== "0.7.0") {
+  console.warn(`Skill baseline is 0.7.0; installed ${EASEL.REVISION}`);
 }
 ```
 
-Install from JSR with Bun:
-
-```bash
-bunx jsr add @xsyetopz/easel@0.6.1
-```
-
-Browser bundler ESM uses the bare import and named-import form shown in the
-identity section above; do not add package subpaths.
-
-Deno import options:
-
-```ts
-import * as EASEL from "npm:@xsyetopz/easel@0.6.1";
-```
-
-Use `jsr:` for JSR-native Deno projects:
-
-```ts
-import * as EASEL from "jsr:@xsyetopz/easel@0.6.1";
-```
-
-For browser-style bare imports, use an import map:
-
-```json
-{
-  "imports": {
-    "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.6.1"
-  }
-}
-```
-
-Then code can use the normal bare import:
-
-```ts
-import * as EASEL from "@xsyetopz/easel";
-```
-
-CommonJS uses the package `require` export:
+CommonJS uses the package root:
 
 ```js
 const EASEL = require("@xsyetopz/easel");
 ```
 
-## Version provenance
+For Deno import modes, use [the Deno guide](deno.md). Do not import `src/*` or
+other package subpaths from app code because `package.json` does not export them.
 
-Source/API baseline: `@xsyetopz/easel@0.6.1` (the current repository revision
-and declarations used to generate this skill).
+## Minimal browser frame
 
-Source and registry facts gathered on 2026-08-02:
+```ts
+import * as EASEL from "@xsyetopz/easel";
 
-- npm package: <https://www.npmjs.com/package/@xsyetopz/easel>
-- npm registry latest observed: `0.6.0`
-- JSR package: <https://jsr.io/@xsyetopz/easel>
-- JSR latest observed: `0.6.0`
-- GitHub repository: <https://github.com/xsyetopz/easel.js>
-- Project site: <https://easeljs.org>
-- Package description: Canvas2D software renderer and CPU rasterizer with a
-  THREE.js-style scene graph API.
-- Package entry points: ESM `./dist/index.es.js`, CJS `./dist/index.cjs`, types
-  `./dist/index.d.ts`.
+const canvas = document.querySelector<HTMLCanvasElement>("#scene");
+if (!canvas) throw new Error("Missing #scene canvas");
 
-When exact currentness matters, inspect local
-`node_modules/@xsyetopz/easel/package.json` first, then package registry
-metadata.
+const renderer = new EASEL.Renderer({ width: 320, height: 180, canvas });
+renderer.clearColor = 0x101418;
+const scene = new EASEL.Scene();
+const camera = new EASEL.PerspectiveCamera({
+  fov: 60,
+  aspect: 320 / 180,
+  near: 0.1,
+  far: 100,
+});
+camera.position.set(2, 2, 4);
+camera.updateMatrixWorld(false, false, true);
+camera.lookAt(0, 0, 0);
+camera.updateMatrix();
 
-The bundled references and templates intentionally target the 0.6.1 API. At the
-observation date, npm and JSR had not published 0.6.1, so the version-pinned
-install commands and templates require that release to be published before they
-can resolve remotely. Do not silently downgrade the API baseline; in an EASEL.js
-checkout, validate against local `package.json`, `src/index.ts`, and declaration
-output instead.
+const geometry = new EASEL.BoxGeometry(1, 1, 1);
+const material = new EASEL.BasicMaterial({ color: 0x66ccff });
+const mesh = new EASEL.Mesh(geometry, material);
+scene.add(mesh);
 
-Relevant release deltas reflected here:
+let frameId = 0;
+function frame(): void {
+  mesh.rotation.y += 0.02;
+  renderer.prepare(scene, camera);
+  renderer.render(scene, camera);
+  frameId = requestAnimationFrame(frame);
+}
+frameId = requestAnimationFrame(frame);
 
-- 0.6.0 added screen-space `Texture` scene backgrounds.
-- 0.6.1 fixed horizontal scanline clipping in the CPU rasterizer.
+function dispose(): void {
+  cancelAnimationFrame(frameId);
+  geometry.dispose();
+  material.dispose();
+  renderer.dispose();
+}
+```
 
-## Boundaries
-
-- Do not use `createjs` imports; that is CreateJS EaselJS, not this package.
-- Do not import source subpaths for app code unless debugging package internals.
-- Do not render in server-only code unless a DOM/canvas-compatible environment
-  is explicitly provided.
-- Do not introduce WebGL/WebGPU setup or use Deno CLI/headless code as proof of
-  browser rendering; rendering still needs a DOM canvas.
+A CLI typecheck proves types only. Validate rendering in a browser with a real
+Canvas2D context.

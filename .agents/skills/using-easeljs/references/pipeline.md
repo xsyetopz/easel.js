@@ -8,8 +8,8 @@ pipeline classes are useful for debugging and advanced experiments.
 
 Observed renderer stages from package types/source:
 
-1. Scene/world matrix update.
-2. Clear framebuffer and depth buffer.
+1. `Renderer.prepare` updates scene world matrices and the camera view matrix.
+2. `Renderer.render` clears framebuffer and depth buffer.
 3. `SceneTraversal` projects scene objects into a draw list.
 4. `FogCuller` removes fog-hidden draw calls when scene fog exists.
 5. `PainterSort` orders draw calls for painter-style rasterization.
@@ -28,7 +28,8 @@ Exported pipeline symbols include:
   `ScanlineFill`, `EdgeWalker`, `AffineUVSampler`, `GouraudInterpolator`
 - shading: `LightBaker`, `FlatShader`, `GouraudShader`
 - texture/color helpers: `TextureSampler`, `TextureClamp`, `ColorTable`,
-  `Hsl16`, `TranslucencyTable`
+  `TranslucencyTable`; HSL16 helpers are root math exports (`encodeHsl16`, `decodeHsl16`)
 
-Default app recipe: use `Renderer.render(scene, camera)` and only inspect
+Default app recipe: use `Renderer.prepare(scene, camera)` followed by
+`Renderer.render(scene, camera)` and only inspect
 pipeline classes for custom renderer experiments.

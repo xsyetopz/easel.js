@@ -17,9 +17,9 @@ Animation exports:
 - `AnimationClip`
 - `Animator`
 - `Track`
-- `BooleanTrack`, `ColorTrack`, `NumberTrack`, `QuaternionTrack`, `VectorTrack`
+- `BooleanTrack`, `ColorTrack`, `NumberTrack`, `QuaternionTrack`, `StringTrack`, `VectorTrack`
 - `AnimationAction`
-- `LoopOnce`, `LoopPingPong`, `LoopRepeat`
+- `Loop.Once`, `Loop.PingPong`, `Loop.Repeat`
 
 Clip recipe:
 
@@ -28,11 +28,11 @@ const track = new EASEL.Track(
     "Cube.rotation.y",
     new Float32Array([0, 1]),
     new Float32Array([0, Math.PI * 2]),
-    1,
+    { itemSize: 1 },
 );
 const clip = new EASEL.AnimationClip("spin", 1, [track]);
 const animator = new EASEL.Animator(scene);
-animator.clipAction(clip).setLoop(EASEL.LoopRepeat, Infinity).play();
+animator.clipAction(clip).setLoop(EASEL.Loop.Repeat, Infinity).play();
 ```
 
 Frame update:
@@ -41,8 +41,8 @@ Frame update:
 animator.update(dt);
 ```
 
-Step animation is implemented by the `StepTrack` subclass in the complete
-voxel-rig example below; keep the override there as the complete implementation.
+Step animation uses `Interpolation.Discrete`; do not subclass `Track` only to
+select step sampling.
 
 Track names resolve node paths and properties. Name scene nodes explicitly
 before binding animation tracks.
@@ -60,8 +60,7 @@ Pattern:
 - One shared `BasicMaterial` with skin `DataTexture` is reused across parts.
 - Animation uses `Animator`, `AnimationClip`, and `Track` names that match joint
   properties.
-- Step animation can be implemented by subclassing `Track.interpolate` when
-  discrete frames are required.
+- Step animation uses `TrackOptions.interpolation = Interpolation.Discrete`.
 
 Skeleton recipe:
 
@@ -92,7 +91,7 @@ export function createAnimatedCube() {
         "Cube.rotation.y",
         [0, 1],
         [0, Math.PI * 2],
-        1,
+        { itemSize: 1 },
     );
     const clip = new EASEL.AnimationClip("spin", 1, [track]);
     const root = new EASEL.Group();
@@ -100,7 +99,7 @@ export function createAnimatedCube() {
     const animator = new EASEL.Animator(root);
     animator
         .clipAction(clip)
-        .setLoop(EASEL.LoopRepeat, Number.POSITIVE_INFINITY)
+        .setLoop(EASEL.Loop.Repeat, Number.POSITIVE_INFINITY)
         .play();
     return { root, cube, animator };
 }
@@ -110,13 +109,6 @@ export function createAnimatedCube() {
 
 ```ts
 import * as EASEL from "@xsyetopz/easel";
-
-class StepTrack extends EASEL.Track {
-    override interpolate(index: number): number[] {
-        const offset = index * this.itemSize;
-        return Array.from(this.values.subarray(offset, offset + this.itemSize));
-    }
-}
 
 export function makeTwoJointModel(texture: EASEL.DataTexture) {
     const material = new EASEL.BasicMaterial({
@@ -130,17 +122,17 @@ export function makeTwoJointModel(texture: EASEL.DataTexture) {
     arm.position.set(0.6, 0.8, 0);
     arm.add(new EASEL.Mesh(new EASEL.BoxGeometry(0.25, 0.8, 0.25), material));
     root.add(arm);
-    const track = new StepTrack(
+    const track = new EASEL.Track(
         "Arm.rotation.z",
         [0, 0.5, 1],
         [0.4, -0.4, 0.4],
-        1,
+        { itemSize: 1, interpolation: EASEL.Interpolation.Discrete },
     );
     const clip = new EASEL.AnimationClip("wave", 1, [track]);
     const animator = new EASEL.Animator(root);
     animator
         .clipAction(clip)
-        .setLoop(EASEL.LoopRepeat, Number.POSITIVE_INFINITY)
+        .setLoop(EASEL.Loop.Repeat, Number.POSITIVE_INFINITY)
         .play();
     return { root, animator };
 }

@@ -10,6 +10,7 @@ Exports include:
 - `Points`
 - `PointsMaterial`
 - `Sprite`
+- `SpriteMaterial`
 
 Use lines for helpers, outlines, debug rays, or wire overlays. Use points for
 sparse markers. Use sprites for billboard-like image/object markers where

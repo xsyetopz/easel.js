@@ -13,21 +13,33 @@ const camera = new EASEL.PerspectiveCamera({
 });
 
 camera.position.set(2, 2, 4);
+camera.updateMatrixWorld(false, false, true);
 camera.lookAt(0, 0, 0);
+camera.updateMatrix();
 scene.add(new EASEL.AmbientLight(0xffffff, 0.35));
 
-const cube = new EASEL.Mesh(
-  new EASEL.BoxGeometry(1, 1, 1),
-  new EASEL.BasicMaterial({ color: 0x66ccff }),
-);
+const geometry = new EASEL.BoxGeometry(1, 1, 1);
+const material = new EASEL.BasicMaterial({ color: 0x66ccff });
+const cube = new EASEL.Mesh(geometry, material);
 scene.add(cube);
 console.log(EASEL.REVISION);
 
+let frameId = 0;
 function frame(): void {
   cube.rotation.y += 0.02;
-  scene.updateMatrixWorld();
+  renderer.prepare(scene, camera);
   renderer.render(scene, camera);
-  requestAnimationFrame(frame);
+  frameId = requestAnimationFrame(frame);
 }
 
-frame();
+frameId = requestAnimationFrame(frame);
+window.addEventListener(
+  "pagehide",
+  () => {
+    cancelAnimationFrame(frameId);
+    geometry.dispose();
+    material.dispose();
+    renderer.dispose();
+  },
+  { once: true },
+);
