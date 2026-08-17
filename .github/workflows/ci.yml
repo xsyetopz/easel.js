@@ -98,7 +98,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: jscpd-copy-paste-detector
-        uses: kucherenko/jscpd@2a6a1a406a9b960547adcb11ec6409ded079d96e # v5.0.14
+        uses: kucherenko/jscpd@10540cbb8e2b984bd8381719df99aa45e3bc397b # v5.0.15
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
