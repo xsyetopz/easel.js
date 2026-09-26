@@ -1,16 +1,17 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.8/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": true
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
   },
   "files": {
     "includes": [
       "**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc}",
+      "!!**/.agents",
       "!!**/node_modules",
       "!!**/dist",
-      "!!**/coverage",
       "!!**/*.generated.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"
     ],
     "ignoreUnknown": true
@@ -30,7 +31,10 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "complexity": {
+        "useLiteralKeys": "off"
+      }
     },
     "domains": {
       "next": "recommended",
