@@ -20,7 +20,7 @@ WebGPU, shader pipeline, PBR materials, or shadow mapping.
 ## Install
 
 ```sh
-npm install @xsyetopz/easel
+bun install @xsyetopz/easel
 ```
 
 ## First Canvas2D scene
