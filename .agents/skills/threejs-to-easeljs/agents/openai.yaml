@@ -1,4 +1,7 @@
 interface:
   display_name: "Three.js to EASEL.js"
-  short_description: "Audit Three.js migrations to EASEL 0.7"
-  default_prompt: "Use $threejs-to-easeljs to inventory an existing Three.js project, route each subsystem against the r185 and EASEL 0.7.0 evidence baseline, and mark source-version-dependent, unsupported, surface-only, UNKNOWN, and UNVERIFIED behavior explicitly."
+  short_description: "Port three.js r186 code to EASEL 0.7.0"
+  default_prompt: >-
+    Use $threejs-to-easeljs to port this three.js code to EASEL 0.7.0:
+    look up each symbol in the parity ledger, apply the matching cards,
+    and verify with the typecheck and the example oracles.

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test";
+import * as THREE from "three";
 import { TorusKnotGeometry } from "../../../src/geometry/primitives/TorusKnotGeometry.ts";
 import { defined } from "../../_helpers/defined.ts";
+import { getAttributeArray, getIndexArray } from "../../_helpers/geometry.ts";
 
 describe("TorusKnotGeometry", () => {
   it("generates expected vertex count", () => {
@@ -82,4 +84,27 @@ describe("TorusKnotGeometry winding order", () => {
 
     expect(outward / total).toBeGreaterThan(0.99);
   });
+});
+
+describe("TorusKnotGeometry vs THREE.TorusKnotGeometry", () => {
+  const cases: [string, ConstructorParameters<typeof TorusKnotGeometry>][] = [
+    ["defaults", []],
+    ["(3, 7) knot", [2, 0.3, 40, 6, 3, 7]],
+    ["non-integer segments", [1, 0.4, 20.6, 5.3, 2, 5]],
+  ];
+
+  for (const [name, args] of cases) {
+    it(`${name}: ring direction, vertex order, winding, normals, and uvs match exactly`, () => {
+      const geometry = new TorusKnotGeometry(...args);
+      const expected = new THREE.TorusKnotGeometry(...args);
+      for (const attribute of ["position", "normal", "uv"]) {
+        expect(getAttributeArray(geometry, attribute)).toEqual(
+          getAttributeArray(expected, attribute),
+        );
+      }
+      expect(Array.from(getIndexArray(geometry))).toEqual(
+        Array.from(getIndexArray(expected)),
+      );
+    });
+  }
 });

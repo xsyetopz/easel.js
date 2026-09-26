@@ -12,6 +12,7 @@ describe("example animation lifecycle", () => {
     const cancelled = [];
     Object.defineProperty(globalThis, "requestAnimationFrame", {
       configurable: true,
+      writable: true,
       value(callback) {
         const handle = nextHandle++;
         callbacks.set(handle, callback);
@@ -20,6 +21,7 @@ describe("example animation lifecycle", () => {
     });
     Object.defineProperty(globalThis, "cancelAnimationFrame", {
       configurable: true,
+      writable: true,
       value(handle) {
         cancelled.push(handle);
         callbacks.delete(handle);
@@ -61,6 +63,7 @@ describe("example animation lifecycle", () => {
       } else {
         Object.defineProperty(globalThis, "requestAnimationFrame", {
           configurable: true,
+          writable: true,
           value: originalRequest,
         });
       }
@@ -69,6 +72,7 @@ describe("example animation lifecycle", () => {
       } else {
         Object.defineProperty(globalThis, "cancelAnimationFrame", {
           configurable: true,
+          writable: true,
           value: originalCancel,
         });
       }

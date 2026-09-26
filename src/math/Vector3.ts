@@ -164,20 +164,25 @@ export class Vector3 {
     return this.applyMatrix3(m).normalize();
   }
 
-  /** Rotates this vector by a quaternion. */
+  /** Rotates this vector by a quaternion, which is assumed to have unit length. */
   applyQuaternion(q: { x: number; y: number; z: number; w: number }): this {
-    const { x, y, z } = this;
+    const vx = this.x;
+    const vy = this.y;
+    const vz = this.z;
     const qx = q.x;
     const qy = q.y;
     const qz = q.z;
     const qw = q.w;
-    const ix = qw * x + qy * z - qz * y;
-    const iy = qw * y + qz * x - qx * z;
-    const iz = qw * z + qx * y - qy * x;
-    const iw = -qx * x - qy * y - qz * z;
-    this.x = ix * qw + iw * -qx + iy * -qz - iz * -qy;
-    this.y = iy * qw + iw * -qy + iz * -qx - ix * -qz;
-    this.z = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+
+    // t = 2 * cross(q.xyz, v)
+    const tx = 2 * (qy * vz - qz * vy);
+    const ty = 2 * (qz * vx - qx * vz);
+    const tz = 2 * (qx * vy - qy * vx);
+
+    // v + q.w * t + cross(q.xyz, t)
+    this.x = vx + qw * tx + qy * tz - qz * ty;
+    this.y = vy + qw * ty + qz * tx - qx * tz;
+    this.z = vz + qw * tz + qx * ty - qy * tx;
     return this;
   }
 

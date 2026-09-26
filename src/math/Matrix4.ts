@@ -11,7 +11,7 @@ import {
 import { EPSILON } from "./MathUtils.ts";
 import type { Matrix3 } from "./Matrix3.ts";
 import type { Quaternion } from "./Quaternion.ts";
-import { Vector3 } from "./Vector3.ts";
+import type { Vector3 } from "./Vector3.ts";
 
 /** 4x4 matrix for 3D affine and projection transforms. */
 export class Matrix4 {
@@ -123,11 +123,47 @@ export class Matrix4 {
 
   /** Decomposes this matrix into position, quaternion rotation, and scale. */
   decompose(position: Vector3, q: Quaternion, scale: Vector3): this {
-    this.extractPosition(position);
-    this.extractScale(scale);
+    const te = this.#elements;
 
-    const rotationMatrix = new Matrix4().extractRotation(this);
-    q.setFromRotationMatrix(rotationMatrix);
+    position.x = te[12];
+    position.y = te[13];
+    position.z = te[14];
+
+    const det = this.determinantAffine();
+
+    if (det === 0) {
+      scale.set(1, 1, 1);
+      q.identity();
+      return this;
+    }
+
+    let sx = Math.sqrt(te[0] * te[0] + te[1] * te[1] + te[2] * te[2]);
+    const sy = Math.sqrt(te[4] * te[4] + te[5] * te[5] + te[6] * te[6]);
+    const sz = Math.sqrt(te[8] * te[8] + te[9] * te[9] + te[10] * te[10]);
+
+    // A negative determinant means a reflection; fold it into the X scale.
+    if (det < 0) sx = -sx;
+
+    const invSX = 1 / sx;
+    const invSY = 1 / sy;
+    const invSZ = 1 / sz;
+
+    const me = _m1.copy(this).elements;
+    me[0] *= invSX;
+    me[1] *= invSX;
+    me[2] *= invSX;
+    me[4] *= invSY;
+    me[5] *= invSY;
+    me[6] *= invSY;
+    me[8] *= invSZ;
+    me[9] *= invSZ;
+    me[10] *= invSZ;
+
+    q.setFromRotationMatrix(_m1);
+
+    scale.x = sx;
+    scale.y = sy;
+    scale.z = sz;
 
     return this;
   }
@@ -196,16 +232,21 @@ export class Matrix4 {
     return this;
   }
 
-  /** Extracts the rotation component from another Matrix4, normalizing by scale. */
+  /**
+   * Extracts the rotation component from another Matrix4, normalizing each
+   * basis column by its length. A singular basis yields the identity.
+   */
   extractRotation(m: Matrix4): this {
+    if (m.determinantAffine() === 0) return this.identity();
+
     const me = m.elements;
 
-    const scale = new Vector3();
-    m.extractScale(scale);
-
-    const invScaleX = 1 / scale.x;
-    const invScaleY = 1 / scale.y;
-    const invScaleZ = 1 / scale.z;
+    const invScaleX =
+      1 / Math.sqrt(me[0] * me[0] + me[1] * me[1] + me[2] * me[2]);
+    const invScaleY =
+      1 / Math.sqrt(me[4] * me[4] + me[5] * me[5] + me[6] * me[6]);
+    const invScaleZ =
+      1 / Math.sqrt(me[8] * me[8] + me[9] * me[9] + me[10] * me[10]);
 
     const te = this.elements;
     te[0] = me[0] * invScaleX;
@@ -759,3 +800,6 @@ export class Matrix4 {
     yield te[15];
   }
 }
+
+/** Scratch matrix reused by `decompose`. */
+const _m1 = new Matrix4();

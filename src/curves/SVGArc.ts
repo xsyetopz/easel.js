@@ -5,7 +5,11 @@ interface Point {
   y: number;
 }
 
-/** Appends an SVG endpoint-parameterized elliptical arc to an EASEL path. */
+/**
+ * Appends an SVG endpoint-parameterized elliptical arc to an EASEL path,
+ * following three.js r186 `SVGLoader`'s `parseArcCommand`: the signed sweep
+ * goes into the end angle and `clockwise` is `sweep === false`.
+ */
 export function appendSVGArc(
   path: NonNullable<ShapePath["currentPath"]>,
   start: Point,
@@ -24,56 +28,58 @@ export function appendSVGArc(
     return;
   }
   const phi = (options.rotation * Math.PI) / 180;
-  const cosPhi = Math.cos(phi);
-  const sinPhi = Math.sin(phi);
-  const dx = (start.x - end.x) / 2;
-  const dy = (start.y - end.y) / 2;
-  const x1 = cosPhi * dx + sinPhi * dy;
-  const y1 = -sinPhi * dx + cosPhi * dy;
-  let rx2 = rx * rx;
-  let ry2 = ry * ry;
-  const lambda = (x1 * x1) / rx2 + (y1 * y1) / ry2;
-  if (lambda > 1) {
-    const scale = Math.sqrt(lambda);
-    rx *= scale;
-    ry *= scale;
-    rx2 = rx * rx;
-    ry2 = ry * ry;
+  rx = Math.abs(rx);
+  ry = Math.abs(ry);
+
+  // Compute (x1', y1').
+  const dx2 = (start.x - end.x) / 2.0;
+  const dy2 = (start.y - end.y) / 2.0;
+  const x1p = Math.cos(phi) * dx2 + Math.sin(phi) * dy2;
+  const y1p = -Math.sin(phi) * dx2 + Math.cos(phi) * dy2;
+
+  // Compute (cx', cy'), scaling the radii up when they are too small.
+  let rxs = rx * rx;
+  let rys = ry * ry;
+  const x1ps = x1p * x1p;
+  const y1ps = y1p * y1p;
+  const cr = x1ps / rxs + y1ps / rys;
+  if (cr > 1) {
+    const s = Math.sqrt(cr);
+    rx = s * rx;
+    ry = s * ry;
+    rxs = rx * rx;
+    rys = ry * ry;
   }
-  const sign = options.largeArc === options.sweep ? -1 : 1;
-  const denominator = rx2 * y1 * y1 + ry2 * x1 * x1;
-  const numerator = Math.max(
-    0,
-    (rx2 * ry2 - rx2 * y1 * y1 - ry2 * x1 * x1) / denominator,
-  );
-  const coefficient = sign * Math.sqrt(numerator);
-  const cxPrime = coefficient * ((rx * y1) / ry);
-  const cyPrime = coefficient * (-(ry * x1) / rx);
-  const cx = cosPhi * cxPrime - sinPhi * cyPrime + (start.x + end.x) / 2;
-  const cy = sinPhi * cxPrime + cosPhi * cyPrime + (start.y + end.y) / 2;
-  const angle = (ux: number, uy: number, vx: number, vy: number): number => {
-    const dot = ux * vx + uy * vy;
-    const length = Math.hypot(ux, uy) * Math.hypot(vx, vy);
-    const result = Math.acos(Math.max(-1, Math.min(1, dot / length)));
-    return ux * vy - uy * vx < 0 ? -result : result;
-  };
-  const startAngle = angle(1, 0, (x1 - cxPrime) / rx, (y1 - cyPrime) / ry);
-  let delta = angle(
-    (x1 - cxPrime) / rx,
-    (y1 - cyPrime) / ry,
-    (-x1 - cxPrime) / rx,
-    (-y1 - cyPrime) / ry,
-  );
-  if (!options.sweep && delta > 0) delta -= Math.PI * 2;
-  if (options.sweep && delta < 0) delta += Math.PI * 2;
-  path.absellipse(
-    cx,
-    cy,
-    rx,
-    ry,
-    startAngle,
-    startAngle + delta,
-    !options.sweep,
-    phi,
-  );
+  const dq = rxs * y1ps + rys * x1ps;
+  const pq = (rxs * rys - dq) / dq;
+  let q = Math.sqrt(Math.max(0, pq));
+  if (options.largeArc === options.sweep) q = -q;
+  const cxp = (q * rx * y1p) / ry;
+  const cyp = (-q * ry * x1p) / rx;
+
+  // Compute (cx, cy) from (cx', cy').
+  const cx = Math.cos(phi) * cxp - Math.sin(phi) * cyp + (start.x + end.x) / 2;
+  const cy = Math.sin(phi) * cxp + Math.cos(phi) * cyp + (start.y + end.y) / 2;
+
+  // Compute the start angle and the signed sweep.
+  const theta = svgAngle(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
+  const delta =
+    svgAngle(
+      (x1p - cxp) / rx,
+      (y1p - cyp) / ry,
+      (-x1p - cxp) / rx,
+      (-y1p - cyp) / ry,
+    ) %
+    (Math.PI * 2);
+
+  path.absellipse(cx, cy, rx, ry, theta, theta + delta, !options.sweep, phi);
+}
+
+/** Signed angle from vector `u` to vector `v`, as three.js's `svgAngle`. */
+function svgAngle(ux: number, uy: number, vx: number, vy: number): number {
+  const dot = ux * vx + uy * vy;
+  const len = Math.sqrt(ux * ux + uy * uy) * Math.sqrt(vx * vx + vy * vy);
+  // Clamp: rounding can push the cosine slightly past [-1, 1].
+  const angle = Math.acos(Math.max(-1, Math.min(1, dot / len)));
+  return ux * vy - uy * vx < 0 ? -angle : angle;
 }

@@ -104,7 +104,11 @@ export class EllipseCurve extends Curve {
     this.updateArcLengths();
   }
 
-  /** Whether parameter traversal proceeds clockwise. */
+  /**
+   * Whether the curve runs clockwise (decreasing angle) from `startAngle` to
+   * `endAngle`, as in three.js r186. Either way `getPoint(0)` is at
+   * `startAngle` and `getPoint(1)` at `endAngle`.
+   */
   get clockwise(): boolean {
     return this.#clockwise;
   }
@@ -186,24 +190,25 @@ export class EllipseCurve extends Curve {
     this.clockwise = value;
   }
 
-  /** Evaluates the ellipse at normalized parameter `t` in `[0, 1]`. */
+  /**
+   * Evaluates the ellipse at normalized parameter `t` in `[0, 1]`, sweeping
+   * from `startAngle` in the `clockwise` direction as three.js r186 does.
+   */
   override getPoint(t: number, target: Vector2 = new Vector2()): Vector2 {
-    const delta = this.#endAngle - this.#startAngle;
-    const angle = this.#clockwise
-      ? this.#endAngle - t * delta
-      : this.#startAngle + t * delta;
-    const cosAngle = Math.cos(angle);
-    const sinAngle = Math.sin(angle);
-    const cosRotation = Math.cos(this.#rotation);
-    const sinRotation = Math.sin(this.#rotation);
-    return target.set(
-      this.#cx +
-        this.#xRadius * cosAngle * cosRotation -
-        this.#yRadius * sinAngle * sinRotation,
-      this.#cy +
-        this.#xRadius * cosAngle * sinRotation +
-        this.#yRadius * sinAngle * cosRotation,
-    );
+    const angle =
+      this.#startAngle +
+      t * ellipseDeltaAngle(this.#startAngle, this.#endAngle, this.#clockwise);
+    let x = this.#cx + this.#xRadius * Math.cos(angle);
+    let y = this.#cy + this.#yRadius * Math.sin(angle);
+    if (this.#rotation !== 0) {
+      const cos = Math.cos(this.#rotation);
+      const sin = Math.sin(this.#rotation);
+      const tx = x - this.#cx;
+      const ty = y - this.#cy;
+      x = tx * cos - ty * sin + this.#cx;
+      y = tx * sin + ty * cos + this.#cy;
+    }
+    return target.set(x, y);
   }
 
   /** Returns an independent copy with cloned mutable state. */
@@ -274,6 +279,29 @@ export class EllipseCurve extends Curve {
     this.updateArcLengths();
     return this;
   }
+}
+
+/**
+ * Signed angle an ellipse sweeps from `startAngle`, as three.js r186's
+ * `EllipseCurve.getPoint` computes it: the difference wrapped into
+ * `[0, 2π]` (a full turn when the angles differ by a multiple of 2π, zero when
+ * they are equal), then taken the other way round when `clockwise`.
+ */
+export function ellipseDeltaAngle(
+  startAngle: number,
+  endAngle: number,
+  clockwise: boolean,
+): number {
+  const twoPi = Math.PI * 2;
+  let deltaAngle = endAngle - startAngle;
+  const samePoints = Math.abs(deltaAngle) < Number.EPSILON;
+  while (deltaAngle < 0) deltaAngle += twoPi;
+  while (deltaAngle > twoPi) deltaAngle -= twoPi;
+  if (deltaAngle < Number.EPSILON) deltaAngle = samePoints ? 0 : twoPi;
+  if (clockwise && !samePoints) {
+    deltaAngle = deltaAngle === twoPi ? -twoPi : deltaAngle - twoPi;
+  }
+  return deltaAngle;
 }
 
 /** Reads a finite numeric JSON value with a fallback. */

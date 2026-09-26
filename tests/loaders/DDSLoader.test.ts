@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { LinearToSRGB } from "@/math/ColorManagement.js";
 import { DataTextureLoader } from "@/loaders/DataTextureLoader.js";
 import { DDSLoader } from "@/loaders/DDSLoader.js";
 import { DataTexture } from "@/textures/DataTexture.js";
@@ -130,7 +131,15 @@ describe("DDSLoader", () => {
     expect(texture).toBeInstanceOf(DataTexture);
     expect(texture.width).toBe(1);
     expect(texture.height).toBe(1);
-    expect(Array.from(texture.data?.data ?? [])).toEqual([1, 2, 3, 200]);
+    // DDS textures default to NoColorSpace (linear texels), as in three.js,
+    // so the cache holds their sRGB encoding.
+    const encode = (byte: number) => Math.round(LinearToSRGB(byte / 255) * 255);
+    expect(Array.from(texture.data?.data ?? [])).toEqual([
+      encode(1),
+      encode(2),
+      encode(3),
+      200,
+    ]);
     texture.dispose();
 
     expect(

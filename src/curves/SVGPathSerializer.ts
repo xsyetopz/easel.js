@@ -1,7 +1,7 @@
 import type { Curve } from "./Curve.ts";
 import type { CurvePath } from "./CurvePath.ts";
 import { CubicBezierCurve } from "./curves/CubicBezierCurve.ts";
-import { EllipseCurve } from "./curves/EllipseCurve.ts";
+import { EllipseCurve, ellipseDeltaAngle } from "./curves/EllipseCurve.ts";
 import { LineCurve } from "./curves/LineCurve.ts";
 import { QuadraticBezierCurve } from "./curves/QuadraticBezierCurve.ts";
 import type { ShapePath } from "./ShapePath.ts";
@@ -80,8 +80,13 @@ function appendCurve(output: string[], curve: Curve, divisions: number): void {
   }
   if (curve instanceof EllipseCurve) {
     const end = curve.getPoint(1);
-    const largeArc =
-      Math.abs(curve.endAngle - curve.startAngle) > Math.PI ? 1 : 0;
+    // The swept angle, not the raw angle difference, decides the arc flag.
+    const delta = ellipseDeltaAngle(
+      curve.startAngle,
+      curve.endAngle,
+      curve.clockwise,
+    );
+    const largeArc = Math.abs(delta) > Math.PI ? 1 : 0;
     const sweep = curve.clockwise ? 0 : 1;
     output.push(
       `A ${format(curve.xRadius)} ${format(curve.yRadius)} ${format((curve.rotation * 180) / Math.PI)} ${largeArc} ${sweep} ${format(end.x)} ${format(end.y)}`,

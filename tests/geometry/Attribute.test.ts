@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import { BufferAttribute as THREEBufferAttribute } from "three";
 import { Attribute } from "@/geometry/Attribute.js";
 import { Matrix4 } from "@/math/Matrix4.ts";
-import { BufferAttribute as THREEBufferAttribute } from "three";
 
 describe("Attribute", () => {
   describe("constructor", () => {

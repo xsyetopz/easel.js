@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { LinearToSRGB } from "@/math/ColorManagement.js";
 import { Matrix3 } from "@/math/Matrix3.js";
 import { Vector2 } from "@/math/Vector2.js";
 import { DataTexture } from "@/textures/DataTexture.js";
@@ -78,9 +79,11 @@ describe("Texture compatibility surface", () => {
     expect(() => {
       texture.normalized = true;
     }).toThrow("fixed to false");
+    texture.colorSpace = "srgb";
+    expect(texture.colorSpace).toBe("srgb");
     expect(() => {
-      texture.colorSpace = "srgb";
-    }).toThrow("no conversion");
+      texture.colorSpace = "display-p3";
+    }).toThrow("Texture.colorSpace must be");
     expect(() => {
       texture.premultiplyAlpha = true;
     }).toThrow("fixed to false");
@@ -201,7 +204,11 @@ describe("Texture compatibility surface", () => {
     const texture = new DataTexture(data, 130, 129);
     expect(texture.width).toBe(128);
     expect(texture.height).toBe(128);
-    expect(texture.data?.data[0]).toBe(99);
+    // NoColorSpace texels are linear and cached sRGB-encoded, as three.js
+    // outputs them.
+    expect(texture.data?.data[0]).toBe(
+      Math.round(LinearToSRGB(99 / 255) * 255),
+    );
     expect(texture.flipY).toBe(false);
     expect(texture.unpackAlignment).toBe(1);
     expect(texture.clone()).toBeInstanceOf(DataTexture);
@@ -213,7 +220,9 @@ describe("Texture compatibility surface", () => {
     data[0] = 77;
     texture.needsUpdate = true;
     texture.update();
-    expect(texture.data?.data[0]).toBe(77);
+    expect(texture.data?.data[0]).toBe(
+      Math.round(LinearToSRGB(77 / 255) * 255),
+    );
   });
 
   it("captures framebuffer regions with zero-fill for out-of-bounds pixels", () => {
@@ -228,5 +237,42 @@ describe("Texture compatibility surface", () => {
       0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0,
     ]);
     expect(framebuffer.clone()).toBeInstanceOf(FramebufferTexture);
+  });
+});
+
+describe("Texture color space", () => {
+  it("keeps sRGB texels and encodes linear texels once when the cache builds", () => {
+    const bytes = new Uint8ClampedArray([64, 128, 200, 255]);
+    const linear = new DataTexture(bytes, 1, 1);
+    expect(linear.colorSpace).toBe("");
+    expect(Array.from(linear.data?.data ?? [])).toEqual([
+      Math.round(LinearToSRGB(64 / 255) * 255),
+      Math.round(LinearToSRGB(128 / 255) * 255),
+      Math.round(LinearToSRGB(200 / 255) * 255),
+      255,
+    ]);
+
+    linear.colorSpace = "srgb";
+    expect(linear.needsUpdate).toBe(true);
+    linear.update();
+    expect(Array.from(linear.data?.data ?? [])).toEqual([64, 128, 200, 255]);
+    expect(bytes[0]).toBe(64);
+
+    const srgb = new DataTexture(
+      bytes,
+      1,
+      1,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      "srgb",
+    );
+    expect(srgb.needsUpdate).toBe(false);
+    expect(Array.from(srgb.data?.data ?? [])).toEqual([64, 128, 200, 255]);
   });
 });

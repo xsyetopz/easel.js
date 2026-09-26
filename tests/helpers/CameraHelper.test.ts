@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { SRGBToLinear } from "@/math/ColorManagement.js";
 import { Camera } from "@/cameras/Camera.js";
 import { OrthographicCamera } from "@/cameras/OrthographicCamera.js";
 import { PerspectiveCamera } from "@/cameras/PerspectiveCamera.js";
@@ -125,17 +126,18 @@ describe("CameraHelper", () => {
       cross: 0x0a0b0c,
     };
     expect(helper.colors.frustum).toBe(frustum);
+    // Vertex colors hold linear channels, as three.js CameraHelper writes them.
     expect(colorStorage[0]).toBeCloseTo(1, 6);
-    expect(colorStorage[1]).toBeCloseTo(2 / 3, 6);
+    expect(colorStorage[1]).toBeCloseTo(SRGBToLinear(2 / 3), 6);
     expect(colorStorage[2]).toBeCloseTo(0, 6);
     expect(colorStorage[19 * 6]).toBeCloseTo(1, 6);
-    expect(colorStorage[20 * 6]).toBeCloseTo(0.2, 6);
+    expect(colorStorage[20 * 6]).toBeCloseTo(SRGBToLinear(0.2), 6);
     // Assignment changes state only; explicit publication writes storage.
     helper.updateColors();
     expect(colors(helper)).toBe(colorStorage);
-    expect(colorStorage[0]).toBeCloseTo(18 / 255, 6);
-    expect(colorStorage[1]).toBeCloseTo(52 / 255, 6);
-    expect(colorStorage[2]).toBeCloseTo(86 / 255, 6);
+    expect(colorStorage[0]).toBeCloseTo(SRGBToLinear(18 / 255), 6);
+    expect(colorStorage[1]).toBeCloseTo(SRGBToLinear(52 / 255), 6);
+    expect(colorStorage[2]).toBeCloseTo(SRGBToLinear(86 / 255), 6);
     expect(helper.geometry?.getAttribute("color")?.needsUpdate).toBe(true);
 
     const next = new OrthographicCamera();

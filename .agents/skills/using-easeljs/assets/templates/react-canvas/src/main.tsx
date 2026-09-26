@@ -16,15 +16,14 @@ function App() {
       far: 100,
     });
     camera.position.set(2, 2, 4);
-    camera.updateMatrixWorld(false, false, true);
+    camera.updateMatrixWorld(); // lookAt reads matrixWorld
     camera.lookAt(0, 0, 0);
-    camera.updateMatrix();
     const geometry = new EASEL.BoxGeometry(1, 1, 1);
     const material = new EASEL.BasicMaterial({ color: 0x66ccff });
     const cube = new EASEL.Mesh(geometry, material);
     scene.add(cube);
     let frameId = 0;
-    function frame() {
+    function frame(): void {
       cube.rotation.y += 0.02;
       renderer.prepare(scene, camera);
       renderer.render(scene, camera);

@@ -62,7 +62,9 @@ export interface RasterMaterial {
   dashSize?: number;
   /** Length of each gap between dashed-line segments in pixels. */
   gapSize?: number;
-  /** Base RGB color multiplied into rasterized fragments. */
+  /** Material type name; lit types render black when nothing lights them. */
+  type?: string;
+  /** Linear base RGB color, encoded to sRGB before it multiplies fragments. */
   color?: { r: number; g: number; b: number };
   /** Optional texture sampled for rasterized fragments. */
   map?: MaterialMap;

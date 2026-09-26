@@ -1,0 +1,5 @@
+spruit_sunrise_2k.hdr.jpg
+
+Source: https://polyhaven.com/a/spruit_sunrise (Greg Zaal, Poly Haven),
+redistributed in three.js r186 as examples/textures/equirectangular/spruit_sunrise_2k.hdr.jpg.
+License: CC0 1.0 Universal; see https://polyhaven.com/license

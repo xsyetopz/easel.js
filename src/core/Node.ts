@@ -1,4 +1,4 @@
-import { Euler } from "../math/Euler.ts";
+import { deferEulerFromQuaternion, Euler } from "../math/Euler.ts";
 import { Matrix4 } from "../math/Matrix4.ts";
 import { Quaternion } from "../math/Quaternion.ts";
 import { Vector3 } from "../math/Vector3.ts";
@@ -6,6 +6,7 @@ import { EventDispatcher } from "./EventDispatcher.ts";
 import { Layers } from "./Layers.ts";
 
 const _position = new Vector3();
+const _target = new Vector3();
 const _m1 = new Matrix4();
 const _q1 = new Quaternion();
 const _v1 = new Vector3();
@@ -114,7 +115,7 @@ export class Node extends EventDispatcher {
   /** Local position in node units. */
   position: Vector3 = new Vector3();
   /** Local up direction used by `lookAt`. */
-  up: Vector3 = new Vector3(0, 1, 0);
+  up: Vector3 = DEFAULT_UP.clone();
   /** Optional local pivot applied when composing the matrix. */
   pivot: Vector3 | undefined = undefined;
   readonly #rotation: Euler = new Euler();
@@ -163,8 +164,20 @@ export class Node extends EventDispatcher {
   constructor({ uuid = crypto.randomUUID() }: NodeOptions = {}) {
     super();
     this.uuid = uuid;
+    // Keep rotation and quaternion in sync in both directions, as three.js
+    // does; the flag stops each update from echoing back to its source.
+    let syncing = false;
     this.#rotation.setOnChangeCallback(() => {
+      if (syncing) return;
+      syncing = true;
       this.#quaternion.setFromEuler(this.#rotation);
+      syncing = false;
+    });
+    // Angles are extracted from the quaternion when `rotation` is next read
+    // or written, with the same result as extracting them here.
+    this.#quaternion.onChange(() => {
+      if (syncing) return;
+      deferEulerFromQuaternion(this.#rotation, this.#quaternion);
     });
     this.updateMatrix();
   }
@@ -491,26 +504,39 @@ export class Node extends EventDispatcher {
 
   /** Rotates the node to face a world-space target, accepting vector or coordinates. */
   lookAt(target: Vector3 | number, y?: number, z?: number): this {
-    const targetVector =
-      target instanceof Vector3 ? target : new Vector3(target, y, z);
+    if (typeof target === "number") {
+      _target.set(target, y ?? 0, z ?? 0);
+    } else {
+      _target.copy(target);
+    }
+
+    const parent = this.parent;
+
+    // Like three.js, refresh this node's and its ancestors' world matrices first
+    // so the eye position is current.
+    this.updateMatrixWorld(true, false);
 
     _position.setFromMatrixPosition(this.matrixWorld);
 
-    if (typeof this.type === "string" && this.type.endsWith("Camera")) {
-      _m1.lookAt(_position, targetVector, this.up);
+    // Cameras and lights look down their local -Z axis; other nodes use +Z.
+    const facing = this as Node & {
+      readonly isCamera?: boolean;
+      readonly isLight?: boolean;
+    };
+    if (facing.isCamera === true || facing.isLight === true) {
+      _m1.lookAt(_position, _target, this.up);
     } else {
-      _m1.lookAt(targetVector, _position, this.up);
+      _m1.lookAt(_target, _position, this.up);
     }
 
+    // The quaternion change callback keeps `rotation` in sync.
     this.quaternion.setFromRotationMatrix(_m1);
 
-    if (this.parent) {
-      _m1.extractRotation(this.parent.matrixWorld);
+    if (parent) {
+      _m1.extractRotation(parent.matrixWorld);
       _q1.setFromRotationMatrix(_m1);
       this.quaternion.premultiply(_q1.invert());
     }
-
-    this.rotation.setFromQuaternion(this.quaternion);
 
     return this;
   }

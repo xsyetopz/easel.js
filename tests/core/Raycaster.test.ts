@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
+import * as THREE from "three";
+import { Side } from "@/core/Constants.js";
 import { Node } from "@/core/Node.js";
 import { type Intersection, Raycaster } from "@/core/Raycaster.js";
+import { Attribute } from "@/geometry/Attribute.js";
 import { Geometry } from "@/geometry/Geometry.js";
 import { Material } from "@/materials/Material.js";
 import { Vector3 } from "@/math/Vector3.js";
@@ -8,6 +11,7 @@ import { Line } from "@/objects/Line.js";
 import { LOD } from "@/objects/LOD.js";
 import { Mesh } from "@/objects/Mesh.js";
 import { Points } from "@/objects/Points.js";
+import { defined } from "../_helpers/defined.ts";
 
 describe("Raycaster ray setup", () => {
   it("constructs with default ray", () => {
@@ -168,5 +172,79 @@ describe("Raycaster point and LOD intersections", () => {
     raycaster.lineThreshold = 2;
     expect(raycaster.lineThreshold).toBe(2);
     expect(raycaster.pointsThreshold).toBe(1);
+  });
+});
+
+describe("Raycaster material side", () => {
+  // One triangle in the z = 0 plane whose front face points toward +z.
+  const hits = (side: number, fromZ: number): number => {
+    const geometry = new Geometry();
+    geometry.setAttribute(
+      "position",
+      new Attribute(new Float32Array([-1, -1, 0, 1, -1, 0, 0, 1, 0]), 3),
+    );
+    const mesh = new Mesh(geometry, new Material({ side }));
+    mesh.updateMatrixWorld();
+    const raycaster = new Raycaster(
+      new Vector3(0, 0, fromZ),
+      new Vector3(0, 0, -Math.sign(fromZ)),
+    );
+    return raycaster.intersectObject(mesh).length;
+  };
+
+  it("culls back faces of front-sided and front faces of back-sided meshes, as three.js does", () => {
+    expect(hits(Side.Front, 5)).toBe(1);
+    expect(hits(Side.Front, -5)).toBe(0);
+    expect(hits(Side.Back, 5)).toBe(0);
+    expect(hits(Side.Back, -5)).toBe(1);
+    expect(hits(Side.Double, 5)).toBe(1);
+    expect(hits(Side.Double, -5)).toBe(1);
+  });
+});
+
+describe("Raycaster visibility vs THREE.Raycaster", () => {
+  // r186 `intersect()` tests only layers, so hidden objects and the children
+  // of hidden parents are still hit.
+  const triangle = [-1, -1, 0, 1, -1, 0, 0, 1, 0];
+
+  it("hits invisible meshes and children of invisible parents, as three.js does", () => {
+    for (const [parentVisible, childVisible] of [
+      [true, false],
+      [false, true],
+      [false, false],
+    ]) {
+      const parent = new Node();
+      const child = new Mesh(new Geometry().setPositions(triangle));
+      parent.add(child);
+      parent.visible = parentVisible;
+      child.visible = childVisible;
+      parent.updateMatrixWorld(false, true, true);
+
+      const threeParent = new THREE.Object3D();
+      const threeChild = new THREE.Mesh(
+        new THREE.BufferGeometry().setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(triangle, 3),
+        ),
+      );
+      threeParent.add(threeChild);
+      threeParent.visible = parentVisible;
+      threeChild.visible = childVisible;
+      threeParent.updateMatrixWorld(true);
+
+      const hits = new Raycaster(
+        new Vector3(0, 0, 2),
+        new Vector3(0, 0, -1),
+      ).intersectObject(parent);
+      const expected = new THREE.Raycaster(
+        new THREE.Vector3(0, 0, 2),
+        new THREE.Vector3(0, 0, -1),
+      ).intersectObject(threeParent);
+
+      expect(expected).toHaveLength(1);
+      expect(hits).toHaveLength(expected.length);
+      expect(hits[0]?.object).toBe(child);
+      expect(hits[0]?.distance).toBeCloseTo(defined(expected[0]).distance, 9);
+    }
   });
 });

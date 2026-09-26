@@ -368,3 +368,47 @@ describe("Camera projection parity", () => {
     }).toThrow(RangeError);
   });
 });
+
+describe("camera type flags parity with three.js r186", () => {
+  interface THREECameraFlags {
+    isCamera?: boolean | undefined;
+    isPerspectiveCamera?: boolean | undefined;
+    isOrthographicCamera?: boolean | undefined;
+  }
+
+  function flags(camera: THREECameraFlags): THREECameraFlags {
+    return {
+      isCamera: camera.isCamera,
+      isPerspectiveCamera: camera.isPerspectiveCamera,
+      isOrthographicCamera: camera.isOrthographicCamera,
+    };
+  }
+
+  it("exposes isCamera, isPerspectiveCamera, and isOrthographicCamera like three.js", () => {
+    const orthographic = new OrthographicCamera();
+    const perspective = new PerspectiveCamera();
+    expect(orthographic.isOrthographicCamera).toBe(true);
+    expect(flags(orthographic)).toEqual(
+      flags(
+        new THREECameras.OrthographicCamera(
+          -1,
+          1,
+          1,
+          -1,
+          0.1,
+          2000,
+        ) as THREECameraFlags,
+      ),
+    );
+    expect(flags(perspective)).toEqual(
+      flags(
+        new THREECameras.PerspectiveCamera(
+          50,
+          1,
+          0.1,
+          2000,
+        ) as THREECameraFlags,
+      ),
+    );
+  });
+});

@@ -1,0 +1,34 @@
+[
+  {
+    "query": "port THREE.DataTexture with RepeatWrapping (256x256 atlas) to easel, textures look cropped",
+    "should_trigger": true
+  },
+  {
+    "query": "parent === null checks and scene.background = null after moving from three.js to easel, is that ok",
+    "should_trigger": true
+  },
+  {
+    "query": "I have a ~300 line three.js demo with VectorKeyframeTrack and AnimationMixer; make it work with @xsyetopz/easel",
+    "should_trigger": true
+  },
+  {
+    "query": "which of these three.js imports exist in EASEL: Object3D, BufferGeometry, Clock, LightShadow",
+    "should_trigger": true
+  },
+  {
+    "query": "the EASEL canvas is blank after I call render, I wrote it from scratch following the docs",
+    "should_trigger": false
+  },
+  {
+    "query": "three.js post-processing bloom pass is too strong, tune it",
+    "should_trigger": false
+  },
+  {
+    "query": "port a Unity scene to three.js",
+    "should_trigger": false
+  },
+  {
+    "query": "EASEL resize stretches the image, fix the handler",
+    "should_trigger": false
+  }
+]

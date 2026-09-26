@@ -1,4 +1,4 @@
-# EASEL=@xsyetopz/easel@0.7.0	THREE=three@0.185.1	entry=src/Three.Core.js
+# EASEL=@xsyetopz/easel@0.7.0	THREE=three@0.186.1	entry=src/Three.Core.js
 # columns: state	subject	kind	EASEL	THREE
 # state: = both; < EASEL-only; > THREE-only; ! same name but different public shape; EASEL limits: CPU/Canvas2D; affine UV; baked flat/Gouraud; no GPU/shader/PBR/shadow/environment-map surface; limits do not describe THREE core
 <	AABBShape	class	class	-
@@ -147,6 +147,7 @@
 >	AnimationUtils.convertArray	method	-	static (array: TypedArray|Array, type: TypedArray.constructor) => TypedArray
 >	AnimationUtils.flattenJSON	method	-	static (jsonKeys: Array<number>, times: Array<number>, values: Array<number>, valuePropertyName: string) => void
 >	AnimationUtils.getKeyframeOrder	method	-	static (times: Array<number>) => Array<number>
+>	AnimationUtils.hasTangents	method	-	static (settings: ?Object) => boolean
 >	AnimationUtils.isTypedArray	method	-	static (object: any) => boolean
 >	AnimationUtils.makeClipAdditive	method	-	static (targetClip: AnimationClip, referenceFrame: number = 0, referenceClip: AnimationClip = targetClip, fps: number = 30) => AnimationClip
 >	AnimationUtils.sortedArray	method	-	static (values: Array<number>, stride: number, order: Array<number>) => Array<number>
@@ -465,6 +466,7 @@
 >	BatchedMesh._maxIndexCount	field	-	instance rw number
 >	BatchedMesh._maxInstanceCount	field	-	instance rw number
 >	BatchedMesh._maxVertexCount	field	-	instance rw number
+>	BatchedMesh._multiDrawBytesPerElement	field	-	instance rw number
 >	BatchedMesh._multiDrawCount	field	-	instance rw number
 >	BatchedMesh._multiDrawCounts	field	-	instance rw Int32Array<ArrayBuffer>
 >	BatchedMesh._multiDrawStarts	field	-	instance rw Int32Array<ArrayBuffer>
@@ -566,10 +568,8 @@
 !	Bone.constructor	constructor	instance ({ uuid = crypto.randomUUID() }: NodeOptions = {}) => Bone	instance () => Bone
 !	Bone.isBone	accessor/field	instance r true	instance ro boolean
 =	Bone.type	field	instance rw string	instance rw string
->	BooleanKeyframeTrack	class	-	class extends KeyframeTrack
->	BooleanKeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<boolean>) => BooleanKeyframeTrack
-<	BooleanTrack	class	class extends DiscreteTrack<boolean>	-
-<	BooleanTrack.constructor	constructor	instance (name: string, times: Float32Array | readonly number[], values: readonly boolean[]) => BooleanTrack	-
+!	BooleanTrack	class	class extends DiscreteTrack<boolean>	class extends KeyframeTrack
+!	BooleanTrack.constructor	constructor	instance (name: string, times: Float32Array | readonly number[], values: readonly boolean[]) => BooleanTrack	instance (name: string, times: Array<number>, values: Array<boolean>) => BooleanKeyframeTrack
 =	Box2	class	class	class
 =	Box2.clampPoint	method	instance (point: Vector2, target: Vector2) => Vector2	instance (point: Vector2, target: Vector2) => Vector2
 =	Box2.clone	method	instance () => Box2	instance () => Box2
@@ -673,7 +673,7 @@
 <	BoxHelper.source	accessor	instance rw BoxHelperSource	-
 =	BoxHelper.type	field	instance rw string	instance rw string
 !	BoxHelper.update	method	instance () => this	instance () => void
-<	BoxHelperObject	record	interface { readonly geometry?: { readonly boundingBox?: Box3; } }	-
+<	BoxHelperObject	record	type = Node	-
 <	BoxHelperSource	record	type = Box3 | BoxHelperObject	-
 >	BufferGeometryLoader	class	-	class extends Loader
 >	BufferGeometryLoader.constructor	constructor	-	instance (manager?: LoadingManager) => BufferGeometryLoader
@@ -866,8 +866,10 @@
 !	Color.fromArray	method	instance (values: ArrayLike<number>, offset: number = 0) => this	instance (array: Array<number>, offset: number = 0) => Color
 !	Color.fromBufferAttribute	method	instance (attr: Attribute, index: number) => this	instance (attribute: BufferAttribute, index: number) => Color
 =	Color.g	field	instance rw number	instance rw number
-!	Color.getHSL	method	instance (target: HSL = { h: 0, s: 0, l: 0 }) => HSL	instance (target: {h:number,s:number,l:number}, colorSpace: string = ColorManagement.workingColorSpace) => {h:number,s:number,l:number}
-!	Color.getRGB	method	instance (target: RGB = { r: 0, g: 0, b: 0 }) => RGB	instance (target: Color, colorSpace: string = ColorManagement.workingColorSpace) => Color
+!	Color.getHSL	method	instance (target: HSL = { h: 0, s: 0, l: 0 }, colorSpace: string = ColorManagement.workingColorSpace) => HSL	instance (target: {h:number,s:number,l:number}, colorSpace: string = ColorManagement.workingColorSpace) => {h:number,s:number,l:number}
+<	Color.getHex	method	instance (colorSpace: string = SRGBColorSpace) => number	-
+!	Color.getRGB	method	instance (target: RGB = { r: 0, g: 0, b: 0 }, colorSpace: string = ColorManagement.workingColorSpace) => RGB	instance (target: Color, colorSpace: string = ColorManagement.workingColorSpace) => Color
+<	Color.getStyle	method	instance (colorSpace: string = SRGBColorSpace) => string	-
 !	Color.hex	accessor	instance rw number	instance (colorSpace: string = SRGBColorSpace) => number
 >	Color.hex	accessor	-	instance (hex: number, colorSpace: string = SRGBColorSpace) => Color
 !	Color.hexString	accessor	instance r string	instance (colorSpace: string = SRGBColorSpace) => string
@@ -885,22 +887,24 @@
 !	Color.set	method	instance (value: ColorValue) => this	instance (r?: (number|string|Color), g?: number, b?: number) => Color
 !	Color.setColorName	method	instance (name: string) => this	instance (style: string, colorSpace: string = SRGBColorSpace) => Color
 !	Color.setFromVector3	method	instance (v: Vector3) => this	instance (v: Vector3) => Color
-!	Color.setHSL	method	instance (h: number, s: number, l: number) => this	instance (h: number, s: number, l: number, colorSpace: string = ColorManagement.workingColorSpace) => Color
-!	Color.setRGB	method	instance (r: number, g: number, b: number) => this	instance (r: number, g: number, b: number, colorSpace: string = ColorManagement.workingColorSpace) => Color
+!	Color.setHSL	method	instance (h: number, s: number, l: number, colorSpace: string = ColorManagement.workingColorSpace) => this	instance (h: number, s: number, l: number, colorSpace: string = ColorManagement.workingColorSpace) => Color
+<	Color.setHex	method	instance (hex: number, colorSpace: string = SRGBColorSpace) => this	-
+!	Color.setRGB	method	instance (r: number, g: number, b: number, colorSpace: string = ColorManagement.workingColorSpace) => this	instance (r: number, g: number, b: number, colorSpace: string = ColorManagement.workingColorSpace) => Color
 !	Color.setScalar	method	instance (s: number) => this	instance (scalar: number) => Color
+<	Color.setStyle	method	instance (style: string, colorSpace: string = SRGBColorSpace) => this	-
 !	Color.style	accessor	instance rw string	instance (colorSpace: string = SRGBColorSpace) => string
 >	Color.style	accessor	-	instance (style: string, colorSpace: string = SRGBColorSpace) => Color
 !	Color.sub	method	instance (c: Color) => this	instance (color: Color) => Color
 !	Color.toArray	method	instance (values: number[] = [], offset: number = 0) => number[]	instance (array: Array<number> = [], offset: number = 0) => Array<number>
 =	Color.toJSON	method	instance () => number	instance () => number
->	ColorKeyframeTrack	class	-	class extends KeyframeTrack
->	ColorKeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => ColorKeyframeTrack
-!	ColorManagement	const	const { readonly enabled: false; readonly workingColorSpace: "srgb"; readonly convert: <TColor>(color: TColor) => TColor; readonly fromWorkingColorSpace: <TColor>(color: TColor) => TColor; readonly toWorkingColorSpace: <TColor>(color: TColor) => TColor; }	const { enabled: boolean; workingColorSpace: string; spaces: {}; convert: (color: any, sourceColorSpace: any, targetColorSpace: any) => any; workingToColorSpace: (color: any, targetColorSpace: any) => any; colorSpaceToWorking: (color: any, sourceColorSpace: any) => any; getPrimaries: (colorSpace: any) => any; getTransfer: (colorSpace: any) => any; getToneMappingMode: (colorSpace: any) => any; getLuminanceCoefficients: (target: any, colorSpace?: any) => any; define: (colorSpaces: any) => void; _getMatrix: (targetMatrix: any, sourceColorSpace: any, targetColorSpace: any) => any; _getDrawingBufferColorSpace: (colorSpace: any) => any; _getUnpackColorSpace: (colorSpace?: any) => any; fromWorkingColorSpace: (color: any, targetColorSpace: any) => any; toWorkingColorSpace: (color: any, sourceColorSpace: any) => any; }
+<	ColorChannels	record	interface { r: number; g: number; b: number }	-
+!	ColorManagement	const	const { enabled: boolean; workingColorSpace: ColorSpace; convert<TColor extends ColorChannels>(color: TColor, sourceColorSpace: string, targetColorSpace: string): TColor; workingToColorSpace<TColor extends ColorChannels>(color: TColor, targetColorSpace: string): TColor; colorSpaceToWorking<TColor extends ColorChannels>(color: TColor, sourceColorSpace: string): TColor; getTransfer(colorSpace: string): string; fromWorkingColorSpace<TColor extends ColorChannels>(color: TColor, targetColorSpace: string): TColor; toWorkingColorSpace<TColor extends ColorChannels>(color: TColor, sourceColorSpace: string): TColor; }	const { enabled: boolean; workingColorSpace: string; spaces: {}; convert: (color: any, sourceColorSpace: any, targetColorSpace: any) => any; workingToColorSpace: (color: any, targetColorSpace: any) => any; colorSpaceToWorking: (color: any, sourceColorSpace: any) => any; getPrimaries: (colorSpace: any) => any; getTransfer: (colorSpace: any) => any; getToneMappingMode: (colorSpace: any) => any; getLuminanceCoefficients: (target: any, colorSpace?: any) => any; define: (colorSpaces: any) => void; _getMatrix: (targetMatrix: any, sourceColorSpace: any, targetColorSpace: any) => any; _getDrawingBufferColorSpace: (colorSpace: any) => any; _getUnpackColorSpace: (colorSpace?: any) => any; fromWorkingColorSpace: (color: any, targetColorSpace: any) => any; toWorkingColorSpace: (color: any, sourceColorSpace: any) => any; }
+<	ColorSpace	record	type = | typeof SRGBColorSpace | typeof LinearSRGBColorSpace | typeof NoColorSpace	-
 <	ColorTable	class	class	-
 <	ColorTable.constructor	constructor	instance () => ColorTable	-
 <	ColorTable.lookup	method	instance (hsl16: number, out: RgbColor = _lookupOut) => RgbColor	-
-<	ColorTrack	class	class extends Track	-
-<	ColorTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: Omit<TrackOptions, "itemSize"> = {}) => ColorTrack	-
+!	ColorTrack	class	class extends Track	class extends KeyframeTrack
+!	ColorTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: Omit<TrackOptions, "itemSize"> = {}) => ColorTrack	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => ColorKeyframeTrack
 <	ColorValue	record	type = number | string | Color	-
 !	Compatibility	const	const { readonly TEXTURE_COMPARE: "depthTextureCompare"; }	const Object
 <	Compatibility	record	type = (typeof Compatibility)[keyof typeof Compatibility]	-
@@ -908,6 +912,7 @@
 >	CompressedArrayTexture.addLayerUpdate	method	-	instance (layerIndex: number) => void
 >	CompressedArrayTexture.clearLayerUpdates	method	-	instance () => void
 >	CompressedArrayTexture.constructor	constructor	-	instance (mipmaps: Array<Object>, width: number, height: number, depth: number, format: number = RGBAFormat, type: number = UnsignedByteType) => CompressedArrayTexture
+>	CompressedArrayTexture.copy	method	-	instance (source: CompressedArrayTexture) => CompressedArrayTexture
 >	CompressedArrayTexture.isCompressedArrayTexture	field	-	instance ro boolean
 >	CompressedArrayTexture.layerUpdates	field	-	instance rw Set<number>
 >	CompressedArrayTexture.wrapR	field	-	instance rw (RepeatWrapping|ClampToEdgeWrapping|MirroredRepeatWrapping)
@@ -930,18 +935,20 @@
 <	ConsoleType	record	type = "log" | "warn" | "error"	-
 >	ConstantAlphaFactor	const	-	const number
 >	ConstantColorFactor	const	-	const number
-=	Controls	class	class extends EventDispatcher	class extends EventDispatcher
-!	Controls.connect	method	instance (element: EventTarget) => void	instance (element: HTMLElement) => void
-!	Controls.constructor	constructor	instance (object: Node, domElement?: EventTarget) => Controls	instance (object: Object3D, domElement: ?HTMLElement = null) => Controls
+<	ControlMouseButtons	record	interface { LEFT: MOUSE | undefined; MIDDLE: MOUSE | undefined; RIGHT: MOUSE | undefined }	-
+<	ControlTouches	record	interface { ONE: TOUCH | undefined; TWO?: TOUCH | undefined }	-
+!	Controls	class	class<TObject extends Node = Node> extends EventDispatcher	class extends EventDispatcher
+!	Controls.connect	method	instance (element: ControlDomElement) => void	instance (element: HTMLElement) => void
+!	Controls.constructor	constructor	instance (object: TObject, domElement?: ControlDomElement) => Controls<TObject>	instance (object: Object3D, domElement: ?HTMLElement = null) => Controls
 =	Controls.disconnect	method	instance () => void	instance () => void
 =	Controls.dispose	method	instance () => void	instance () => void
-!	Controls.domElement	field	instance rw EventTarget | undefined	instance rw ?HTMLElement
+!	Controls.domElement	field	instance rw ControlDomElement | undefined	instance rw ?HTMLElement
 =	Controls.enabled	field	instance rw boolean	instance rw boolean
->	Controls.keys	field	-	instance rw Object
->	Controls.mouseButtons	field	-	instance rw {LEFT: ?number, MIDDLE: ?number, RIGHT: ?number}
-!	Controls.object	field	instance rw Node	instance rw Object3D
->	Controls.state	field	-	instance rw number
->	Controls.touches	field	-	instance rw {ONE: ?number, TWO: ?number}
+!	Controls.keys	field	instance rw object	instance rw Object
+!	Controls.mouseButtons	field	instance rw ControlMouseButtons	instance rw {LEFT: ?number, MIDDLE: ?number, RIGHT: ?number}
+!	Controls.object	field	instance rw TObject	instance rw Object3D
+=	Controls.state	field	instance rw number	instance rw number
+!	Controls.touches	field	instance rw ControlTouches	instance rw {ONE: ?number, TWO: ?number}
 !	Controls.update	method	instance (_delta?: number) => void	instance (delta?: number) => void
 <	ConvexGeometry	class	class extends Geometry	-
 <	ConvexGeometry.constructor	constructor	instance (points: readonly Vector3[] = []) => ConvexGeometry	-
@@ -1097,12 +1104,14 @@
 <	DashedLineMaterialOptions	record	interface extends LineMaterialOptions { readonly dashSize?: number; readonly gapSize?: number }	-
 >	Data3DTexture	class	-	class extends Texture
 >	Data3DTexture.constructor	constructor	-	instance (data: ?TypedArray = null, width: number = 1, height: number = 1, depth: number = 1) => Data3DTexture
+>	Data3DTexture.copy	method	-	instance (source: Data3DTexture) => Data3DTexture
 >	Data3DTexture.isData3DTexture	field	-	instance ro boolean
 >	Data3DTexture.wrapR	field	-	instance rw (RepeatWrapping|ClampToEdgeWrapping|MirroredRepeatWrapping)
 >	DataArrayTexture	class	-	class extends Texture
 >	DataArrayTexture.addLayerUpdate	method	-	instance (layerIndex: number) => void
 >	DataArrayTexture.clearLayerUpdates	method	-	instance () => void
 >	DataArrayTexture.constructor	constructor	-	instance (data: ?TypedArray = null, width: number = 1, height: number = 1, depth: number = 1) => DataArrayTexture
+>	DataArrayTexture.copy	method	-	instance (source: DataArrayTexture) => DataArrayTexture
 >	DataArrayTexture.isDataArrayTexture	field	-	instance ro boolean
 >	DataArrayTexture.layerUpdates	field	-	instance rw Set<number>
 >	DataArrayTexture.wrapR	field	-	instance rw (RepeatWrapping|ClampToEdgeWrapping|MirroredRepeatWrapping)
@@ -1197,19 +1206,21 @@
 >	DodecahedronGeometry.fromJSON	method	-	static (data: Object) => DodecahedronGeometry
 >	DodecahedronGeometry.type	field	-	instance rw string
 >	DoubleSide	const	-	const number
-<	DragControls	class	class extends EventDispatcher	-
-<	DragControls.activate	method	instance () => void	-
-<	DragControls.camera	field	instance rw RaycastCamera	-
-<	DragControls.constructor	constructor	instance (objects: readonly Node[], camera: RaycastCamera, domElement: ControlDomElement, raycaster: Raycaster = new Raycaster()) => DragControls	-
-<	DragControls.deactivate	method	instance () => void	-
+<	DragControls	class	class extends Controls	-
+<	DragControls.connect	method	instance (element: DragDomElement) => void	-
+<	DragControls.constructor	constructor	instance (objects: Node[], camera: Camera, domElement?: DragDomElement) => DragControls	-
+<	DragControls.disconnect	method	instance () => void	-
 <	DragControls.dispose	method	instance () => void	-
-<	DragControls.domElement	field	instance rw ControlDomElement	-
-<	DragControls.enabled	field	instance rw boolean	-
+<	DragControls.domElement	field	instance rw DragDomElement | undefined	-
+<	DragControls.mouseButtons	field	instance rw ControlMouseButtons	-
+<	DragControls.object	field	instance rw Camera	-
 <	DragControls.objects	field	instance rw Node[]	-
 <	DragControls.raycaster	field	instance rw Raycaster	-
 <	DragControls.recursive	field	instance rw boolean	-
+<	DragControls.rotateSpeed	field	instance rw number	-
+<	DragControls.touches	field	instance rw ControlTouches	-
 <	DragControls.transformGroup	field	instance rw boolean	-
-<	DragControlsEvent	record	interface { type: string; object: Node; point?: Vector3 }	-
+<	DragControlsEvent	record	interface { type: string; object: Node }	-
 <	DrawCall	class	class	-
 <	DrawCall.centroid	field	instance rw Centroid	-
 <	DrawCall.clipVerts	field	instance rw Float32Array<ArrayBufferLike>	-
@@ -1347,28 +1358,31 @@
 !	FileLoader.responseType	accessor	instance rw FileResponseType	instance (value: ('arraybuffer'|'blob'|'document'|'json'|'')) => FileLoader
 >	FileLoader.responseType	field	-	instance rw ('arraybuffer'|'blob'|'document'|'json'|'')
 <	FileResponseType	record	type = | "" | "arraybuffer" | "blob" | "document" | "json" | "text"	-
-<	FirstPersonControls	class	class extends EventDispatcher	-
-<	FirstPersonControls.activeLook	field	instance rw boolean	-
+<	FirstPersonControls	class	class extends Controls	-
 <	FirstPersonControls.autoForward	field	instance rw boolean	-
-<	FirstPersonControls.camera	field	instance rw FirstPersonCamera	-
+<	FirstPersonControls.connect	method	instance (element: ControlDomElement) => void	-
 <	FirstPersonControls.constrainVertical	field	instance rw boolean	-
-<	FirstPersonControls.constructor	constructor	instance (camera: FirstPersonCamera, domElement: ControlDomElement) => FirstPersonControls	-
+<	FirstPersonControls.constructor	constructor	instance (object: Node, domElement?: ControlDomElement) => FirstPersonControls	-
+<	FirstPersonControls.dampingFactor	field	instance rw number	-
+<	FirstPersonControls.disconnect	method	instance () => void	-
 <	FirstPersonControls.dispose	method	instance () => void	-
-<	FirstPersonControls.domElement	field	instance rw ControlDomElement	-
-<	FirstPersonControls.enabled	field	instance rw boolean	-
 <	FirstPersonControls.handleResize	method	instance () => void	-
 <	FirstPersonControls.heightCoef	field	instance rw number	-
+<	FirstPersonControls.heightMax	field	instance rw number	-
+<	FirstPersonControls.heightMin	field	instance rw number	-
 <	FirstPersonControls.heightSpeed	field	instance rw boolean	-
+<	FirstPersonControls.lookAt	method	instance (x: Vector3 | number, y?: number, z?: number) => this	-
 <	FirstPersonControls.lookSpeed	field	instance rw number	-
 <	FirstPersonControls.lookVertical	field	instance rw boolean	-
+<	FirstPersonControls.mouseDragOn	accessor	instance r boolean	-
 <	FirstPersonControls.movementSpeed	field	instance rw number	-
-<	FirstPersonControls.update	method	instance (delta?: number) => boolean	-
+<	FirstPersonControls.update	method	instance (delta: number) => void	-
 <	FirstPersonControls.verticalMax	field	instance rw number	-
 <	FirstPersonControls.verticalMin	field	instance rw number	-
 <	FlatKeyframe	record	interface { readonly time: number; readonly [property: string]: unknown }	-
 <	FlatShader	class	class	-
 <	FlatShader.constructor	constructor	instance () => FlatShader	-
-<	FlatShader.shade	method	instance (nx: number, ny: number, nz: number, lights: Record<string, unknown>[], ambientIntensity: number = 0.1, wx: number = 0, wy: number = 0, wz: number = 0) => RGB	-
+<	FlatShader.shade	method	instance (nx: number, ny: number, nz: number, lights: Record<string, unknown>[], wx: number = 0, wy: number = 0, wz: number = 0) => RGB	-
 >	Float16BufferAttribute	class	-	class extends BufferAttribute
 >	Float16BufferAttribute.constructor	constructor	-	instance (array: (Array<number>|Uint16Array), itemSize: number, normalized: boolean = false) => Float16BufferAttribute
 >	Float16BufferAttribute.getW	method	-	instance (index: any) => number
@@ -1386,18 +1400,17 @@
 >	Float32BufferAttribute	class	-	class extends BufferAttribute
 >	Float32BufferAttribute.constructor	constructor	-	instance (array: (Array<number>|Float32Array), itemSize: number, normalized: boolean = false) => Float32BufferAttribute
 >	FloatType	const	-	const number
-<	FlyControls	class	class extends EventDispatcher	-
+<	FlyControls	class	class extends Controls	-
 <	FlyControls.autoForward	field	instance rw boolean	-
-<	FlyControls.camera	field	instance rw FlyCamera	-
-<	FlyControls.constructor	constructor	instance (camera: FlyCamera, domElement: ControlDomElement) => FlyControls	-
+<	FlyControls.connect	method	instance (element: ControlDomElement) => void	-
+<	FlyControls.constructor	constructor	instance (object: Node, domElement?: ControlDomElement) => FlyControls	-
+<	FlyControls.disconnect	method	instance () => void	-
 <	FlyControls.dispose	method	instance () => void	-
-<	FlyControls.domElement	field	instance rw ControlDomElement	-
 <	FlyControls.dragToLook	field	instance rw boolean	-
-<	FlyControls.enabled	field	instance rw boolean	-
 <	FlyControls.movementSpeed	field	instance rw number	-
 <	FlyControls.movementSpeedMultiplier	field	instance rw number	-
 <	FlyControls.rollSpeed	field	instance rw number	-
-<	FlyControls.update	method	instance (delta: number) => boolean	-
+<	FlyControls.update	method	instance (delta: number) => void	-
 =	Fog	class	class	class
 =	Fog.clone	method	instance () => Fog	instance () => Fog
 !	Fog.color	accessor/field	instance r Color	instance rw Color
@@ -1483,7 +1496,7 @@
 >	FrustumArray.constructor	constructor	-	instance () => FrustumArray
 >	FrustumArray.containsPoint	method	-	instance (point: Vector3) => boolean
 >	FrustumArray.coordinateSystem	field	-	instance rw WebGLCoordinateSystem|WebGPUCoordinateSystem
->	FrustumArray.copy	method	-	instance (source: any) => FrustumArray
+>	FrustumArray.copy	method	-	instance (source: FrustumArray) => FrustumArray
 >	FrustumArray.intersectsBox	method	-	instance (box: Box3) => boolean
 >	FrustumArray.intersectsObject	method	-	instance (object: Object3D) => boolean
 >	FrustumArray.intersectsSphere	method	-	instance (sphere: Sphere) => boolean
@@ -1627,7 +1640,7 @@
 <	GouraudInterpolator.interpolate	method	instance (hsl1: number, hsl2: number, t: number) => number	-
 <	GouraudShader	class	class	-
 <	GouraudShader.constructor	constructor	instance () => GouraudShader	-
-<	GouraudShader.shade	method	instance (nx: number, ny: number, nz: number, lights: Record<string, unknown>[], ambientIntensity: number = 0.1, wx: number = 0, wy: number = 0, wz: number = 0) => RGB	-
+<	GouraudShader.shade	method	instance (nx: number, ny: number, nz: number, lights: Record<string, unknown>[], wx: number = 0, wy: number = 0, wz: number = 0) => RGB	-
 >	GreaterCompare	const	-	const number
 >	GreaterDepth	const	-	const number
 >	GreaterEqualCompare	const	-	const number
@@ -1881,7 +1894,7 @@
 >	KeepStencilOp	const	-	const number
 !	LOD	class	class extends Node	class extends Object3D
 !	LOD.addLevel	method	instance (object: Node, distance: number = 0, hysteresis: number = 0) => this	instance (object: Object3D, distance: number = 0, hysteresis: number = 0) => LOD
->	LOD.autoUpdate	field	-	instance rw boolean
+=	LOD.autoUpdate	field	instance rw boolean	instance rw boolean
 <	LOD.clone	method	instance () => LOD	-
 !	LOD.constructor	constructor	instance ({ uuid = crypto.randomUUID() }: NodeOptions = {}) => LOD	instance () => LOD
 !	LOD.copy	method	instance (source: LOD) => this	instance (source: any) => this
@@ -1894,21 +1907,23 @@
 >	LOD.toJSON	method	-	instance (meta: any) => Object
 =	LOD.type	field	instance rw string	instance rw string
 !	LOD.update	method	instance (camera: Camera) => this	instance (camera: Camera) => void
+<	LOD.updateMatrixWorld	method	instance (updateParents: boolean = false, updateChildren: boolean = true, force: boolean = false) => void	-
 <	LODLevel	record	interface { readonly object: Node; readonly distance: number; readonly hysteresis: number }	-
 =	LambertMaterial	class	class extends Material	class extends Material
 <	LambertMaterial.clone	method	instance () => LambertMaterial	-
 =	LambertMaterial.color	field	instance rw Color	instance rw Color
 !	LambertMaterial.constructor	constructor	instance (options: LambertMaterialOptions = {}) => LambertMaterial	instance (parameters?: Object) => MeshLambertMaterial
 !	LambertMaterial.copy	method	instance (source: LambertMaterial) => this	instance (source: any) => this
->	LambertMaterial.emissive	field	-	instance rw Color
+=	LambertMaterial.emissive	field	instance rw Color	instance rw Color
+<	LambertMaterial.emissiveIntensity	field	instance rw number	-
 >	LambertMaterial.envMapRotation	field	-	instance rw Euler
 <	LambertMaterial.isLambertMaterial	accessor	instance r true	-
 >	LambertMaterial.isMeshLambertMaterial	field	-	instance ro boolean
 <	LambertMaterial.map	field	instance rw Texture | undefined	-
 <	LambertMaterial.toJSON	method	instance () => LambertMaterialJSON	-
 =	LambertMaterial.type	field	instance rw string	instance rw string
-<	LambertMaterialJSON	record	interface extends MaterialJSON { color: number; map?: string }	-
-<	LambertMaterialOptions	record	interface extends MaterialOptions { readonly color?: Color | number | string; readonly map?: Texture | undefined }	-
+<	LambertMaterialJSON	record	interface extends MaterialJSON { color: number; emissive: number; emissiveIntensity?: number; map?: string }	-
+<	LambertMaterialOptions	record	interface extends MaterialOptions { readonly color?: Color | number | string; readonly map?: Texture | undefined; readonly emissive?: Color | number | string; readonly emissiveIntensity?: number }	-
 !	LatheGeometry	class	class extends Geometry	class extends BufferGeometry
 !	LatheGeometry.constructor	constructor	instance (points: LathePoint[], segments: number = 12, phiStart: number = 0, phiLength: number = Math.PI * 2) => LatheGeometry	instance (points: Array<Vector2|Vector3> = [ new Vector2( 0, - 0.5 ), new Vector2( 0.5, 0 ), new Vector2( 0, 0.5 ) ], segments: number = 12, phiStart: number = 0, phiLength: number = Math.PI * 2) => LatheGeometry
 >	LatheGeometry.copy	method	-	instance (source: any) => this
@@ -1939,9 +1954,8 @@
 =	Light.color	field	instance rw Color	instance rw Color
 !	Light.constructor	constructor	instance (color: Color | number | string = 0xffffff, intensity: number = 1) => Light	instance (color: (number|Color|string) = 0xffffff, intensity: number = 1) => Light
 !	Light.copy	method	instance (source: Light, recursive: boolean = true) => this	instance (source: any, recursive: any) => this
->	Light.dispose	method	-	instance () => void
 =	Light.intensity	field	instance rw number	instance rw number
->	Light.isLight	field	-	instance ro boolean
+!	Light.isLight	accessor/field	instance r true	instance ro boolean
 !	Light.toJSON	method	instance () => LightJSON	instance (meta: any) => Object
 =	Light.type	field	instance rw string	instance rw string
 <	LightBaker	class	class	-
@@ -1957,6 +1971,36 @@
 !	LightProbe.toJSON	method	instance () => LightProbeJSON	instance (meta: any) => Object
 <	LightProbe.type	field	instance rw string	-
 <	LightProbeJSON	record	interface extends LightJSON { sh: number[] }	-
+>	LightShadow	class	-	class
+>	LightShadow._frameExtents	field	-	instance rw Vector2
+>	LightShadow._frustum	field	-	instance rw Frustum
+>	LightShadow._viewportCount	field	-	instance rw number
+>	LightShadow._viewports	field	-	instance rw Vector4[]
+>	LightShadow.autoUpdate	field	-	instance rw boolean
+>	LightShadow.bias	field	-	instance rw number
+>	LightShadow.biasNode	field	-	instance rw ?Node<float>
+>	LightShadow.blurSamples	field	-	instance rw number
+>	LightShadow.camera	field	-	instance rw Camera
+>	LightShadow.clone	method	-	instance () => LightShadow
+>	LightShadow.constructor	constructor	-	instance (camera: Camera) => LightShadow
+>	LightShadow.copy	method	-	instance (source: LightShadow) => LightShadow
+>	LightShadow.dispose	method	-	instance () => void
+>	LightShadow.getCamera	method	-	instance (viewportIndex: number = 0) => Camera
+>	LightShadow.getFrameExtents	method	-	instance () => Vector2
+>	LightShadow.getFrustum	method	-	instance () => Frustum
+>	LightShadow.getViewport	method	-	instance (viewportIndex: number) => Vector4
+>	LightShadow.getViewportCount	method	-	instance () => number
+>	LightShadow.intensity	field	-	instance rw number
+>	LightShadow.map	field	-	instance rw ?RenderTarget
+>	LightShadow.mapPass	field	-	instance rw ?RenderTarget
+>	LightShadow.mapSize	field	-	instance rw Vector2
+>	LightShadow.mapType	field	-	instance rw number
+>	LightShadow.matrix	field	-	instance rw Matrix4
+>	LightShadow.needsUpdate	field	-	instance rw boolean
+>	LightShadow.normalBias	field	-	instance rw number
+>	LightShadow.radius	field	-	instance rw number
+>	LightShadow.toJSON	method	-	instance () => Object
+>	LightShadow.updateMatrices	method	-	instance (light: Light) => void
 <	LightType	const	const { readonly Ambient: 0; readonly Hemisphere: 1; readonly Directional: 2; readonly Point: 3; readonly Spot: 4; readonly RectArea: 5; }	-
 <	LightType	record	type = (typeof LightType)[keyof typeof LightType]	-
 !	Line	class	class extends Node	class extends Object3D
@@ -1965,6 +2009,7 @@
 !	Line.constructor	constructor	instance (geometry: Geometry | undefined = void 0, material: LineMaterial | undefined = void 0) => Line	instance (geometry: BufferGeometry = new BufferGeometry(), material: Material|Array<Material> = new LineBasicMaterial()) => Line
 !	Line.copy	method	instance (source: Line, recursive: boolean = true) => this	instance (source: any, recursive: any) => this
 !	Line.geometry	field	instance rw Geometry | undefined	instance rw BufferGeometry
+>	Line.intersectsFrustum	method	-	instance (frustum: Frustum|FrustumArray) => boolean
 !	Line.isLine	accessor/field	instance r true	instance ro boolean
 !	Line.material	accessor/field	instance rw LineMaterial | undefined	instance rw Material|Array<Material>
 !	Line.morphTargetDictionary	field	instance rw Record<string, number> | undefined	instance rw Object<string,number>|undefined
@@ -2033,8 +2078,6 @@
 !	LineMaterial.copy	method	instance (source: LineMaterial) => this	instance (source: any) => this
 >	LineMaterial.isLineBasicMaterial	field	-	instance ro boolean
 <	LineMaterial.isLineMaterial	accessor	instance r true	-
->	LineMaterial.linecap	field	-	instance rw ('butt'|'round'|'square')
->	LineMaterial.linejoin	field	-	instance rw ('round'|'bevel'|'miter')
 <	LineMaterial.linewidth	accessor	instance rw number	-
 <	LineMaterial.toJSON	method	instance () => LineMaterialJSON	-
 =	LineMaterial.type	field	instance rw string	instance rw string
@@ -2054,7 +2097,8 @@
 >	LinearMipMapNearestFilter	const	-	const 1007
 >	LinearMipmapLinearFilter	const	-	const number
 >	LinearMipmapNearestFilter	const	-	const number
->	LinearSRGBColorSpace	const	-	const string
+!	LinearSRGBColorSpace	const	const "srgb-linear"	const string
+<	LinearToSRGB	function	(c: number) => number	-
 >	LinearToneMapping	const	-	const number
 !	LinearTransfer	const	const "linear"	const string
 =	Loader	class	class	class
@@ -2142,7 +2186,9 @@
 <	MTLMaterialType	record	type = "basic" | "lambert"	-
 <	MTLTextureReference	record	interface { readonly path: string; readonly url: string; readonly raw: string; readonly scale: readonly [number, number, number]; readonly offset: readonly [number, number, number]; readonly clamp: boolean | undefined; readonly bumpMultiplier: number | undefined; readonly brightness: readonly [number, number] | undefined }	-
 <	MapControls	class	class extends OrbitControls	-
-<	MapControls.constructor	constructor	instance (camera: ConstructorParameters<typeof OrbitControls>[0], domElement: ConstructorParameters<typeof OrbitControls>[1]) => MapControls	-
+<	MapControls.constructor	constructor	instance (object: OrbitCamera, domElement?: ControlDomElement) => MapControls	-
+<	MapControls.mouseButtons	field	instance rw ControlMouseButtons	-
+<	MapControls.touches	field	instance rw ControlTouches	-
 !	Material	class	class	class extends EventDispatcher
 >	Material._alphaTest	field	-	instance rw number
 >	Material.allowOverride	field	-	instance rw boolean
@@ -2185,6 +2231,7 @@
 >	Material.customProgramCacheKey	method	-	instance () => string
 >	Material.dashSize	field	-	instance rw any
 >	Material.depthFunc	field	-	instance rw (NeverDepth|AlwaysDepth|LessDepth|LessEqualDepth|EqualDepth|GreaterEqualDepth|GreaterDepth|NotEqualDepth)
+>	Material.depthPacking	field	-	instance rw any
 =	Material.depthTest	field	instance rw boolean	instance rw boolean
 =	Material.depthWrite	field	instance rw boolean	instance rw boolean
 >	Material.dispersion	field	-	instance rw any
@@ -2213,6 +2260,8 @@
 <	Material.layer	field	instance rw number	-
 >	Material.lightMap	field	-	instance rw any
 >	Material.lightMapIntensity	field	-	instance rw any
+>	Material.linecap	field	-	instance rw any
+>	Material.linejoin	field	-	instance rw any
 >	Material.linewidth	field	-	instance rw any
 >	Material.map	field	-	instance rw any
 >	Material.matcap	field	-	instance rw any
@@ -2233,6 +2282,7 @@
 >	Material.premultipliedAlpha	field	-	instance rw boolean
 >	Material.reflectivity	field	-	instance rw any
 >	Material.refractionRatio	field	-	instance rw any
+>	Material.retroreflectivity	field	-	instance rw any
 >	Material.rotation	field	-	instance rw any
 >	Material.roughness	field	-	instance rw any
 >	Material.roughnessMap	field	-	instance rw any
@@ -2385,6 +2435,7 @@
 !	Mesh.count	accessor/field	instance rw number	instance rw number
 !	Mesh.geometry	accessor/field	instance rw Geometry | undefined	instance rw BufferGeometry
 =	Mesh.getVertexPosition	method	instance (index: number, target: Vector3) => Vector3	instance (index: number, target: Vector3) => Vector3
+>	Mesh.intersectsFrustum	method	-	instance (frustum: Frustum|FrustumArray) => boolean
 !	Mesh.isMesh	accessor/field	instance r true	instance ro boolean
 !	Mesh.material	field	instance rw Material | undefined	instance rw Material|Array<Material>
 !	Mesh.morphTargetDictionary	field	instance rw Record<string, number> | undefined	instance rw Object<string,number>|undefined
@@ -2395,7 +2446,6 @@
 >	MeshDepthMaterial	class	-	class extends Material
 >	MeshDepthMaterial.constructor	constructor	-	instance (parameters?: Object) => MeshDepthMaterial
 >	MeshDepthMaterial.copy	method	-	instance (source: any) => this
->	MeshDepthMaterial.depthPacking	field	-	instance rw (BasicDepthPacking|RGBADepthPacking|RGBDepthPacking|RGDepthPacking)
 >	MeshDepthMaterial.isMeshDepthMaterial	field	-	instance ro boolean
 >	MeshDepthMaterial.type	field	-	instance rw string
 >	MeshDistanceMaterial	class	-	class extends Material
@@ -2429,6 +2479,7 @@
 >	MeshPhysicalMaterial._clearcoat	field	-	instance rw number
 >	MeshPhysicalMaterial._dispersion	field	-	instance rw number
 >	MeshPhysicalMaterial._iridescence	field	-	instance rw number
+>	MeshPhysicalMaterial._retroreflectivity	field	-	instance rw number
 >	MeshPhysicalMaterial._sheen	field	-	instance rw number
 >	MeshPhysicalMaterial._transmission	field	-	instance rw number
 >	MeshPhysicalMaterial.anisotropy	accessor	-	instance rw number
@@ -2441,6 +2492,7 @@
 >	MeshPhysicalMaterial.ior	field	-	instance rw number
 >	MeshPhysicalMaterial.iridescence	accessor	-	instance rw number
 >	MeshPhysicalMaterial.isMeshPhysicalMaterial	field	-	instance ro boolean
+>	MeshPhysicalMaterial.retroreflectivity	accessor	-	instance rw number
 >	MeshPhysicalMaterial.sheen	accessor	-	instance rw number
 >	MeshPhysicalMaterial.specularColor	field	-	instance rw Color
 >	MeshPhysicalMaterial.transmission	accessor	-	instance rw number
@@ -2454,14 +2506,6 @@
 >	MeshStandardMaterial.envMapRotation	field	-	instance rw Euler
 >	MeshStandardMaterial.isMeshStandardMaterial	field	-	instance ro boolean
 >	MeshStandardMaterial.type	field	-	instance rw string
->	MeshToonMaterial	class	-	class extends Material
->	MeshToonMaterial.color	field	-	instance rw Color
->	MeshToonMaterial.constructor	constructor	-	instance (parameters?: Object) => MeshToonMaterial
->	MeshToonMaterial.copy	method	-	instance (source: any) => this
->	MeshToonMaterial.defines	field	-	instance rw { TOON: string; }
->	MeshToonMaterial.emissive	field	-	instance rw Color
->	MeshToonMaterial.isMeshToonMaterial	field	-	instance ro boolean
->	MeshToonMaterial.type	field	-	instance rw string
 >	MinEquation	const	-	const number
 >	MirroredRepeatWrapping	const	-	const number
 >	MixOperation	const	-	const number
@@ -2550,7 +2594,7 @@
 >	NeverDepth	const	-	const number
 >	NeverStencilFunc	const	-	const number
 >	NoBlending	const	-	const number
->	NoColorSpace	const	-	const string
+!	NoColorSpace	const	const ""	const string
 !	NoNormalPacking	const	const ""	const string
 >	NoToneMapping	const	-	const number
 =	Node	class	class extends EventDispatcher	class extends EventDispatcher
@@ -2570,6 +2614,7 @@
 !	Node.copy	method	instance (source: Node, recursive: boolean = true) => this	instance (source: Object3D, recursive: boolean = true) => Object3D
 >	Node.customDepthMaterial	field	-	instance rw (Material|undefined)
 >	Node.customDistanceMaterial	field	-	instance rw (Material|undefined)
+>	Node.dispose	method	-	instance () => void
 =	Node.frustumCulled	field	instance rw boolean	instance rw boolean
 !	Node.getObjectById	method	instance (id: number) => Node | undefined	instance (id: number) => Object3D|undefined
 !	Node.getObjectByName	method	instance (name: string) => Node | undefined	instance (name: string) => Object3D|undefined
@@ -2580,6 +2625,7 @@
 =	Node.getWorldQuaternion	method	instance (target: Quaternion) => Quaternion	instance (target: Quaternion) => Quaternion
 =	Node.getWorldScale	method	instance (target: Vector3) => Vector3	instance (target: Vector3) => Vector3
 <	Node.id	field	instance rw number	-
+>	Node.intersectsFrustum	method	-	instance (frustum: Frustum|FrustumArray) => boolean|undefined
 =	Node.isObject3D	field	instance ro boolean	instance ro boolean
 =	Node.layers	field	instance rw Layers	instance rw Layers
 =	Node.localToWorld	method	instance (vector: Vector3) => Vector3	instance (vector: Vector3) => Vector3
@@ -2641,10 +2687,8 @@
 >	NotEqualCompare	const	-	const number
 >	NotEqualDepth	const	-	const number
 >	NotEqualStencilFunc	const	-	const number
->	NumberKeyframeTrack	class	-	class extends KeyframeTrack
->	NumberKeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => NumberKeyframeTrack
-<	NumberTrack	class	class extends Track	-
-<	NumberTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: Omit<TrackOptions, "itemSize"> = {}) => NumberTrack	-
+!	NumberTrack	class	class extends Track	class extends KeyframeTrack
+!	NumberTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: Omit<TrackOptions, "itemSize"> = {}) => NumberTrack	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => NumberKeyframeTrack
 <	NumericTypedArray	record	type = | Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array	-
 <	NumericTypedArrayConstructor	record	interface<ArrayType extends NumericTypedArray> { new (values: ArrayLike<number>): ArrayType; readonly BYTES_PER_ELEMENT: number }	-
 <	OBB	class	class	-
@@ -2727,33 +2771,59 @@
 >	OneMinusDstColorFactor	const	-	const number
 >	OneMinusSrcAlphaFactor	const	-	const number
 >	OneMinusSrcColorFactor	const	-	const number
-<	OrbitControls	class	class extends EventDispatcher	-
+<	OrbitCamera	record	type = PerspectiveCamera | OrthographicCamera	-
+<	OrbitControls	class	class extends Controls<OrbitCamera>	-
 <	OrbitControls.autoRotate	field	instance rw boolean	-
 <	OrbitControls.autoRotateSpeed	field	instance rw number	-
-<	OrbitControls.camera	field	instance rw OrbitCamera	-
-<	OrbitControls.constructor	constructor	instance (camera: OrbitCamera, domElement: OrbitDomElement) => OrbitControls	-
+<	OrbitControls.azimuthalAngle	accessor	instance r number	-
+<	OrbitControls.connect	method	instance (element: ControlDomElement) => void	-
+<	OrbitControls.constructor	constructor	instance (object: OrbitCamera, domElement?: ControlDomElement) => OrbitControls	-
+<	OrbitControls.cursor	field	instance rw Vector3	-
+<	OrbitControls.cursorStyle	accessor	instance rw "auto" | "grab"	-
 <	OrbitControls.dampingFactor	field	instance rw number	-
+<	OrbitControls.disconnect	method	instance () => void	-
 <	OrbitControls.dispose	method	instance () => void	-
-<	OrbitControls.domElement	field	instance rw OrbitDomElement	-
+<	OrbitControls.distance	accessor	instance r number	-
+<	OrbitControls.dollyIn	method	instance (dollyScale: number) => void	-
+<	OrbitControls.dollyOut	method	instance (dollyScale: number) => void	-
 <	OrbitControls.enableDamping	field	instance rw boolean	-
 <	OrbitControls.enablePan	field	instance rw boolean	-
 <	OrbitControls.enableRotate	field	instance rw boolean	-
 <	OrbitControls.enableZoom	field	instance rw boolean	-
-<	OrbitControls.enabled	field	instance rw boolean	-
+<	OrbitControls.keyPanSpeed	field	instance rw number	-
+<	OrbitControls.keyRotateSpeed	field	instance rw number	-
+<	OrbitControls.keys	field	instance rw OrbitControlsKeys	-
+<	OrbitControls.listenToKeyEvents	method	instance (domElement: EventTarget) => void	-
+<	OrbitControls.maxAzimuthAngle	field	instance rw number	-
 <	OrbitControls.maxDistance	field	instance rw number	-
 <	OrbitControls.maxPolarAngle	field	instance rw number	-
+<	OrbitControls.maxTargetRadius	field	instance rw number	-
 <	OrbitControls.maxZoom	field	instance rw number	-
+<	OrbitControls.minAzimuthAngle	field	instance rw number	-
 <	OrbitControls.minDistance	field	instance rw number	-
 <	OrbitControls.minPolarAngle	field	instance rw number	-
+<	OrbitControls.minTargetRadius	field	instance rw number	-
 <	OrbitControls.minZoom	field	instance rw number	-
+<	OrbitControls.mouseButtons	field	instance rw ControlMouseButtons	-
+<	OrbitControls.pan	method	instance (deltaX: number, deltaY: number) => void	-
 <	OrbitControls.panSpeed	field	instance rw number	-
-<	OrbitControls.primaryAction	field	instance rw "pan" | "rotate"	-
+<	OrbitControls.polarAngle	accessor	instance r number	-
+<	OrbitControls.position0	field	instance rw Vector3	-
 <	OrbitControls.reset	method	instance () => void	-
+<	OrbitControls.rotateLeft	method	instance (angle: number) => void	-
 <	OrbitControls.rotateSpeed	field	instance rw number	-
+<	OrbitControls.rotateUp	method	instance (angle: number) => void	-
+<	OrbitControls.saveState	method	instance () => void	-
 <	OrbitControls.screenSpacePanning	field	instance rw boolean	-
+<	OrbitControls.stopListenToKeyEvents	method	instance () => void	-
 <	OrbitControls.target	field	instance rw Vector3	-
-<	OrbitControls.update	method	instance () => boolean	-
+<	OrbitControls.target0	field	instance rw Vector3	-
+<	OrbitControls.touches	field	instance rw ControlTouches	-
+<	OrbitControls.update	method	instance (delta?: number) => boolean	-
+<	OrbitControls.zoom0	field	instance rw number	-
 <	OrbitControls.zoomSpeed	field	instance rw number	-
+<	OrbitControls.zoomToCursor	field	instance rw boolean	-
+<	OrbitControlsKeys	record	interface { LEFT: string; UP: string; RIGHT: string; BOTTOM: string }	-
 =	OrthographicCamera	class	class extends Camera	class extends Camera
 !	OrthographicCamera.bottom	accessor/field	instance rw number	instance rw number
 !	OrthographicCamera.clearViewOffset	method	instance () => this	instance () => void
@@ -2761,7 +2831,7 @@
 !	OrthographicCamera.constructor	constructor	instance ({ left = -1, right = 1, top = 1, bottom = -1, near = 0.1, far = 2000, tileSize = 1, zoom = 1, }: OrthographicCameraOptions = {}) => OrthographicCamera	instance (left: number = - 1, right: number = 1, top: number = 1, bottom: number = - 1, near: number = 0.1, far: number = 2000) => OrthographicCamera
 !	OrthographicCamera.copy	method	instance (source: Camera, recursive: boolean = true) => this	instance (source: any, recursive: any) => this
 >	OrthographicCamera.far	field	-	instance rw number
->	OrthographicCamera.isOrthographicCamera	field	-	instance ro boolean
+!	OrthographicCamera.isOrthographicCamera	accessor/field	instance r true	instance ro boolean
 !	OrthographicCamera.left	accessor/field	instance rw number	instance rw number
 >	OrthographicCamera.near	field	-	instance rw number
 !	OrthographicCamera.right	accessor/field	instance rw number	instance rw number
@@ -2970,6 +3040,7 @@
 !	Plane.distanceToPoint	method	instance (point: { x: number; y: number; z: number }) => number	instance (point: Vector3) => number
 !	Plane.distanceToSphere	method	instance (sphere: SphereLike) => number	instance (sphere: Sphere) => number
 =	Plane.equals	method	instance (plane: Plane) => boolean	instance (plane: Plane) => boolean
+>	Plane.fromJSON	method	-	instance (json: Object) => Plane
 !	Plane.intersectLine	method	instance (line: { start: Vector3; end: Vector3 }, target: Vector3 = new Vector3()) => Vector3 | undefined	instance (line: Line3, target: Vector3, clampToLine: boolean = true) => ?Vector3
 =	Plane.intersectsBox	method	instance (box: Box3) => boolean	instance (box: Box3) => boolean
 =	Plane.intersectsLine	method	instance (line: Line3) => boolean	instance (line: Line3) => boolean
@@ -2983,6 +3054,7 @@
 =	Plane.setComponents	method	instance (x: number, y: number, z: number, w: number) => Plane	instance (x: number, y: number, z: number, w: number) => Plane
 =	Plane.setFromCoplanarPoints	method	instance (a: Vector3, b: Vector3, c: Vector3) => Plane	instance (a: Vector3, b: Vector3, c: Vector3) => Plane
 =	Plane.setFromNormalAndCoplanarPoint	method	instance (normal: Vector3, point: Vector3) => Plane	instance (normal: Vector3, point: Vector3) => Plane
+>	Plane.toJSON	method	-	instance () => Object
 =	Plane.translate	method	instance (offset: Vector3) => Plane	instance (offset: Vector3) => Plane
 !	PlaneGeometry	class	class extends Geometry	class extends BufferGeometry
 =	PlaneGeometry.constructor	constructor	instance (width: number = 1, height: number = 1, widthSegments: number = 1, heightSegments: number = 1) => PlaneGeometry	instance (width: number = 1, height: number = 1, widthSegments: number = 1, heightSegments: number = 1) => PlaneGeometry
@@ -3032,12 +3104,12 @@
 <	PointRasterizer	class	class	-
 <	PointRasterizer.constructor	constructor	instance () => PointRasterizer	-
 <	PointRasterizer.rasterize	method	instance (cx: number, cy: number, radius: number, width: number, height: number, callback: (x: number, y: number) => void) => void	-
-<	PointerLockControls	class	class extends EventDispatcher	-
-<	PointerLockControls.camera	field	instance rw PointerLockCamera	-
-<	PointerLockControls.constructor	constructor	instance (camera: PointerLockCamera, domElement: ControlDomElement) => PointerLockControls	-
+<	PointerLockControls	class	class extends Controls	-
+<	PointerLockControls.connect	method	instance (element: PointerLockDomElement) => void	-
+<	PointerLockControls.constructor	constructor	instance (camera: Camera, domElement?: PointerLockDomElement) => PointerLockControls	-
+<	PointerLockControls.disconnect	method	instance () => void	-
 <	PointerLockControls.dispose	method	instance () => void	-
-<	PointerLockControls.domElement	field	instance rw ControlDomElement	-
-<	PointerLockControls.enabled	field	instance rw boolean	-
+<	PointerLockControls.domElement	field	instance rw PointerLockDomElement | undefined	-
 <	PointerLockControls.getDirection	method	instance (target: Vector3) => Vector3	-
 <	PointerLockControls.isLocked	field	instance rw boolean	-
 <	PointerLockControls.lock	method	instance (unadjustedMovement: boolean = false) => void	-
@@ -3045,6 +3117,7 @@
 <	PointerLockControls.minPolarAngle	field	instance rw number	-
 <	PointerLockControls.moveForward	method	instance (distance: number) => void	-
 <	PointerLockControls.moveRight	method	instance (distance: number) => void	-
+<	PointerLockControls.object	field	instance rw Camera	-
 <	PointerLockControls.pointerSpeed	field	instance rw number	-
 <	PointerLockControls.unlock	method	instance () => void	-
 !	Points	class	class extends Node	class extends Object3D
@@ -3052,6 +3125,7 @@
 !	Points.constructor	constructor	instance (geometry: Geometry | undefined = void 0, material: Material | undefined = void 0) => Points	instance (geometry: BufferGeometry = new BufferGeometry(), material: Material|Array<Material> = new PointsMaterial()) => Points
 !	Points.copy	method	instance (source: Points, recursive: boolean = true) => this	instance (source: any, recursive: any) => this
 !	Points.geometry	field	instance rw Geometry | undefined	instance rw BufferGeometry
+>	Points.intersectsFrustum	method	-	instance (frustum: Frustum|FrustumArray) => boolean
 !	Points.isPoints	accessor/field	instance r true	instance ro boolean
 !	Points.material	field	instance rw Material | undefined	instance rw Material|Array<Material>
 !	Points.morphTargetDictionary	field	instance rw Record<string, number> | undefined	instance rw Object<string,number>|undefined
@@ -3216,20 +3290,18 @@
 =	Quaternion.y	accessor	instance rw number	instance rw number
 =	Quaternion.z	accessor	instance rw number	instance rw number
 <	QuaternionArray	record	type = number[] | Float32Array | Float64Array	-
->	QuaternionKeyframeTrack	class	-	class extends KeyframeTrack
->	QuaternionKeyframeTrack.InterpolantFactoryMethodLinear	method	-	instance (result?: TypedArray) => QuaternionLinearInterpolant
->	QuaternionKeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => QuaternionKeyframeTrack
 =	QuaternionLinearInterpolant	class	class extends Interpolant	class extends Interpolant
 !	QuaternionLinearInterpolant.constructor	constructor	instance (positions: ArrayLike<number>, values: ArrayLike<number>, stride: number, result?: number[] | undefined) => QuaternionLinearInterpolant	instance (parameterPositions: TypedArray, sampleValues: TypedArray, sampleSize: number, resultBuffer?: TypedArray) => QuaternionLinearInterpolant
 !	QuaternionLinearInterpolant.interpolate_	method	instance (i1: number, t0: number, t: number, t1: number) => number[]	instance (i1: any, t0: any, t: any, t1: any) => TypedArray
-<	QuaternionTrack	class	class extends Track<"quaternion">	-
-<	QuaternionTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: Omit<TrackOptions, "itemSize"> = {}) => QuaternionTrack	-
+!	QuaternionTrack	class	class extends Track<"quaternion">	class extends KeyframeTrack
+>	QuaternionTrack.InterpolantFactoryMethodLinear	method	-	instance (result?: TypedArray) => QuaternionLinearInterpolant
+!	QuaternionTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: Omit<TrackOptions, "itemSize"> = {}) => QuaternionTrack	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => QuaternionKeyframeTrack
 <	QuaternionTrack.valueType	accessor	instance r "quaternion"	-
 >	R11_EAC_Format	const	-	const number
 <	RAD2DEG	const	const 57.29577951308232	-
 >	RED_GREEN_RGTC2_Format	const	-	const number
 >	RED_RGTC1_Format	const	-	const number
-!	REVISION	const	const string	const "185"
+!	REVISION	const	const string	const "186"
 >	RG11_EAC_Format	const	-	const number
 <	RGB	record	interface { r: number; g: number; b: number }	-
 >	RGBADepthPacking	const	-	const number
@@ -3334,6 +3406,7 @@
 >	RedFormat	const	-	const number
 >	RedIntegerFormat	const	-	const number
 >	ReinhardToneMapping	const	-	const number
+>	RenderObjectRefreshType	const	-	const ConstantsRenderObjectRefreshType
 >	RenderTarget	class	-	class extends EventDispatcher
 >	RenderTarget._depthTexture	field	-	instance rw any
 >	RenderTarget._setTextureOptions	method	-	instance (options: {} = {}) => void
@@ -3347,6 +3420,7 @@
 >	RenderTarget.height	field	-	instance rw number
 >	RenderTarget.isRenderTarget	field	-	instance ro boolean
 >	RenderTarget.multiview	field	-	instance rw boolean
+>	RenderTarget.resolveColorBuffer	field	-	instance rw boolean
 >	RenderTarget.resolveDepthBuffer	field	-	instance rw boolean
 >	RenderTarget.resolveStencilBuffer	field	-	instance rw boolean
 >	RenderTarget.samples	field	-	instance rw number
@@ -3354,6 +3428,9 @@
 >	RenderTarget.scissorTest	field	-	instance rw boolean
 >	RenderTarget.setSize	method	-	instance (width: number, height: number, depth: number = 1) => void
 >	RenderTarget.stencilBuffer	field	-	instance rw boolean
+>	RenderTarget.storeMultisampledColorBuffer	field	-	instance rw boolean
+>	RenderTarget.storeMultisampledDepthBuffer	field	-	instance rw boolean
+>	RenderTarget.storeMultisampledStencilBuffer	field	-	instance rw boolean
 >	RenderTarget.texture	accessor	-	instance rw Texture
 >	RenderTarget.textures	field	-	instance rw Array<Texture>
 >	RenderTarget.useArrayDepthTexture	field	-	instance rw boolean
@@ -3411,7 +3488,8 @@
 >	SIGNED_RED_RGTC1_Format	const	-	const number
 >	SIGNED_RG11_EAC_Format	const	-	const number
 <	SIXTH_PI	const	const 0.5235987755982988	-
->	SRGBColorSpace	const	-	const string
+!	SRGBColorSpace	const	const "srgb"	const string
+<	SRGBToLinear	function	(c: number) => number	-
 !	SRGBTransfer	const	const "srgb"	const string
 <	STLExporter	class	class	-
 <	STLExporter.constructor	constructor	instance () => STLExporter	-
@@ -3594,18 +3672,16 @@
 !	SkinnedMesh.skeleton	accessor/field	instance rw Skeleton | undefined	instance rw any
 =	SkinnedMesh.type	field	instance rw string	instance rw string
 !	SkinnedMesh.updateMatrixWorld	method	instance (updateParents: boolean = false, updateChildren: boolean = true, force: boolean = false) => void	instance (force: any) => void
-=	Source	class	class	class
+!	Source	class	class	class extends TextureSource
 !	Source.constructor	constructor	instance (data?: SourceImage) => Source	instance (data: any = null) => Source
-!	Source.data	field	instance rw SourceImage	instance rw any
->	Source.dataReady	field	-	instance rw boolean
->	Source.getSize	method	-	instance (target: (Vector2|Vector3)) => (Vector2|Vector3)
+<	Source.data	field	instance rw SourceImage	-
 <	Source.id	field	instance ro number	-
 !	Source.isSource	field	instance ro true	instance ro boolean
-=	Source.needsUpdate	accessor	instance w boolean	instance w boolean
+<	Source.needsUpdate	accessor	instance w boolean	-
 <	Source.sizeInto	method	instance <TTarget extends { set: (...values: number[]) => unknown }>(target: TTarget) => TTarget	-
-!	Source.toJSON	method	instance (meta?: SourceSerializationMeta | string) => SourceJSON	instance (meta: ?(Object|string)) => Object
-=	Source.uuid	field	instance ro string	instance ro string
-!	Source.version	field	instance rw number	instance ro number
+<	Source.toJSON	method	instance (meta?: SourceSerializationMeta | string) => SourceJSON	-
+<	Source.uuid	field	instance ro string	-
+<	Source.version	field	instance rw number	-
 <	SourceImage	record	type = | ImageDataLike<ImagePixelArray> | HTMLImageElement | HTMLCanvasElement | ImageBitmap | HTMLVideoElement | undefined	-
 <	SourceJSON	record	interface { uuid: string; url: string | SourcePixelJSON }	-
 <	SourcePixelJSON	record	interface { data: number[]; width: number; height: number; type: string }	-
@@ -3746,6 +3822,7 @@
 !	Sprite.copy	method	instance (source: Sprite, recursive: boolean = true) => this	instance (source: any, recursive: any) => this
 =	Sprite.count	field	instance rw number	instance rw number
 >	Sprite.geometry	field	-	instance rw BufferGeometry
+>	Sprite.intersectsFrustum	method	-	instance (frustum: Frustum|FrustumArray) => boolean
 !	Sprite.isSprite	accessor/field	instance r true	instance ro boolean
 !	Sprite.material	field	instance rw Material | undefined	instance rw (SpriteMaterial|SpriteNodeMaterial)
 !	Sprite.raycast	method	instance (raycaster: Raycaster, intersects: Intersection[]) => void	instance (raycaster: Raycaster, intersects: Array<Object>) => void
@@ -3781,10 +3858,8 @@
 >	StreamCopyUsage	const	-	const number
 >	StreamDrawUsage	const	-	const number
 >	StreamReadUsage	const	-	const number
->	StringKeyframeTrack	class	-	class extends KeyframeTrack
->	StringKeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<string>) => StringKeyframeTrack
-<	StringTrack	class	class extends DiscreteTrack<string>	-
-<	StringTrack.constructor	constructor	instance (name: string, times: Float32Array | readonly number[], values: readonly string[]) => StringTrack	-
+!	StringTrack	class	class extends DiscreteTrack<string>	class extends KeyframeTrack
+!	StringTrack.constructor	constructor	instance (name: string, times: Float32Array | readonly number[], values: readonly string[]) => StringTrack	instance (name: string, times: Array<number>, values: Array<string>) => StringKeyframeTrack
 >	SubtractEquation	const	-	const number
 >	SubtractiveBlending	const	-	const number
 <	TAU	const	const 6.283185307179586	-
@@ -3808,7 +3883,7 @@
 <	TTFFont.generateShapes	method	instance (text: string, size: number = 100, direction: TTFDirection = "ltr") => Shape[]	-
 <	TTFFont.isFont	field	instance ro true	-
 <	TTFFont.type	field	instance ro "Font"	-
-<	TTFGlyph	record	interface { readonly ha: number; readonly x_min: number; readonly x_max: number; readonly o: string }	-
+<	TTFGlyph	record	interface { readonly ha: number; readonly x_min: number; readonly x_max: number; readonly o?: string }	-
 <	TTFLoader	class	class extends Loader	-
 <	TTFLoader.constructor	constructor	instance (manager: LoadingManager | undefined = void 0) => TTFLoader	-
 <	TTFLoader.load	method	instance (url: string, onLoad?: (result: TTFLoaderResult) => void, onProgress?: (event: ProgressEvent) => void, onError?: (error: unknown) => void) => void	-
@@ -3833,7 +3908,7 @@
 =	Texture.channel	field	instance rw number	instance rw number
 >	Texture.clearUpdateRanges	method	-	instance () => void
 =	Texture.clone	method	instance () => Texture	instance () => Texture
-!	Texture.colorSpace	accessor/field	instance rw ""	instance rw string
+!	Texture.colorSpace	accessor/field	instance rw string	instance rw string
 !	Texture.constructor	constructor	instance (image?: TextureImageSource, mapping: number = UV_MAPPING, wrapS: WrappingMode = Wrapping.ClampToEdge, wrapT: WrappingMode = Wrapping.ClampToEdge, magFilter: number = DEFAULT_NEAREST_FILTER, minFilter: number = DEFAULT_NEAREST_FILTER, format: number = DEFAULT_RGBA_FORMAT, type: number = DEFAULT_UNSIGNED_BYTE_TYPE, anisotropy: number = DEFAULT_ANISOTROPY, colorSpace: string = DEFAULT_NO_COLOR_SPACE) => Texture	instance (image: ?Object = Texture.DEFAULT_IMAGE, mapping: number = Texture.DEFAULT_MAPPING, wrapS: number = ClampToEdgeWrapping, wrapT: number = ClampToEdgeWrapping, magFilter: number = LinearFilter, minFilter: number = LinearMipmapLinearFilter, format: number = RGBAFormat, type: number = UnsignedByteType, anisotropy: number = Texture.DEFAULT_ANISOTROPY, colorSpace: string = NoColorSpace) => Texture
 !	Texture.copy	method	instance (source: Texture) => this	instance (source: Texture) => Texture
 <	Texture.data	accessor	instance r ImageData | undefined	-
@@ -3868,7 +3943,7 @@
 =	Texture.repeat	field	instance rw Vector2	instance rw Vector2
 =	Texture.rotation	field	instance rw number	instance rw number
 !	Texture.setValues	method	instance (values: Record<string, unknown>) => this	instance (values: Object) => void
-=	Texture.source	field	instance rw Source	instance rw Source
+!	Texture.source	field	instance rw Source	instance rw TextureSource
 !	Texture.toJSON	method	instance (meta?: TextureSerializationMeta | string) => TextureJSON	instance (meta: ?(Object|string)) => Object
 =	Texture.transformUv	method	instance (uv: Vector2) => Vector2	instance (uv: Vector2) => Vector2
 !	Texture.type	accessor/field	instance rw number	instance rw number
@@ -3894,6 +3969,16 @@
 <	TextureSampler.constructor	constructor	instance () => TextureSampler	-
 <	TextureSampler.sample	method	instance (texture: TextureData, u: number, v: number) => { r: number; g: number; b: number; a: number; }	-
 <	TextureSerializationMeta	record	interface extends SourceSerializationMeta { textures: Record<string, TextureJSON> }	-
+>	TextureSource	class	-	class
+>	TextureSource.constructor	constructor	-	instance (data: any = null) => TextureSource
+>	TextureSource.data	field	-	instance rw any
+>	TextureSource.dataReady	field	-	instance rw boolean
+>	TextureSource.getSize	method	-	instance (target: (Vector2|Vector3)) => (Vector2|Vector3)
+>	TextureSource.isTextureSource	field	-	instance ro boolean
+>	TextureSource.needsUpdate	accessor	-	instance w boolean
+>	TextureSource.toJSON	method	-	instance (meta: ?(Object|string)) => Object
+>	TextureSource.uuid	field	-	instance ro string
+>	TextureSource.version	field	-	instance ro number
 !	TextureUtils	const/class	const TextureUtilsObject	class
 >	TextureUtils.constructor	constructor	-	instance () => TextureUtils
 >	TextureUtils.contain	method	-	static (texture: Texture, aspect: number) => Texture
@@ -3935,20 +4020,24 @@
 <	Timer.timeScale	accessor	instance rw number	-
 !	Timer.update	method	instance (timestamp: number = now()) => this	instance (timestamp: number) => Timer
 >	TimestampQuery	const	-	const ConstantsTimestampQuery
-<	ToonMaterial	class	class extends Material	-
+=	ToonMaterial	class	class extends Material	class extends Material
 <	ToonMaterial.clone	method	instance () => ToonMaterial	-
-<	ToonMaterial.color	field	instance rw Color	-
-<	ToonMaterial.constructor	constructor	instance (options: ToonMaterialOptions = {}) => ToonMaterial	-
-<	ToonMaterial.copy	method	instance (source: ToonMaterial) => this	-
+=	ToonMaterial.color	field	instance rw Color	instance rw Color
+!	ToonMaterial.constructor	constructor	instance (options: ToonMaterialOptions = {}) => ToonMaterial	instance (parameters?: Object) => MeshToonMaterial
+!	ToonMaterial.copy	method	instance (source: ToonMaterial) => this	instance (source: any) => this
+>	ToonMaterial.defines	field	-	instance rw { TOON: string; }
+=	ToonMaterial.emissive	field	instance rw Color	instance rw Color
+<	ToonMaterial.emissiveIntensity	field	instance rw number	-
 <	ToonMaterial.gradientMap	field	instance rw Texture | undefined	-
+>	ToonMaterial.isMeshToonMaterial	field	-	instance ro boolean
 <	ToonMaterial.isToonMaterial	accessor	instance r true	-
 <	ToonMaterial.map	field	instance rw Texture | undefined	-
 <	ToonMaterial.toJSON	method	instance () => ToonMaterialJSON	-
-<	ToonMaterial.type	field	instance rw string	-
-<	ToonMaterialJSON	record	interface extends MaterialJSON { color: number; map?: string; gradientMap?: string }	-
-<	ToonMaterialOptions	record	interface extends MaterialOptions { readonly color?: Color | number | string; readonly map?: Texture | undefined; readonly gradientMap?: Texture | undefined }	-
+=	ToonMaterial.type	field	instance rw string	instance rw string
+<	ToonMaterialJSON	record	interface extends MaterialJSON { color: number; emissive: number; emissiveIntensity?: number; map?: string; gradientMap?: string }	-
+<	ToonMaterialOptions	record	interface extends MaterialOptions { readonly color?: Color | number | string; readonly map?: Texture | undefined; readonly emissive?: Color | number | string; readonly emissiveIntensity?: number; readonly gradientMap?: Texture | undefined }	-
 !	TorusGeometry	class	class extends Geometry	class extends BufferGeometry
-!	TorusGeometry.constructor	constructor	instance (radius: number = 1, tube: number = 0.4, radialSegments: number = 12, tubularSegments: number = 48, arc: number = Math.PI * 2) => TorusGeometry	instance (radius: number = 1, tube: number = 0.4, radialSegments: number = 12, tubularSegments: number = 48, arc: number = Math.PI * 2, thetaStart: number = 0, thetaLength: number = Math.PI * 2) => TorusGeometry
+=	TorusGeometry.constructor	constructor	instance (radius: number = 1, tube: number = 0.4, radialSegments: number = 12, tubularSegments: number = 48, arc: number = Math.PI * 2, thetaStart: number = 0, thetaLength: number = Math.PI * 2) => TorusGeometry	instance (radius: number = 1, tube: number = 0.4, radialSegments: number = 12, tubularSegments: number = 48, arc: number = Math.PI * 2, thetaStart: number = 0, thetaLength: number = Math.PI * 2) => TorusGeometry
 >	TorusGeometry.copy	method	-	instance (source: any) => this
 !	TorusGeometry.fromJSON	method	instance (json: Record<string, unknown>) => this	static (data: Object) => TorusGeometry
 >	TorusGeometry.parameters	field	-	instance rw Object
@@ -3990,68 +4079,96 @@
 <	TrackOptions	record	interface { readonly itemSize?: number; readonly interpolation?: InterpolationMode; readonly inTangents?: Float32Array | readonly number[]; readonly outTangents?: Float32Array | readonly number[]; readonly endingStart?: InterpolationEndingMode; readonly endingEnd?: InterpolationEndingMode }	-
 <	TrackValue	record	type = number | boolean | string	-
 <	TrackValueType	record	type = "number" | "quaternion" | "boolean" | "string"	-
-<	TrackballControls	class	class extends EventDispatcher	-
-<	TrackballControls.camera	field	instance rw TrackballCamera	-
-<	TrackballControls.constructor	constructor	instance (camera: TrackballCamera, domElement: ControlDomElement) => TrackballControls	-
+<	TrackballCamera	record	type = PerspectiveCamera | OrthographicCamera	-
+<	TrackballControls	class	class extends Controls<TrackballCamera>	-
+<	TrackballControls.connect	method	instance (element: ControlDomElement) => void	-
+<	TrackballControls.constructor	constructor	instance (object: TrackballCamera, domElement?: ControlDomElement) => TrackballControls	-
+<	TrackballControls.disconnect	method	instance () => void	-
 <	TrackballControls.dispose	method	instance () => void	-
-<	TrackballControls.domElement	field	instance rw ControlDomElement	-
+<	TrackballControls.domElement	field	instance rw TrackballDomElement | undefined	-
 <	TrackballControls.dynamicDampingFactor	field	instance rw number	-
-<	TrackballControls.enabled	field	instance rw boolean	-
 <	TrackballControls.handleResize	method	instance () => void	-
+<	TrackballControls.keyState	field	instance rw number	-
 <	TrackballControls.keys	field	instance rw string[]	-
 <	TrackballControls.maxDistance	field	instance rw number	-
+<	TrackballControls.maxZoom	field	instance rw number	-
 <	TrackballControls.minDistance	field	instance rw number	-
+<	TrackballControls.minZoom	field	instance rw number	-
+<	TrackballControls.mouseButtons	field	instance rw ControlMouseButtons	-
+<	TrackballControls.multiTouchRoll	field	instance rw boolean	-
 <	TrackballControls.noPan	field	instance rw boolean	-
 <	TrackballControls.noRotate	field	instance rw boolean	-
 <	TrackballControls.noZoom	field	instance rw boolean	-
 <	TrackballControls.panSpeed	field	instance rw number	-
 <	TrackballControls.reset	method	instance () => void	-
+<	TrackballControls.rollSpeed	field	instance rw number	-
 <	TrackballControls.rotateSpeed	field	instance rw number	-
+<	TrackballControls.screen	field	instance ro TrackballScreen	-
+<	TrackballControls.state	field	instance rw number	-
 <	TrackballControls.staticMoving	field	instance rw boolean	-
 <	TrackballControls.target	field	instance rw Vector3	-
-<	TrackballControls.update	method	instance () => boolean	-
+<	TrackballControls.update	method	instance () => void	-
 <	TrackballControls.zoomSpeed	field	instance rw number	-
-<	TransformAxis	record	type = "X" | "Y" | "Z" | "XY" | "YZ" | "XZ" | "XYZ" | null	-
+<	TrackballScreen	record	interface { left: number; top: number; width: number; height: number }	-
+<	TransformAxis	record	type = | "X" | "Y" | "Z" | "E" | "XY" | "YZ" | "XZ" | "XYZ" | "XYZE"	-
 <	TransformControls	class	class extends EventDispatcher	-
 <	TransformControls.attach	method	instance (object: Node) => this	-
-<	TransformControls.axis	field	instance rw TransformAxis	-
-<	TransformControls.camera	field	instance rw RaycastCamera	-
-<	TransformControls.constructor	constructor	instance (camera: RaycastCamera, domElement: ControlDomElement, raycaster: Raycaster = new Raycaster()) => TransformControls	-
+<	TransformControls.axis	accessor	instance rw TransformAxis | undefined	-
+<	TransformControls.camera	accessor	instance rw TransformCamera	-
+<	TransformControls.cameraPosition	field	instance ro Vector3	-
+<	TransformControls.cameraQuaternion	field	instance ro Quaternion	-
+<	TransformControls.connect	method	instance (element: TransformDomElement) => void	-
+<	TransformControls.constructor	constructor	instance (camera: TransformCamera, domElement?: TransformDomElement) => TransformControls	-
 <	TransformControls.detach	method	instance () => this	-
+<	TransformControls.disconnect	method	instance () => void	-
 <	TransformControls.dispose	method	instance () => void	-
-<	TransformControls.domElement	field	instance rw ControlDomElement	-
-<	TransformControls.dragging	field	instance rw boolean	-
-<	TransformControls.enabled	field	instance rw boolean	-
+<	TransformControls.domElement	field	instance rw TransformDomElement | undefined	-
+<	TransformControls.dragging	accessor	instance rw boolean	-
+<	TransformControls.enabled	accessor	instance rw boolean	-
+<	TransformControls.eye	field	instance ro Vector3	-
 <	TransformControls.helper	accessor	instance r Node	-
-<	TransformControls.mode	field	instance rw TransformMode	-
-<	TransformControls.object	field	instance rw Node | undefined	-
-<	TransformControls.pointerDown	method	instance (event: TransformPointer) => void	-
-<	TransformControls.pointerMove	method	instance (event: TransformPointer) => void	-
-<	TransformControls.pointerUp	method	instance (event: TransformPointer) => void	-
-<	TransformControls.raycaster	field	instance rw Raycaster	-
-<	TransformControls.reset	method	instance () => this	-
-<	TransformControls.rotationSnap	field	instance rw number | null	-
-<	TransformControls.scaleSnap	field	instance rw number | null	-
-<	TransformControls.setAxis	method	instance (axis: TransformAxis) => this	-
-<	TransformControls.setMode	method	instance (mode: TransformMode) => this	-
-<	TransformControls.setRotationSnap	method	instance (value: number | null) => this	-
-<	TransformControls.setScaleSnap	method	instance (value: number | null) => this	-
-<	TransformControls.setSize	method	instance (value: number) => this	-
-<	TransformControls.setSpace	method	instance (space: TransformSpace) => this	-
-<	TransformControls.setTranslationSnap	method	instance (value: number | null) => this	-
-<	TransformControls.showX	field	instance rw boolean	-
-<	TransformControls.showY	field	instance rw boolean	-
-<	TransformControls.showZ	field	instance rw boolean	-
-<	TransformControls.size	field	instance rw number	-
-<	TransformControls.space	field	instance rw TransformSpace	-
-<	TransformControls.translationSnap	field	instance rw number | null	-
-<	TransformControls.update	method	instance () => boolean	-
-<	TransformControls.updateMatrixWorld	method	instance (_force: boolean = false) => void	-
-<	TransformControls.viewport	field	instance rw TransformViewport | null	-
+<	TransformControls.maxX	accessor	instance rw number	-
+<	TransformControls.maxY	accessor	instance rw number	-
+<	TransformControls.maxZ	accessor	instance rw number	-
+<	TransformControls.minX	accessor	instance rw number	-
+<	TransformControls.minY	accessor	instance rw number	-
+<	TransformControls.minZ	accessor	instance rw number	-
+<	TransformControls.mode	accessor	instance rw TransformMode	-
+<	TransformControls.object	accessor	instance rw Node | undefined	-
+<	TransformControls.pointEnd	field	instance ro Vector3	-
+<	TransformControls.pointStart	field	instance ro Vector3	-
+<	TransformControls.pointerDown	method	instance (pointer: TransformPointer | undefined) => void	-
+<	TransformControls.pointerHover	method	instance (pointer: TransformPointer | undefined) => void	-
+<	TransformControls.pointerMove	method	instance (pointer: TransformPointer | undefined) => void	-
+<	TransformControls.pointerUp	method	instance (pointer: TransformPointer | undefined) => void	-
+<	TransformControls.raycaster	accessor	instance r Raycaster	-
+<	TransformControls.reset	method	instance () => void	-
+<	TransformControls.rotationAngle	accessor	instance rw number	-
+<	TransformControls.rotationAxis	field	instance ro Vector3	-
+<	TransformControls.rotationSnap	accessor	instance rw number | undefined	-
+<	TransformControls.scaleSnap	accessor	instance rw number | undefined	-
+<	TransformControls.setColors	method	instance (xAxis: number | string, yAxis: number | string, zAxis: number | string, active: number | string) => void	-
+<	TransformControls.showE	accessor	instance rw boolean	-
+<	TransformControls.showX	accessor	instance rw boolean	-
+<	TransformControls.showXY	accessor	instance rw boolean	-
+<	TransformControls.showXYZE	accessor	instance rw boolean	-
+<	TransformControls.showXZ	accessor	instance rw boolean	-
+<	TransformControls.showY	accessor	instance rw boolean	-
+<	TransformControls.showYZ	accessor	instance rw boolean	-
+<	TransformControls.showZ	accessor	instance rw boolean	-
+<	TransformControls.size	accessor	instance rw number	-
+<	TransformControls.space	accessor	instance rw TransformSpace	-
+<	TransformControls.translationSnap	accessor	instance rw number | undefined	-
+<	TransformControls.update	method	instance (_delta?: number) => void	-
+<	TransformControls.viewport	field	instance rw TransformViewport | undefined	-
+<	TransformControls.worldPosition	field	instance ro Vector3	-
+<	TransformControls.worldPositionStart	field	instance ro Vector3	-
+<	TransformControls.worldQuaternion	field	instance ro Quaternion	-
+<	TransformControls.worldQuaternionStart	field	instance ro Quaternion	-
 <	TransformMode	record	type = "translate" | "rotate" | "scale"	-
-<	TransformPointer	record	interface { x?: number; y?: number; clientX?: number; clientY?: number; button?: number; pointerId?: number }	-
+<	TransformPointer	record	interface { x: number; y: number; button: number }	-
 <	TransformSpace	record	type = "world" | "local"	-
-<	TransformViewport	record	interface { x: number; y: number; width: number; height: number }	-
+<	TransformViewport	record	interface { x: number; y: number; z: number; w: number }	-
 <	TranslucencyTable	class	class	-
 <	TranslucencyTable.blend	method	instance (srcHsl16: number, dstHsl16: number, step: number) => number	-
 <	TranslucencyTable.constructor	constructor	instance () => TranslucencyTable	-
@@ -4342,10 +4459,8 @@
 >	Vector4.y	field	-	instance rw number
 !	Vector4.z	accessor	instance rw number	instance (z: number) => Vector4
 >	Vector4.z	field	-	instance rw number
->	VectorKeyframeTrack	class	-	class extends KeyframeTrack
->	VectorKeyframeTrack.constructor	constructor	-	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => VectorKeyframeTrack
-<	VectorTrack	class	class extends Track	-
-<	VectorTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: TrackOptions = { itemSize: 3 }) => VectorTrack	-
+!	VectorTrack	class	class extends Track	class extends KeyframeTrack
+!	VectorTrack.constructor	constructor	instance (name: string, times: Float32Array | number[], values: Float32Array | number[], options: TrackOptions = { itemSize: 3 }) => VectorTrack	instance (name: string, times: Array<number>, values: Array<number>, interpolation?: (InterpolateLinear|InterpolateDiscrete|InterpolateSmooth)) => VectorKeyframeTrack
 <	VehicleController	class	class	-
 <	VehicleController.addWheel	method	instance (connectionPoint: Vector3, direction: Vector3 = new Vector3(0, -1, 0), axle: Vector3 = new Vector3(-1, 0, 0), suspensionRestLength: number = 0.8, radius: number = 0.3, width: number = 0.4) => number	-
 <	VehicleController.chassis	field	instance ro RigidBody	-

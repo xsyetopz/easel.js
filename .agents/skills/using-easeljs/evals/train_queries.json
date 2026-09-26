@@ -1,0 +1,50 @@
+[
+  {
+    "query": "my easel canvas is just the clear color, i add a Mesh to the scene and call renderer.render every frame but nothing shows",
+    "should_trigger": true
+  },
+  {
+    "query": "Using @xsyetopz/easel 0.7.0 in a Vite app: after window resize the cube looks stretched horizontally. src/main.ts attached, how do I fix the resize handler?",
+    "should_trigger": true
+  },
+  {
+    "query": "I set material opacity to 0.5 on an EASEL BasicMaterial and it throws RangeError, what's the right way to make it see-through",
+    "should_trigger": true
+  },
+  {
+    "query": "scaffold a new React + TypeScript project that renders a spinning low-poly box with easel, the software canvas renderer",
+    "should_trigger": true
+  },
+  {
+    "query": "does easel have something like Raycaster so I can click on voxels in my block editor? pointer coords come from a CSS-scaled canvas",
+    "should_trigger": true
+  },
+  {
+    "query": "the React component using easel keeps running requestAnimationFrame after unmount and StrictMode doubles the listeners",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I port this three.js WebGL game (40 files, GLTFLoader, OrbitControls, shadows) to EASEL? I need an audit of what breaks",
+    "should_trigger": false
+  },
+  {
+    "query": "createjs.Stage with a Ticker isn't updating my Shape graphics in EaselJS 1.0, help",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a GLSL fragment shader for a toon outline effect in three.js",
+    "should_trigger": false
+  },
+  {
+    "query": "Make a bar chart with the HTML canvas 2D API, no libraries",
+    "should_trigger": false
+  },
+  {
+    "query": "my PixiJS sprites are blurry on retina displays",
+    "should_trigger": false
+  },
+  {
+    "query": "In three.js r186, why does my MeshStandardMaterial look black without an environment map?",
+    "should_trigger": false
+  }
+]

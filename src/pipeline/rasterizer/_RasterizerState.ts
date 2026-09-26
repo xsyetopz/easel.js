@@ -1,4 +1,6 @@
 import { Wrapping } from "../../core/Constants.ts";
+import { encodeSrgbByte } from "../color/SrgbEncode.ts";
+import { isLitMaterialType } from "../shading/LightBaker.ts";
 import type {
   RasterDrawCall,
   RasterFramebuffer,
@@ -24,9 +26,11 @@ function configureFog(
 ): void {
   state.hasFog = Boolean(fogColor);
   if (!fogColor) return;
-  state.fogR = Math.round(fogColor.r * 255);
-  state.fogG = Math.round(fogColor.g * 255);
-  state.fogB = Math.round(fogColor.b * 255);
+  // three.js blends fog after the sRGB output encode, with the fog color
+  // converted to the output color space.
+  state.fogR = encodeSrgbByte(fogColor.r);
+  state.fogG = encodeSrgbByte(fogColor.g);
+  state.fogB = encodeSrgbByte(fogColor.b);
 }
 
 function configureFramebuffer(
@@ -68,16 +72,24 @@ export function configureRasterizerState(
   fogColor: { r: number; g: number; b: number } | undefined,
 ): RasterizerStateSetup {
   configureFog(state, fogColor);
-  const matColor = drawCall.material.color;
-  const baseR = matColor
-    ? Math.round(matColor.r * (drawCall.instanceColorR ?? 1) * 255)
-    : 255;
-  const baseG = matColor
-    ? Math.round(matColor.g * (drawCall.instanceColorG ?? 1) * 255)
-    : 255;
-  const baseB = matColor
-    ? Math.round(matColor.b * (drawCall.instanceColorB ?? 1) * 255)
-    : 255;
+  let baseR = 255;
+  let baseG = 255;
+  let baseB = 255;
+  if ((drawCall.shadedColorStride ?? 0) > 0) {
+    // Baked lighting already carries the material and instance color.
+  } else if (isLitMaterialType(drawCall.material.type)) {
+    // A lit material that no light or emissive color reaches renders black.
+    baseR = 0;
+    baseG = 0;
+    baseB = 0;
+  } else {
+    const matColor = drawCall.material.color;
+    if (matColor) {
+      baseR = encodeSrgbByte(matColor.r * (drawCall.instanceColorR ?? 1));
+      baseG = encodeSrgbByte(matColor.g * (drawCall.instanceColorG ?? 1));
+      baseB = encodeSrgbByte(matColor.b * (drawCall.instanceColorB ?? 1));
+    }
+  }
   const texture = drawCall.material.map?.data ?? undefined;
   state.baseR = baseR;
   state.baseG = baseG;

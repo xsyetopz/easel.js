@@ -81,6 +81,25 @@ interface LightEntry {
   cosInnerAngle?: number;
 }
 
+/**
+ * three.js `getDistanceAttenuation`: `1 / max(d^decay, 0.01)`, windowed to
+ * zero at `cutoff` when `cutoff > 0`.
+ */
+function distanceAttenuation(
+  dist: number,
+  cutoff: number,
+  decay: number,
+): number {
+  const falloff = decay === 2 ? dist * dist : dist ** decay;
+  let atten = 1 / Math.max(falloff, 0.01);
+  if (cutoff > 0) {
+    const ratio = dist / cutoff;
+    const window = Math.max(1 - ratio * ratio * ratio * ratio, 0);
+    atten *= window * window;
+  }
+  return atten;
+}
+
 function accumulateProbe(
   nx: number,
   ny: number,
@@ -242,18 +261,17 @@ function accumulateSpot(
 
   const innerCos =
     light.cosInnerAngle ?? Math.cos(light.angle * (1 - light.penumbra));
-  const spotFactor =
-    light.penumbra > 0
-      ? Math.min(Math.max((cosAngle - outerCos) / (innerCos - outerCos), 0), 1)
-      : 1;
-
-  let distAtten = 1;
-  if (light.distance > 0) {
-    const ratio = dist / light.distance;
-    const r4 = ratio * ratio * ratio * ratio;
-    const clamped = Math.max(1 - r4, 0);
-    distAtten = (clamped * clamped) / Math.max(dist * dist, 0.0001);
+  // three.js `getSpotAttenuation`: smoothstep(coneCos, penumbraCos, angleCos).
+  let spotFactor = 1;
+  if (light.penumbra > 0) {
+    const t = Math.min(
+      Math.max((cosAngle - outerCos) / (innerCos - outerCos), 0),
+      1,
+    );
+    spotFactor = t * t * (3 - 2 * t);
   }
+
+  const distAtten = distanceAttenuation(dist, light.distance, light.decay);
 
   const factor = NdotL * spotFactor * distAtten * light.intensity;
   const { cr, cg, cb } = extractColor(light.color);
@@ -285,13 +303,7 @@ function accumulatePoint(
   const NdotL = nx * lx + ny * ly + nz * lz;
   if (NdotL <= 0) return;
 
-  let distAtten = 1;
-  if (light.distance > 0) {
-    const ratio = dist / light.distance;
-    const r4 = ratio * ratio * ratio * ratio;
-    const clamped = Math.max(1 - r4, 0);
-    distAtten = (clamped * clamped) / Math.max(dist * dist, 0.0001);
-  }
+  const distAtten = distanceAttenuation(dist, light.distance, light.decay);
 
   const factor = NdotL * distAtten * light.intensity;
   const { cr, cg, cb } = extractColor(light.color);
@@ -344,7 +356,10 @@ function accumulateOne(
 }
 
 /**
- * Accumulates all scene lights into an RGB multiplier object.
+ * Accumulates the linear irradiance of all scene lights into `out`, as
+ * three.js sums direct and indirect diffuse light before it multiplies by the
+ * material color. There is no ambient floor and no clamp: an unlit point
+ * accumulates black, and the caller clamps after applying the material.
  * Mutates and returns the provided `out` parameter to avoid allocation.
  */
 export function accumulateLights(
@@ -352,20 +367,16 @@ export function accumulateLights(
   ny: number,
   nz: number,
   lights: Record<string, unknown>[],
-  ambientIntensity: number,
   out: RGB,
   wx = 0,
   wy = 0,
   wz = 0,
 ): RGB {
-  out.r = ambientIntensity;
-  out.g = ambientIntensity;
-  out.b = ambientIntensity;
+  out.r = 0;
+  out.g = 0;
+  out.b = 0;
   for (let i = 0, len = lights.length; i < len; i++) {
     accumulateOne(nx, ny, nz, wx, wy, wz, lights[i] as LightEntry, out);
   }
-  out.r = out.r < 0 ? 0 : Math.min(out.r, 1);
-  out.g = out.g < 0 ? 0 : Math.min(out.g, 1);
-  out.b = out.b < 0 ? 0 : Math.min(out.b, 1);
   return out;
 }

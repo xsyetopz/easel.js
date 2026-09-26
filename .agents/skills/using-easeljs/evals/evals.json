@@ -1,0 +1,201 @@
+{
+  "skill_name": "using-easeljs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm using @xsyetopz/easel 0.7.0 in a Vite app. My canvas stays the clear color even though I add a BoxGeometry mesh and call renderer.render(scene, camera) every frame. The camera is new PerspectiveCamera({ fov: 60, aspect: 16 / 9, near: 0.1, far: 100 }), then camera.position.set(4, 2, 0) and camera.lookAt(0, 0, 0). Fix src/main.ts.",
+      "expected_output": "Calls camera.updateMatrixWorld() after setting the position and before lookAt, and calls renderer.prepare(scene, camera) before every renderer.render(scene, camera). Explains that EASEL's lookAt reads matrixWorld and render does not update matrices.",
+      "cards": [
+        "references/frame.md#prepare-before-render",
+        "references/frame.md#camera-options-and-lookat"
+      ],
+      "assertions": [
+        "The fixed frame loop calls renderer.prepare(scene, camera) before renderer.render(scene, camera).",
+        "camera.updateMatrixWorld() (or renderer.prepare) runs after camera.position.set and before camera.lookAt.",
+        "Does not add renderer.setAnimationLoop, renderer.setPixelRatio, or any other method absent from EASEL's Renderer."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Port this three.js snippet to EASEL.js: `const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setIndex([0, 1, 2, 2, 3, 0]); const m = new THREE.MeshBasicMaterial({ color: 0x44aa88, transparent: true, opacity: 0.5 });`",
+      "expected_output": "Uses the options-object PerspectiveCamera constructor, Geometry with setPositions or setAttribute with Attribute, the index accessor, BasicMaterial, and an integer opacity from 0 to 8 (0.5 alpha maps to 4) with transparent: true.",
+      "cards": [
+        "references/frame.md#camera-options-and-lookat",
+        "references/geometry-and-textures.md#index-accessor",
+        "references/materials.md#discrete-opacity"
+      ],
+      "assertions": [
+        "Constructs the camera as new PerspectiveCamera({ fov: 60, aspect: w / h, near: 0.1, far: 100 }), not with positional arguments.",
+        "Assigns geometry.index = [0, 1, 2, 2, 3, 0] (or a Uint16Array) and does not call setIndex.",
+        "Uses BasicMaterial, not MeshBasicMaterial, and Geometry, not BufferGeometry.",
+        "Sets opacity to an integer between 0 and 8 (4 for half transparency) and keeps transparent: true; never assigns 0.5."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Make the water plane in our EASEL scene 70% see-through. Right now it's `new BasicMaterial({ color: 0x2266ff })`.",
+      "expected_output": "Sets transparent: true and an integer opacity (Math.round(0.7 * 8) = 6 on EASEL's inverted 0-8 scale) and explains that opacity without transparent does not blend and that fractional values throw RangeError.",
+      "cards": [
+        "references/materials.md#discrete-opacity"
+      ],
+      "assertions": [
+        "The material has transparent: true.",
+        "opacity is an integer in 0..8 where larger means more transparent (5 or 6 for 70% see-through).",
+        "Does not assign a fractional opacity such as 0.3 or 0.7."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Add a looping bob animation to the mesh named \"Crate\" in our EASEL scene: position goes from (0,0,0) to (0,1,0) and back over 2 seconds, forever. In three.js I'd use a VectorKeyframeTrack and LoopRepeat.",
+      "expected_output": "Uses VectorTrack or Track with { itemSize: 3 }, AnimationClip, Animator on a root containing the named node, action.setLoop(Loop.Repeat, Infinity).play(), and animator.update(deltaSeconds) each frame before prepare/render.",
+      "cards": [
+        "references/animation-tracks.md#track-item-size",
+        "references/animation-tracks.md#loop-and-animator-update"
+      ],
+      "assertions": [
+        "The position track is a VectorTrack or a Track constructed with { itemSize: 3 }; values length equals times length times 3.",
+        "Uses Loop.Repeat (not LoopRepeat) and passes a repetitions argument to setLoop.",
+        "animator.update receives seconds (for example a Timer delta or milliseconds divided by 1000), not milliseconds.",
+        "The frame calls animator.update before renderer.prepare and renderer.render."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Our EASEL fog demo has a slider that sets scene.fog.far. As soon as I move it, the page throws 'Fog LUT is dirty; call updateLut() before traversal.' What's wrong?",
+      "expected_output": "Calls fog.updateLut() after changing near, far, mode, or density and before the next render.",
+      "cards": [
+        "references/materials.md#fog-lookup-table"
+      ],
+      "assertions": [
+        "The slider handler (or the frame before render) calls scene.fog.updateLut() after assigning far.",
+        "Does not replace the Fog instance on every input event as the fix."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "When the browser window resizes, my EASEL scene looks stretched. I call renderer.setSize(w, h) and set camera.aspect = w / h. Also, I mount and unmount this canvas in a React effect; what should cleanup do?",
+      "expected_output": "Adds camera.updateProjectionMatrix() after the aspect change. Cleanup cancels the animation frame, disposes controls, disposes geometries and textures it owns (Material.dispose does not free map), then renderer.dispose().",
+      "cards": [
+        "references/frame.md#resize",
+        "references/lifecycle.md#frame-loop-teardown",
+        "references/lifecycle.md#resource-disposal-ownership"
+      ],
+      "assertions": [
+        "Calls camera.updateProjectionMatrix() after assigning camera.aspect.",
+        "Cleanup calls cancelAnimationFrame with the stored handle.",
+        "Cleanup calls controls.dispose() when controls exist.",
+        "Disposes textures separately instead of relying on material.dispose()."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Clicking the canvas should select the mesh under the cursor in my EASEL scene. The canvas is 320x180 but CSS scales it to 960x540.",
+      "expected_output": "Scales client coordinates to NDC using getBoundingClientRect, calls renderer.prepare(scene, camera) (or otherwise updates camera matrices) before raycaster.setFromCamera, and intersects with raycaster.intersectObject(scene, true).",
+      "cards": [
+        "references/input-picking.md#raycast-picking"
+      ],
+      "assertions": [
+        "NDC uses the bounding rect width and height (CSS size), not canvas.width alone.",
+        "Camera matrices are prepared before raycaster.setFromCamera.",
+        "Uses Raycaster.intersectObject or intersectObjects from @xsyetopz/easel."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "I built a 256x256 DataTexture atlas for my EASEL voxel game, but only the top-left tiles ever show up, and when I paint into the Uint8ClampedArray nothing changes on screen.",
+      "expected_output": "Explains the 128x128 CPU texture cache limit (DataTexture keeps the upper-left 128x128 region), suggests a 128x128 or smaller atlas, and shows texture.needsUpdate = true followed by texture.update() after mutating data.",
+      "cards": [
+        "references/geometry-and-textures.md#datatexture-size-and-update"
+      ],
+      "assertions": [
+        "States that DataTexture data larger than 128x128 is cropped to the upper-left 128x128 region.",
+        "After mutating pixel data, sets texture.needsUpdate = true and calls texture.update()."
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Which exports does @xsyetopz/easel 0.7.0 have for loading OBJ files, and what is the exact signature of OBJLoader.setMaterials?",
+      "expected_output": "Runs the bundled API script (exports and show modes) against the source or installed declarations and quotes the printed declaration instead of recalling one.",
+      "cards": [
+        "references/api-lookup.md#look-up-exports-and-signatures"
+      ],
+      "assertions": [
+        "Runs bun scripts/easel_api.ts (exports or show OBJLoader) or reads the installed dist/**/*.d.ts before answering.",
+        "The quoted signature matches the declaration the script prints."
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Set up a new Vite + TypeScript project that renders a spinning cube with @xsyetopz/easel.",
+      "expected_output": "Copies the vite-vanilla-ts template, installs, type-checks, and builds; the entry uses prepare then render and tears down on pagehide.",
+      "cards": [
+        "references/starter-templates.md#starter-templates"
+      ],
+      "assertions": [
+        "Uses the vite-vanilla-ts template or equivalent with @xsyetopz/easel pinned to 0.7.0.",
+        "Runs the project's typecheck and vite build and reports the results.",
+        "Does not claim a browser render was checked unless one was run."
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Port our whole three.js product viewer (WebGLRenderer, OrbitControls, GLTFLoader, MeshStandardMaterial) to EASEL.js and give me a migration plan.",
+      "expected_output": "Near miss for a whole-project migration: the threejs-to-easeljs skill owns the plan; this skill supplies EASEL API facts only.",
+      "cards": [],
+      "assertions": [
+        "Selects or defers to the threejs-to-easeljs skill for the migration plan."
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "My CreateJS EaselJS Stage stops updating after I add a Ticker listener. How do I fix createjs.Ticker?",
+      "expected_output": "Near miss: CreateJS EaselJS is a different library; this skill does not apply.",
+      "cards": [],
+      "assertions": [
+        "Does not apply @xsyetopz/easel APIs (Renderer, prepare, Scene) to the CreateJS question."
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Write a GLSL fragment shader for a WebGL2 bloom effect.",
+      "expected_output": "Near miss: GPU shader work is outside EASEL's CPU Canvas2D renderer.",
+      "cards": [],
+      "assertions": [
+        "Does not load this skill or claim EASEL supports shaders."
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "In my EASEL minimap I draw into an offscreen canvas every second and use it as `new CanvasTexture(canvas)` on a BasicMaterial plane. The plane is plain white and never shows the drawing, even though I set `texture.needsUpdate = true` after each draw.",
+      "expected_output": "Explains that EASEL samples a cached copy that only `texture.update()` fills, and the renderer never calls it; a new CanvasTexture renders untextured until then. After each draw, set `needsUpdate = true` and call `texture.update()`.",
+      "cards": [],
+      "assertions": [
+        "Calls `texture.update()` after setting `needsUpdate = true`, including after the first draw.",
+        "States that the renderer does not refresh the texture by itself."
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "I'm adding a particle cloud to my EASEL scene: a Geometry with position and color attributes, `new PointsMaterial({ color: 0xffffff, size: 0.1 })`. It throws RangeError. Also my LOD for trees always shows both models at once.",
+      "expected_output": "Explains that PointsMaterial.size is a positive integer pixel radius (size 2 is 5 px across) with no distance attenuation, so 0.1 throws; picks an integer. Notes that vertexColors defaults to true, so the color attribute tints the points (set false for plain white). Adds `lod.update(camera)` each frame between prepare and render because EASEL LOD has no automatic update.",
+      "cards": [],
+      "assertions": [
+        "Uses a positive integer `size` and explains it is a pixel radius.",
+        "Mentions that `vertexColors` defaults to `true` for the color attribute.",
+        "Calls `lod.update(camera)` after `renderer.prepare` and before `renderer.render`."
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "List every EASEL export whose name contains Loader or Exporter, and show me Vector3's declaration so I can check for setFromSpherical.",
+      "expected_output": "Runs `bun scripts/easel_api.ts exports --grep \"loader|exporter\"` (substring alternatives, not a regex) and `bun scripts/easel_api.ts show Vector3`, and quotes setFromSpherical from the output.",
+      "cards": [
+        "references/api-lookup.md#look-up-exports-and-signatures"
+      ],
+      "assertions": [
+        "Uses `easel_api.ts exports --grep` with `|` alternatives or two plain substring runs, not a regex such as `^.*Loader$`.",
+        "Quotes `setFromSpherical` from `easel_api.ts show Vector3` output rather than from memory."
+      ]
+    }
+  ]
+}

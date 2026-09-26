@@ -1,10 +1,15 @@
 import { describe, expect, it } from "bun:test";
 import "../_helpers/assertions.ts";
-import { Vector3 as TVector3, Vector4 as TVector4 } from "three";
+import {
+  Quaternion as TQuaternion,
+  Vector3 as TVector3,
+  Vector4 as TVector4,
+} from "three";
 import { Cylindrical } from "@/math/Cylindrical.js";
 import { Euler } from "@/math/Euler.js";
 import { Matrix3 } from "@/math/Matrix3.js";
 import { Matrix4 } from "@/math/Matrix4.js";
+import { Quaternion } from "@/math/Quaternion.js";
 import { cross3, dot3, Vector3 } from "@/math/Vector3.js";
 import { Vector4 } from "@/math/Vector4.js";
 
@@ -333,5 +338,31 @@ describe("Vector3", () => {
     expect(zero).toMatchVector({ x: 0, y: 0, z: 0 });
     const random = new Vector3().randomDirection();
     expect(random.length).toBeCloseTo(1);
+  });
+});
+
+describe("Vector3.applyQuaternion parity with three.js r186", () => {
+  type THREEVector3WithQuaternion = TVector3 & {
+    applyQuaternion(q: TQuaternion): TVector3;
+  };
+
+  it("uses three.js's formula, so non-unit quaternions match exactly", () => {
+    const cases: [number, number, number, number][] = [
+      [0.3, -0.5, 0.8, 1.7],
+      [0, 0, 0, 2],
+      [0.5, 0.5, 0.5, 0.5],
+      [-0.2, 0.4, 0.1, 0.8],
+    ];
+    for (const [qx, qy, qz, qw] of cases) {
+      const actual = new Vector3(1.5, -2, 0.25).applyQuaternion(
+        new Quaternion(qx, qy, qz, qw),
+      );
+      const expected = (
+        new TVector3(1.5, -2, 0.25) as THREEVector3WithQuaternion
+      ).applyQuaternion(new TQuaternion(qx, qy, qz, qw));
+      expect(actual.x).toBe(expected.x);
+      expect(actual.y).toBe(expected.y);
+      expect(actual.z).toBe(expected.z);
+    }
   });
 });

@@ -13,8 +13,11 @@ export interface TTFGlyph {
   readonly x_min: number;
   /** Right side glyph bound in the 1000-unit coordinate system. */
   readonly x_max: number;
-  /** Space-separated FontLoader outline commands. */
-  readonly o: string;
+  /**
+   * Space-separated FontLoader outline commands; omitted for blank glyphs
+   * such as space, as in three.js typeface JSON.
+   */
+  readonly o?: string;
 }
 
 /** Font bounding box in the source font's units-per-em coordinate system. */
@@ -110,7 +113,7 @@ export class TTFFont {
       }
       const glyph = this.data.glyphs[char] ?? this.data.glyphs["?"];
       if (!glyph) continue;
-      const path = parseGlyphPath(glyph.o, scale, offsetX, offsetY);
+      const path = parseGlyphPath(glyph.o ?? "", scale, offsetX, offsetY);
       paths.push(path);
       if (direction === "tb") {
         offsetX = 0;

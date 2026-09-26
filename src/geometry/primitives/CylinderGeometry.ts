@@ -93,9 +93,10 @@ function buildCylinderData(opts: CylinderBuildOptions): CylinderData {
 
   buildTorso(buffers, opts);
 
-  if (!opts.openEnded) {
-    buildCap(buffers, opts, true);
-    buildCap(buffers, opts, false);
+  // Like three.js r186, a zero (or negative) radius end gets no cap.
+  if (opts.openEnded === false) {
+    if (opts.radiusTop > 0) buildCap(buffers, opts, true);
+    if (opts.radiusBottom > 0) buildCap(buffers, opts, false);
   }
 
   return {
@@ -139,8 +140,9 @@ function buildTorso(
       const nx = sinTheta;
       const ny = slope;
       const nz = cosTheta;
-      const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
-      buffers.normals.push(nx / len, ny / len, nz / len);
+      // Same arithmetic as three.js Vector3.normalize().
+      const invLen = 1 / (Math.sqrt(nx * nx + ny * ny + nz * nz) || 1);
+      buffers.normals.push(nx * invLen, ny * invLen, nz * invLen);
 
       buffers.uvs.push(u, 1 - v);
       row.push(buffers.vertexCount++);
@@ -154,13 +156,17 @@ function buildTorso(
       const b = indexArray[y + 1][x];
       const c = indexArray[y + 1][x + 1];
       const d = indexArray[y][x + 1];
-      buffers.indices.push(a, b, d);
-      buffers.indices.push(b, c, d);
+      // Skip the triangles that collapse onto a zero-radius apex.
+      if (radiusTop > 0 || y !== 0) buffers.indices.push(a, b, d);
+      if (radiusBottom > 0 || y !== hs - 1) buffers.indices.push(b, c, d);
     }
   }
 }
 
-/** Builds a single end cap (top or bottom) vertices and indices. */
+/**
+ * Builds a single end cap (top or bottom). Like three.js, each segment gets its
+ * own center vertex so every cap face carries its own UVs.
+ */
 function buildCap(
   buffers: CylinderBuffers,
   opts: CylinderBuildOptions,
@@ -169,18 +175,19 @@ function buildCap(
   const { radiusTop, radiusBottom, height, thetaStart, thetaLength } = opts;
   const rs = Math.floor(opts.radialSegments);
 
+  const centerIndexStart = buffers.vertexCount;
   const radius = top ? radiusTop : radiusBottom;
-  if (radius === 0) return;
-
   const sign = top ? 1 : -1;
   const halfHeight = height / 2;
-  const centerY = sign * halfHeight;
-  const centerIndex = buffers.vertexCount;
 
-  buffers.positions.push(0, centerY, 0);
-  buffers.normals.push(0, sign, 0);
-  buffers.uvs.push(0.5, 0.5);
-  buffers.vertexCount++;
+  for (let x = 1; x <= rs; x++) {
+    buffers.positions.push(0, halfHeight * sign, 0);
+    buffers.normals.push(0, sign, 0);
+    buffers.uvs.push(0.5, 0.5);
+    buffers.vertexCount++;
+  }
+
+  const centerIndexEnd = buffers.vertexCount;
 
   for (let x = 0; x <= rs; x++) {
     const u = x / rs;
@@ -188,19 +195,23 @@ function buildCap(
     const cosTheta = Math.cos(theta);
     const sinTheta = Math.sin(theta);
 
-    buffers.positions.push(radius * sinTheta, centerY, radius * cosTheta);
+    buffers.positions.push(
+      radius * sinTheta,
+      halfHeight * sign,
+      radius * cosTheta,
+    );
     buffers.normals.push(0, sign, 0);
     buffers.uvs.push(cosTheta * 0.5 + 0.5, sinTheta * 0.5 * sign + 0.5);
     buffers.vertexCount++;
   }
 
   for (let x = 0; x < rs; x++) {
-    const first = centerIndex + x + 1;
-    const second = centerIndex + x + 2;
+    const c = centerIndexStart + x;
+    const i = centerIndexEnd + x;
     if (top) {
-      buffers.indices.push(centerIndex, first, second);
+      buffers.indices.push(i, i + 1, c);
     } else {
-      buffers.indices.push(second, first, centerIndex);
+      buffers.indices.push(i + 1, i, c);
     }
   }
 }

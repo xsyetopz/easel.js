@@ -1,0 +1,114 @@
+// Adapted from three.js r186 examples/misc_controls_map.html.
+// Copyright 2010-2026 three.js authors. MIT License.
+import * as THREE from "three";
+import { MapControls } from "three/addons/controls/MapControls.js";
+
+import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
+
+export function setup(canvas, params) {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xcccccc);
+  scene.fog = new THREE.FogExp2(0xcccccc, 0.002);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setSize(canvas.width, canvas.height, false);
+
+  const camera = new THREE.PerspectiveCamera(
+    60,
+    canvas.width / canvas.height,
+    1,
+    1000,
+  );
+  camera.position.set(0, 200, -200);
+
+  // controls
+
+  const controls = new MapControls(camera, renderer.domElement);
+
+  controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+  controls.dampingFactor = 0.05;
+
+  controls.screenSpacePanning = false;
+
+  controls.minDistance = 100;
+  controls.maxDistance = 500;
+
+  controls.maxPolarAngle = Math.PI / 2;
+
+  // world
+
+  const geometry = new THREE.BoxGeometry();
+  geometry.translate(0, 0.5, 0);
+  const material = new THREE.MeshPhongMaterial({
+    color: 0xeeeeee,
+    flatShading: true,
+  });
+
+  const mesh = new THREE.InstancedMesh(geometry, material, 500);
+  const dummy = new THREE.Object3D();
+
+  for (let i = 0; i < 500; i++) {
+    dummy.position.x = Math.random() * 1600 - 800;
+    dummy.position.y = 0;
+    dummy.position.z = Math.random() * 1600 - 800;
+    dummy.scale.x = 20;
+    dummy.scale.y = Math.random() * 80 + 10;
+    dummy.scale.z = 20;
+
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  }
+
+  scene.add(mesh);
+
+  // lights
+
+  const dirLight1 = new THREE.DirectionalLight(0xffffff, 3);
+  dirLight1.position.set(1, 1, 1);
+  scene.add(dirLight1);
+
+  const dirLight2 = new THREE.DirectionalLight(0x002288, 3);
+  dirLight2.position.set(-1, -1, -1);
+  scene.add(dirLight2);
+
+  const ambientLight = new THREE.AmbientLight(0x555555);
+  scene.add(ambientLight);
+
+  function applyParams(next) {
+    if (next.zoomToCursor !== undefined) {
+      controls.zoomToCursor = next.zoomToCursor === "on";
+    }
+    if (next.screenSpacePanning !== undefined) {
+      controls.screenSpacePanning = next.screenSpacePanning === "on";
+    }
+  }
+  applyParams(params);
+
+  const animation = createExampleAnimationLoop(() => {
+    controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+
+    renderer.render(scene, camera);
+  });
+
+  return {
+    ...animation,
+    resize(width, height) {
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height, false);
+    },
+    update(next) {
+      applyParams(next);
+    },
+    cleanup() {
+      animation.cleanup();
+      controls.dispose();
+      mesh.dispose();
+      geometry.dispose();
+      material.dispose();
+      renderer.dispose();
+    },
+  };
+}
+
+export const example = { setup };

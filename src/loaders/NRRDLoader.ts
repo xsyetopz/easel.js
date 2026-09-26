@@ -1,3 +1,4 @@
+import { SRGBColorSpace } from "../core/Constants.ts";
 import { DataTexture } from "../textures/DataTexture.ts";
 import {
   axisToIndex,
@@ -274,7 +275,9 @@ export class NRRDVolume {
     }
     const texture = new DataTexture(pixels, width, height);
     texture.name = options.name ?? `NRRD ${axis}-slice ${index}`;
-    texture.buildBrightnessLevels();
+    // The slice holds display intensities tinted by an sRGB color.
+    texture.colorSpace = SRGBColorSpace;
+    texture.update().buildBrightnessLevels();
     return texture;
   }
 

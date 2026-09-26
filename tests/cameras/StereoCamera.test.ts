@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { StereoCamera } from "@/cameras/StereoCamera.js";
 import { PerspectiveCamera } from "@/cameras/PerspectiveCamera.js";
+import { StereoCamera } from "@/cameras/StereoCamera.js";
 
 describe("StereoCamera", () => {
   it("initializes with default left and right eye cameras", () => {

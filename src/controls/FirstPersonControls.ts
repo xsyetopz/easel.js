@@ -1,235 +1,352 @@
-import { EventDispatcher } from "../core/EventDispatcher.ts";
+import type { Node } from "../core/Node.ts";
+import { clamp, DEG2RAD, RAD2DEG } from "../math/MathUtils.ts";
+import { Spherical } from "../math/Spherical.ts";
 import { Vector3 } from "../math/Vector3.ts";
+import { warn } from "../utils/ConsoleUtils.ts";
 import {
   type ControlDomElement,
   type ControlEvent,
-  now,
-  prevent,
+  controlWindow,
 } from "./ControlDom.ts";
+import { Controls } from "./Controls.ts";
 
-type FirstPersonCamera = {
-  position: Vector3;
-  rotation: {
-    x: number;
-    y: number;
-    z: number;
-    reorder: (order: "YXZ") => void;
-  };
-  quaternion: { x: number; y: number; z: number; w: number };
-  updateMatrixWorld: (...args: boolean[]) => void;
-};
-
-const _forward = new Vector3();
-const _right = new Vector3();
-const _up = new Vector3(0, 1, 0);
+const _lookDirection = new Vector3();
+const _spherical = new Spherical();
+const _target = new Vector3();
+const _targetPosition = new Vector3();
+const _targetVelocity = new Vector3();
 
 /**
- * Keyboard and pointer-look camera controls for CPU-rendered scenes.
- * The public update(delta), dispose(), and movement properties mirror the
- * three.js FirstPersonControls addon without requiring a GPU renderer.
+ * First-person navigation that drives an object from keys and pointer drags.
+ * An alternative to {@link FlyControls}, matching three.js r186.
+ *
+ * Keys move along world axes from the camera's yaw: W/S or the up/down arrows
+ * move forward and back, A/D or the left/right arrows strafe, and R/F move up
+ * and down along world Y. Holding the primary pointer button moves forward
+ * along the look direction and the secondary button moves back; one touch
+ * moves forward and two or more touches move back. Dragging turns the view
+ * by the drag offset from the press point. Movement and look velocity ease
+ * toward the input by `dampingFactor` on each `update(delta)` call.
+ *
+ * Unlike most controls, it dispatches no `change` event, as in three.js.
  */
-export class FirstPersonControls extends EventDispatcher {
-  /** Camera moved by keyboard and pointer input. */
-  camera: FirstPersonCamera;
-  /** Event target receiving pointer, keyboard, and context-menu listeners. */
-  domElement: ControlDomElement;
-  /** When false, input and movement are ignored. */
-  enabled: boolean = true;
-  /** Whether pointer motion controls the view. */
-  activeLook: boolean = true;
-  /** Move forward while no backward key is pressed. */
-  autoForward: boolean = false;
-  /** Clamp vertical look between verticalMin and verticalMax. */
-  constrainVertical: boolean = false;
-  /** Scale movement speed by camera height. */
-  heightSpeed: boolean = false;
-  /** Enable vertical pointer look. */
+export class FirstPersonControls extends Controls {
+  /** Movement speed in world units per second. */
+  movementSpeed: number = 1.0;
+
+  /** Look speed, in degrees per second per pixel of drag offset. */
+  lookSpeed: number = 0.005;
+
+  /**
+   * How quickly movement and look velocity catch up to the input on each
+   * update. Lower values feel heavier; `1` disables damping.
+   */
+  dampingFactor: number = 0.1;
+
+  /** Whether vertical drags tilt the view up and down. */
   lookVertical: boolean = true;
-  /** World units moved per second. */
-  movementSpeed = 1;
-  /** Radians turned per pointer pixel. */
-  lookSpeed = 0.005;
-  /** Height scale used by heightSpeed. */
-  heightCoef = 1;
-  /** Minimum constrained vertical angle in radians. */
-  verticalMin = 0;
-  /** Maximum constrained vertical angle in radians. */
-  verticalMax = Math.PI;
 
-  readonly #move: {
-    forward: boolean;
-    backward: boolean;
-    left: boolean;
-    right: boolean;
-    up: boolean;
-    down: boolean;
-  } = {
-    forward: false,
-    backward: false,
-    left: false,
-    right: false,
-    up: false,
-    down: false,
-  };
-  readonly #look: { x: number; y: number; lastX?: number; lastY?: number } = {
-    x: 0,
-    y: 0,
-  };
-  readonly #listeners: Array<[string, EventListener]> = [];
-  readonly #globalListeners: Array<[string, EventListener]> = [];
-  #lastTime = 0;
+  /** Whether the object moves forward while no other movement is held. */
+  autoForward: boolean = false;
 
-  /** Creates controls and installs listeners on the supplied event target. */
-  constructor(camera: FirstPersonCamera, domElement: ControlDomElement) {
-    super();
-    this.camera = camera;
-    this.domElement = domElement;
-    this.camera.rotation.reorder("YXZ");
-    this.#listen("pointermove", this.#onPointerMove.bind(this));
-    this.#listen("keydown", this.#onKeyDown.bind(this));
-    this.#listen("keyup", this.#onKeyUp.bind(this));
-    this.#listen("contextmenu", (event) => prevent(event));
-    const globalTarget = globalThis as unknown as {
-      addEventListener?: (type: string, listener: EventListener) => void;
-    };
-    if (globalTarget.addEventListener) {
-      this.#listenGlobal("keydown", this.#onKeyDown.bind(this));
-      this.#listenGlobal("keyup", this.#onKeyUp.bind(this));
-    }
+  /**
+   * Whether the object's height raises the forward speed; configured by
+   * `heightCoef`, `heightMin`, and `heightMax`.
+   */
+  heightSpeed: boolean = false;
+
+  /** Extra forward speed per world unit of height above `heightMin`. */
+  heightCoef: number = 1.0;
+
+  /** Lower height limit used for the forward speed adjustment. */
+  heightMin: number = 0.0;
+
+  /** Upper height limit used for the forward speed adjustment. */
+  heightMax: number = 1.0;
+
+  /** Whether vertical look is limited to `verticalMin`..`verticalMax`. */
+  constrainVertical: boolean = false;
+
+  /** Lower vertical look limit, in radians from straight up (`0` to `Math.PI`). */
+  verticalMin: number = 0;
+
+  /** Upper vertical look limit, in radians from straight up (`0` to `Math.PI`). */
+  verticalMax: number = Math.PI;
+
+  readonly #velocity = new Vector3();
+  #mouseDragOn = false;
+  #pointerX = 0;
+  #pointerY = 0;
+  #pointerDownX = 0;
+  #pointerDownY = 0;
+  #pointerCount = 0;
+  // Keys and the pointer track forward/back separately, so a click while a
+  // forward or back key is held only looks.
+  #keyForward = false;
+  #keyBackward = false;
+  #pointerForward = false;
+  #pointerBackward = false;
+  #moveLeft = false;
+  #moveRight = false;
+  #moveUp = false;
+  #moveDown = false;
+  #lat = 0;
+  #lon = 0;
+  #lonVelocity = 0;
+  #latVelocity = 0;
+  #window: EventTarget | undefined;
+  #document: EventTarget | undefined;
+
+  readonly #onPointerDown = (event: Event): void =>
+    this.#handlePointerDown(event as ControlEvent);
+  readonly #onPointerMove = (event: Event): void =>
+    this.#handlePointerMove(event as ControlEvent);
+  readonly #onPointerUp = (event: Event): void =>
+    this.#handlePointerUp(event as ControlEvent);
+  readonly #onContextMenu = (event: Event): void => {
+    if (this.enabled === false) return;
+    event.preventDefault();
+  };
+  readonly #onKeyDown = (event: Event): void =>
+    this.#handleKey((event as ControlEvent).code, true);
+  readonly #onKeyUp = (event: Event): void =>
+    this.#handleKey((event as ControlEvent).code, false);
+
+  /**
+   * Creates controls for `object` and connects them when `domElement` is given.
+   *
+   * @param object The object moved and turned by the controls.
+   * @param domElement Element used for pointer listeners.
+   */
+  constructor(object: Node, domElement?: ControlDomElement) {
+    super(object, domElement);
+    if (domElement !== undefined) this.connect(domElement);
+    this.#setOrientation();
   }
 
-  /** Applies movement and look input for the elapsed seconds; returns whether the camera moved. */
-  update(delta?: number): boolean {
-    if (!this.enabled) return false;
-    const seconds =
-      delta ?? (this.#lastTime !== 0 ? (now() - this.#lastTime) / 1000 : 0);
-    this.#lastTime = now();
-    const dt = Math.max(0, Number.isFinite(seconds) ? seconds : 0);
-    const lookX = this.#look.x;
-    const lookY = this.#look.y;
-    this.#look.x = 0;
-    this.#look.y = 0;
-
-    const distance = this.#computeDistance(dt);
-    this.#applyMovement(distance);
-    this.#applyLook(lookX, lookY);
-    this.camera.updateMatrixWorld(false, true);
-    const changed = distance !== 0 || lookX !== 0 || lookY !== 0;
-    if (changed) this.dispatchEvent({ type: "change" });
-    return changed;
+  /** Whether a pointer is currently pressed on the element. */
+  get mouseDragOn(): boolean {
+    return this.#mouseDragOn;
   }
 
-  #computeDistance(dt: number): number {
-    let speed = this.movementSpeed;
+  /**
+   * Adds key listeners to the window, `pointerdown` and `contextmenu` to the
+   * element, pointer move/up/cancel to its owner document, and disables
+   * browser touch scrolling on the element.
+   */
+  override connect(element: ControlDomElement): void {
+    super.connect(element);
+    this.#window = controlWindow();
+    this.#window?.addEventListener("keydown", this.#onKeyDown);
+    this.#window?.addEventListener("keyup", this.#onKeyUp);
+    element.addEventListener("pointerdown", this.#onPointerDown);
+    element.addEventListener("contextmenu", this.#onContextMenu);
+    this.#document = element.ownerDocument ?? element;
+    this.#document.addEventListener("pointermove", this.#onPointerMove);
+    this.#document.addEventListener("pointerup", this.#onPointerUp);
+    this.#document.addEventListener("pointercancel", this.#onPointerUp);
+    if (element.style) element.style.touchAction = "none";
+  }
+
+  /** Removes the listeners added by `connect()` and restores touch scrolling. */
+  override disconnect(): void {
+    const element = this.domElement;
+    if (element === undefined) return;
+    this.#window?.removeEventListener("keydown", this.#onKeyDown);
+    this.#window?.removeEventListener("keyup", this.#onKeyUp);
+    element.removeEventListener("pointerdown", this.#onPointerDown);
+    element.removeEventListener("contextmenu", this.#onContextMenu);
+    this.#document?.removeEventListener("pointermove", this.#onPointerMove);
+    this.#document?.removeEventListener("pointerup", this.#onPointerUp);
+    this.#document?.removeEventListener("pointercancel", this.#onPointerUp);
+    if (element.style) element.style.touchAction = "";
+  }
+
+  /** Removes all listeners. */
+  override dispose(): void {
+    this.disconnect();
+  }
+
+  /**
+   * Turns the object toward a world-space position and resets the look angles
+   * from its new orientation.
+   *
+   * @param x Target x coordinate, or the target position.
+   * @param y Target y coordinate when `x` is a number.
+   * @param z Target z coordinate when `x` is a number.
+   * @returns These controls.
+   */
+  lookAt(x: Vector3 | number, y?: number, z?: number): this {
+    if (typeof x === "number") _target.set(x, y ?? 0, z ?? 0);
+    else _target.copy(x);
+    this.object.lookAt(_target);
+    this.#setOrientation();
+    return this;
+  }
+
+  /**
+   * Advances movement and look by `delta` seconds.
+   *
+   * @param delta Elapsed time in seconds.
+   */
+  override update(delta: number): void {
+    if (this.enabled === false) return;
+    const object = this.object;
+
+    let drive = (this.#keyForward ? 1 : 0) - (this.#keyBackward ? 1 : 0);
+    let lookMove =
+      (this.#pointerForward ? 1 : 0) - (this.#pointerBackward ? 1 : 0);
+    if (this.autoForward && drive === 0 && lookMove === 0) lookMove = 1;
+
+    // Faster forward movement the higher the object is.
+    let forwardSpeed = this.movementSpeed;
     if (this.heightSpeed) {
-      speed *= this.heightCoef;
-      speed *= Math.max(
-        0,
-        Math.min(1, this.camera.position.y / Math.max(1, this.heightCoef)),
+      const height = clamp(object.position.y, this.heightMin, this.heightMax);
+      forwardSpeed += (height - this.heightMin) * this.heightCoef;
+    }
+
+    // Keys move along world axes in the XZ plane from the yaw only (R/F along
+    // world Y); pointer and touch input move along the look direction.
+    const yaw = this.#lon * DEG2RAD;
+    const sinYaw = Math.sin(yaw);
+    const cosYaw = Math.cos(yaw);
+    let strafe = (this.#moveRight ? 1 : 0) - (this.#moveLeft ? 1 : 0);
+    let climb = (this.#moveUp ? 1 : 0) - (this.#moveDown ? 1 : 0);
+
+    // Normalize combined key input so diagonal movement is not faster.
+    const keyScale =
+      1 /
+      Math.max(1, Math.sqrt(strafe * strafe + climb * climb + drive * drive));
+    strafe *= this.movementSpeed * keyScale;
+    climb *= this.movementSpeed * keyScale;
+    drive *= (drive > 0 ? forwardSpeed : this.movementSpeed) * keyScale;
+
+    _targetVelocity.set(
+      sinYaw * drive - cosYaw * strafe,
+      climb,
+      cosYaw * drive + sinYaw * strafe,
+    );
+    if (lookMove !== 0) {
+      _lookDirection.set(0, 0, -1).applyQuaternion(object.quaternion);
+      _targetVelocity.addScaledVector(
+        _lookDirection,
+        lookMove * (lookMove > 0 ? forwardSpeed : this.movementSpeed),
       );
     }
-    return speed * dt;
-  }
 
-  #applyMovement(distance: number): void {
-    _forward.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
-    _right.set(1, 0, 0).applyQuaternion(this.camera.quaternion);
-    if (this.#move.forward || (this.autoForward && !this.#move.backward))
-      this.camera.position.addScaledVector(_forward, distance);
-    if (this.#move.backward)
-      this.camera.position.addScaledVector(_forward, -distance);
-    if (this.#move.right)
-      this.camera.position.addScaledVector(_right, distance);
-    if (this.#move.left)
-      this.camera.position.addScaledVector(_right, -distance);
-    if (this.#move.up) this.camera.position.addScaledVector(_up, distance);
-    if (this.#move.down) this.camera.position.addScaledVector(_up, -distance);
-  }
+    this.#velocity.lerp(_targetVelocity, this.dampingFactor);
+    object.position.addScaledVector(this.#velocity, delta);
 
-  #applyLook(lookX: number, lookY: number): void {
-    if (!this.activeLook) return;
-    this.camera.rotation.y -= lookX * this.lookSpeed;
-    if (this.lookVertical) this.camera.rotation.x -= lookY * this.lookSpeed;
+    const verticalLookRatio = this.constrainVertical
+      ? Math.PI / (this.verticalMax - this.verticalMin)
+      : 1;
+
+    // The look velocity eases toward zero when no pointer is pressed.
+    const targetLon = this.#mouseDragOn ? -this.#pointerX * this.lookSpeed : 0;
+    const targetLat =
+      this.#mouseDragOn && this.lookVertical
+        ? -this.#pointerY * this.lookSpeed * verticalLookRatio
+        : 0;
+    const damping = this.dampingFactor;
+    this.#lonVelocity = (1 - damping) * this.#lonVelocity + damping * targetLon;
+    this.#latVelocity = (1 - damping) * this.#latVelocity + damping * targetLat;
+    this.#lon += this.#lonVelocity * delta;
+    this.#lat += this.#latVelocity * delta;
+    this.#lat = Math.max(-85, Math.min(85, this.#lat));
+
+    let phi = (90 - this.#lat) * DEG2RAD;
+    const theta = this.#lon * DEG2RAD;
     if (this.constrainVertical) {
-      this.camera.rotation.x = Math.max(
-        this.verticalMin,
-        Math.min(this.verticalMax, this.camera.rotation.x),
-      );
+      phi =
+        this.verticalMin +
+        (phi * (this.verticalMax - this.verticalMin)) / Math.PI;
     }
+
+    _targetPosition.setFromSphericalCoords(1, phi, theta).add(object.position);
+    object.lookAt(_targetPosition);
   }
 
-  /** Removes all installed DOM listeners. */
-  dispose(): void {
-    for (const [type, listener] of this.#listeners)
-      this.domElement.removeEventListener(type, listener);
-    this.#listeners.length = 0;
-    const globalTarget = globalThis as unknown as {
-      removeEventListener?: (type: string, listener: EventListener) => void;
-    };
-    if (globalTarget.removeEventListener)
-      for (const [type, listener] of this.#globalListeners)
-        globalTarget.removeEventListener(type, listener);
-    this.#globalListeners.length = 0;
-  }
-
-  /** Recomputes browser interaction state after a canvas resize. */
+  /**
+   * @deprecated Removed in three.js r184; the controls no longer depend on
+   * the element size. Logs a warning and does nothing.
+   */
   handleResize(): void {
-    this.#look.x = 0;
-    this.#look.y = 0;
-    delete this.#look.lastX;
-    delete this.#look.lastY;
+    warn("FirstPersonControls: handleResize() has been removed.");
   }
 
-  #listen(type: string, listener: EventListener): void {
-    this.domElement.addEventListener(type, listener);
-    this.#listeners.push([type, listener]);
+  #setOrientation(): void {
+    _lookDirection.set(0, 0, -1).applyQuaternion(this.object.quaternion);
+    _spherical.setFromVector3(_lookDirection);
+    this.#lat = 90 - _spherical.phi * RAD2DEG;
+    this.#lon = _spherical.theta * RAD2DEG;
   }
 
-  #listenGlobal(type: string, listener: EventListener): void {
-    (
-      globalThis as unknown as {
-        addEventListener: (type: string, listener: EventListener) => void;
-      }
-    ).addEventListener(type, listener);
-    this.#globalListeners.push([type, listener]);
+  #handlePointerDown(event: ControlEvent): void {
+    const element = this.domElement;
+    if (element === undefined) return;
+    element.focus?.();
+    if (event.pointerId !== undefined)
+      element.setPointerCapture?.(event.pointerId);
+    this.#pointerCount++;
+    if (event.pointerType === "touch") {
+      this.#pointerForward = this.#pointerCount === 1;
+      this.#pointerBackward = this.#pointerCount >= 2;
+    } else if (!(this.#keyForward || this.#keyBackward)) {
+      if (event.button === 0) this.#pointerForward = true;
+      else if (event.button === 2) this.#pointerBackward = true;
+    }
+    this.#pointerDownX = event.pageX ?? 0;
+    this.#pointerDownY = event.pageY ?? 0;
+    this.#pointerX = 0;
+    this.#pointerY = 0;
+    this.#mouseDragOn = true;
   }
 
-  #onPointerMove(raw: Event): void {
-    if (!(this.enabled && this.activeLook)) return;
-    const event = raw as ControlEvent;
-    this.#look.x += event.movementX ?? 0;
-    this.#look.y += event.movementY ?? 0;
-    if (event.movementX === undefined)
-      this.#look.x +=
-        (event.clientX ?? 0) - (this.#look.lastX ?? event.clientX ?? 0);
-    if (event.movementY === undefined)
-      this.#look.y +=
-        (event.clientY ?? 0) - (this.#look.lastY ?? event.clientY ?? 0);
-    if (event.clientX !== undefined) this.#look.lastX = event.clientX;
-    if (event.clientY !== undefined) this.#look.lastY = event.clientY;
+  #handlePointerUp(event: ControlEvent): void {
+    if (this.#mouseDragOn === false) return;
+    if (event.pointerId !== undefined)
+      this.domElement?.releasePointerCapture?.(event.pointerId);
+    this.#pointerCount--;
+    if (event.pointerType === "touch") {
+      this.#pointerForward = this.#pointerCount === 1;
+      this.#pointerBackward = false;
+    } else if (event.button === 0) this.#pointerForward = false;
+    else if (event.button === 2) this.#pointerBackward = false;
+    this.#pointerX = 0;
+    this.#pointerY = 0;
+    if (this.#pointerCount === 0) this.#mouseDragOn = false;
   }
 
-  #onKeyDown(raw: Event): void {
-    const event = raw as ControlEvent;
-    const key = (event.code ?? event.key ?? "").toLowerCase();
-    if (key === "keyw" || key === "arrowup") this.#move.forward = true;
-    else if (key === "keys" || key === "arrowdown") this.#move.backward = true;
-    else if (key === "keya" || key === "arrowleft") this.#move.left = true;
-    else if (key === "keyd" || key === "arrowright") this.#move.right = true;
-    else if (key === "space") this.#move.up = true;
-    else if (key === "shiftleft" || key === "shiftright")
-      this.#move.down = true;
+  #handlePointerMove(event: ControlEvent): void {
+    if (this.#mouseDragOn === false) return;
+    this.#pointerX = (event.pageX ?? 0) - this.#pointerDownX;
+    this.#pointerY = (event.pageY ?? 0) - this.#pointerDownY;
   }
 
-  #onKeyUp(raw: Event): void {
-    const event = raw as ControlEvent;
-    const key = (event.code ?? event.key ?? "").toLowerCase();
-    if (key === "keyw" || key === "arrowup") this.#move.forward = false;
-    else if (key === "keys" || key === "arrowdown") this.#move.backward = false;
-    else if (key === "keya" || key === "arrowleft") this.#move.left = false;
-    else if (key === "keyd" || key === "arrowright") this.#move.right = false;
-    else if (key === "space") this.#move.up = false;
-    else if (key === "shiftleft" || key === "shiftright")
-      this.#move.down = false;
+  #handleKey(code: string | undefined, pressed: boolean): void {
+    switch (code) {
+      case "ArrowUp":
+      case "KeyW":
+        this.#keyForward = pressed;
+        break;
+      case "ArrowLeft":
+      case "KeyA":
+        this.#moveLeft = pressed;
+        break;
+      case "ArrowDown":
+      case "KeyS":
+        this.#keyBackward = pressed;
+        break;
+      case "ArrowRight":
+      case "KeyD":
+        this.#moveRight = pressed;
+        break;
+      case "KeyR":
+        this.#moveUp = pressed;
+        break;
+      case "KeyF":
+        this.#moveDown = pressed;
+        break;
+    }
   }
 }

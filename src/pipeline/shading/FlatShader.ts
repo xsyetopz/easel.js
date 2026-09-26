@@ -16,21 +16,10 @@ export class FlatShader {
     ny: number,
     nz: number,
     lights: Record<string, unknown>[],
-    ambientIntensity: number = 0.1,
     wx: number = 0,
     wy: number = 0,
     wz: number = 0,
   ): RGB {
-    return accumulateLights(
-      nx,
-      ny,
-      nz,
-      lights,
-      ambientIntensity,
-      _out,
-      wx,
-      wy,
-      wz,
-    );
+    return accumulateLights(nx, ny, nz, lights, _out, wx, wy, wz);
   }
 }

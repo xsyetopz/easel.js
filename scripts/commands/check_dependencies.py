@@ -20,9 +20,9 @@ OUTDATED_ROW_PATTERN = re.compile(
     rf"^\|{_JS_WHITESPACE_CLASS}+(?![-|{_JS_WHITESPACE_CLASS[1:-1]}])[^|]*\|"
 )
 ALLOWED_OUTDATED_ROWS = [
-    # Astro check still depends on the TypeScript 5/6 compiler API.
-    # The project keeps TypeScript 7 for the package and uses the alias
-    # `typescript-compiler-api` for patched Astro/Volar compatibility.
+    # TypeScript 7 exports no JavaScript compiler API from its package root.
+    # The package builds with TypeScript 7; the policy and docs scripts use
+    # the TypeScript 6 compiler API through the `typescript-api` alias.
     re.compile(
         rf"^\|{_JS_WHITESPACE_CLASS}+typescript \(dev\)"
         rf"{_JS_WHITESPACE_CLASS}+\|{_JS_WHITESPACE_CLASS}+"

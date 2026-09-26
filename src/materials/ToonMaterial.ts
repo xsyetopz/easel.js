@@ -13,6 +13,10 @@ export interface ToonMaterialOptions extends MaterialOptions {
   readonly color?: Color | number | string;
   /** Optional color texture sampled with nearest-neighbor CPU lookup. */
   readonly map?: Texture | undefined;
+  /** Light the surface emits regardless of scene lights; black by default. */
+  readonly emissive?: Color | number | string;
+  /** Scalar applied to {@link emissive}; defaults to 1. */
+  readonly emissiveIntensity?: number;
   /** Optional nearest-neighbor lighting gradient map. */
   readonly gradientMap?: Texture | undefined;
 }
@@ -21,6 +25,10 @@ export interface ToonMaterialOptions extends MaterialOptions {
 export interface ToonMaterialJSON extends MaterialJSON {
   /** Serialized diffuse RGB color packed as a 24-bit integer. */
   color: number;
+  /** Serialized emissive sRGB color packed as a 24-bit integer. */
+  emissive: number;
+  /** Emissive intensity, present only when it differs from 1. */
+  emissiveIntensity?: number;
   /** Texture id used by the color map, when assigned. */
   map?: string;
   /** Texture id used by the lighting gradient map, when assigned. */
@@ -55,6 +63,16 @@ export class ToonMaterial extends Material {
   /** Optional nearest-neighbor texture sampled for fragment color. */
   map: Texture | undefined = undefined;
 
+  /**
+   * Emitted light added after lighting, as in three.js: a surface no light
+   * reaches renders this color instead of black. The CPU bake adds it per
+   * vertex; `emissiveMap` is not supported.
+   */
+  emissive: Color;
+
+  /** Scalar applied to {@link emissive}. */
+  emissiveIntensity: number;
+
   /** Optional nearest-neighbor map from baked light levels to toon colors. */
   gradientMap: Texture | undefined = undefined;
 
@@ -63,6 +81,8 @@ export class ToonMaterial extends Material {
     super(options);
     this.shading = Shading.Gouraud;
     this.color = new Color(options.color ?? 0xffffff);
+    this.emissive = new Color(options.emissive ?? 0x000000);
+    this.emissiveIntensity = options.emissiveIntensity ?? 1;
     if (options.map !== undefined) this.map = options.map;
     if (options.gradientMap !== undefined) {
       this.gradientMap = options.gradientMap;
@@ -78,6 +98,8 @@ export class ToonMaterial extends Material {
   override copy(source: ToonMaterial): this {
     super.copy(source);
     this.color.copy(source.color);
+    this.emissive.copy(source.emissive);
+    this.emissiveIntensity = source.emissiveIntensity;
     this.map = source.map;
     this.gradientMap = source.gradientMap;
     return this;
@@ -89,7 +111,11 @@ export class ToonMaterial extends Material {
     const json: ToonMaterialJSON = {
       ...super.toJSON(),
       color: this.color.hex,
+      emissive: this.emissive.hex,
     };
+    if (this.emissiveIntensity !== 1) {
+      json.emissiveIntensity = this.emissiveIntensity;
+    }
     if (this.map !== undefined) json.map = this.map.uuid;
     if (this.gradientMap !== undefined) {
       json.gradientMap = this.gradientMap.uuid;

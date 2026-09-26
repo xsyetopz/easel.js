@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { GCodeLoader } from "@/loaders/GCodeLoader.js";
+import { LineMaterial } from "@/materials/LineMaterial.js";
 import { LineSegments } from "@/objects/LineSegments.js";
 
 const LAYERS_KEY = "layers";
@@ -42,6 +43,17 @@ G1 X0 Y1 E0.2
       return;
     expect(firstExtrusion.material?.name).toBe("extruded");
     expect(firstTravel.material?.name).toBe("path");
+    expect(firstExtrusion.material).toBeInstanceOf(LineMaterial);
+    expect(firstTravel.material).toBeInstanceOf(LineMaterial);
+    if (
+      !(
+        firstExtrusion.material instanceof LineMaterial &&
+        firstTravel.material instanceof LineMaterial
+      )
+    )
+      return;
+    expect(firstExtrusion.material.color.hex).toBe(0x00ff00);
+    expect(firstTravel.material.color.hex).toBe(0xff0000);
     expect(firstExtrusion.geometry?.getAttribute("position")?.count).toBe(4);
     expect(firstTravel.geometry?.getAttribute("position")?.count).toBe(2);
   });

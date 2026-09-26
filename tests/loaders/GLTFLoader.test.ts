@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { LinearToSRGB } from "@/math/ColorManagement.js";
 import { readFileSync } from "node:fs";
 import { GLTFLoader } from "@/loaders/GLTFLoader.js";
 import { LambertMaterial } from "@/materials/LambertMaterial.js";
@@ -223,7 +224,12 @@ describe("GLTFLoader", () => {
     expect(mesh.geometry?.getAttribute("position")?.count).toBe(3);
     expect(mesh.geometry?.index).toEqual(new Uint16Array([0, 1, 2]));
     expect(mesh.material).toBeInstanceOf(LambertMaterial);
-    expect((mesh.material as LambertMaterial).color.hex).toBe(0x336699);
+    // baseColorFactor is linear; hex reads back its sRGB encoding.
+    const byte = (linear: number) => Math.round(LinearToSRGB(linear) * 255);
+    expect((mesh.material as LambertMaterial).color.hex).toBe(
+      (byte(0.2) << 16) | (byte(0.4) << 8) | byte(0.6),
+    );
+    expect((mesh.material as LambertMaterial).color.r).toBe(0.2);
     expect(result.materials[0]?.baseColorTexture?.uri).toBe("albedo.png");
     expect(result.animations[0]?.channels[0]?.times).toEqual([0, 1]);
     expect(result.animations[0]?.channels[0]?.values).toEqual([

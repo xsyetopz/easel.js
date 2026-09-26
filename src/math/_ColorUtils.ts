@@ -1,4 +1,6 @@
+import { SRGBColorSpace } from "../core/Constants.ts";
 import { Color } from "./Color.ts";
+import { LinearToSRGB, SRGBToLinear } from "./ColorManagement.ts";
 import type { Matrix3 } from "./Matrix3.ts";
 import { decodeHsl16, encodeHsl16 } from "./Hsl16.ts";
 import { clamp, fastTrunc } from "./MathUtils.ts";
@@ -39,13 +41,13 @@ export const COLOR_LIGHTNESS_SCALE = 100;
 /** Maximum value of an 8-bit RGB channel. */
 export const COLOR_RGB_SCALE = 255;
 
-/** Converts a color to 8-bit RGB channels. */
+/** Converts a color to 8-bit sRGB channels. */
 export function colorToRgb(color: ColorValue): RGB {
-  const c = new Color(color);
+  const c = new Color(color).getRGB(undefined, SRGBColorSpace);
   return {
-    r: fastTrunc(c.r * COLOR_RGB_SCALE),
-    g: fastTrunc(c.g * COLOR_RGB_SCALE),
-    b: fastTrunc(c.b * COLOR_RGB_SCALE),
+    r: fastTrunc(c.r * COLOR_RGB_SCALE + 0.5),
+    g: fastTrunc(c.g * COLOR_RGB_SCALE + 0.5),
+    b: fastTrunc(c.b * COLOR_RGB_SCALE + 0.5),
   };
 }
 
@@ -62,13 +64,17 @@ export function clampChannel(value: number): number {
 
 /** Converts one sRGB channel to linear light. */
 export function srgbToLinearChannel(value: number): number {
-  return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  return SRGBToLinear(value);
 }
 
 /** Converts one linear-light channel to sRGB. */
 export function linearToSrgbChannel(value: number): number {
-  const c = clamp(value, 0, 1);
-  return c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055;
+  return LinearToSRGB(clamp(value, 0, 1));
+}
+
+/** Encodes a linear channel to a rounded 8-bit sRGB value. */
+export function linearToSrgbByte(value: number): number {
+  return Math.round(linearToSrgbChannel(value) * COLOR_RGB_SCALE);
 }
 
 /** Converts normalized RGB channels to normalized HSL channels. */
@@ -105,6 +111,7 @@ export function colorSetHSL(
   h: number,
   s: number,
   l: number,
+  colorSpace?: string,
 ): Color {
   const hue = ((h % 1) + 1) % 1;
   const saturation = clampChannel(s);
@@ -119,7 +126,7 @@ export function colorSetHSL(
     return p;
   };
   if (saturation === 0) {
-    color.setRGB(lightness, lightness, lightness);
+    color.setRGB(lightness, lightness, lightness, colorSpace);
     return color;
   }
   const q =
@@ -131,6 +138,7 @@ export function colorSetHSL(
     hue2rgb(p, q, hue + 1 / 3),
     hue2rgb(p, q, hue),
     hue2rgb(p, q, hue - 1 / 3),
+    colorSpace,
   );
   return color;
 }

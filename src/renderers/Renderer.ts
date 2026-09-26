@@ -1,6 +1,11 @@
 import type { Camera } from "../cameras/Camera.ts";
 import type { Scene } from "../core/Scene.ts";
 import { Color } from "../math/Color.ts";
+import {
+  autoUpdateRecordedLODs,
+  recordLODsForAutoUpdate,
+} from "../objects/LOD.ts";
+import { encodeSrgbByte } from "../pipeline/color/SrgbEncode.ts";
 import { FogCuller } from "../pipeline/FogCuller.ts";
 import { Framebuffer } from "../pipeline/framebuffer/Framebuffer.ts";
 import { FramebufferClear } from "../pipeline/framebuffer/FramebufferClear.ts";
@@ -132,10 +137,20 @@ export class Renderer {
     return this.#height;
   }
 
-  /** Explicitly rebuilds scene world matrices and the camera view matrix. */
+  /**
+   * Explicitly rebuilds scene world matrices and the camera view matrix, then
+   * calls `update(camera)` on each visible LOD whose `autoUpdate` is on, as
+   * three.js r186's renderer does once per frame.
+   */
   prepare(scene: Scene, camera: Camera, force: boolean = false): void {
-    scene.updateMatrixWorld(true, true, force);
+    recordLODsForAutoUpdate(true);
+    try {
+      scene.updateMatrixWorld(true, true, force);
+    } finally {
+      recordLODsForAutoUpdate(false);
+    }
     camera.updateViewMatrix(true, false, force);
+    autoUpdateRecordedLODs(camera);
   }
 
   /** Renders a scene from a camera's perspective. */
@@ -265,9 +280,9 @@ export class Renderer {
     if (fog) {
       this.#clear.clear(
         this.#framebuffer,
-        Math.round(fog.color.r * 255),
-        Math.round(fog.color.g * 255),
-        Math.round(fog.color.b * 255),
+        encodeSrgbByte(fog.color.r),
+        encodeSrgbByte(fog.color.g),
+        encodeSrgbByte(fog.color.b),
       );
       this.#framebuffer.depthBuffer.clear();
       return;
@@ -304,9 +319,9 @@ export class Renderer {
     if (typeof background === "object" && background !== null) {
       this.#clear.clear(
         this.#framebuffer,
-        Math.round(background.r * 255),
-        Math.round(background.g * 255),
-        Math.round(background.b * 255),
+        encodeSrgbByte(background.r),
+        encodeSrgbByte(background.g),
+        encodeSrgbByte(background.b),
       );
     } else {
       this.#clear.clear(
@@ -342,9 +357,9 @@ export class Renderer {
   /** Sets the packed RGB clear color used when no scene background or fog overrides it. */
   set clearColor(value: Color | number) {
     if (value instanceof Color) {
-      this.#clearColor.r = Math.round(value.r * 255);
-      this.#clearColor.g = Math.round(value.g * 255);
-      this.#clearColor.b = Math.round(value.b * 255);
+      this.#clearColor.r = encodeSrgbByte(value.r);
+      this.#clearColor.g = encodeSrgbByte(value.g);
+      this.#clearColor.b = encodeSrgbByte(value.b);
       return;
     }
     if (!Number.isSafeInteger(value) || value < 0 || value > 0xffffff) {

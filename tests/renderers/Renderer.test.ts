@@ -95,7 +95,10 @@ describe("Renderer explicit preparation", () => {
     const renderer = new Renderer({ width: 2, height: 2 });
     renderer.clearColor = 0x123456;
     expect(renderer.clearColor).toBe(0x123456);
+    // Color channels are linear; the clear color is their sRGB encoding.
     renderer.clearColor = new Color(1, 0.5, 0);
+    expect(renderer.clearColor).toBe(0xffbc00);
+    renderer.clearColor = new Color(0xff8000);
     expect(renderer.clearColor).toBe(0xff8000);
     expect(() => {
       renderer.clearColor = 0x1000000;

@@ -8,6 +8,9 @@ type SphereLike =
   | { readonly centre: Vector3; readonly radius: number }
   | { readonly center: Vector3; readonly radius: number };
 
+const _vector1 = new Vector3();
+const _vector2 = new Vector3();
+
 /** Infinite plane defined by a unit normal and signed distance. */
 export class Plane {
   /** Type marker identifying Plane instances. */
@@ -169,17 +172,21 @@ export class Plane {
 
   /** Replaces this plane from three coplanar points. */
   setFromCoplanarPoints(a: Vector3, b: Vector3, c: Vector3): Plane {
-    const v1 = b.clone().sub(a);
-    const v2 = c.clone().sub(a);
-    const normal = v1.clone().cross(v2).normalize();
+    const normal = _vector1
+      .subVectors(c, b)
+      .cross(_vector2.subVectors(a, b))
+      .normalize();
     this.setFromNormalAndCoplanarPoint(normal, a);
     return this;
   }
 
-  /** Replaces this plane from a normal and point on the plane. */
+  /**
+   * Replaces this plane from a normal and a point on the plane. Like three.js,
+   * the normal is copied as given; pass a unit vector for a normalized plane.
+   */
   setFromNormalAndCoplanarPoint(normal: Vector3, point: Vector3): Plane {
-    this.normal.copy(normal).normalize();
-    this.constant = -point.clone().dot(this.normal);
+    this.normal.copy(normal);
+    this.constant = -point.dot(this.normal);
     return this;
   }
 

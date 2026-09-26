@@ -20,6 +20,17 @@ type SceneLight = SceneNode & {
   };
 };
 
+/**
+ * three.js `BRDF_Lambert` divides every light's irradiance by π. Folding it
+ * into the collected intensity once per light per frame keeps the per-vertex
+ * bake free of it.
+ */
+const RECIPROCAL_PI = 1 / Math.PI;
+
+function lambertIntensity(intensity: unknown): number {
+  return (intensity as number) * RECIPROCAL_PI;
+}
+
 function getSceneLight(light: SceneNode): SceneLight {
   return light as SceneLight;
 }
@@ -56,7 +67,7 @@ function buildLightProbeEntry(light: SceneLight): Record<string, unknown> {
   return {
     type: "probe",
     coefficients: light.sh.coefficients,
-    intensity: light.intensity,
+    intensity: lambertIntensity(light.intensity),
   };
 }
 
@@ -65,7 +76,7 @@ function buildAmbientLightEntry(light: SceneLight): Record<string, unknown> {
     type: "ambient",
     lightType: LightType.Ambient,
     color: light.color,
-    intensity: light.intensity,
+    intensity: lambertIntensity(light.intensity),
   };
 }
 
@@ -83,7 +94,7 @@ function buildHemisphereLightEntry(light: SceneNode): Record<string, unknown> {
     skyColor: sceneLight.color,
     groundColor: sceneLight.groundColor,
     direction,
-    intensity: sceneLight.intensity,
+    intensity: lambertIntensity(sceneLight.intensity),
   };
 }
 
@@ -97,7 +108,7 @@ function buildPointLightEntry(
     lightType: LightType.Point,
     position,
     color: sceneLight.color,
-    intensity: sceneLight.intensity,
+    intensity: lambertIntensity(sceneLight.intensity),
     distance: sceneLight.distance ?? 0,
     decay: sceneLight.decay ?? 2,
   };
@@ -120,7 +131,7 @@ function buildDirectionalLightEntry(
     lightType: LightType.Directional,
     direction: normalizeDirection(direction),
     color: sceneLight.color,
-    intensity: sceneLight.intensity,
+    intensity: lambertIntensity(sceneLight.intensity),
   };
 }
 
@@ -192,7 +203,7 @@ export function buildSpotLightEntry(light: SceneNode): Record<string, unknown> {
     position,
     direction: normalizeDirection(direction),
     color: sceneLight.color,
-    intensity: sceneLight.intensity,
+    intensity: lambertIntensity(sceneLight.intensity),
     angle: sceneLight.angle,
     penumbra: sceneLight.penumbra ?? 0,
     cosAngle: sceneLight.cosAngle,

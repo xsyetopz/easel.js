@@ -119,6 +119,12 @@ export class MaterialLoader extends Loader {
     const common = commonOptions(record);
     const color = optionalFiniteNumber(record, "color");
     const map = this.#texture(record, "map");
+    const emissive = optionalFiniteNumber(record, "emissive");
+    const emissiveIntensity = optionalFiniteNumber(record, "emissiveIntensity");
+    const emission = {
+      ...(emissive === undefined ? {} : { emissive }),
+      ...(emissiveIntensity === undefined ? {} : { emissiveIntensity }),
+    };
 
     switch (type) {
       case "Material":
@@ -134,6 +140,7 @@ export class MaterialLoader extends Loader {
           ...common,
           ...(color === undefined ? {} : { color }),
           ...(map === undefined ? {} : { map }),
+          ...emission,
         });
       case "ToonMaterial": {
         const gradientMap = this.#texture(record, "gradientMap");
@@ -142,6 +149,7 @@ export class MaterialLoader extends Loader {
           ...(color === undefined ? {} : { color }),
           ...(map === undefined ? {} : { map }),
           ...(gradientMap === undefined ? {} : { gradientMap }),
+          ...emission,
         });
       }
       case "LineMaterial": {

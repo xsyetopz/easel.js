@@ -1,4 +1,4 @@
-import { Side } from "../../core/Constants.ts";
+import { SRGBColorSpace, Side } from "../../core/Constants.ts";
 import { BasicMaterial } from "../../materials/BasicMaterial.ts";
 import { LambertMaterial } from "../../materials/LambertMaterial.ts";
 import { Color } from "../../math/Color.ts";
@@ -145,7 +145,11 @@ function createMaterial(
   };
   if (baseColorTexture !== undefined) {
     const map = textureFor(options, baseColorTexture.index);
-    if (map !== undefined) Object.assign(materialOptions, { map });
+    if (map !== undefined) {
+      // three.js GLTFLoader: base color textures hold sRGB texels.
+      map.colorSpace = SRGBColorSpace;
+      Object.assign(materialOptions, { map });
+    }
   }
   if (property(source, "doubleSided") === true) {
     Object.assign(materialOptions, { side: Side.Double });

@@ -1,13 +1,16 @@
 import type { TriangleBuffer } from "../TriangleBuffer.ts";
 import {
   configureBaseColors,
+  createVertexColors,
   resolveVertexColors,
+  type VertexColors,
 } from "./_RasterizerTriangleColors.ts";
 import {
   applyTriangleState,
   setFlatTextureState,
   setMixedVertexTint,
   setTextureCoordinates,
+  type TriangleLighting,
 } from "./_RasterizerTriangleLighting.ts";
 import type { RasterizerState, TextureData } from "./_RasterizerTypes.ts";
 
@@ -17,8 +20,8 @@ export interface TriangleStateOptions {
   state: RasterizerState;
   /** Projected triangle data containing coordinates, depth, UVs, and colors. */
   tb: TriangleBuffer;
-  /** Index of the first triangle vertex in the packed triangle buffers. */
-  vertexOffset: number;
+  /** Index of the triangle in the physical triangle buffer. */
+  physIdx: number;
   /** Baked lighting colors, or undefined when the triangle is unlit. */
   shadedColorData: Float32Array | undefined;
   /** Number of lighting values stored per triangle in shadedColorData. */
@@ -35,130 +38,65 @@ export interface TriangleStateOptions {
   texture: TextureData | undefined;
 }
 
-/** Color and lighting mode selected while preparing a triangle. */
-export interface TriangleShading {
-  /** Whether the triangle uses one flat lighting color. */
-  isFlat: boolean;
-  /** Whether the triangle uses per-vertex Gouraud lighting. */
-  isGouraud: boolean;
-  /** Offset of this triangle's lighting record in the packed color data. */
-  base: number;
+/**
+ * Color and lighting mode selected while preparing a triangle. One instance is
+ * reused for every triangle a rasterizer draws.
+ */
+export interface TriangleShading extends TriangleLighting {
   /** Whether vertex colors require a mixed tint path. */
   mixedVertexColor: boolean;
-  /** Flat red channel after material and lighting setup. */
-  flatR: number;
-  /** Flat green channel after material and lighting setup. */
-  flatG: number;
-  /** Flat blue channel after material and lighting setup. */
-  flatB: number;
+  /** Vertex-color storage reused by {@link resolveVertexColors}. */
+  colorScratch: VertexColors;
 }
 
-function applyTriangleShading(options: {
-  state: RasterizerState;
-  tb: TriangleBuffer;
-  vertexOffset: number;
-  shadedColorData: Float32Array | undefined;
-  base: number;
-  baseColors: ReturnType<typeof configureBaseColors>;
-  colors: ReturnType<typeof resolveVertexColors>;
-  isFlat: boolean;
-  isGouraud: boolean;
-  texture: TextureData | undefined;
-}): void {
-  const {
-    state,
-    tb,
-    vertexOffset,
-    shadedColorData,
-    base,
-    baseColors,
-    colors,
-    isFlat,
-    isGouraud,
-    texture,
-  } = options;
-  applyTriangleState({
-    state,
-    tb,
-    vertexOffset,
-    shadedColorData,
-    base,
-    baseColors,
-    isGouraud,
-  });
-  setMixedVertexTint({
-    state,
-    colors,
-    texture,
-    isFlat,
-    isGouraud,
-    shadedColorData,
-    base,
-  });
-  if (texture) setTextureCoordinates(state, tb, vertexOffset);
-  setFlatTextureState({
-    state,
-    isFlat,
-    texture,
-    mixedVertexColor: colors.mixedVertexColor,
-    shadedColorData,
-    base,
-    flatR: baseColors.flatR,
-    flatG: baseColors.flatG,
-    flatB: baseColors.flatB,
-  });
+/** Creates the reusable per-rasterizer triangle shading record. */
+export function createTriangleShading(): TriangleShading {
+  const colorScratch = createVertexColors();
+  return {
+    vertexOffset: 0,
+    base: 0,
+    isFlat: false,
+    isGouraud: false,
+    mixedVertexColor: false,
+    colors: colorScratch,
+    colorScratch,
+    effectiveR: 0,
+    effectiveG: 0,
+    effectiveB: 0,
+    flatR: 0,
+    flatG: 0,
+    flatB: 0,
+  };
 }
 
-/** Prepares interpolants, lighting, vertex colors, and texture state for a triangle. */
+/**
+ * Prepares interpolants, lighting, vertex colors, and texture state for a
+ * triangle, writing its shading mode and flat color into `shading`.
+ */
 export function prepareTriangleState(
   options: TriangleStateOptions,
+  shading: TriangleShading,
 ): TriangleShading {
-  const {
-    state,
-    tb,
-    vertexOffset,
-    shadedColorData,
-    shadedColorStride,
-    iterIdx,
-    baseR,
-    baseG,
-    baseB,
-    texture,
-  } = options;
+  const { state, tb, physIdx, shadedColorStride, iterIdx, texture } = options;
+  const vertexOffset = physIdx * 3;
   const isFlat = shadedColorStride === 3;
-  const isGouraud = shadedColorStride === 9;
   const base = iterIdx * shadedColorStride;
-  const colors = resolveVertexColors(state, tb, vertexOffset);
-  const baseColors = configureBaseColors({
-    state,
-    colors,
-    shadedColorData,
-    base,
-    baseR,
-    baseG,
-    baseB,
-    texture,
-    isFlat,
-  });
-  applyTriangleShading({
+  shading.vertexOffset = vertexOffset;
+  shading.isFlat = isFlat;
+  shading.isGouraud = shadedColorStride === 9;
+  shading.base = base;
+  const colors = resolveVertexColors(
     state,
     tb,
     vertexOffset,
-    shadedColorData,
-    base,
-    baseColors,
-    colors,
-    isFlat,
-    isGouraud,
-    texture,
-  });
-  return {
-    isFlat,
-    isGouraud,
-    base,
-    mixedVertexColor: colors.mixedVertexColor,
-    flatR: baseColors.flatR,
-    flatG: baseColors.flatG,
-    flatB: baseColors.flatB,
-  };
+    shading.colorScratch,
+  );
+  shading.colors = colors;
+  shading.mixedVertexColor = colors.mixedVertexColor;
+  configureBaseColors(options, colors, base, isFlat, shading);
+  applyTriangleState(options, shading);
+  setMixedVertexTint(options, shading);
+  if (texture) setTextureCoordinates(state, tb, vertexOffset);
+  setFlatTextureState(options, shading);
+  return shading;
 }

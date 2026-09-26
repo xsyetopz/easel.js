@@ -136,6 +136,7 @@ jobs:
           node-version-file: .node-version
       - run: bun install --frozen-lockfile
       - run: bun run tests:no-any
+      - run: bun run examples:registry:check
       - run: bun run examples:catalog
       - run: bun test
 

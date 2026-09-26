@@ -140,19 +140,17 @@ export const Compatibility = {
 /** Union of compatibility flag identifiers. */
 export type Compatibility = (typeof Compatibility)[keyof typeof Compatibility];
 
-/**
- * Color management configuration. EASEL renders to Canvas2D which is natively
- * sRGB, so color management is disabled by default and conversion is a no-op.
- */
-export const ColorManagement = {
-  /** Whether color space conversion is active. Disabled for CPU Canvas2D. */
-  enabled: false,
-  /** Working color space; Canvas2D ImageData is sRGB. */
-  workingColorSpace: "srgb",
-  /** Returns color unchanged when management is disabled. */
-  convert: <TColor>(color: TColor): TColor => color,
-  /** Returns color unchanged when management is disabled. */
-  fromWorkingColorSpace: <TColor>(color: TColor): TColor => color,
-  /** Returns color unchanged when management is disabled. */
-  toWorkingColorSpace: <TColor>(color: TColor): TColor => color,
-} as const;
+/** sRGB color space: hex, CSS, and Canvas2D output values. */
+export const SRGBColorSpace = "srgb" as const;
+
+/** Linear sRGB color space: the working space of `Color` and baked lighting. */
+export const LinearSRGBColorSpace = "srgb-linear" as const;
+
+/** No color space: values are used as stored, without conversion. */
+export const NoColorSpace = "" as const;
+
+/** Union of supported color space identifiers. */
+export type ColorSpace =
+  | typeof SRGBColorSpace
+  | typeof LinearSRGBColorSpace
+  | typeof NoColorSpace;

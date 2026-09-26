@@ -222,10 +222,28 @@
 	margin-block-start: clamp(2rem, 5vw, 3.5rem);
 }
 
-.examples-stage-figure {
+.examples-stage-pair {
+	display: grid;
 	grid-row: span 2;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+	min-inline-size: 0;
+}
+
+.examples-stage-figure {
 	min-inline-size: 0;
 	margin: 0;
+}
+
+.examples-stage-caption {
+	margin-block-end: 0.5rem;
+	color: var(--examples-muted);
+	font-size: 0.875rem;
+}
+
+.examples-differences {
+	margin: 0;
+	padding-inline-start: 1.25rem;
 }
 
 .examples-stage {
@@ -438,6 +456,12 @@
 	font-size: 0.9rem;
 }
 
+@media (max-width: 64rem) {
+	.examples-stage-pair {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
 @media (max-width: 48rem) {
 	.examples-filter {
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -451,7 +475,7 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 
-	.examples-stage-figure,
+	.examples-stage-pair,
 	.examples-runtime-status,
 	.examples-canvas-controls,
 	.examples-motion-controls,

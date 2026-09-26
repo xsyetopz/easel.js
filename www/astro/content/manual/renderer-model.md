@@ -35,14 +35,14 @@ pipeline abstraction.
 - Shadows, PBR, shader programs, WebGL, and WebGPU are outside this renderer's
   contract.
 
-<figure class="manual-render" data-manual-example="lighting-bench">
+<figure class="manual-render" data-manual-example="canvas_loader_vox">
   <div class="manual-render__stage">
-    <canvas width="16" height="9" role="img" aria-label="CPU-baked lighting rendered to Canvas2D.">
+    <canvas width="16" height="9" role="img" aria-label="Hemisphere and directional light baked per vertex on a voxel model.">
       This render needs a Canvas2D-capable browser.
     </canvas>
     <p data-manual-example-status role="status">Loading render…</p>
   </div>
-  <figcaption>CPU-baked lighting rendered to Canvas2D.</figcaption>
+  <figcaption>Hemisphere and directional light baked per vertex on a voxel model.</figcaption>
 </figure>
 
 ## Related API

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import * as THREE from "three";
 import "../_helpers/assertions.ts";
+import { LinearSRGBColorSpace, SRGBColorSpace } from "@/core/Constants.js";
 import {
   COLOR_HUE_SCALE,
   COLOR_RGB_SCALE,
@@ -149,7 +151,11 @@ describe("Color", () => {
   it("lerps in RGB and HSL spaces with normalized channels", () => {
     const red = new Color(0xff0000);
     const blue = new Color(0x0000ff);
-    expect(red.clone().lerp(blue, 0.5).hex).toBe(0x800080);
+    // Channels are linear, so an RGB lerp mixes linear light as in three.js.
+    expect(red.clone().lerp(blue, 0.5).hex).toBe(
+      new THREE.Color(0xff0000).lerp(new THREE.Color(0x0000ff), 0.5).getHex(),
+    );
+    expect(red.clone().lerp(blue, 0.5).hex).toBe(0xbc00bc);
     const hsl = red.clone().lerpHSL(blue, 0.5);
     expect(hsl.r).toBeGreaterThanOrEqual(0);
     expect(hsl.r).toBeLessThanOrEqual(1);
@@ -158,5 +164,63 @@ describe("Color", () => {
     expect(hsl.b).toBeGreaterThanOrEqual(0);
     expect(hsl.b).toBeLessThanOrEqual(1);
     expect(hsl.clone().offsetHSL(1, 0, 0).equals(hsl)).toBe(true);
+  });
+});
+
+describe("Color color management (three.js r186 oracle)", () => {
+  it("round-trips every 8-bit hex channel value through linear storage", () => {
+    for (let v = 0; v < 256; v++) {
+      const hex = (v << 16) | ((255 - v) << 8) | ((v * 37) & 0xff);
+      const color = new Color(hex);
+      const three = new THREE.Color(hex);
+      expect(color.r).toBe(three.r);
+      expect(color.g).toBe(three.g);
+      expect(color.b).toBe(three.b);
+      expect(color.hex).toBe(hex);
+      expect(color.hexString).toBe(three.getHexString());
+      expect(color.style).toBe(three.getStyle());
+    }
+  });
+
+  it("stores setRGB input linear by default and decodes sRGB input", () => {
+    const linear = new Color().setRGB(0.5, 0.25, 1);
+    const threeLinear = new THREE.Color().setRGB(0.5, 0.25, 1);
+    expect([linear.r, linear.g, linear.b]).toEqual([0.5, 0.25, 1]);
+    expect(linear.hex).toBe(threeLinear.getHex());
+
+    const srgb = new Color().setRGB(0.5, 0.25, 1, SRGBColorSpace);
+    const threeSrgb = new THREE.Color().setRGB(0.5, 0.25, 1, SRGBColorSpace);
+    expect(srgb.r).toBe(threeSrgb.r);
+    expect(srgb.g).toBe(threeSrgb.g);
+    expect(srgb.hex).toBe(threeSrgb.getHex());
+    expect(srgb.getRGB(undefined, SRGBColorSpace).g).toBeCloseTo(0.25, 4);
+  });
+
+  it("matches three.js for setHex, setStyle, setHSL, and getHSL color spaces", () => {
+    expect(new Color().setHex(0x336699, LinearSRGBColorSpace).r).toBe(
+      new THREE.Color().setHex(0x336699, LinearSRGBColorSpace).r,
+    );
+    expect(new Color(0x336699).getHex(LinearSRGBColorSpace)).toBe(
+      new THREE.Color(0x336699).getHex(LinearSRGBColorSpace),
+    );
+    for (const style of ["rgb(128,0,255)", "hsl(200,50%,40%)", "#abc"]) {
+      expect(new Color().setStyle(style).hex).toBe(
+        new THREE.Color().setStyle(style).getHex(),
+      );
+    }
+    expect(new Color().setHSL(0.3, 0.5, 0.4).hex).toBe(
+      new THREE.Color().setHSL(0.3, 0.5, 0.4).getHex(),
+    );
+    expect(new Color().setHSL(0.3, 0.5, 0.4, SRGBColorSpace).hex).toBe(
+      new THREE.Color().setHSL(0.3, 0.5, 0.4, SRGBColorSpace).getHex(),
+    );
+    const hsl = new Color(0x336699).getHSL(undefined, SRGBColorSpace);
+    const threeHsl = new THREE.Color(0x336699).getHSL(
+      { h: 0, s: 0, l: 0 },
+      SRGBColorSpace,
+    );
+    expect(hsl.h).toBeCloseTo(threeHsl.h, 12);
+    expect(hsl.s).toBeCloseTo(threeHsl.s, 12);
+    expect(hsl.l).toBeCloseTo(threeHsl.l, 12);
   });
 });

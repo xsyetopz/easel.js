@@ -1,6 +1,13 @@
-import { Wrapping, type Wrapping as WrappingMode } from "../core/Constants.ts";
+import {
+  LinearSRGBColorSpace,
+  NoColorSpace,
+  SRGBColorSpace,
+  Wrapping,
+  type Wrapping as WrappingMode,
+} from "../core/Constants.ts";
 import { EventDispatcher } from "../core/EventDispatcher.ts";
 import { Matrix3 } from "../math/Matrix3.ts";
+import { encodeSrgbPixels } from "../pipeline/color/SrgbEncode.ts";
 import { Vector2 } from "../math/Vector2.ts";
 import type { ImageDataLike, ImagePixelArray } from "../utils/ImageUtils.ts";
 import {
@@ -239,15 +246,36 @@ export class Texture extends EventDispatcher {
     this.#unpackAlignment = value;
   }
 
-  /** Texture bytes are sampled without an implicit color-space conversion. */
-  get colorSpace(): "" {
-    return DEFAULT_NO_COLOR_SPACE;
+  /**
+   * Color space of the texel values, as in three.js: `NoColorSpace` (default)
+   * and `LinearSRGBColorSpace` texels are linear, `SRGBColorSpace` texels are
+   * sRGB. The CPU cache stores sRGB texels, so linear texels are encoded once
+   * when the cache is built; changing the value marks the texture for update.
+   */
+  get colorSpace(): string {
+    return this.#colorSpace;
   }
 
-  /** Rejects color conversions that would require another CPU pass. */
+  /** Assigns a supported color space and marks the cache dirty on change. */
   set colorSpace(value: string) {
-    if (value !== DEFAULT_NO_COLOR_SPACE) {
-      throw new RangeError("Texture.colorSpace is fixed to no conversion.");
+    if (
+      value !== NoColorSpace &&
+      value !== SRGBColorSpace &&
+      value !== LinearSRGBColorSpace
+    ) {
+      throw new RangeError(
+        `Texture.colorSpace must be "", "srgb", or "srgb-linear"; got "${value}".`,
+      );
+    }
+    if (value === this.#colorSpace) return;
+    this.#colorSpace = value;
+    if (this.#constructed) this.needsUpdate = true;
+  }
+
+  /** Encodes cached linear texels to sRGB unless the texture is sRGB. */
+  protected encodeCachedTexels(data: ImageData | undefined): void {
+    if (data && this.#colorSpace !== SRGBColorSpace) {
+      encodeSrgbPixels(data.data);
     }
   }
 
@@ -291,6 +319,8 @@ export class Texture extends EventDispatcher {
   #data: ImageData | undefined = undefined;
   #brightnessLevels: Uint8ClampedArray[] | undefined = undefined;
   #needsUpdate: boolean = false;
+  #colorSpace: string = DEFAULT_NO_COLOR_SPACE;
+  #constructed = false;
 
   /** Constructs a CPU-sampled texture around an optional image or pixel source. */
   constructor(
@@ -316,6 +346,7 @@ export class Texture extends EventDispatcher {
     this.type = type;
     this.anisotropy = anisotropy;
     this.colorSpace = colorSpace;
+    this.#constructed = true;
   }
 
   /** Current source image or raw pixel payload. */
@@ -562,6 +593,7 @@ export class Texture extends EventDispatcher {
 
     if (isPixelSource(source)) {
       this.#data = clampPixelSource(source);
+      this.encodeCachedTexels(this.#data);
       return;
     }
 
@@ -591,6 +623,7 @@ export class Texture extends EventDispatcher {
     context.imageSmoothingEnabled = false;
     context.drawImage(source as CanvasImageSource, 0, 0, dw, dh);
     this.#data = context.getImageData(0, 0, dw, dh);
+    this.encodeCachedTexels(this.#data);
   }
 }
 

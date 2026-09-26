@@ -117,6 +117,24 @@ export function countVisiblePixels(canvas) {
   return count;
 }
 
+// Panoramas view an untextured sphere from inside until their image decodes
+// asynchronously, as in three.js, so their early frames are one opaque white
+// fill that countVisiblePixels cannot tell from a blank buffer.
+const UNIFORM_WHITE_EXAMPLES = new Set([
+  "canvas_panorama_equirectangular",
+  "canvas_video_panorama_equirectangular",
+]);
+
+/** Whether an example's canvas shows a drawn frame, not an empty buffer. */
+export function hasDrawnFrame(exampleId, canvas) {
+  if (UNIFORM_WHITE_EXAMPLES.has(exampleId)) {
+    return (
+      canvas.frame.length > 0 && canvas.frame.every((value) => value === 255)
+    );
+  }
+  return countVisiblePixels(canvas) > 0;
+}
+
 export function createAnimationScheduler() {
   const callbacks = new Map();
   let nextHandle = 1;

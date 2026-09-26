@@ -43,6 +43,27 @@ describe("TTFLoader", () => {
     expect(shapes[0]?.getPoints(12).length).toBeGreaterThan(3);
   });
 
+  it("advances over blank glyphs that omit their outline, like typeface JSON", () => {
+    const data = new TTFLoader().parse(fixtureBytes());
+    const { o: _outline, ...blank } = data.glyphs[" "] ?? {
+      ha: 0,
+      x_min: 0,
+      x_max: 0,
+    };
+    const font = new TTFFont({
+      ...data,
+      glyphs: { ...data.glyphs, " ": blank },
+    });
+
+    const withSpace = font.generateShapes("E E", 100);
+    const single = font.generateShapes("E", 100);
+
+    expect(withSpace).toHaveLength(2);
+    const firstX = single[0]?.getPoints(1)[0]?.x ?? Number.NaN;
+    const secondX = withSpace[1]?.getPoints(1)[0]?.x ?? Number.NaN;
+    expect(secondX).toBeGreaterThan(firstX);
+  });
+
   it("supports reversed winding and rejects unsupported or truncated data", () => {
     const loader = new TTFLoader();
     const normal = loader.parse(fixtureBytes());

@@ -107,7 +107,11 @@ export class Fog {
   readonly #lut = new Float32Array(FOG_LUT_SIZE);
   #lutNeedsUpdate: boolean = false;
 
-  /** Creates bounded fog and defers lookup-table rebuilding until `updateLut()`. */
+  /**
+   * Creates bounded fog with its lookup table already built, so it can be
+   * rendered immediately. Later parameter changes defer rebuilding until
+   * `updateLut()`.
+   */
   constructor(options: FogOptions = {}) {
     const mode = options.mode ?? FogMode.Linear;
     const near = options.near ?? (mode === FogMode.Linear ? DEFAULT_NEAR : 0);

@@ -22,9 +22,9 @@ export function createGroup(
     feedRates: [...feedRates],
     mode,
   });
-  const pathMaterial = new LineMaterial({ color: 0xff6b6b });
+  const pathMaterial = new LineMaterial({ color: 0xff0000 });
   pathMaterial.name = mode === "toolpath" ? "travel" : "path";
-  const extrudingMaterial = new LineMaterial({ color: 0x4ade80 });
+  const extrudingMaterial = new LineMaterial({ color: 0x00ff00 });
   extrudingMaterial.name = mode === "toolpath" ? "cut" : "extruded";
 
   if (splitLayer) {

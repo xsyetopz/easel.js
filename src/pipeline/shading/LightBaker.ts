@@ -1,17 +1,59 @@
 import { LightType, Shading } from "../../core/Constants.ts";
+import { encodeSrgb } from "../color/SrgbEncode.ts";
 import type { TriangleBuffer } from "../TriangleBuffer.ts";
 import { FlatShader } from "./FlatShader.ts";
 import { GouraudShader } from "./GouraudShader.ts";
 
+interface BakeColor {
+  r: number;
+  g: number;
+  b: number;
+}
+
 interface BakeDrawCall {
   triangles: TriangleBuffer;
-  material: { shading?: number; type?: string };
+  material: {
+    shading?: number;
+    type?: string;
+    color?: BakeColor;
+    emissive?: BakeColor;
+    emissiveIntensity?: number;
+  };
   worldPositions?: Float32Array;
   shadedColorData: Float32Array;
   shadedColorStride: number;
+  instanceColorR?: number;
+  instanceColorG?: number;
+  instanceColorB?: number;
 }
 
-/** Bakes scene lights into per-vertex or per-face colors. */
+/** Material types that three.js renders without lighting. */
+function isUnlitType(type: string | undefined): boolean {
+  return (
+    type === "BasicMaterial" ||
+    type === "PointsMaterial" ||
+    type === "SpriteMaterial"
+  );
+}
+
+/**
+ * Whether a draw call's material is lit and so renders black, as in three.js,
+ * when no light reaches it and its emissive color is black.
+ */
+export function isLitMaterialType(type: string | undefined): boolean {
+  return type === "LambertMaterial" || type === "ToonMaterial";
+}
+
+/**
+ * Bakes scene lights into per-vertex or per-face sRGB colors.
+ *
+ * Each baked value is the three.js Lambert output for that vertex or face:
+ * `encode(irradiance * diffuse + emissive)`, where the collected light
+ * intensities already include the `1 / π` of `BRDF_Lambert` and `diffuse` is
+ * the linear material color times the instance color. The sRGB encode is a
+ * table lookup per baked vertex, so the rasterizer interpolates and writes
+ * encoded values with the material color already applied.
+ */
 export class LightBaker {
   readonly #flatShader = new FlatShader();
   readonly #gouraudShader = new GouraudShader();
@@ -21,6 +63,13 @@ export class LightBaker {
 
   /** Bitmap tracking which vertex indices have been cached. */
   #shadeCachedBitmap = new Uint8Array(0);
+
+  #kr = 1;
+  #kg = 1;
+  #kb = 1;
+  #er = 0;
+  #eg = 0;
+  #eb = 0;
 
   #ensureCache(size: number): Float32Array {
     if (this.#shadeCache.length < size) {
@@ -38,17 +87,36 @@ export class LightBaker {
 
   /**
    * Bakes lighting onto a draw call's faces or vertices.
-   * Writes shaded RGB into drawCall.shadedColorData (flat Float32Array).
+   * Writes sRGB-encoded RGB in [0, 1] into drawCall.shadedColorData.
    * Stride is 3 for flat shading (r,g,b per face) or 9 for gouraud (r,g,b x 3 vertices).
+   * Lit materials without lights or emissive light leave the stride at 0;
+   * the rasterizer renders them black.
    */
   bake(drawCall: BakeDrawCall, lights: Record<string, unknown>[]): void {
     drawCall.shadedColorStride = 0;
-    if (lights.length === 0) return;
-    const matType = drawCall.material.type;
-    if (matType === "BasicMaterial" || matType === "PointsMaterial") return;
+    const material = drawCall.material;
+    if (isUnlitType(material.type)) return;
+
+    const emissive = material.emissive;
+    const emissiveIntensity = material.emissiveIntensity ?? 1;
+    this.#er = emissive ? emissive.r * emissiveIntensity : 0;
+    this.#eg = emissive ? emissive.g * emissiveIntensity : 0;
+    this.#eb = emissive ? emissive.b * emissiveIntensity : 0;
+    if (
+      lights.length === 0 &&
+      this.#er === 0 &&
+      this.#eg === 0 &&
+      this.#eb === 0
+    ) {
+      return;
+    }
+    const color = material.color;
+    this.#kr = (color ? color.r : 1) * (drawCall.instanceColorR ?? 1);
+    this.#kg = (color ? color.g : 1) * (drawCall.instanceColorG ?? 1);
+    this.#kb = (color ? color.b : 1) * (drawCall.instanceColorB ?? 1);
 
     const tb = drawCall.triangles;
-    const isFlat = drawCall.material.shading === Shading.Flat;
+    const isFlat = material.shading === Shading.Flat;
     const stride = isFlat ? 3 : 9;
     const needed = tb.length * stride;
 
@@ -76,6 +144,13 @@ export class LightBaker {
     return false;
   }
 
+  /** Applies the material, adds emissive light, and encodes to sRGB. */
+  #store(data: Float32Array, at: number, light: BakeColor): void {
+    data[at] = encodeSrgb(light.r * this.#kr + this.#er);
+    data[at + 1] = encodeSrgb(light.g * this.#kg + this.#eg);
+    data[at + 2] = encodeSrgb(light.b * this.#kb + this.#eb);
+  }
+
   #bakeFlat(
     tb: TriangleBuffer,
     drawCall: BakeDrawCall,
@@ -89,7 +164,6 @@ export class LightBaker {
     if (needsWorldPos && wp !== undefined && wp.length > 0) {
       for (let i = 0; i < tb.length; i++) {
         const physIdx = useSortOrder ? sortOrder[i] : i;
-        const base = i * 3;
         const v = physIdx * 3;
         const vi0 = tb.vertexIndex[v];
         const vi1 = tb.vertexIndex[v + 1];
@@ -107,31 +181,24 @@ export class LightBaker {
           tb.faceNormalY[physIdx],
           tb.faceNormalZ[physIdx],
           lights,
-          0.1,
           fcwx,
           fcwy,
           fcwz,
         );
-        data[base] = s.r;
-        data[base + 1] = s.g;
-        data[base + 2] = s.b;
+        this.#store(data, i * 3, s);
       }
       return;
     }
 
     for (let i = 0; i < tb.length; i++) {
       const physIdx = useSortOrder ? sortOrder[i] : i;
-      const base = i * 3;
       const s = this.#flatShader.shade(
         tb.faceNormalX[physIdx],
         tb.faceNormalY[physIdx],
         tb.faceNormalZ[physIdx],
         lights,
-        0.1,
       );
-      data[base] = s.r;
-      data[base + 1] = s.g;
-      data[base + 2] = s.b;
+      this.#store(data, i * 3, s);
     }
   }
 
@@ -172,14 +239,11 @@ export class LightBaker {
               tb.vertNormalY[v + k],
               tb.vertNormalZ[v + k],
               lights,
-              0.1,
               wp[wb],
               wp[wb + 1],
               wp[wb + 2],
             );
-            cache[cb] = s.r;
-            cache[cb + 1] = s.g;
-            cache[cb + 2] = s.b;
+            this.#store(cache, cb, s);
             cached[vi] = 1;
           }
 
@@ -206,11 +270,8 @@ export class LightBaker {
             tb.vertNormalY[v + k],
             tb.vertNormalZ[v + k],
             lights,
-            0.1,
           );
-          cache[cb] = s.r;
-          cache[cb + 1] = s.g;
-          cache[cb + 2] = s.b;
+          this.#store(cache, cb, s);
           cached[vi] = 1;
         }
 

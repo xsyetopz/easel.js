@@ -3,6 +3,11 @@ import { Node } from "../core/Node.ts";
 import type { Material } from "../materials/Material.ts";
 import { Vector2 } from "../math/Vector2.ts";
 import { Vector3 } from "../math/Vector3.ts";
+import {
+  type SpriteQuadFrame,
+  spriteRotation,
+  writeSpriteQuadFrame,
+} from "./_SpriteQuad.ts";
 
 const _spriteCenter = new Vector3();
 const _spriteRelative = new Vector3();
@@ -10,6 +15,14 @@ const _spriteNormal = new Vector3();
 const _spriteRight = new Vector3();
 const _spriteUp = new Vector3();
 const _spriteIntersection = new Vector3();
+const _spriteFrame: SpriteQuadFrame = {
+  rightX: 0,
+  rightY: 0,
+  rightZ: 0,
+  upX: 0,
+  upY: 0,
+  upZ: 0,
+};
 
 /** Camera-facing quad rasterized with a texture-bearing material. */
 export class Sprite extends Node {
@@ -36,21 +49,36 @@ export class Sprite extends Node {
     this.material = material;
   }
 
-  /** Appends an intersection when the prepared ray crosses the sprite quad. */
+  /** Appends an intersection when the prepared ray crosses the camera-facing quad, including `SpriteMaterial.rotation`. */
   raycast(raycaster: Raycaster, intersects: Intersection[]): void {
     const camera = raycaster.camera;
     if (camera === undefined) return;
 
     const world = this.matrixWorld.elements;
     _spriteCenter.set(world[12] ?? 0, world[13] ?? 0, world[14] ?? 0);
-    _spriteRight.set(world[0] ?? 0, world[1] ?? 0, world[2] ?? 0);
-    _spriteUp.set(world[4] ?? 0, world[5] ?? 0, world[6] ?? 0);
-    const scaleX = _spriteRight.length || 1;
-    const scaleY = _spriteUp.length || 1;
-    _spriteRight.multiplyScalar(1 / scaleX);
-    _spriteUp.multiplyScalar(1 / scaleY);
 
     const cameraWorld = camera.matrixWorld.elements;
+    _spriteRight
+      .set(cameraWorld[0] ?? 1, cameraWorld[1] ?? 0, cameraWorld[2] ?? 0)
+      .normalize();
+    _spriteUp
+      .set(cameraWorld[4] ?? 0, cameraWorld[5] ?? 1, cameraWorld[6] ?? 0)
+      .normalize();
+    const frame = writeSpriteQuadFrame(
+      _spriteFrame,
+      world,
+      _spriteRight,
+      _spriteUp,
+      spriteRotation(this.material),
+    );
+    const scaleXSq =
+      frame.rightX * frame.rightX +
+      frame.rightY * frame.rightY +
+      frame.rightZ * frame.rightZ;
+    const scaleYSq =
+      frame.upX * frame.upX + frame.upY * frame.upY + frame.upZ * frame.upZ;
+    if (scaleXSq === 0 || scaleYSq === 0) return;
+
     _spriteNormal.set(
       -(cameraWorld[8] ?? 0),
       -(cameraWorld[9] ?? 0),
@@ -71,8 +99,16 @@ export class Sprite extends Node {
     if (distance < raycaster.near || distance > raycaster.far) return;
 
     _spriteRelative.copy(_spriteIntersection).sub(_spriteCenter);
-    const localX = _spriteRelative.dot(_spriteRight) / scaleX;
-    const localY = _spriteRelative.dot(_spriteUp) / scaleY;
+    const localX =
+      (_spriteRelative.x * frame.rightX +
+        _spriteRelative.y * frame.rightY +
+        _spriteRelative.z * frame.rightZ) /
+      scaleXSq;
+    const localY =
+      (_spriteRelative.x * frame.upX +
+        _spriteRelative.y * frame.upY +
+        _spriteRelative.z * frame.upZ) /
+      scaleYSq;
     const minX = -this.center.x;
     const maxX = 1 - this.center.x;
     const minY = -this.center.y;

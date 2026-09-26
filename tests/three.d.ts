@@ -177,10 +177,41 @@ declare module "three" {
   export class Object3D {
     position: Vector3;
     quaternion: Quaternion;
+    scale: Vector3;
+    visible: boolean;
+    children: Object3D[];
+    add(...objects: Object3D[]): this;
+    updateMatrixWorld(force?: boolean): void;
     rotateX(angle: number): this;
     rotateY(angle: number): this;
     translateY(distance: number): this;
     translateZ(distance: number): this;
+  }
+  export class Mesh extends Object3D {
+    constructor(geometry?: BufferGeometry, material?: unknown);
+    geometry: BufferGeometry;
+  }
+  export class BoxHelper extends Object3D {
+    constructor(object?: Object3D, color?: number);
+    geometry: BufferGeometry;
+    update(): void;
+  }
+  export class LOD extends Object3D {
+    autoUpdate: boolean;
+    levels: { object: Object3D; distance: number; hysteresis: number }[];
+    addLevel(object: Object3D, distance?: number, hysteresis?: number): this;
+    getCurrentLevel(): number;
+    update(camera: Object3D): void;
+  }
+  export class PerspectiveCamera extends Object3D {
+    constructor(fov?: number, aspect?: number, near?: number, far?: number);
+  }
+  export class Raycaster {
+    constructor(origin?: Vector3, direction?: Vector3);
+    intersectObject(
+      object: Object3D,
+      recursive?: boolean,
+    ): { distance: number; object: Object3D }[];
   }
   export class Box2 {
     min: Vector2;
@@ -528,5 +559,28 @@ declare module "three" {
     getElapsed(): number;
     getTimescale(): number;
     setTimescale(value: number): this;
+  }
+  export const SRGBColorSpace: "srgb";
+  export const LinearSRGBColorSpace: "srgb-linear";
+  export const ColorManagement: { workingColorSpace: string };
+  export class Color {
+    r: number;
+    g: number;
+    b: number;
+    constructor(value?: number | string);
+    setRGB(r: number, g: number, b: number, colorSpace?: string): this;
+    setHex(hex: number, colorSpace?: string): this;
+    setHSL(h: number, s: number, l: number, colorSpace?: string): this;
+    setStyle(style: string, colorSpace?: string): this;
+    setColorName(name: string, colorSpace?: string): this;
+    getHex(colorSpace?: string): number;
+    getHexString(colorSpace?: string): string;
+    getStyle(colorSpace?: string): string;
+    getRGB(target: Color, colorSpace?: string): Color;
+    getHSL(
+      target: { h: number; s: number; l: number },
+      colorSpace?: string,
+    ): { h: number; s: number; l: number };
+    lerp(color: Color, alpha: number): this;
   }
 }

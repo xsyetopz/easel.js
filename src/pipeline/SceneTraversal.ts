@@ -15,6 +15,11 @@ import {
   buildDrawCall,
 } from "./_SceneMeshAssembly.ts";
 import {
+  type SpriteNode,
+  buildSpriteDrawCall,
+  isSpriteFrustumCulled,
+} from "./_SceneSpriteAssembly.ts";
+import {
   type CameraLike,
   type GeometryLike,
   type SceneLike,
@@ -198,7 +203,9 @@ export class SceneTraversal {
   #visitNode(node: SceneNode, context: TraversalContext): boolean {
     const isLine =
       node instanceof Line && node.material instanceof LineMaterial;
-    if (
+    if (node.type === "Sprite" && node.material) {
+      this.#visitSprite(node as SpriteNode, context);
+    } else if (
       node.geometry &&
       node.material &&
       this.#isRenderableType(node.type, isLine)
@@ -255,6 +262,28 @@ export class SceneTraversal {
           context.profiler,
         );
     context.drawList.add(drawCall);
+  }
+
+  #visitSprite(node: SpriteNode, context: TraversalContext): void {
+    if (
+      isSpriteFrustumCulled(
+        node,
+        context.frustum,
+        this.#sphereScratch,
+        this.#bounds,
+      )
+    )
+      return;
+    if (this.#isBeyondFog(context.camera)) return;
+    context.drawList.add(
+      buildSpriteDrawCall(
+        this.#meshState(),
+        node,
+        context.camera,
+        context.width,
+        context.height,
+      ),
+    );
   }
 
   #isBeyondFog(camera: CameraLike): boolean {

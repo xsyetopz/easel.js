@@ -40,14 +40,14 @@ Keep `delta` in seconds and call `stopAll()` before releasing an animator. Use
 `setTime()` when a UI needs deterministic timeline control. Under
 `prefers-reduced-motion`, offer a paused or single-frame path in the host UI.
 
-<figure class="manual-render" data-manual-example="keyframe-timeline">
+<figure class="manual-render" data-manual-example="canvas_morphtargets_sphere">
   <div class="manual-render__stage">
-    <canvas width="16" height="9" role="img" aria-label="Position and rotation tracks rendered on a shared timeline.">
+    <canvas width="16" height="9" role="img" aria-label="A glTF sphere animated by rotation and a morph target.">
       This render needs a Canvas2D-capable browser.
     </canvas>
     <p data-manual-example-status role="status">Loading render…</p>
   </div>
-  <figcaption>Position and rotation tracks rendered on a shared timeline.</figcaption>
+  <figcaption>A glTF sphere animated by rotation and a morph target.</figcaption>
 </figure>
 
 ## Related API

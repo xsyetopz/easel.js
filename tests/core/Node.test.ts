@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Object3D } from "three";
-import { Node } from "../../src/core/Node.ts";
+import { DEFAULT_UP, Node } from "../../src/core/Node.ts";
 import { Matrix4 } from "../../src/math/Matrix4.ts";
 import { Quaternion } from "../../src/math/Quaternion.ts";
 import { Vector3 } from "../../src/math/Vector3.ts";
@@ -8,6 +8,30 @@ import { Vector3 } from "../../src/math/Vector3.ts";
 const SELF_KEY = "self";
 
 describe("Node", () => {
+  it("copies DEFAULT_UP into new nodes", () => {
+    try {
+      DEFAULT_UP.set(0, 0, 1);
+      const node = new Node();
+      expect(node.up.toArray()).toEqual([0, 0, 1]);
+      node.up.set(1, 0, 0);
+      expect(DEFAULT_UP.toArray()).toEqual([0, 0, 1]);
+    } finally {
+      DEFAULT_UP.set(0, 1, 0);
+    }
+  });
+
+  it("keeps rotation in sync when the quaternion changes in place", () => {
+    const node = new Node();
+    node.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2);
+    expect(node.rotation.x).toBeCloseTo(Math.PI / 2, 10);
+
+    // Euler (pi/2, 0, 0.1) in XYZ order, as three.js computes it.
+    node.rotation.z = 0.1;
+    const expected = Math.SQRT1_2 * Math.cos(0.05);
+    expect(node.quaternion.x).toBeCloseTo(expected, 10);
+    expect(node.quaternion.w).toBeCloseTo(expected, 10);
+  });
+
   class TestNode extends Node {
     updateCalls = 0;
 

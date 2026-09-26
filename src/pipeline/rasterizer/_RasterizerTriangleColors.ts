@@ -1,3 +1,4 @@
+import { encodeSrgb } from "../color/SrgbEncode.ts";
 import type { TriangleBuffer } from "../TriangleBuffer.ts";
 import type { RasterizerState, TextureData } from "./_RasterizerTypes.ts";
 
@@ -7,7 +8,7 @@ export interface VertexColors {
   hasVertexColor: boolean;
   /** Whether the three vertices do not share one uniform RGB color. */
   mixedVertexColor: boolean;
-  /** Clamped RGB values for vertices 0, 1, and 2 in that order. */
+  /** sRGB-encoded RGB values for vertices 0, 1, and 2 in that order. */
   values: [
     number,
     number,
@@ -37,16 +38,20 @@ export interface BaseColors {
   flatB: number;
 }
 
-interface BaseColorOptions {
+/** Draw-call inputs read while configuring a triangle's base colors. */
+export interface BaseColorInputs {
+  /** Mutable state whose texture tint fields are reset for the triangle. */
   state: RasterizerState;
-  colors: VertexColors;
+  /** Baked lighting colors, or undefined when the triangle is unlit. */
   shadedColorData: Float32Array | undefined;
-  base: number;
+  /** Base material and instance red channel in the 0–255 range. */
   baseR: number;
+  /** Base material and instance green channel in the 0–255 range. */
   baseG: number;
+  /** Base material and instance blue channel in the 0–255 range. */
   baseB: number;
+  /** Sampled texture data, which enables the uniform texture tint. */
   texture: TextureData | undefined;
-  isFlat: boolean;
 }
 
 const DEFAULT_VERTEX_COLORS: VertexColors = {
@@ -55,18 +60,27 @@ const DEFAULT_VERTEX_COLORS: VertexColors = {
   values: [1, 1, 1, 1, 1, 1, 1, 1, 1],
 };
 
-function clampVertexColor(value: number): number {
-  return value < 0 ? 0 : Math.min(value, 1);
+/** Creates reusable vertex-color storage for {@link resolveVertexColors}. */
+export function createVertexColors(): VertexColors {
+  return {
+    hasVertexColor: false,
+    mixedVertexColor: false,
+    values: [1, 1, 1, 1, 1, 1, 1, 1, 1],
+  };
 }
 
 /**
- * Reads and clamps the three RGB vertex colors for one triangle.
- * Returns neutral colors when the attribute data is unavailable or invalid.
+ * Reads the three linear RGB vertex colors for one triangle and writes their
+ * clamped sRGB encodings into `out`, so they multiply sRGB material, light,
+ * and texel values.
+ * Returns shared neutral colors when the attribute data is unavailable or
+ * invalid, so the result must be read before the next call reuses `out`.
  */
 export function resolveVertexColors(
   state: RasterizerState,
   tb: TriangleBuffer,
   vertexOffset: number,
+  out: VertexColors,
 ): VertexColors {
   const vertexColors = state.vertexColorData;
   if (!vertexColors || state.vertexColorItemSize !== 3) {
@@ -87,89 +101,40 @@ export function resolveVertexColors(
     return DEFAULT_VERTEX_COLORS;
   }
 
-  const values: VertexColors["values"] = [
-    clampVertexColor(vertexColors[c0]),
-    clampVertexColor(vertexColors[c0 + 1]),
-    clampVertexColor(vertexColors[c0 + 2]),
-    clampVertexColor(vertexColors[c1]),
-    clampVertexColor(vertexColors[c1 + 1]),
-    clampVertexColor(vertexColors[c1 + 2]),
-    clampVertexColor(vertexColors[c2]),
-    clampVertexColor(vertexColors[c2 + 1]),
-    clampVertexColor(vertexColors[c2 + 2]),
-  ];
-  const mixedVertexColor =
+  const values = out.values;
+  values[0] = encodeSrgb(vertexColors[c0]);
+  values[1] = encodeSrgb(vertexColors[c0 + 1]);
+  values[2] = encodeSrgb(vertexColors[c0 + 2]);
+  values[3] = encodeSrgb(vertexColors[c1]);
+  values[4] = encodeSrgb(vertexColors[c1 + 1]);
+  values[5] = encodeSrgb(vertexColors[c1 + 2]);
+  values[6] = encodeSrgb(vertexColors[c2]);
+  values[7] = encodeSrgb(vertexColors[c2 + 1]);
+  values[8] = encodeSrgb(vertexColors[c2 + 2]);
+  out.hasVertexColor = true;
+  out.mixedVertexColor =
     values[0] !== values[3] ||
     values[1] !== values[4] ||
     values[2] !== values[5] ||
     values[0] !== values[6] ||
     values[1] !== values[7] ||
     values[2] !== values[8];
-  return { hasVertexColor: true, mixedVertexColor, values };
-}
-
-function applyUniformVertexColor(options: {
-  state: RasterizerState;
-  colors: VertexColors;
-  texture: TextureData | undefined;
-  baseR: number;
-  baseG: number;
-  baseB: number;
-}): [number, number, number] {
-  const { state, colors, texture, baseR, baseG, baseB } = options;
-  if (!(colors.hasVertexColor && !colors.mixedVertexColor)) {
-    return [baseR, baseG, baseB];
-  }
-  const effectiveR = Math.round(baseR * colors.values[0]);
-  const effectiveG = Math.round(baseG * colors.values[1]);
-  const effectiveB = Math.round(baseB * colors.values[2]);
-  if (texture) {
-    state.hasTextureColorTint = true;
-    state.textureColorR = effectiveR / 255;
-    state.textureColorG = effectiveG / 255;
-    state.textureColorB = effectiveB / 255;
-  }
-  return [effectiveR, effectiveG, effectiveB];
-}
-
-function applyMixedVertexColor(options: {
-  colors: VertexColors;
-  baseR: number;
-  baseG: number;
-  baseB: number;
-  effective: [number, number, number];
-}): [number, number, number] {
-  const { colors, baseR, baseG, baseB, effective } = options;
-  if (!(colors.hasVertexColor && colors.mixedVertexColor)) return effective;
-  return [
-    Math.round(
-      (baseR * (colors.values[0] + colors.values[3] + colors.values[6])) / 3,
-    ),
-    Math.round(
-      (baseG * (colors.values[1] + colors.values[4] + colors.values[7])) / 3,
-    ),
-    Math.round(
-      (baseB * (colors.values[2] + colors.values[5] + colors.values[8])) / 3,
-    ),
-  ];
+  return out;
 }
 
 /**
- * Applies vertex colors and optional baked flat lighting to material RGB values.
+ * Applies vertex colors and optional baked flat lighting to material RGB
+ * values, writing the results into `out`.
  * Also resets the texture tint state used by subsequent scanline fills.
  */
-export function configureBaseColors(options: BaseColorOptions): BaseColors {
-  const {
-    state,
-    colors,
-    shadedColorData,
-    base,
-    baseR,
-    baseG,
-    baseB,
-    texture,
-    isFlat,
-  } = options;
+export function configureBaseColors(
+  inputs: BaseColorInputs,
+  colors: VertexColors,
+  base: number,
+  isFlat: boolean,
+  out: BaseColors,
+): void {
+  const { state, shadedColorData, baseR, baseG, baseB, texture } = inputs;
   state.vertexTintData = undefined;
   state.hasTextureColorTint = false;
   state.hasCombinedTextureTint = false;
@@ -179,25 +144,42 @@ export function configureBaseColors(options: BaseColorOptions): BaseColors {
   state.textureMaterialR = baseR / 255;
   state.textureMaterialG = baseG / 255;
   state.textureMaterialB = baseB / 255;
-  const [effectiveR, effectiveG, effectiveB] = applyUniformVertexColor({
-    state,
-    colors,
-    texture,
-    baseR,
-    baseG,
-    baseB,
-  });
-  let [flatR, flatG, flatB] = applyMixedVertexColor({
-    colors,
-    baseR,
-    baseG,
-    baseB,
-    effective: [effectiveR, effectiveG, effectiveB],
-  });
+  let effectiveR = baseR;
+  let effectiveG = baseG;
+  let effectiveB = baseB;
+  let flatR = baseR;
+  let flatG = baseG;
+  let flatB = baseB;
+  if (colors.hasVertexColor) {
+    const values = colors.values;
+    if (colors.mixedVertexColor) {
+      flatR = Math.round((baseR * (values[0] + values[3] + values[6])) / 3);
+      flatG = Math.round((baseG * (values[1] + values[4] + values[7])) / 3);
+      flatB = Math.round((baseB * (values[2] + values[5] + values[8])) / 3);
+    } else {
+      effectiveR = Math.round(baseR * values[0]);
+      effectiveG = Math.round(baseG * values[1]);
+      effectiveB = Math.round(baseB * values[2]);
+      flatR = effectiveR;
+      flatG = effectiveG;
+      flatB = effectiveB;
+      if (texture) {
+        state.hasTextureColorTint = true;
+        state.textureColorR = effectiveR / 255;
+        state.textureColorG = effectiveG / 255;
+        state.textureColorB = effectiveB / 255;
+      }
+    }
+  }
   if (isFlat && shadedColorData) {
     flatR = Math.round(effectiveR * shadedColorData[base]);
     flatG = Math.round(effectiveG * shadedColorData[base + 1]);
     flatB = Math.round(effectiveB * shadedColorData[base + 2]);
   }
-  return { effectiveR, effectiveG, effectiveB, flatR, flatG, flatB };
+  out.effectiveR = effectiveR;
+  out.effectiveG = effectiveG;
+  out.effectiveB = effectiveB;
+  out.flatR = flatR;
+  out.flatG = flatG;
+  out.flatB = flatB;
 }

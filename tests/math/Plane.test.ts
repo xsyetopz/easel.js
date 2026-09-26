@@ -147,3 +147,37 @@ describe("Plane", () => {
     expect(a.equals(b)).toBe(true);
   });
 });
+
+describe("Plane factories parity with three.js r186", () => {
+  type THREEPlaneWithPoints = TPlane & {
+    setFromCoplanarPoints(a: TVector3, b: TVector3, c: TVector3): TPlane;
+  };
+
+  it("setFromNormalAndCoplanarPoint keeps a non-unit normal as given", () => {
+    const normal = new Vector3(0, 3, 4);
+    const point = new Vector3(1, 2, 3);
+    const e = new Plane().setFromNormalAndCoplanarPoint(normal, point);
+    const t = new TPlane().setFromNormalAndCoplanarPoint(
+      new TVector3(0, 3, 4),
+      new TVector3(1, 2, 3),
+    );
+    expect(e.normal.toArray()).toEqual([t.normal.x, t.normal.y, t.normal.z]);
+    expect(e.constant).toBe(t.constant);
+    expect(normal.toArray()).toEqual([0, 3, 4]);
+    expect(point.toArray()).toEqual([1, 2, 3]);
+  });
+
+  it("setFromCoplanarPoints matches three.js exactly", () => {
+    const a = new Vector3(1.25, -0.5, 2);
+    const b = new Vector3(-3, 0.75, 0.5);
+    const c = new Vector3(0.1, 4, -2.2);
+    const e = new Plane().setFromCoplanarPoints(a, b, c);
+    const t = (new TPlane() as THREEPlaneWithPoints).setFromCoplanarPoints(
+      new TVector3(1.25, -0.5, 2),
+      new TVector3(-3, 0.75, 0.5),
+      new TVector3(0.1, 4, -2.2),
+    );
+    expect(e.normal.toArray()).toEqual([t.normal.x, t.normal.y, t.normal.z]);
+    expect(e.constant).toBe(t.constant);
+  });
+});

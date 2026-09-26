@@ -5,7 +5,11 @@ import type {
   ExampleControl,
   ExampleRouteData,
 } from "../loaders/examples.ts";
-import { highlightSourceExcerpt } from "../loaders/examples.ts";
+import {
+  highlightSourceExcerpt,
+  THREE_EXAMPLES_REVISION,
+  threeExampleSourceUrl,
+} from "../loaders/examples.ts";
 import { sitePath } from "../utils/site-path.ts";
 
 interface Props {
@@ -52,26 +56,50 @@ const isAnimated = example.meta.animated;
     <h1>{example.meta.name}</h1>
     <h2>What this shows</h2>
     <p>{example.meta.description}</p>
+    <p>
+      Side by side with the three.js {THREE_EXAMPLES_REVISION} original:{" "}
+      <a href={threeExampleSourceUrl(example.meta.upstream)}>{example.meta.upstream}.html</a>
+    </p>
+    {
+      example.meta.differences.length > 0 && (
+        <>
+          <h2>Differences from three.js</h2>
+          <ul class="examples-differences">
+            {example.meta.differences.map((difference) => <li>{difference}</li>)}
+          </ul>
+        </>
+      )
+    }
   </header>
 
   <div class="examples-stage-layout">
-    <figure class="examples-stage-figure">
-      <div class="examples-stage" data-example-stage>
-        <canvas
-          data-example-canvas
-          width="16"
-          height="9"
-          role="img"
-          aria-label={`${example.meta.name} rendered frame`}
-          aria-describedby={statusId}
-        >
-          This example needs a Canvas2D-capable browser.
-        </canvas>
-        <p class="examples-stage-message" data-example-stage-message>
-          Loading scene…
-        </p>
-      </div>
-    </figure>
+    <div class="examples-stage-pair">
+      {
+        [
+          ["easel", "EASEL (Canvas2D)"],
+          ["three", `three.js ${THREE_EXAMPLES_REVISION} (WebGL)`],
+        ].map(([kind, caption]) => (
+          <figure class="examples-stage-figure" data-example-side={kind}>
+            <figcaption class="examples-stage-caption">{caption}</figcaption>
+            <div class="examples-stage" data-example-stage>
+              <canvas
+                data-example-canvas
+                width="16"
+                height="9"
+                role="img"
+                aria-label={`${example.meta.name}: ${caption} frame`}
+                aria-describedby={statusId}
+              >
+                This example needs a canvas-capable browser.
+              </canvas>
+              <p class="examples-stage-message" data-example-stage-message>
+                Loading scene…
+              </p>
+            </div>
+          </figure>
+        ))
+      }
+    </div>
 
     <div
       class="examples-runtime-status"
@@ -246,21 +274,18 @@ const isAnimated = example.meta.animated;
 
 <script>
   import { examples } from "../examples/registry.ts";
-  import { mountExampleRuntime } from "../runtime/example-viewport.ts";
-  import type { ExampleParams } from "../loaders/examples.ts";
+  import {
+    mountExampleRuntime,
+    type ExampleContextType,
+    type ExampleRuntimeController,
+  } from "../runtime/example-viewport.ts";
+  import type { ExampleModule, ExampleParams } from "../loaders/examples.ts";
 
   const root = document.querySelector<HTMLElement>("[data-example-viewer]");
   if (root) {
     const id = root.dataset.exampleViewer;
     const entry = examples.find((candidate) => candidate.meta.id === id);
-    const canvas = root.querySelector<HTMLCanvasElement>("[data-example-canvas]");
-    const stage = root.querySelector<HTMLElement>("[data-example-stage]");
-    const message = root.querySelector<HTMLElement>(
-      "[data-example-stage-message]",
-    );
-    const statusRegion = root.querySelector<HTMLElement>(
-      "[data-example-status]",
-    );
+    const statusRegion = root.querySelector<HTMLElement>("[data-example-status]");
     const status = root.querySelector<HTMLElement>(
       "[data-example-status-message]",
     );
@@ -285,142 +310,138 @@ const isAnimated = example.meta.animated;
       params = {};
     }
 
-    if (!entry || !canvas) {
-      if (status) status.textContent = "This scene could not start.";
+    const unsupportedText: Record<ExampleContextType, string> = {
+      "2d": "Canvas2D is unavailable in this browser.",
+      webgl2: "WebGL 2 is unavailable, so the three.js original cannot run.",
+    };
+    const failures = new Set<string>();
+    const reportFailure = (side: string, text: string): void => {
+      failures.add(side);
+      if (statusRegion) statusRegion.hidden = false;
+      if (status) status.textContent = text;
       if (sourceLink) sourceLink.hidden = false;
-    } else {
-      void entry
-        .load()
-        .then((module) => {
-          const controller = mountExampleRuntime({
+    };
+
+    const mountSide = (
+      side: "easel" | "three",
+      contextType: ExampleContextType,
+      load: () => Promise<Pick<ExampleModule, "setup">>,
+    ): Promise<ExampleRuntimeController | undefined> => {
+      const figure = root.querySelector<HTMLElement>(
+        `[data-example-side="${side}"]`,
+      );
+      const canvas = figure?.querySelector<HTMLCanvasElement>(
+        "[data-example-canvas]",
+      );
+      const stage = figure?.querySelector<HTMLElement>("[data-example-stage]");
+      const message = figure?.querySelector<HTMLElement>(
+        "[data-example-stage-message]",
+      );
+      const show = (text: string): void => {
+        if (!message) return;
+        message.hidden = false;
+        message.textContent = text;
+      };
+      if (!canvas) return Promise.resolve(undefined);
+      return load()
+        .then((module) =>
+          mountExampleRuntime({
             canvas,
             container: stage,
+            contextType,
             module,
-            params,
+            params: { ...params },
             onState(state, error) {
-              if (state === "loading") {
-                if (statusRegion) statusRegion.hidden = false;
-                if (status) status.textContent = "Loading scene…";
-                if (message) {
-                  message.hidden = false;
-                  message.textContent = "Loading scene…";
-                }
-                return;
-              }
-              if (state === "unsupported") {
-                if (statusRegion) statusRegion.hidden = false;
-                if (motionControls) motionControls.hidden = true;
-                if (status)
-                  status.textContent = "Canvas2D is unavailable in this browser.";
-                if (message) {
-                  message.hidden = false;
-                  message.textContent =
-                    "Canvas2D is unavailable in this browser.";
-                }
-                if (sourceLink) sourceLink.hidden = false;
-                return;
-              }
+              if (state === "loading") return show("Loading scene…");
+              if (state === "unsupported") return show(unsupportedText[contextType]);
               if (state === "error") {
-                if (statusRegion) statusRegion.hidden = false;
-                if (motionControls) motionControls.hidden = true;
-                if (status)
-                  status.textContent =
-                    "This example failed to load.";
-                if (message) {
-                  message.hidden = false;
-                  message.textContent =
-                    "This example failed to load.";
-                }
-                if (sourceLink) sourceLink.hidden = false;
-                if (error) console.error(`Example ${id ?? "unknown"} failed`, error);
+                show("This example failed to load.");
+                reportFailure(side, "This example failed to load.");
+                if (error) console.error(`Example ${id ?? "unknown"} (${side}) failed`, error);
                 return;
               }
-              if (status) status.textContent = "";
-              if (statusRegion) statusRegion.hidden = true;
               if (message) message.hidden = true;
-              if (sourceLink) sourceLink.hidden = true;
+              if (failures.size === 0 && statusRegion) statusRegion.hidden = true;
               if (motionControls) motionControls.hidden = false;
             },
-          });
-
-          const reducedMotionQuery =
-            typeof globalThis.matchMedia === "function"
-              ? globalThis.matchMedia("(prefers-reduced-motion: reduce)")
-              : undefined;
-          let motionPaused = controller.paused;
-          const setMotionState = (paused: boolean): void => {
-            motionPaused = paused;
-            if (!motionToggle) return;
-            motionToggle.setAttribute("aria-pressed", String(paused));
-            motionToggle.textContent = paused
-              ? "Play animation"
-              : "Pause animation";
-          };
-          setMotionState(motionPaused);
-          const onMotionToggle = (): void => {
-            if (motionPaused) {
-              controller.resume();
-              setMotionState(false);
-            } else {
-              controller.pause();
-              setMotionState(true);
-            }
-          };
-          motionToggle?.addEventListener("click", onMotionToggle);
-          const onReducedMotionChange = (): void => {
-            setMotionState(controller.paused);
-          };
-          reducedMotionQuery?.addEventListener?.(
-            "change",
-            onReducedMotionChange,
-          );
-
-          for (const control of root.querySelectorAll<
-            HTMLInputElement | HTMLSelectElement
-          >("[data-example-control]")) {
-            const key = control.dataset.exampleControl;
-            if (!key) continue;
-            const output = root.querySelector<HTMLOutputElement>(
-              `[data-example-output="${CSS.escape(key)}"]`,
-            );
-            const update = (): void => {
-              const value =
-                control instanceof HTMLInputElement && control.type === "range"
-                  ? Number(control.value)
-                  : control.value;
-              if (output) output.value = String(value);
-              controller.update({ [key]: value });
-            };
-            control.addEventListener("input", update);
-            control.addEventListener("change", update);
-          }
-
-          globalThis.addEventListener(
-            "pagehide",
-            () => {
-              controller.cleanup();
-              motionToggle?.removeEventListener("click", onMotionToggle);
-              reducedMotionQuery?.removeEventListener?.(
-                "change",
-                onReducedMotionChange,
-              );
-            },
-            { once: true },
-          );
-        })
+          }),
+        )
         .catch((error: unknown) => {
-          if (statusRegion) statusRegion.hidden = false;
-          if (status)
-            status.textContent =
-              "This example failed to load.";
-          if (message) {
-            message.hidden = false;
-            message.textContent =
-              "This example failed to load.";
-          }
-          if (sourceLink) sourceLink.hidden = false;
-          console.error(`Example ${id ?? "unknown"} failed to load`, error);
+          show("This example failed to load.");
+          reportFailure(side, "This example failed to load.");
+          console.error(`Example ${id ?? "unknown"} (${side}) failed to load`, error);
+          return undefined;
         });
+    };
+
+    if (!entry) {
+      reportFailure("easel", "This scene could not start.");
+    } else {
+      void Promise.all([
+        mountSide("easel", "2d", entry.load),
+        mountSide("three", "webgl2", entry.loadThree),
+      ]).then((mounted) => {
+        const controllers = mounted.filter(
+          (controller): controller is ExampleRuntimeController =>
+            controller !== undefined,
+        );
+        const reducedMotionQuery =
+          typeof globalThis.matchMedia === "function"
+            ? globalThis.matchMedia("(prefers-reduced-motion: reduce)")
+            : undefined;
+        const isPaused = (): boolean =>
+          controllers.some((controller) => controller.paused);
+        const setMotionState = (paused: boolean): void => {
+          if (!motionToggle) return;
+          motionToggle.setAttribute("aria-pressed", String(paused));
+          motionToggle.textContent = paused ? "Play animation" : "Pause animation";
+        };
+        setMotionState(isPaused());
+        const onMotionToggle = (): void => {
+          const paused = isPaused();
+          for (const controller of controllers) {
+            if (paused) controller.resume();
+            else controller.pause();
+          }
+          setMotionState(!paused);
+        };
+        motionToggle?.addEventListener("click", onMotionToggle);
+        const onReducedMotionChange = (): void => setMotionState(isPaused());
+        reducedMotionQuery?.addEventListener?.("change", onReducedMotionChange);
+
+        for (const control of root.querySelectorAll<
+          HTMLInputElement | HTMLSelectElement
+        >("[data-example-control]")) {
+          const key = control.dataset.exampleControl;
+          if (!key) continue;
+          const output = root.querySelector<HTMLOutputElement>(
+            `[data-example-output="${CSS.escape(key)}"]`,
+          );
+          const update = (): void => {
+            const value =
+              control instanceof HTMLInputElement && control.type === "range"
+                ? Number(control.value)
+                : control.value;
+            if (output) output.value = String(value);
+            for (const controller of controllers) controller.update({ [key]: value });
+          };
+          control.addEventListener("input", update);
+          control.addEventListener("change", update);
+        }
+
+        globalThis.addEventListener(
+          "pagehide",
+          () => {
+            for (const controller of controllers) controller.cleanup();
+            motionToggle?.removeEventListener("click", onMotionToggle);
+            reducedMotionQuery?.removeEventListener?.(
+              "change",
+              onReducedMotionChange,
+            );
+          },
+          { once: true },
+        );
+      });
     }
   }
 </script>

@@ -1,76 +1,189 @@
 ---
 name: using-easeljs
-description: EASEL.js 0.7.0 browser scenes, CPU Canvas2D APIs, lifecycle; excludes GPU rendering.
+description: Writes, fixes, and reviews app code for EASEL.js (@xsyetopz/easel), the CPU-only Canvas2D 3D renderer with a three.js-style API. Use when code imports @xsyetopz/easel, an EASEL canvas renders blank or stretched, or an EASEL API name needs checking.
+license: MIT
+metadata:
+  easel-version: "0.7.0"
 ---
 
 # Using EASEL.js
 
-The verified baseline is `@xsyetopz/easel@0.7.0` (`REVISION === "0.7.0"`).
+This skill makes `@xsyetopz/easel` 0.7.0 app code (`REVISION === "0.7.0"`)
+draw the frame it should. It covers the scene, camera, materials,
+geometry, animation, input, and teardown. Each trap below has a card with
+a runnable example that a bundled verifier type-checks against
+`src/index.ts` and executes. Apply the card that matches the evidence,
+then run that card's Verify steps.
 
-## Use this skill
+## Workflow
 
-Use for EASEL.js scene graphs, cameras, CPU rendering, geometry, materials,
-textures, lighting, fog, animation, picking, audio, controls, loaders,
-exporters, browser setup, lifecycle, or performance. This package is
-`@xsyetopz/easel`, not CreateJS EaselJS. For a three.js migration, also use the
-`threejs-to-easeljs` skill.
+1. Establish the version. In this repository, `rg -n REVISION
+   src/index.ts`. In an app, read
+   `node_modules/@xsyetopz/easel/package.json`. If it is not 0.7.0,
+   run the API script with `--root node_modules/@xsyetopz/easel` and
+   trust its output over this skill.
+1. Before writing any name not shown in a card, look it up:
+   `bun scripts/easel_api.ts exports --grep TEXT` or
+   `bun scripts/easel_api.ts show NAME`. Do not infer EASEL APIs from
+   three.js.
+1. Choose the card from the routing table for the symptom or the code
+   you are writing.
+1. Copy the card's pattern. Keep the frame order: update state, then
+   `renderer.prepare(scene, camera)`, then `renderer.render(scene,
+   camera)`.
+1. Run the host project's typecheck. For changes to this skill, run
+   `sh assets/examples/verify.sh all`.
+1. Report using the Completion evidence list.
 
-Do not use it to design WebGL/WebGPU renderers, GPU buffers, shaders, PBR,
-shadow maps, or headless/server rendering without a supplied DOM/canvas host.
+## Gotchas
+
+These compile, or fail with an unhelpful error, and cost a debugging
+session each. Values are from local runs against `src/index.ts`
+(macOS arm64, Bun 1.4.2); the `threejs-to-easeljs` skill has runnable
+oracles for each.
+
+- Lambert lighting has no `1 / PI` term. A three.js-style intensity of 1
+  clips a white face to 255; three.js shows 153. Divide intensities
+  taken from three.js examples by `Math.PI` (gives 106), ambient too.
+- Every material, `PointsMaterial` included, defaults `vertexColors` to
+  `true`: a geometry with a `color` attribute is tinted by it. Pass
+  `vertexColors: false` to use `material.color` alone.
+- `PointsMaterial.size` is a positive integer pixel radius (size 2 draws
+  5 px across) at every distance; `0.05` or `1.5` throws `RangeError`.
+  Points ignore `map`, and there is no `sizeAttenuation` or `alphaTest`.
+  Sprites always shrink with distance.
+- A `CanvasTexture` renders untextured until `texture.update()`; after
+  each redraw set `needsUpdate = true` and call `update()` again, or the
+  old pixels stay.
+- `LOD` never switches by itself: call `lod.update(camera)` after
+  `prepare` and before `render`, or every level draws.
+- `BoxHelper` draws nothing until `update()`, and a mesh source uses the
+  geometry-local box. Use `new BoxHelper(box)` with
+  `box.setFromObject(mesh)` and `helper.update()` each frame.
+- Draw order is `material.layer` (lower first), not `renderOrder`; it
+  only shows with `depthTest: false` or transparency.
+- `TorusGeometry` lies in the XZ plane (hole along Y);
+  `rotateX(Math.PI / 2)` stands it up.
+- With `clockwise: true`, `EllipseCurve`, `ArcCurve` and `Path.absarc`
+  run from `endAngle` back to `startAngle` over the same span, with no
+  angle normalization.
+- `OBB.intersectRay` returns `undefined` on a miss, so a `!== null` test
+  is always true.
+- Accessors, not methods: `box.isEmpty` (not `isEmpty()`),
+  `raycaster.pointsThreshold` and `lineThreshold` (no `params`),
+  `controls.camera` (not `controls.object`).
+- `geometry.attributes` is a `Map`: use `getAttribute("position")`, not
+  `attributes.position`. `new Attribute(array, itemSize)` stores a plain
+  array as `Float32Array`; pass `Uint16Array` and the like explicitly.
+- `TextureLoader.load` returns `void`; await `loadAsync` (typed
+  `Promise<unknown>`) and check `instanceof Texture`.
+- No morph targets, no `Geometry.addGroup`, no material arrays: one
+  material per mesh.
+- `v.length` is an accessor, not `length()`. `Color.setRGB` takes no
+  colour space and throws `RangeError` outside 0..1; there is no colour
+  management, so convert linear values with `.convertLinearToSRGB()`.
+- `transparent: true` in the constructor also turns off `depthWrite`.
+- `LambertMaterial` has no `emissive`; change `color` to fake a glow.
+- `Side.Double` lights back faces with the front normal, so a back face
+  lit from behind stays dark (25 against 153 in front).
+- `geometry.mergeVertices()` changes the geometry in place (box: 24 to 8
+  vertices) and returns it; clone first to keep the original.
+- Raycasting honours `material.side`, points fade into scene fog, and a
+  material with `visible: false` hides only its own mesh, as in three.js.
+
+## Route evidence to a card
+
+| Evidence | Card |
+| --- | --- |
+| Canvas shows only the clear color; moved objects do not move | [Prepare before render](references/frame.md#prepare-before-render) |
+| `new PerspectiveCamera(60, …)`, or `lookAt` aims wrong | [Camera options and lookAt](references/frame.md#camera-options-and-lookat) |
+| Image stretched after resize | [Resize](references/frame.md#resize) |
+| `setClearColor` missing; background ignores clear color | [Clear color](references/frame.md#clear-color-and-background-precedence) |
+| `opacity: 0.5` throws; "transparent" material stays opaque | [Discrete opacity](references/materials.md#discrete-opacity) |
+| `Fog LUT is dirty; call updateLut()` | [Fog lookup table](references/materials.md#fog-lookup-table) |
+| `setIndex is not a function`; quads miss triangles | [Index accessor](references/geometry-and-textures.md#index-accessor) |
+| Atlas shows only top-left tiles; painted pixels do not appear | [DataTexture size and update](references/geometry-and-textures.md#datatexture-size-and-update) |
+| `Track values length must equal times length * itemSize` | [Track item size](references/animation-tracks.md#track-item-size) |
+| `LoopRepeat`/`Clock` missing; animation too fast or snaps back | [Loop and animator update](references/animation-tracks.md#loop-and-animator-update) |
+| Frames or listeners survive unmount; StrictMode doubles | [Frame loop teardown](references/lifecycle.md#frame-loop-teardown) |
+| Removing one mesh breaks another; texture memory kept | [Resource disposal ownership](references/lifecycle.md#resource-disposal-ownership) |
+| Clicks select nothing or the wrong object | [Raycast picking](references/input-picking.md#raycast-picking) |
+| Need an exact export, signature, or constant | [API lookup](references/api-lookup.md#look-up-exports-and-signatures) |
+| New project scaffold | [Starter templates](references/starter-templates.md#starter-templates) |
 
 ## Rules
 
-- Treat `src/index.ts` and owning source declarations as authority. For an
-  installed app, verify its `REVISION` and `dist/**/*.d.ts`; state `UNKNOWN`
-  when a requested name is absent.
-- Import from `@xsyetopz/easel`; do not guess package subpaths. Root exports are
-  indexed in [API exports](references/api-exports.md), and high-use call shapes
-  are in [API signatures](references/api-signatures.md).
-- Rendering is CPU scanline rasterization into `ImageData`, uploaded to
-  Canvas2D. UV interpolation is affine, image textures clamp to 128×128, and
-  nearest-neighbor sampling is intentional.
-- Material opacity is an integer from `0` (opaque) through `8` (fully
-  transparent), and blending requires `transparent = true`. Keep transparent
-  geometry explicitly ordered.
-- After scene, camera, animation, or control changes, call
-  `renderer.prepare(scene, camera)` and then `renderer.render(scene, camera)`.
-  EASEL 0.7.0 has no renderer animation-loop or pixel-ratio API.
-- Use `requestAnimationFrame`; stop it and dispose controls, replaced geometry,
-  materials, textures, audio graphs/analyzers, and the renderer as applicable.
-- Do not infer APIs from three.js. Notable 0.7.0 spellings include
-  `Loop.Repeat`, `new Track(..., { itemSize })`, `renderer.clearColor = value`,
-  and standalone audio visualizer functions.
-- Geometry index buffers use the writable `index` accessor. Assign typed indices
-  directly, assign a number array for conversion to `Uint16Array` or
-  `Uint32Array`, or assign `undefined` to clear it. This accessor replaced the
-  historical `setIndex()` method; index buffers remain supported.
+- Import only from `@xsyetopz/easel`. The package exports only its root
+  (`.`), so do not use subpaths such as `@xsyetopz/easel/src/...`.
+- Use EASEL names. three.js names map as follows: `Object3D` is `Node`,
+  `BufferGeometry` is `Geometry`, `BufferAttribute` is `Attribute`,
+  `MeshBasicMaterial` is `BasicMaterial`, `Clock` is `Timer`, and
+  `KeyframeTrack` is `Track`. Use accessors, not `get`/`set` methods, and
+  use `undefined`, not `null`. EASEL has no static members; use the
+  exported functions instead.
+- Treat retro artifacts as intended output, not bugs: affine texture
+  warping, vertex wobble from integer snapping, nearest-neighbor 128x128
+  textures, 9 opacity levels, and flat or Gouraud lighting. EASEL trades
+  pixel accuracy for CPU speed, so a "fix" such as perspective-correct
+  UVs, anti-aliasing, per-pixel lighting, or supersampling adds per-pixel
+  work the design rejects. Flag any added per-pixel or per-frame CPU cost
+  in the report instead of adding it silently.
+- Always pair `prepare` with `render`. `render` never updates matrices.
+- Keep opacity an integer from 0 to 8, where 8 is invisible, and set
+  `transparent: true` to blend.
+- Do not add GPU concepts: shaders, `WebGLRenderer`, PBR maps,
+  `setPixelRatio`, `setAnimationLoop`. EASEL rasterizes on the CPU into
+  `ImageData`, and the app owns `requestAnimationFrame`.
+- This package is not CreateJS EaselJS. `createjs.Stage`, `Ticker`, and
+  `Shape` do not apply.
+- A stub-canvas run or a typecheck is not a browser check. Say which one
+  you ran.
 
-## Steps
+## Bundled tools
 
-1. Inspect project runtime, lockfile, installed package version, canvas owner,
-   and existing render loop.
-2. Choose the closest task in the [reference router](references/index.md) and
-   read its focused guide. Use the router's API catalog rows only when that
-   guide omits the exact export name or call shape.
-3. Build the smallest browser scene: real `HTMLCanvasElement`, `Renderer`,
-   `Scene`, concrete camera, renderable object, `prepare`, and `render`.
-4. Add controls/loaders/audio only after the base frame renders. Attach browser
-   listeners once and retain every teardown handle.
-5. Validate with the host project's typecheck and a real browser Canvas2D
-   render. Confirm resize updates renderer size, camera projection, and control
-   viewport state where applicable.
+- `bun scripts/easel_api.ts exports|show|constants [NAME...] [--root DIR]
+  [--grep TEXT]`: prints exports, `.d.ts` declarations, or constant
+  values from source. `--grep` is a case-insensitive substring filter on
+  export name and module path, with `a|b` for alternatives; it is not a
+  regex. In a repository, `show` always emits declarations from `src`,
+  never from a possibly stale `dist/`. Exit 0 on success, 1 for an
+  unknown name or a source/runtime mismatch, 2 for bad usage.
+- `bun scripts/test_easel_api.ts`: self-test for the API script.
+- `bun scripts/smoke_entry.ts ENTRY`: runs a browser entry module with a
+  stub DOM and canvas. Exit 0 pass, 1 fail, 2 usage.
+- `sh assets/examples/verify.sh [examples|api|templates|all]`: runs every
+  check in a copy under `$TMPDIR`, not in this directory.
+  - `examples` type-checks with the repository's `tsc`, resolving
+    `@xsyetopz/easel` to `src/index.ts` through tsconfig `paths`, and runs
+    each oracle under Bun.
+  - `api` runs the script self-test.
+  - `templates` installs, type-checks, builds, and smoke-runs each
+    template, then re-runs the examples against the published package.
+  - Exit 0 pass or skip, 1 fail, 2 usage or missing tool.
 
-## Resources
+## References
 
-- The [reference router](references/index.md) maps each supported subsystem to
-  one focused guide. It also routes exact API lookups and starter templates.
+- [Frame](references/frame.md): prepare before render, camera options
+  and lookAt, resize, clear color precedence.
+- [Materials](references/materials.md): discrete opacity, fog lookup
+  table.
+- [Geometry and textures](references/geometry-and-textures.md): index
+  accessor, DataTexture size and update.
+- [Animation tracks](references/animation-tracks.md): track item size,
+  loop and animator update.
+- [Lifecycle](references/lifecycle.md): frame loop teardown, resource
+  disposal ownership.
+- [Input picking](references/input-picking.md): raycast picking.
+- [API lookup](references/api-lookup.md): the source-derived API script.
+- [Starter templates](references/starter-templates.md): verified project
+  templates.
 
-## Verify
+## Completion evidence
 
-Done means imports exist in the 0.7.0 root surface, call shapes match owning
-source declarations, the frame uses `prepare` then `render`, teardown is
-present, and browser Canvas2D behavior was checked. From this package, run
-`python3 scripts/check.py`; from a host project, run its typecheck and browser
-render check. Report commands, exit codes, and changed paths separately. Mark
-registry, network, Deno, browser, template, or behavioral eval checks
-`UNVERIFIED` when they were not run.
+The report contains:
+
+- The installed EASEL version, or `REVISION`.
+- The symptom or the request, and the cards applied.
+- Any API names confirmed with `easel_api.ts`.
+- The typecheck command and its result, and any verifier output.
+- Whether a real browser render was checked. If it was not, say so.

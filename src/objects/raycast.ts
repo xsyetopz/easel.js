@@ -1,4 +1,5 @@
 import type { Intersection, Raycaster } from "../core/Raycaster.ts";
+import { Side } from "../core/Constants.ts";
 import type { Node } from "../core/Node.ts";
 import type { Geometry } from "../geometry/Geometry.ts";
 import { Matrix4 } from "../math/Matrix4.ts";
@@ -246,7 +247,20 @@ function intersectTriangle(
   _v0.set(position.getX(a), position.getY(a), position.getZ(a));
   _v1.set(position.getX(b), position.getY(b), position.getZ(b));
   _v2.set(position.getX(c), position.getY(c), position.getZ(c));
-  const point = _rayLocal.intersectTriangle(_v0, _v1, _v2, false, _worldPoint);
+  // Match three.js: front-sided materials cull back faces, and back-sided
+  // materials are hit only from behind.
+  const side =
+    (object as { material?: { side?: number } }).material?.side ?? Side.Front;
+  const point =
+    side === Side.Back
+      ? _rayLocal.intersectTriangle(_v2, _v1, _v0, true, _worldPoint)
+      : _rayLocal.intersectTriangle(
+          _v0,
+          _v1,
+          _v2,
+          side === Side.Front,
+          _worldPoint,
+        );
   if (point === undefined) return false;
 
   const distancePoint = point.clone().applyMatrix4(matrixWorld);

@@ -34,14 +34,14 @@ Model loaders such as [`OBJLoader`](/docs/loaders/OBJLoader/) and
 [`GLTFLoader`](/docs/loaders/GLTFLoader/) create scene-graph data for the same
 CPU renderer. Source images are reduced to the texture cache limit.
 
-<figure class="manual-render" data-manual-example="texture-surface-review">
+<figure class="manual-render" data-manual-example="canvas_geometry_cube">
   <div class="manual-render__stage">
-    <canvas width="16" height="9" role="img" aria-label="Nearest-neighbor texture sampling on a rotating mesh.">
+    <canvas width="16" height="9" role="img" aria-label="A crate texture sampled nearest-neighbor on a rotating cube.">
       This render needs a Canvas2D-capable browser.
     </canvas>
     <p data-manual-example-status role="status">Loading render…</p>
   </div>
-  <figcaption>Nearest-neighbor texture sampling on a rotating mesh.</figcaption>
+  <figcaption>A crate texture sampled nearest-neighbor on a rotating cube.</figcaption>
 </figure>
 
 ## Related API

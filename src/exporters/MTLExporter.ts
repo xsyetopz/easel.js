@@ -1,4 +1,5 @@
 import type { Node } from "../core/Node.ts";
+import { LinearToSRGB } from "../math/ColorManagement.ts";
 import { Mesh } from "../objects/Mesh.ts";
 import type { Texture } from "../textures/Texture.ts";
 
@@ -68,9 +69,10 @@ function toRecord(
   const color = material.color;
   const opacity = material.opacity === undefined ? 1 : 1 - material.opacity / 8;
   return {
-    r: clamp(color?.r ?? 1),
-    g: clamp(color?.g ?? 1),
-    b: clamp(color?.b ?? 1),
+    // MTL colors are sRGB; material colors are linear.
+    r: LinearToSRGB(clamp(color?.r ?? 1)),
+    g: LinearToSRGB(clamp(color?.g ?? 1)),
+    b: LinearToSRGB(clamp(color?.b ?? 1)),
     opacity: clamp(opacity),
     map: texturePath(material.map, options),
   };

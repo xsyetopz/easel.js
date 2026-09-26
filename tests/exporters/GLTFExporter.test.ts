@@ -1,12 +1,13 @@
 import { describe, expect, it } from "bun:test";
+import { SRGBToLinear } from "@/math/ColorManagement.js";
 import { AnimationClip } from "@/animation/AnimationClip.js";
 import { VectorTrack } from "@/animation/tracks/VectorTrack.js";
+import { Scene } from "@/core/Scene.js";
+import { GLTFExporter } from "@/exporters/GLTFExporter.js";
 import { Attribute } from "@/geometry/Attribute.js";
 import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
-import { GLTFExporter } from "@/exporters/GLTFExporter.js";
 import { BasicMaterial } from "@/materials/BasicMaterial.js";
 import { Mesh } from "@/objects/Mesh.js";
-import { Scene } from "@/core/Scene.js";
 import { Texture } from "@/textures/Texture.js";
 
 const NORMAL_ATTRIBUTE_KEY = "NORMAL";
@@ -47,7 +48,13 @@ describe("GLTFExporter", () => {
     );
     expect(
       first.json.materials?.[0]?.pbrMetallicRoughness.baseColorFactor,
-    ).toEqual([0.2, 0.4, 0.6, 0.75]);
+    ).toEqual([
+      // glTF base color factors are linear, like three.js GLTFExporter output.
+      SRGBToLinear(0x33 / 255),
+      SRGBToLinear(0x66 / 255),
+      SRGBToLinear(0x99 / 255),
+      0.75,
+    ]);
     expect(first.json.materials?.[0]?.alphaMode).toBe("BLEND");
     expect(first.json.images?.[0]?.uri).toBe("textures/albedo.png");
     expect(

@@ -10,9 +10,11 @@ const THREE_TO_EASEL_CLASS: Record<string, string> = {
   AnimationMixer: "Animator",
   AnimationObjectGroup: "AnimationGroup",
   AudioAnalyser: "AudioAnalyzer",
+  BooleanKeyframeTrack: "BooleanTrack",
   BufferAttribute: "Attribute",
   BufferGeometry: "Geometry",
   Clock: "Timer",
+  ColorKeyframeTrack: "ColorTrack",
   InterleavedBuffer: "InterleavedData",
   InterleavedBufferAttribute: "InterleavedAttribute",
   KeyframeTrack: "Track",
@@ -20,8 +22,13 @@ const THREE_TO_EASEL_CLASS: Record<string, string> = {
   LineDashedMaterial: "DashedLineMaterial",
   MeshBasicMaterial: "BasicMaterial",
   MeshLambertMaterial: "LambertMaterial",
+  MeshToonMaterial: "ToonMaterial",
+  NumberKeyframeTrack: "NumberTrack",
   Object3D: "Node",
   PropertyBinding: "Binding",
+  QuaternionKeyframeTrack: "QuaternionTrack",
+  StringKeyframeTrack: "StringTrack",
+  VectorKeyframeTrack: "VectorTrack",
 };
 
 function splitSubject(subject: string): { className: string; member: string } {

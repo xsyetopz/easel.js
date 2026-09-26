@@ -213,3 +213,22 @@ describe("Box3", () => {
     expect(new Box3().fromJSON(json).isEmpty).toBe(true);
   });
 });
+
+describe("Box3.setFromObject", () => {
+  it("bounds real Geometry meshes in world space, including children", async () => {
+    const { BasicMaterial, BoxGeometry, Group, Mesh } = await import(
+      "@/index.js"
+    );
+    const group = new Group();
+    group.position.set(10, 0, 0);
+    const mesh = new Mesh(new BoxGeometry(2, 2, 2), new BasicMaterial());
+    mesh.position.set(0, 3, 0);
+    group.add(mesh);
+    group.updateMatrixWorld();
+
+    const box = new Box3().setFromObject(group);
+
+    expect(box.min.toArray()).toEqual([9, 2, -1]);
+    expect(box.max.toArray()).toEqual([11, 4, 1]);
+  });
+});

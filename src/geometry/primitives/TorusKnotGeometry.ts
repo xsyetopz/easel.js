@@ -18,19 +18,6 @@ interface TorusKnotBuildOptions {
   q: number;
 }
 
-/** Orthonormal frame (point, normal, binormal) at a torus-knot sample. */
-interface TorusKnotFrame {
-  px: number;
-  py: number;
-  pz: number;
-  nx: number;
-  ny: number;
-  nz: number;
-  bx: number;
-  by: number;
-  bz: number;
-}
-
 /** Tube swept around a `(p, q)` torus-knot curve. */
 export class TorusKnotGeometry extends Geometry {
   /** Serialization discriminator for this runtime type. */
@@ -83,7 +70,10 @@ function buildTorusKnotData(opts: TorusKnotBuildOptions): TorusKnotData {
   return data;
 }
 
-/** Sweeps a tube ring along the `(p, q)` curve, writing positions, normals, and UVs. */
+/**
+ * Sweeps a tube ring along the `(p, q)` curve, writing positions, normals,
+ * and UVs with three.js r186's frame, ring direction, and arithmetic order.
+ */
 function buildTorusKnotVertices(
   data: TorusKnotData,
   opts: TorusKnotBuildOptions,
@@ -92,21 +82,61 @@ function buildTorusKnotVertices(
   const rs = Math.floor(opts.radialSegments);
   const { radius, tube, p, q } = opts;
 
-  for (let i = 0; i <= ts; i++) {
+  for (let i = 0; i <= ts; ++i) {
     const u = (i / ts) * p * Math.PI * 2;
-    const f = computeTorusKnotFrame(u, radius, p, q);
 
-    for (let j = 0; j <= rs; j++) {
+    // P1 is the curve point; P2, slightly ahead, gives the tangent T. Both
+    // use r186's `calculatePositionOnCurve` expressions.
+    const u2 = u + 0.01;
+    const qu1 = (q / p) * u;
+    const qu2 = (q / p) * u2;
+    const cs1 = Math.cos(qu1);
+    const cs2 = Math.cos(qu2);
+    const p1x = radius * (2 + cs1) * 0.5 * Math.cos(u);
+    const p1y = radius * (2 + cs1) * Math.sin(u) * 0.5;
+    const p1z = radius * Math.sin(qu1) * 0.5;
+    const p2x = radius * (2 + cs2) * 0.5 * Math.cos(u2);
+    const p2y = radius * (2 + cs2) * Math.sin(u2) * 0.5;
+    const p2z = radius * Math.sin(qu2) * 0.5;
+
+    // T = P2 - P1, N = P2 + P1, B = T x N, N = B x T, then normalize B and N.
+    const tx = p2x - p1x;
+    const ty = p2y - p1y;
+    const tz = p2z - p1z;
+    const sx = p2x + p1x;
+    const sy = p2y + p1y;
+    const sz = p2z + p1z;
+    let bx = ty * sz - tz * sy;
+    let by = tz * sx - tx * sz;
+    let bz = tx * sy - ty * sx;
+    let nx = by * tz - bz * ty;
+    let ny = bz * tx - bx * tz;
+    let nz = bx * ty - by * tx;
+    const bScale = 1 / (Math.sqrt(bx * bx + by * by + bz * bz) || 1);
+    bx *= bScale;
+    by *= bScale;
+    bz *= bScale;
+    const nScale = 1 / (Math.sqrt(nx * nx + ny * ny + nz * nz) || 1);
+    nx *= nScale;
+    ny *= nScale;
+    nz *= nScale;
+
+    for (let j = 0; j <= rs; ++j) {
       const v = (j / rs) * Math.PI * 2;
-      const cosV = Math.cos(v);
-      const sinV = Math.sin(v);
+      const cx = -tube * Math.cos(v);
+      const cy = tube * Math.sin(v);
 
-      const nx = cosV * f.nx + sinV * f.bx;
-      const ny = cosV * f.ny + sinV * f.by;
-      const nz = cosV * f.nz + sinV * f.bz;
+      const vx = p1x + (cx * nx + cy * bx);
+      const vy = p1y + (cx * ny + cy * by);
+      const vz = p1z + (cx * nz + cy * bz);
+      data.positions.push(vx, vy, vz);
 
-      data.positions.push(f.px + tube * nx, f.py + tube * ny, f.pz + tube * nz);
-      data.normals.push(nx, ny, nz);
+      const dx = vx - p1x;
+      const dy = vy - p1y;
+      const dz = vz - p1z;
+      const scale = 1 / (Math.sqrt(dx * dx + dy * dy + dz * dz) || 1);
+      data.normals.push(dx * scale, dy * scale, dz * scale);
+
       data.uvs.push(i / ts, j / rs);
     }
   }
@@ -120,86 +150,14 @@ function buildTorusKnotIndices(
   const ts = Math.floor(opts.tubularSegments);
   const rs = Math.floor(opts.radialSegments);
 
-  for (let i = 1; i <= ts; i++) {
-    for (let j = 1; j <= rs; j++) {
-      const a = (rs + 1) * (i - 1) + (j - 1);
-      const b = (rs + 1) * i + (j - 1);
-      const c = (rs + 1) * i + j;
-      const d = (rs + 1) * (i - 1) + j;
-      data.indices.push(a, d, b);
-      data.indices.push(b, d, c);
+  for (let j = 1; j <= ts; j++) {
+    for (let i = 1; i <= rs; i++) {
+      const a = (rs + 1) * (j - 1) + (i - 1);
+      const b = (rs + 1) * j + (i - 1);
+      const c = (rs + 1) * j + i;
+      const d = (rs + 1) * (j - 1) + i;
+      data.indices.push(a, b, d);
+      data.indices.push(b, c, d);
     }
   }
-}
-
-/** Computes the orthonormal frame (position, normal, binormal) at parameter `u`. */
-function computeTorusKnotFrame(
-  u: number,
-  radius: number,
-  p: number,
-  q: number,
-): TorusKnotFrame {
-  const P1: number[] = [];
-  const P2: number[] = [];
-  const quOverP = q / p;
-  computeTorusKnotPoint(u, P1, quOverP, radius);
-  computeTorusKnotPoint(u + 0.01, P2, quOverP, radius);
-
-  const Tx = P2[0] - P1[0];
-  const Ty = P2[1] - P1[1];
-  const Tz = P2[2] - P1[2];
-
-  // N = -normalize(P1 + P2) - points away from center of curvature
-  let Nx = -(P1[0] + P2[0]);
-  let Ny = -(P1[1] + P2[1]);
-  let Nz = -(P1[2] + P2[2]);
-  let Nlen = Math.sqrt(Nx * Nx + Ny * Ny + Nz * Nz) || 1;
-  Nx /= Nlen;
-  Ny /= Nlen;
-  Nz /= Nlen;
-
-  // B = normalize(T x N)
-  let Bx = Ty * Nz - Tz * Ny;
-  let By = Tz * Nx - Tx * Nz;
-  let Bz = Tx * Ny - Ty * Nx;
-  const Blen = Math.sqrt(Bx * Bx + By * By + Bz * Bz) || 1;
-  Bx /= Blen;
-  By /= Blen;
-  Bz /= Blen;
-
-  // Re-orthogonalize N = B x T (already unit-ish)
-  Nx = By * Tz - Bz * Ty;
-  Ny = Bz * Tx - Bx * Tz;
-  Nz = Bx * Ty - By * Tx;
-  Nlen = Math.sqrt(Nx * Nx + Ny * Ny + Nz * Nz) || 1;
-  Nx /= Nlen;
-  Ny /= Nlen;
-  Nz /= Nlen;
-
-  return {
-    px: P1[0],
-    py: P1[1],
-    pz: P1[2],
-    nx: Nx,
-    ny: Ny,
-    nz: Nz,
-    bx: Bx,
-    by: By,
-    bz: Bz,
-  };
-}
-
-/** Evaluates the `(p, q)` torus-knot curve at parameter `u`, writing into `out`. */
-function computeTorusKnotPoint(
-  u: number,
-  out: number[],
-  quOverP: number,
-  radius: number,
-): void {
-  const cs = Math.cos(u);
-  const sn = Math.sin(u);
-  const r = 0.5 * (2 + Math.cos(quOverP * u));
-  out[0] = r * cs * radius;
-  out[1] = r * sn * radius;
-  out[2] = Math.sin(quOverP * u) * radius * 0.5;
 }

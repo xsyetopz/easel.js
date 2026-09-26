@@ -1,3 +1,4 @@
+import { encodeSrgb, encodeSrgbByte } from "../color/SrgbEncode.ts";
 import type { DepthBuffer } from "../framebuffer/DepthBuffer.ts";
 import type { LineBuffer } from "../LineBuffer.ts";
 
@@ -135,17 +136,17 @@ export class LineRasterizer {
     }
 
     const color = material.color;
-    const baseR = toByte(color?.r ?? 1);
-    const baseG = toByte(color?.g ?? 1);
-    const baseB = toByte(color?.b ?? 1);
+    const baseR = encodeSrgbByte(color?.r ?? 1);
+    const baseG = encodeSrgbByte(color?.g ?? 1);
+    const baseB = encodeSrgbByte(color?.b ?? 1);
     const opacity = material.opacity ?? 0;
     const blend = material.transparent === true && opacity > 0;
     const srcWeight = blend ? (8 - opacity) / 8 : 1;
     const depthTest = material.depthTest !== false;
     const depthWrite = material.depthWrite !== false;
-    const fogR = toByte(fogColor?.r ?? 0);
-    const fogG = toByte(fogColor?.g ?? 0);
-    const fogB = toByte(fogColor?.b ?? 0);
+    const fogR = encodeSrgbByte(fogColor?.r ?? 0);
+    const fogG = encodeSrgbByte(fogColor?.g ?? 0);
+    const fogB = encodeSrgbByte(fogColor?.b ?? 0);
     const hasFog = fogColor !== undefined;
     this.#ensureStampStorage(width, height);
 
@@ -179,15 +180,15 @@ export class LineRasterizer {
       if (vertexColorData && vertexColorItemSize === 3) {
         const base0 = vi0 * 3;
         if (base0 >= 0 && base0 + 2 < vertexColorData.length) {
-          c0r = clamp01(vertexColorData[base0]);
-          c0g = clamp01(vertexColorData[base0 + 1]);
-          c0b = clamp01(vertexColorData[base0 + 2]);
+          c0r = encodeSrgb(vertexColorData[base0]);
+          c0g = encodeSrgb(vertexColorData[base0 + 1]);
+          c0b = encodeSrgb(vertexColorData[base0 + 2]);
         }
         const base1 = vi1 * 3;
         if (base1 >= 0 && base1 + 2 < vertexColorData.length) {
-          c1r = clamp01(vertexColorData[base1]);
-          c1g = clamp01(vertexColorData[base1 + 1]);
-          c1b = clamp01(vertexColorData[base1 + 2]);
+          c1r = encodeSrgb(vertexColorData[base1]);
+          c1g = encodeSrgb(vertexColorData[base1 + 1]);
+          c1b = encodeSrgb(vertexColorData[base1 + 2]);
         }
       }
       if (
@@ -393,10 +394,6 @@ export class LineRasterizer {
       }
     }
   }
-}
-
-function toByte(value: number): number {
-  return clampByte(Math.round(value * 255));
 }
 
 function clamp01(value: number): number {

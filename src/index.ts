@@ -139,20 +139,35 @@ export { StereoCamera } from "./cameras/StereoCamera.ts";
 export {
   type ArcballCamera,
   ArcballControls,
+  type ArcballModifierKey,
+  type ArcballMouseInput,
+  type ArcballOperation,
   type MouseAction,
 } from "./controls/ArcballControls.ts";
 export {
   DragControls,
   type DragControlsEvent,
 } from "./controls/DragControls.ts";
-export { Controls } from "./controls/Controls.ts";
+export {
+  type ControlMouseButtons,
+  Controls,
+  type ControlTouches,
+} from "./controls/Controls.ts";
 export { FirstPersonControls } from "./controls/FirstPersonControls.ts";
 export { FlyControls } from "./controls/FlyControls.ts";
 export { MapControls } from "./controls/MapControls.ts";
 // controls
-export { OrbitControls } from "./controls/OrbitControls.ts";
+export {
+  type OrbitCamera,
+  OrbitControls,
+  type OrbitControlsKeys,
+} from "./controls/OrbitControls.ts";
 export { PointerLockControls } from "./controls/PointerLockControls.ts";
-export { TrackballControls } from "./controls/TrackballControls.ts";
+export {
+  type TrackballCamera,
+  TrackballControls,
+  type TrackballScreen,
+} from "./controls/TrackballControls.ts";
 export {
   type TransformAxis,
   TransformControls,
@@ -163,19 +178,22 @@ export {
 } from "./controls/TransformControls.ts";
 export {
   BindMode,
-  ColorManagement,
+  type ColorSpace,
   Compatibility,
   InterpolationSamplingMode,
   InterpolationSamplingType,
   Layer,
   LightType,
+  LinearSRGBColorSpace,
   LinearTransfer,
   MOUSE,
+  NoColorSpace,
   NoNormalPacking,
   NormalGAPacking,
   NormalRGPacking,
   Shading,
   Side,
+  SRGBColorSpace,
   SRGBTransfer,
   TOUCH,
   TriangleFanDrawMode,
@@ -584,6 +602,12 @@ export {
   type RGB,
   type RGBArray,
 } from "./math/Color.ts";
+export {
+  type ColorChannels,
+  ColorManagement,
+  LinearToSRGB,
+  SRGBToLinear,
+} from "./math/ColorManagement.ts";
 export { Cylindrical } from "./math/Cylindrical.ts";
 export { fromHalfFloat, toHalfFloat } from "./math/DataUtils.ts";
 // math

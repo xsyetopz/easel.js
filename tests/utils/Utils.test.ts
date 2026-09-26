@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { DataUtils, ImageUtils, ShapeUtils, TextureUtils } from "@/index.ts";
 import type { ShapePoint2D } from "@/index.ts";
+import { DataUtils, ImageUtils, ShapeUtils, TextureUtils } from "@/index.ts";
 
 describe("ShapeUtils (class wrapper)", () => {
   it("area returns signed contour area (clockwise is negative)", () => {

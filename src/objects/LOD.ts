@@ -1,10 +1,58 @@
 import type { Camera } from "../cameras/Camera.ts";
-import type { Intersection, Raycaster } from "../core/Raycaster.ts";
 import { Node } from "../core/Node.ts";
+import type { Intersection, Raycaster } from "../core/Raycaster.ts";
 import { Vector3 } from "../math/Vector3.ts";
 
 const _cameraPosition = new Vector3();
 const _lodPosition = new Vector3();
+
+// LODs reached, in pre-order, by the scene matrix pass of `Renderer.prepare`.
+// Recording rides on that existing pass, so scenes without LODs pay nothing.
+const _recordedLODs: LOD[] = [];
+let _recording = false;
+
+/**
+ * Starts (`true`) or stops (`false`) recording the LODs whose world matrices
+ * are updated, so `Renderer.prepare` can auto-update them without another
+ * scene walk. Starting clears the previous record.
+ */
+export function recordLODsForAutoUpdate(enabled: boolean): void {
+  if (enabled) _recordedLODs.length = 0;
+  _recording = enabled;
+}
+
+/**
+ * Calls `update(camera)` on each recorded LOD that three.js r186's renderer
+ * would reach while projecting the scene: `autoUpdate` is on, the LOD and all
+ * its ancestors are visible, and its layers match the camera's. Clears the
+ * record afterwards.
+ */
+export function autoUpdateRecordedLODs(camera: Camera): void {
+  // Pre-order lets an outer LOD hide the level that holds an inner one first.
+  for (let index = 0; index < _recordedLODs.length; index++) {
+    const lod = _recordedLODs[index];
+    if (
+      lod?.autoUpdate &&
+      lod.layers.test(camera.layers) &&
+      isVisibleInScene(lod)
+    ) {
+      lod.update(camera);
+    }
+  }
+  _recordedLODs.length = 0;
+}
+
+/** Whether a node and every ancestor are visible, as r186's `projectObject` requires. */
+function isVisibleInScene(node: Node): boolean {
+  for (
+    let current: Node | undefined = node;
+    current;
+    current = current.parent
+  ) {
+    if (!current.visible) return false;
+  }
+  return true;
+}
 
 /** Distance threshold and hysteresis settings for one LOD object. */
 export interface LODLevel {
@@ -29,12 +77,18 @@ export class LOD extends Node {
   readonly #levels: LODLevel[] = [];
   #currentLevel = 0;
 
+  /**
+   * Whether `Renderer.prepare` calls `update(camera)` once per frame, as
+   * three.js r186's renderer does. Defaults to `true`.
+   */
+  autoUpdate = true;
+
   /** Read-only levels sorted by ascending distance; use `addLevel` or `removeLevel` to mutate. */
   get levels(): readonly LODLevel[] {
     return this.#levels;
   }
 
-  /** Index selected by the most recent explicit `update()` call. */
+  /** Index selected by the most recent `update()` call, explicit or from `Renderer.prepare`. */
   get currentLevel(): number {
     return this.#currentLevel;
   }
@@ -89,7 +143,7 @@ export class LOD extends Node {
     for (; index < this.#levels.length; index++) {
       const level = this.#levels[index];
       const threshold = level.object.visible
-        ? level.distance * (1 - level.hysteresis)
+        ? level.distance - level.distance * level.hysteresis
         : level.distance;
       if (normalizedDistance < threshold) break;
     }
@@ -111,12 +165,12 @@ export class LOD extends Node {
     raycast?.call(object, raycaster, intersects);
   }
 
-  /** Selects the visible level from already-prepared world matrices. */
+  /**
+   * Selects the visible level from already-prepared world matrices. Like
+   * three.js r186, it changes nothing unless there are at least two levels.
+   */
   update(camera: Camera): this {
-    if (this.#levels.length === 0) {
-      this.#currentLevel = 0;
-      return this;
-    }
+    if (this.#levels.length <= 1) return this;
 
     _cameraPosition.setFromMatrixPosition(camera.matrixWorld);
     _lodPosition.setFromMatrixPosition(this.matrixWorld);
@@ -127,7 +181,7 @@ export class LOD extends Node {
     for (let index = 1; index < this.#levels.length; index++) {
       const level = this.#levels[index];
       const threshold = level.object.visible
-        ? level.distance * (1 - level.hysteresis)
+        ? level.distance - level.distance * level.hysteresis
         : level.distance;
       if (distance < threshold) break;
       selectedIndex = index;
@@ -139,6 +193,16 @@ export class LOD extends Node {
       if (level !== undefined) level.object.visible = index === selectedIndex;
     }
     return this;
+  }
+
+  /** Records this LOD for auto-update during `Renderer.prepare`, then updates matrices. */
+  override updateMatrixWorld(
+    updateParents: boolean = false,
+    updateChildren: boolean = true,
+    force: boolean = false,
+  ): void {
+    if (_recording) _recordedLODs.push(this);
+    super.updateMatrixWorld(updateParents, updateChildren, force);
   }
 
   /** Returns an independent copy with cloned mutable state. */
@@ -155,6 +219,7 @@ export class LOD extends Node {
       this.addLevel(level.object.clone(), level.distance, level.hysteresis);
     }
     this.#currentLevel = source.currentLevel;
+    this.autoUpdate = source.autoUpdate;
     return this;
   }
 }

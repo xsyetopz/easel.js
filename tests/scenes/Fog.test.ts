@@ -58,6 +58,15 @@ describe("Fog", () => {
     expect(fog.near).toBe(0);
   });
 
+  it("builds the LUT during construction so new fog can be sampled", () => {
+    const fog = new Fog({ near: 10, far: 20 });
+    expect(fog.lutNeedsUpdate).toBe(false);
+    expect(fog.opacityAt(15)).toBeCloseTo(0.5, 4);
+    const exp2 = new FogExp2(0xffffff, 0.01, 500);
+    expect(exp2.lutNeedsUpdate).toBe(false);
+    expect(exp2.opacityAt(100)).toBeCloseTo(1 - Math.exp(-1), 3);
+  });
+
   it("requires an explicit LUT update after parameter changes", () => {
     const fog = new Fog();
     const previous = fog.lut[128];

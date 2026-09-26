@@ -1,14 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
-  ColorManagement,
   Compatibility,
   InterpolationSamplingMode,
   InterpolationSamplingType,
+  LinearSRGBColorSpace,
   LinearTransfer,
   MOUSE,
+  NoColorSpace,
   NoNormalPacking,
   NormalGAPacking,
   NormalRGPacking,
+  SRGBColorSpace,
   SRGBTransfer,
   TOUCH,
   TriangleFanDrawMode,
@@ -78,15 +80,10 @@ describe("Compatibility", () => {
   });
 });
 
-describe("ColorManagement", () => {
-  test("is disabled for CPU Canvas2D rendering", () => {
-    expect(ColorManagement.enabled).toBe(false);
-  });
-
-  test("convert and transform functions are no-ops", () => {
-    const color = { r: 0.5, g: 0.5, b: 0.5 };
-    expect(ColorManagement.convert(color)).toBe(color);
-    expect(ColorManagement.fromWorkingColorSpace(color)).toBe(color);
-    expect(ColorManagement.toWorkingColorSpace(color)).toBe(color);
+describe("color space constants", () => {
+  test("match three.js identifiers", () => {
+    expect(SRGBColorSpace).toBe("srgb");
+    expect(LinearSRGBColorSpace).toBe("srgb-linear");
+    expect(NoColorSpace).toBe("");
   });
 });

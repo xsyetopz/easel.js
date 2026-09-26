@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { Color } from "@/math/Color.js";
 import { Node } from "@/core/Node.js";
 import { Scene } from "@/core/Scene.js";
+import { Color } from "@/math/Color.js";
 import { Fog } from "@/scenes/Fog.js";
 
 describe("Scene", () => {

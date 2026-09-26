@@ -275,3 +275,64 @@ describe("Matrix4", () => {
     expect(output.slice(1, 17)).toEqual(Array.from(e.elements));
   });
 });
+
+describe("Matrix4 decompose and extractRotation parity with three.js r186", () => {
+  type THREEMatrix4WithRotation = TMatrix4 & {
+    extractRotation(m: TMatrix4): TMatrix4;
+  };
+
+  // Column-major values: a rotated, scaled, translated matrix; the same with
+  // a mirrored X column (negative determinant); and a singular basis.
+  const general = [
+    1.2, 0.4, -0.3, 0, -0.5, 1.8, 0.2, 0, 0.35, -0.1, 2.4, 0, 3, -2, 5, 1,
+  ];
+  const mirrored = [
+    -1.2, -0.4, 0.3, 0, -0.5, 1.8, 0.2, 0, 0.35, -0.1, 2.4, 0, 3, -2, 5, 1,
+  ];
+  const singular = [1, 2, 3, 0, 2, 4, 6, 0, 0, 0, 1, 0, 7, 8, 9, 1];
+
+  function pair(values: number[]): [Matrix4, TMatrix4] {
+    return [new Matrix4().fromArray(values), new TMatrix4().fromArray(values)];
+  }
+
+  it("decomposes general, mirrored, and singular matrices like three.js", () => {
+    for (const values of [general, mirrored, singular]) {
+      const [e, t] = pair(values);
+      const position = new Vector3();
+      const quaternion = new Quaternion();
+      const scale = new Vector3();
+      e.decompose(position, quaternion, scale);
+      const tPosition = new TVector3();
+      const tQuaternion = new TQuaternion();
+      const tScale = new TVector3();
+      t.decompose(tPosition, tQuaternion, tScale);
+
+      expect(position).toMatchVector(tPosition, 1e-6);
+      expect(quaternion).toMatchVector(tQuaternion, 1e-6);
+      expect(scale).toMatchVector(tScale, 1e-6);
+    }
+  });
+
+  it("returns identity rotation and unit scale for a singular basis", () => {
+    const quaternion = new Quaternion(0.1, 0.2, 0.3, 0.9);
+    const scale = new Vector3(5, 5, 5);
+    new Matrix4()
+      .fromArray(singular)
+      .decompose(new Vector3(), quaternion, scale);
+    expect([quaternion.x, quaternion.y, quaternion.z, quaternion.w]).toEqual([
+      0, 0, 0, 1,
+    ]);
+    expect(scale.toArray()).toEqual([1, 1, 1]);
+  });
+
+  it("extractRotation normalizes columns without folding in reflection", () => {
+    for (const values of [general, mirrored, singular]) {
+      const [e, t] = pair(values);
+      const actual = new Matrix4().extractRotation(e);
+      const expected = (
+        new TMatrix4() as THREEMatrix4WithRotation
+      ).extractRotation(t);
+      expect(actual).toMatchMatrix(expected, 1e-6);
+    }
+  });
+});

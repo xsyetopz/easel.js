@@ -683,6 +683,26 @@ function setTriangleNormals(
   context.vn2z = context.normals[c + 2];
 }
 
+/**
+ * three.js lights a visible back face with its normal reversed: `BackSide`
+ * flips vertex normals, `DoubleSide` multiplies them by the face direction,
+ * and flat shading derives a camera-facing normal from screen derivatives.
+ */
+function flipTriangleNormals(context: TriangleContext): void {
+  context.fnx = -context.fnx;
+  context.fny = -context.fny;
+  context.fnz = -context.fnz;
+  context.vn0x = -context.vn0x;
+  context.vn0y = -context.vn0y;
+  context.vn0z = -context.vn0z;
+  context.vn1x = -context.vn1x;
+  context.vn1y = -context.vn1y;
+  context.vn1z = -context.vn1z;
+  context.vn2x = -context.vn2x;
+  context.vn2y = -context.vn2y;
+  context.vn2z = -context.vn2z;
+}
+
 function setTriangleUvs(
   context: TriangleContext,
   i0: number,
@@ -738,6 +758,7 @@ function appendTriangle(
   if (cross === 0 || !visibleTriangle(context.side, cross)) return;
   setTriangleFog(context, i0, i1, i2);
   setTriangleNormals(context, i0, i1, i2);
+  if (cross > 0) flipTriangleNormals(context);
   const z0 = verts[b0 + 2];
   const z1 = verts[b1 + 2];
   const z2 = verts[b2 + 2];

@@ -38,7 +38,7 @@
     "biome:lint:fix": "biome lint . --write --max-diagnostics 16384",
     "biome:format": "biome format . --write --max-diagnostics 16384",
     "pack:verify": "bun run build && python3 -m scripts verify-package",
-    "release:check": "bun install --frozen-lockfile && bun run version:check && bun run deps:check && bun run biome:lint && bun run api:check-modern && bun run api:compare:check && bun run docs:check-public && bun run docs:generate && bun run docs:check-source && bun run typecheck && bun run typecheck:tests && bun run typecheck:website && bun run tests:no-any && bun run examples:catalog && bun test && bun run www:build && bun run pack:verify && bun run jsr:dry-run",
+    "release:check": "bun install --frozen-lockfile && bun run version:check && bun run deps:check && bun run biome:lint && bun run api:check-modern && bun run api:compare:check && bun run docs:check-public && bun run docs:generate && bun run docs:check-source && bun run typecheck && bun run typecheck:tests && bun run typecheck:website && bun run tests:no-any && bun run examples:registry:check && bun run examples:catalog && bun test && bun run www:build && bun run pack:verify && bun run jsr:dry-run",
     "release": "python3 -m scripts release",
     "prepack": "bun run build",
     "prepublishOnly": "bun run release:check",
@@ -50,6 +50,8 @@
     "typecheck:website": "tsc -p www/tsconfig.json --noEmit --pretty false",
     "tests:no-any": "python3 -m scripts check-no-test-any",
     "examples:catalog": "python3 -m scripts check-example-catalog",
+    "examples:registry": "bun scripts/generate-example-registry.ts",
+    "examples:registry:check": "bun scripts/generate-example-registry.ts --check",
     "docs:generate": "bun scripts/generate-starlight-docs.ts",
     "docs:check-source": "bun scripts/generate-starlight-docs.ts --check",
     "api:compare": "bun scripts/generate-api-comparison.ts",
@@ -127,7 +129,6 @@
   "homepage": "https://easeljs.org",
   "readme": "README.md",
   "devDependencies": {
-    "@astrojs/check": "0.9.10",
     "@astrojs/starlight": "0.42.4",
     "@biomejs/biome": "2.5.14",
     "@types/bun": "1.4.2",
@@ -140,14 +141,9 @@
     "shiki": "4.4.3",
     "three": "0.186.1",
     "typescript": "7.0.2",
-    "typescript-api": "npm:typescript@7.0.2",
-    "typescript-compiler-api": "npm:typescript@7.0.2",
+    "typescript-api": "npm:typescript@6.0.3",
     "vite": "8.3.1"
   },
   "unpkg": "./dist/index.umd.js",
-  "jsdelivr": "./dist/index.umd.js",
-  "patchedDependencies": {
-    "@volar/kit@2.4.28": "patches/@volar%2Fkit@2.4.28.patch",
-    "@astrojs/language-server@2.16.11": "patches/@astrojs%2Flanguage-server@2.16.11.patch"
-  }
+  "jsdelivr": "./dist/index.umd.js"
 }

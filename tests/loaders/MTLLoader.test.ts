@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import { BasicMaterial } from "@/materials/BasicMaterial.js";
-import { LambertMaterial } from "@/materials/LambertMaterial.js";
 import { MTLLoader } from "@/loaders/MTLLoader.js";
 import { OBJLoader } from "@/loaders/OBJLoader.js";
+import { BasicMaterial } from "@/materials/BasicMaterial.js";
+import { LambertMaterial } from "@/materials/LambertMaterial.js";
 import { Mesh } from "@/objects/Mesh.js";
 import { Texture } from "@/textures/Texture.js";
 import type { ImageDataLike } from "@/utils/ImageUtils.js";

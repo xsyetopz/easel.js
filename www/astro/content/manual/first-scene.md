@@ -52,14 +52,14 @@ canvas changes size, call `Renderer.setSize()` and update the camera's aspect
 or frustum before rendering the next frame. See the
 [Renderer API](/docs/renderers/Renderer/) for the complete signature.
 
-<figure class="manual-render" data-manual-example="keyframe-timeline">
+<figure class="manual-render" data-manual-example="canvas_math_obb">
   <div class="manual-render__stage">
-    <canvas width="16" height="9" role="img" aria-label="Animated box rendered to Canvas2D.">
+    <canvas width="16" height="9" role="img" aria-label="Rotating boxes rendered to Canvas2D each frame.">
       This render needs a Canvas2D-capable browser.
     </canvas>
     <p data-manual-example-status role="status">Loading render…</p>
   </div>
-  <figcaption>Animated box rendered to Canvas2D.</figcaption>
+  <figcaption>Rotating boxes rendered to Canvas2D each frame.</figcaption>
 </figure>
 
 ## Related API

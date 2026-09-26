@@ -9,4 +9,12 @@ describe("ArcCurve vs THREE", () => {
   const THREECurve = new THREE.ArcCurve(0, 0, 3, 0, Math.PI * 1.5, false);
 
   expectCurveParity(EASEL, THREECurve, { lengthEpsilon: 1e-3 });
+
+  describe("clockwise", () => {
+    expectCurveParity(
+      new ArcCurve(1, 2, 3, 0, Math.PI * 1.5, true),
+      new THREE.ArcCurve(1, 2, 3, 0, Math.PI * 1.5, true),
+      { lengthEpsilon: 1e-3 },
+    );
+  });
 });

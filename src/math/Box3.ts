@@ -69,8 +69,13 @@ export interface SceneNode {
   matrixWorld: Matrix4;
   /** Updates this node's world transform before bounds traversal. */
   updateMatrixWorld: (force: boolean, parentUpdated: boolean) => void;
-  /** Optional geometry record containing a position attribute. */
+  /** Optional geometry exposing its position attribute. */
   geometry?: {
+    /** Looks up a named attribute, as `Geometry.getAttribute` does. */
+    getAttribute?: (
+      name: string,
+    ) => { array: ArrayLike<number>; itemSize: number } | undefined;
+    /** Plain-record attribute access for structural geometry objects. */
     attributes?: {
       position?: { array: ArrayLike<number>; itemSize: number };
     };
@@ -492,7 +497,9 @@ export class Box3 {
 
   #expandFromObject(obj: SceneNode): void {
     if (obj.type === "Mesh") {
-      const posAttr = obj.geometry?.attributes?.position;
+      const geometry = obj.geometry;
+      const posAttr =
+        geometry?.getAttribute?.("position") ?? geometry?.attributes?.position;
       if (posAttr && posAttr.array.length > 0) {
         obj.updateMatrixWorld(false, false);
         const arr = posAttr.array;

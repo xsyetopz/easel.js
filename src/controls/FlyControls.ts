@@ -1,24 +1,12 @@
-import { EventDispatcher } from "../core/EventDispatcher.ts";
-import type { EulerOrder } from "../math/Euler.ts";
+import type { Node } from "../core/Node.ts";
+import { Quaternion } from "../math/Quaternion.ts";
 import { Vector3 } from "../math/Vector3.ts";
 import {
   type ControlDomElement,
   type ControlEvent,
-  prevent,
+  controlWindow,
 } from "./ControlDom.ts";
-
-type FlyCamera = {
-  position: Vector3;
-  rotation: {
-    x: number;
-    y: number;
-    z: number;
-    order: EulerOrder;
-    set: (x: number, y: number, z: number, order?: EulerOrder) => void;
-  };
-  quaternion: { x: number; y: number; z: number; w: number };
-  updateMatrixWorld: (...args: boolean[]) => void;
-};
+import { Controls } from "./Controls.ts";
 
 type FlyMoveState = {
   up: number;
@@ -35,32 +23,45 @@ type FlyMoveState = {
   rollRight: number;
 };
 
-const _move = new Vector3();
-const _rotation = new Vector3();
-const _local = new Vector3();
-const _EPS = 1e-6;
+const _changeEvent = { type: "change" };
+const _EPS = 0.000001;
+const _tmpQuaternion = new Quaternion();
 
 /**
- * Unconstrained flight-camera controls matching three.js FlyControls input
- * semantics while translating and rotating an EASEL camera on the CPU.
+ * Fly navigation similar to the fly modes of DCC tools such as Blender,
+ * matching three.js r186. The object moves and rotates freely in its own
+ * local frame, with no target or limits.
+ *
+ * Keys: W/S move forward and back, A/D strafe, R/F move up and down, the
+ * up/down arrows pitch, the left/right arrows yaw, and Q/E roll. Key presses
+ * with Alt held are ignored. The pointer position relative to the element
+ * center yaws and pitches the object; with `dragToLook` this applies only
+ * while a pointer is pressed, otherwise the primary button moves forward
+ * and the secondary button moves back.
+ *
+ * Dispatches `change` from `update(delta)` when the object moved or turned.
  */
-export class FlyControls extends EventDispatcher {
-  /** Camera transformed by the flight controls. */
-  camera: FlyCamera;
-  /** Element receiving pointer input and browser gesture suppression. */
-  domElement: ControlDomElement;
-  /** World units moved per second. */
-  movementSpeed: number = 1;
-  /** Radians rotated per second for keyboard/pointer input. */
+export class FlyControls extends Controls {
+  /** Movement speed in world units per second. */
+  movementSpeed: number = 1.0;
+
+  /** Rotation speed in radians per second at full input. */
   rollSpeed: number = 0.005;
-  /** When true, pointer look is active only during a held pointer gesture. */
+
+  /** When true, the pointer turns the object only while it is pressed. */
   dragToLook: boolean = false;
-  /** Move forward while the back key is not held. */
+
+  /**
+   * When true, the object keeps moving forward while the back input is not
+   * held.
+   */
   autoForward: boolean = false;
-  /** Temporary speed factor while either Shift key is held. */
+
+  /**
+   * Set to `0.1` while Shift is held and back to `1` on release. As in
+   * three.js r186, `update()` does not read it.
+   */
   movementSpeedMultiplier: number = 1;
-  /** Whether this control accepts input and updates the camera. */
-  enabled: boolean = true;
 
   readonly #moveState: FlyMoveState = {
     up: 0,
@@ -76,241 +77,262 @@ export class FlyControls extends EventDispatcher {
     rollLeft: 0,
     rollRight: 0,
   };
+  readonly #moveVector = new Vector3();
+  readonly #rotationVector = new Vector3();
+  readonly #lastQuaternion = new Quaternion();
+  readonly #lastPosition = new Vector3();
   #status = 0;
-  readonly #listeners: Array<[string, EventListener]> = [];
-  readonly #globalListeners: Array<[string, EventListener]> = [];
+  #window: EventTarget | undefined;
 
-  /** Creates controls and installs browser input listeners. */
-  constructor(camera: FlyCamera, domElement: ControlDomElement) {
-    super();
-    this.camera = camera;
-    this.domElement = domElement;
-    this.#listenGlobal("keydown", this.#onKeyDown.bind(this));
-    this.#listenGlobal("keyup", this.#onKeyUp.bind(this));
-    this.#listen("pointermove", this.#onPointerMove.bind(this));
-    this.#listen("pointerdown", this.#onPointerDown.bind(this));
-    this.#listen("pointerup", this.#onPointerUp.bind(this));
-    this.#listen("pointercancel", this.#onPointerCancel.bind(this));
-    this.#listen("contextmenu", (event) => prevent(event));
-    if (domElement.style) domElement.style.touchAction = "none";
+  readonly #onKeyDown = (event: Event): void =>
+    this.#handleKeyDown(event as ControlEvent);
+  readonly #onKeyUp = (event: Event): void =>
+    this.#handleKeyUp(event as ControlEvent);
+  readonly #onPointerMove = (event: Event): void =>
+    this.#handlePointerMove(event as ControlEvent);
+  readonly #onPointerDown = (event: Event): void =>
+    this.#handlePointerDown(event as ControlEvent);
+  readonly #onPointerUp = (event: Event): void =>
+    this.#handlePointerUp(event as ControlEvent);
+  readonly #onPointerCancel = (): void => this.#handlePointerCancel();
+  readonly #onContextMenu = (event: Event): void => {
+    if (this.enabled === false) return;
+    event.preventDefault();
+  };
+
+  /**
+   * Creates controls for `object` and connects them when `domElement` is given.
+   *
+   * @param object The object moved and turned by the controls.
+   * @param domElement Element used for pointer listeners.
+   */
+  constructor(object: Node, domElement?: ControlDomElement) {
+    super(object, domElement);
+    if (domElement !== undefined) this.connect(domElement);
   }
 
-  /** Applies movement and rotation for elapsed seconds; returns whether changed. */
-  update(delta: number): boolean {
-    if (!this.enabled) return false;
-    const seconds = Math.max(0, Number.isFinite(delta) ? delta : 0);
-    const moveMult =
-      seconds * this.movementSpeed * this.movementSpeedMultiplier;
-    _local
-      .set(_move.x, _move.y, _move.z)
-      .applyQuaternion(this.camera.quaternion);
-    this.camera.position.addScaledVector(_local, moveMult);
-    const rotationMult = seconds * this.rollSpeed;
-    const beforeX = this.camera.rotation.x;
-    const beforeY = this.camera.rotation.y;
-    const beforeZ = this.camera.rotation.z;
-    this.camera.rotation.set(
-      beforeX + _rotation.x * rotationMult,
-      beforeY + _rotation.y * rotationMult,
-      beforeZ + _rotation.z * rotationMult,
-      this.camera.rotation.order,
-    );
-    this.camera.updateMatrixWorld(false, true);
-    const moved =
-      _local.lengthSq * moveMult * moveMult > _EPS ||
-      Math.abs(_rotation.x * rotationMult) > _EPS ||
-      Math.abs(_rotation.y * rotationMult) > _EPS ||
-      Math.abs(_rotation.z * rotationMult) > _EPS;
-    if (moved) this.dispatchEvent({ type: "change" });
-    return moved;
+  /**
+   * Adds key listeners to the window and pointer and context-menu listeners
+   * to the element, and disables browser touch scrolling on the element.
+   */
+  override connect(element: ControlDomElement): void {
+    super.connect(element);
+    this.#window = controlWindow();
+    this.#window?.addEventListener("keydown", this.#onKeyDown);
+    this.#window?.addEventListener("keyup", this.#onKeyUp);
+    element.addEventListener("pointermove", this.#onPointerMove);
+    element.addEventListener("pointerdown", this.#onPointerDown);
+    element.addEventListener("pointerup", this.#onPointerUp);
+    element.addEventListener("pointercancel", this.#onPointerCancel);
+    element.addEventListener("contextmenu", this.#onContextMenu);
+    if (element.style) element.style.touchAction = "none";
   }
 
-  /** Removes all browser listeners and restores touch scrolling. */
-  dispose(): void {
-    for (const [type, listener] of this.#listeners)
-      this.domElement.removeEventListener(type, listener);
-    this.#listeners.length = 0;
-    const globalTarget = globalThis as unknown as {
-      removeEventListener?: (type: string, listener: EventListener) => void;
-    };
-    if (globalTarget.removeEventListener)
-      for (const [type, listener] of this.#globalListeners)
-        globalTarget.removeEventListener(type, listener);
-    this.#globalListeners.length = 0;
-    if (this.domElement.style) this.domElement.style.touchAction = "";
+  /** Removes the listeners added by `connect()` and restores touch scrolling. */
+  override disconnect(): void {
+    const element = this.domElement;
+    if (element === undefined) return;
+    this.#window?.removeEventListener("keydown", this.#onKeyDown);
+    this.#window?.removeEventListener("keyup", this.#onKeyUp);
+    element.removeEventListener("pointermove", this.#onPointerMove);
+    element.removeEventListener("pointerdown", this.#onPointerDown);
+    element.removeEventListener("pointerup", this.#onPointerUp);
+    element.removeEventListener("pointercancel", this.#onPointerCancel);
+    element.removeEventListener("contextmenu", this.#onContextMenu);
+    if (element.style) element.style.touchAction = "";
   }
 
-  #listen(type: string, listener: EventListener): void {
-    this.domElement.addEventListener(type, listener);
-    this.#listeners.push([type, listener]);
+  /** Removes all listeners. */
+  override dispose(): void {
+    this.disconnect();
   }
 
-  #listenGlobal(type: string, listener: EventListener): void {
-    const target = globalThis as unknown as {
-      addEventListener?: (type: string, listener: EventListener) => void;
-    };
-    if (typeof target.addEventListener === "function") {
-      target.addEventListener(type, listener);
-      this.#globalListeners.push([type, listener]);
+  /**
+   * Moves and rotates the object for `delta` seconds of held input, then
+   * dispatches `change` when its position or orientation changed since the
+   * last dispatch.
+   *
+   * @param delta Elapsed time in seconds.
+   */
+  override update(delta: number): void {
+    if (this.enabled === false) return;
+    const object = this.object;
+    const moveMult = delta * this.movementSpeed;
+    const rotMult = delta * this.rollSpeed;
+
+    object.translateX(this.#moveVector.x * moveMult);
+    object.translateY(this.#moveVector.y * moveMult);
+    object.translateZ(this.#moveVector.z * moveMult);
+
+    _tmpQuaternion
+      .set(
+        this.#rotationVector.x * rotMult,
+        this.#rotationVector.y * rotMult,
+        this.#rotationVector.z * rotMult,
+        1,
+      )
+      .normalize();
+    object.quaternion.multiply(_tmpQuaternion);
+
+    if (
+      this.#lastPosition.distanceToSquared(object.position) > _EPS ||
+      8 * (1 - this.#lastQuaternion.dot(object.quaternion)) > _EPS
+    ) {
+      this.dispatchEvent(_changeEvent);
+      this.#lastQuaternion.copy(object.quaternion);
+      this.#lastPosition.copy(object.position);
     }
   }
 
-  #updateVectors(): void {
+  #updateMovementVector(): void {
     const state = this.#moveState;
     const forward = state.forward || (this.autoForward && !state.back) ? 1 : 0;
-    _move.set(
-      -state.left + state.right,
-      -state.down + state.up,
-      -forward + state.back,
-    );
-    _rotation.set(
-      -state.pitchDown + state.pitchUp,
-      -state.yawRight + state.yawLeft,
-      -state.rollRight + state.rollLeft,
-    );
+    this.#moveVector.x = -state.left + state.right;
+    this.#moveVector.y = -state.down + state.up;
+    this.#moveVector.z = -forward + state.back;
   }
 
-  #onKeyDown(raw: Event): void {
-    if (!this.enabled) return;
-    const event = raw as ControlEvent & { altKey?: boolean };
-    if (event.altKey) return;
-    const code = event.code ?? event.key ?? "";
+  #updateRotationVector(): void {
+    const state = this.#moveState;
+    this.#rotationVector.x = -state.pitchDown + state.pitchUp;
+    this.#rotationVector.y = -state.yawRight + state.yawLeft;
+    this.#rotationVector.z = -state.rollRight + state.rollLeft;
+  }
+
+  #handleKeyDown(event: ControlEvent): void {
+    if (event.altKey || this.enabled === false) return;
+    if (event.code === "ShiftLeft" || event.code === "ShiftRight")
+      this.movementSpeedMultiplier = 0.1;
+    else this.#setKey(event.code, 1);
+    this.#updateMovementVector();
+    this.#updateRotationVector();
+  }
+
+  #handleKeyUp(event: ControlEvent): void {
+    if (this.enabled === false) return;
+    if (event.code === "ShiftLeft" || event.code === "ShiftRight")
+      this.movementSpeedMultiplier = 1;
+    else this.#setKey(event.code, 0);
+    this.#updateMovementVector();
+    this.#updateRotationVector();
+  }
+
+  #setKey(code: string | undefined, value: number): void {
+    const state = this.#moveState;
     switch (code) {
-      case "ShiftLeft":
-      case "ShiftRight":
-        this.movementSpeedMultiplier = 0.1;
-        break;
       case "KeyW":
-        this.#moveState.forward = 1;
+        state.forward = value;
         break;
       case "KeyS":
-        this.#moveState.back = 1;
+        state.back = value;
         break;
       case "KeyA":
-        this.#moveState.left = 1;
+        state.left = value;
         break;
       case "KeyD":
-        this.#moveState.right = 1;
+        state.right = value;
         break;
       case "KeyR":
-        this.#moveState.up = 1;
+        state.up = value;
         break;
       case "KeyF":
-        this.#moveState.down = 1;
+        state.down = value;
         break;
       case "ArrowUp":
-        this.#moveState.pitchUp = 1;
+        state.pitchUp = value;
         break;
       case "ArrowDown":
-        this.#moveState.pitchDown = 1;
+        state.pitchDown = value;
         break;
       case "ArrowLeft":
-        this.#moveState.yawLeft = 1;
+        state.yawLeft = value;
         break;
       case "ArrowRight":
-        this.#moveState.yawRight = 1;
+        state.yawRight = value;
         break;
       case "KeyQ":
-        this.#moveState.rollLeft = 1;
+        state.rollLeft = value;
         break;
       case "KeyE":
-        this.#moveState.rollRight = 1;
+        state.rollRight = value;
         break;
-      default:
-        return;
     }
-    this.#updateVectors();
   }
 
-  #onKeyUp(raw: Event): void {
-    if (!this.enabled) return;
-    const code = (raw as ControlEvent).code ?? (raw as ControlEvent).key ?? "";
-    switch (code) {
-      case "ShiftLeft":
-      case "ShiftRight":
-        this.movementSpeedMultiplier = 1;
-        break;
-      case "KeyW":
-        this.#moveState.forward = 0;
-        break;
-      case "KeyS":
-        this.#moveState.back = 0;
-        break;
-      case "KeyA":
-        this.#moveState.left = 0;
-        break;
-      case "KeyD":
-        this.#moveState.right = 0;
-        break;
-      case "KeyR":
-        this.#moveState.up = 0;
-        break;
-      case "KeyF":
-        this.#moveState.down = 0;
-        break;
-      case "ArrowUp":
-        this.#moveState.pitchUp = 0;
-        break;
-      case "ArrowDown":
-        this.#moveState.pitchDown = 0;
-        break;
-      case "ArrowLeft":
-        this.#moveState.yawLeft = 0;
-        break;
-      case "ArrowRight":
-        this.#moveState.yawRight = 0;
-        break;
-      case "KeyQ":
-        this.#moveState.rollLeft = 0;
-        break;
-      case "KeyE":
-        this.#moveState.rollRight = 0;
-        break;
-      default:
-        return;
+  #handlePointerDown(event: ControlEvent): void {
+    if (this.enabled === false) return;
+    if (this.dragToLook) {
+      this.#status++;
+    } else {
+      if (event.button === 0) this.#moveState.forward = 1;
+      else if (event.button === 2) this.#moveState.back = 1;
+      this.#updateMovementVector();
     }
-    this.#updateVectors();
   }
 
-  #onPointerDown(raw: Event): void {
-    if (!this.enabled) return;
-    const event = raw as ControlEvent;
-    if (this.dragToLook) this.#status++;
-    else if (event.button === 0) this.#moveState.forward = 1;
-    else if (event.button === 2) this.#moveState.back = 1;
-    this.#updateVectors();
+  #handlePointerMove(event: ControlEvent): void {
+    if (this.enabled === false) return;
+    if (this.dragToLook && this.#status <= 0) return;
+    // The element's layout box, or the window when the controls listen on
+    // the document itself. Targets without layout offsets, such as canvases
+    // outside a document, fall back to their client bounds.
+    const element = this.domElement;
+    const view = this.#window as
+      | { innerWidth?: number; innerHeight?: number }
+      | undefined;
+    let width = view?.innerWidth ?? 0;
+    let height = view?.innerHeight ?? 0;
+    let left = 0;
+    let top = 0;
+    const document = (globalThis as { document?: unknown }).document;
+    if (element !== undefined && element !== document) {
+      if (element.offsetWidth !== undefined) {
+        width = element.offsetWidth;
+        height = element.offsetHeight ?? 0;
+        left = element.offsetLeft ?? 0;
+        top = element.offsetTop ?? 0;
+      } else {
+        const bounds = element.getBoundingClientRect?.();
+        width = bounds?.width ?? element.clientWidth ?? 0;
+        height = bounds?.height ?? element.clientHeight ?? 0;
+        left = bounds?.left ?? 0;
+        top = bounds?.top ?? 0;
+      }
+    }
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+    const pageX = event.pageX ?? event.clientX ?? 0;
+    const pageY = event.pageY ?? event.clientY ?? 0;
+    this.#moveState.yawLeft = -(pageX - left - halfWidth) / halfWidth;
+    this.#moveState.pitchDown = (pageY - top - halfHeight) / halfHeight;
+    this.#updateRotationVector();
   }
 
-  #onPointerMove(raw: Event): void {
-    if (!this.enabled || (this.dragToLook && this.#status === 0)) return;
-    const event = raw as ControlEvent;
-    const width = this.domElement.clientWidth ?? 800;
-    const height = this.domElement.clientHeight ?? 600;
-    const bounds = this.domElement.getBoundingClientRect?.();
-    const x = (event.clientX ?? 0) - (bounds?.left ?? 0);
-    const y = (event.clientY ?? 0) - (bounds?.top ?? 0);
-    this.#moveState.yawLeft = -(x - width * 0.5) / Math.max(1, width * 0.5);
-    this.#moveState.pitchDown = (y - height * 0.5) / Math.max(1, height * 0.5);
-    this.#updateVectors();
+  #handlePointerUp(event: ControlEvent): void {
+    if (this.enabled === false) return;
+    if (this.dragToLook) {
+      this.#status--;
+      this.#moveState.yawLeft = 0;
+      this.#moveState.pitchDown = 0;
+    } else {
+      if (event.button === 0) this.#moveState.forward = 0;
+      else if (event.button === 2) this.#moveState.back = 0;
+      this.#updateMovementVector();
+    }
+    this.#updateRotationVector();
   }
 
-  #onPointerUp(raw: Event): void {
-    if (!this.enabled) return;
-    const event = raw as ControlEvent;
-    if (this.dragToLook) this.#status = Math.max(0, this.#status - 1);
-    else if (event.button === 0) this.#moveState.forward = 0;
-    else if (event.button === 2) this.#moveState.back = 0;
-    this.#moveState.yawLeft = 0;
-    this.#moveState.pitchDown = 0;
-    this.#updateVectors();
-  }
-
-  #onPointerCancel(): void {
-    this.#status = 0;
-    this.#moveState.forward = 0;
-    this.#moveState.back = 0;
-    this.#moveState.yawLeft = 0;
-    this.#moveState.pitchDown = 0;
-    this.#updateVectors();
+  #handlePointerCancel(): void {
+    if (this.enabled === false) return;
+    if (this.dragToLook) {
+      this.#status = 0;
+      this.#moveState.yawLeft = 0;
+      this.#moveState.pitchDown = 0;
+    } else {
+      this.#moveState.forward = 0;
+      this.#moveState.back = 0;
+      this.#updateMovementVector();
+    }
+    this.#updateRotationVector();
   }
 }

@@ -1,3 +1,4 @@
+import { SRGBColorSpace } from "../core/Constants.ts";
 import { BasicMaterial } from "../materials/BasicMaterial.ts";
 import type { Material } from "../materials/Material.ts";
 import { LambertMaterial } from "../materials/LambertMaterial.ts";
@@ -199,6 +200,8 @@ interface RawMaterial {
   name: string;
   ambientColor: Color | undefined;
   diffuseColor: Color | undefined;
+  ambientValues: readonly [number, number, number] | undefined;
+  diffuseValues: readonly [number, number, number] | undefined;
   dissolve: number | undefined;
   transparencyValue: number | undefined;
   opacitySource: "d" | "tr" | undefined;
@@ -231,10 +234,10 @@ function parseFiniteNumber(value: string | undefined): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function parseColor(
+function parseColorValues(
   value: string,
   options: MTLMaterialOptions,
-): Color | undefined {
+): readonly [number, number, number] | undefined {
   const parts = value.trim().split(RE_WHITESPACE);
   if (parts.length < COLOR_COMPONENTS) return;
   const channels = parts
@@ -255,11 +258,16 @@ function parseColor(
   ) {
     return;
   }
-  return new Color(
+  return [
     clampUnit(normalized[0]),
     clampUnit(normalized[1]),
     clampUnit(normalized[2]),
-  );
+  ];
+}
+
+/** three.js MTLLoader decodes MTL colors from sRGB to the working space. */
+function srgbColor(values: readonly [number, number, number]): Color {
+  return new Color().setRGB(values[0], values[1], values[2], SRGBColorSpace);
 }
 
 function parsePropertyValue(value: string): string | readonly number[] {
@@ -394,12 +402,6 @@ function resolveTexturePath(path: string, basePath: string): string {
   } catch {
     return path;
   }
-}
-
-function colorToArray(
-  color: Color | undefined,
-): readonly [number, number, number] | undefined {
-  return color === undefined ? undefined : [color.r, color.g, color.b];
 }
 
 function lookupTexture(
@@ -610,6 +612,8 @@ export class MTLLoader extends Loader {
           name: value,
           ambientColor: undefined,
           diffuseColor: undefined,
+          ambientValues: undefined,
+          diffuseValues: undefined,
           dissolve: undefined,
           transparencyValue: undefined,
           opacitySource: undefined,
@@ -628,20 +632,22 @@ export class MTLLoader extends Loader {
 
       switch (key) {
         case "ka": {
-          const color = parseColor(value, this.#options);
-          if (color === undefined) {
+          const values = parseColorValues(value, this.#options);
+          if (values === undefined) {
             warnings.push(`line ${lineIndex + 1}: invalid Ka color`);
           } else {
-            current.ambientColor = color;
+            current.ambientColor = srgbColor(values);
+            current.ambientValues = values;
           }
           break;
         }
         case "kd": {
-          const color = parseColor(value, this.#options);
-          if (color === undefined) {
+          const values = parseColorValues(value, this.#options);
+          if (values === undefined) {
             warnings.push(`line ${lineIndex + 1}: invalid Kd color`);
           } else {
-            current.diffuseColor = color;
+            current.diffuseColor = srgbColor(values);
+            current.diffuseValues = values;
           }
           break;
         }
@@ -699,8 +705,8 @@ export class MTLLoader extends Loader {
       const definition = createMaterial(raw, this.#options, path);
       materialRecords[name] = definition.material;
       definitionRecords[name] = definition;
-      const ambient = colorToArray(raw.ambientColor);
-      const diffuse = colorToArray(raw.diffuseColor);
+      const ambient = raw.ambientValues;
+      const diffuse = raw.diffuseValues;
       const info: MTLMaterialInfo = {
         name,
         ...(ambient === undefined ? {} : { ka: ambient }),

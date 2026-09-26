@@ -1,3 +1,4 @@
+import { SRGBColorSpace } from "../core/Constants.ts";
 import { DataTexture } from "../textures/DataTexture.ts";
 import { DataTextureLoader } from "./DataTextureLoader.ts";
 
@@ -135,7 +136,9 @@ export class HDRLoader extends DataTextureLoader {
         )
       : result.data;
     const texture = new DataTexture(pixels, result.width, result.height);
-    texture.buildBrightnessLevels();
+    // The pixels are already tone-mapped and sRGB-encoded.
+    texture.colorSpace = SRGBColorSpace;
+    texture.update().buildBrightnessLevels();
     return texture;
   }
 }

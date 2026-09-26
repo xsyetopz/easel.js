@@ -1,4 +1,9 @@
 import { describe, expect, it } from "bun:test";
+import {
+  ConeGeometry as TConeGeometry,
+  CylinderGeometry as TCylinderGeometry,
+} from "three";
+import { ConeGeometry } from "@/geometry/primitives/ConeGeometry.js";
 import { CylinderGeometry } from "@/geometry/primitives/CylinderGeometry.js";
 import { defined } from "../../_helpers/defined.ts";
 import { expectUnitNormals } from "../../_helpers/geometry.ts";
@@ -138,5 +143,83 @@ describe("CylinderGeometry cap winding", () => {
       const { ny } = faceNormal(pos, idx[off], idx[off + 1], idx[off + 2]);
       expect(ny).toBeLessThan(0);
     }
+  });
+});
+
+describe("CylinderGeometry parity with three.js r186", () => {
+  type CylinderArgs = [
+    radiusTop: number,
+    radiusBottom: number,
+    height: number,
+    radialSegments: number,
+    heightSegments?: number,
+    openEnded?: boolean,
+    thetaStart?: number,
+    thetaLength?: number,
+  ];
+  type THREECylinderConstructor = new (
+    ...args: CylinderArgs
+  ) => TCylinderGeometry;
+  const THREECylinder =
+    TCylinderGeometry as unknown as THREECylinderConstructor;
+  type THREEConeConstructor = new (
+    radius: number,
+    height: number,
+    radialSegments: number,
+    heightSegments?: number,
+    openEnded?: boolean,
+  ) => TConeGeometry;
+  const THREECone = TConeGeometry as unknown as THREEConeConstructor;
+
+  interface GeometryArrays {
+    getAttribute(name: string): { array: ArrayLike<number> } | undefined;
+  }
+
+  function expectSameArrays(
+    actual: GeometryArrays,
+    actualIndex: ArrayLike<number> | undefined,
+    expected: GeometryArrays,
+    expectedIndex: ArrayLike<number> | undefined,
+  ): void {
+    for (const name of ["position", "normal", "uv"]) {
+      expect(Array.from(defined(actual.getAttribute(name)).array)).toEqual(
+        Array.from(defined(expected.getAttribute(name)).array),
+      );
+    }
+    expect(Array.from(actualIndex ?? [])).toEqual(
+      Array.from(expectedIndex ?? []),
+    );
+  }
+
+  const cases: CylinderArgs[] = [
+    // TransformControls picker arrow: zero bottom radius.
+    [0.2, 0, 0.6, 4],
+    [0, 0.04, 0.1, 8],
+    [0, 0.5, 1, 5, 2],
+    [0, 0, 1, 3],
+    [1, 0.5, 3, 16, 2],
+    [0.3, 0.4, 1, 6, 1, true],
+    [0.7, 0.2, 2, 7, 3, false, 0.4, Math.PI],
+  ];
+
+  for (const args of cases) {
+    it(`matches positions, normals, UVs, and indices for (${args.join(", ")})`, () => {
+      const actual = new CylinderGeometry(...args);
+      const expected = new THREECylinder(...args);
+      expectSameArrays(actual, actual.index, expected, expected.index?.array);
+    });
+  }
+
+  it("emits 57 position floats for (0.2, 0, 0.6, 4), like three.js", () => {
+    expect(
+      defined(new CylinderGeometry(0.2, 0, 0.6, 4).getAttribute("position"))
+        .array.length,
+    ).toBe(57);
+  });
+
+  it("ConeGeometry matches three.js", () => {
+    const actual = new ConeGeometry(0.5, 1.5, 6, 2);
+    const expected = new THREECone(0.5, 1.5, 6, 2);
+    expectSameArrays(actual, actual.index, expected, expected.index?.array);
   });
 });

@@ -98,3 +98,34 @@ describe("Euler", () => {
     expect(cb).toHaveBeenCalled();
   });
 });
+
+describe("Euler gimbal lock", () => {
+  it("matches three.js in every order and ignores the previous angles", () => {
+    const orders = ["XYZ", "YXZ", "ZXY", "ZYX", "YZX", "XZY"] as const;
+    for (const order of orders) {
+      // A middle rotation of ±90 degrees puts each order into gimbal lock.
+      const reference = new TEuler(0.3, 0.4, 0.5, order);
+      if (order[1] === "X") reference.x = Math.PI / 2;
+      if (order[1] === "Y") reference.y = Math.PI / 2;
+      if (order[1] === "Z") reference.z = Math.PI / 2;
+      // three's JS-inferred types omit this method; it exists at runtime.
+      const matrix = (
+        new TMatrix4() as unknown as {
+          makeRotationFromEuler(euler: TEuler): TMatrix4;
+        }
+      ).makeRotationFromEuler(reference);
+      const expected = new TEuler().setFromRotationMatrix(matrix, order);
+
+      const fresh = new Euler().setFromRotationMatrix(matrix, order);
+      const reused = new Euler(1, 2, 3, order).setFromRotationMatrix(
+        matrix,
+        order,
+      );
+      for (const euler of [fresh, reused]) {
+        expect(euler.x).toBeCloseTo(expected.x, 9);
+        expect(euler.y).toBeCloseTo(expected.y, 9);
+        expect(euler.z).toBeCloseTo(expected.z, 9);
+      }
+    }
+  });
+});

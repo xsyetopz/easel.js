@@ -34,7 +34,10 @@ export function walkScene(
   visit: (node: SceneNode, context: TraversalContext) => void,
 ): void {
   if (!node.visible) return;
-  visit(node, context);
+  // A hidden material skips only this node's draw, as in three.js; its
+  // children still render.
+  const material = (node as { material?: { visible?: boolean } }).material;
+  if (material?.visible !== false) visit(node, context);
   for (const child of node.children) {
     walkScene(child, context, visit);
   }

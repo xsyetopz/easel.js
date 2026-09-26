@@ -6,7 +6,7 @@ const _cameraPosition = new Vector3();
 
 /** Scene-graph surface required for CPU ray traversal. */
 export interface RaycastObject {
-  /** Whether this object participates in traversal. */
+  /** Render visibility; ray traversal ignores it, as three.js does. */
   visible: boolean;
   /** Layer mask used to filter this object. */
   layers: Layers;
@@ -167,11 +167,11 @@ function _intersectObject(
   intersects: Intersection[],
   recursive: boolean,
 ): void {
-  if (!object.visible) return;
+  // three.js r186 filters only by layers; invisible objects are still hit.
   if (!raycaster.layers.test(object.layers)) return;
 
   // Renderable objects own their geometry-specific CPU traversal. The
-  // raycaster only handles visibility, layers, hierarchy, and ordering.
+  // raycaster only handles layers, hierarchy, and ordering.
   object.raycast?.(raycaster, intersects);
 
   // LOD.raycast selects and delegates to its active level. Its children are

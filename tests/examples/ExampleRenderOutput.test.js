@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it } from "bun:test";
 
 import { examples } from "../../www/examples/registry.ts";
 import {
-  countVisiblePixels,
   createAnimationScheduler,
   createExampleCanvas,
+  hasDrawnFrame,
 } from "./example-canvas-harness.js";
 
 describe("example render output", () => {
@@ -29,10 +29,12 @@ describe("example render output", () => {
     scheduler = createAnimationScheduler();
     Object.defineProperty(globalThis, "requestAnimationFrame", {
       configurable: true,
+      writable: true,
       value: scheduler.request,
     });
     Object.defineProperty(globalThis, "cancelAnimationFrame", {
       configurable: true,
+      writable: true,
       value: scheduler.cancel,
     });
 
@@ -43,7 +45,7 @@ describe("example render output", () => {
       const instance = module.setup(canvas, {});
       if (
         instance?.firstFrameRendered !== true ||
-        countVisiblePixels(canvas) === 0
+        !hasDrawnFrame(entry.meta.id, canvas)
       ) {
         blank.push(entry.meta.id);
       }

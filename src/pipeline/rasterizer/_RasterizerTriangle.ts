@@ -1,114 +1,71 @@
-import type { TriangleBuffer } from "../TriangleBuffer.ts";
-import { createScanlineCallback } from "./_RasterizerCallbacks.ts";
-import { rasterizeTriangleOutput } from "./_RasterizerTriangleOutput.ts";
-import { prepareTriangleState } from "./_RasterizerTriangleState.ts";
-import type { RasterizerState, TextureData } from "./_RasterizerTypes.ts";
-import type { ScanlineFill } from "./ScanlineFill.ts";
-import type { WireframeRasterizer } from "./WireframeRasterizer.ts";
+import {
+  rasterizeTriangleOutput,
+  type TriangleOutputOptions,
+} from "./_RasterizerTriangleOutput.ts";
+import {
+  prepareTriangleState,
+  type TriangleShading,
+  type TriangleStateOptions,
+} from "./_RasterizerTriangleState.ts";
+import type { RasterizerState } from "./_RasterizerTypes.ts";
 
-/** Inputs used to rasterize one projected triangle. */
-export interface TriangleRasterizeOptions {
-  /** Mutable state containing the active framebuffer and interpolation values. */
-  state: RasterizerState;
-  /** Scanline filler used for the triangle's interior. */
-  scanlineFill: ScanlineFill;
-  /** Rasterizer used when wireframe output is requested. */
-  wireframeRasterizer: WireframeRasterizer;
-  /** Projected triangle data containing screen coordinates and attributes. */
-  tb: TriangleBuffer;
-  /** Index of the triangle in the physical triangle buffer. */
-  physIdx: number;
-  /** Baked lighting colors, or undefined when no lighting data is present. */
-  shadedColorData: Float32Array | undefined;
-  /** Number of lighting values stored per triangle in shadedColorData. */
-  shadedColorStride: number;
-  /** Triangle index used to locate its lighting values. */
-  iterIdx: number;
-  /** Base material and instance red channel in the 0–255 range. */
-  baseR: number;
-  /** Base material and instance green channel in the 0–255 range. */
-  baseG: number;
-  /** Base material and instance blue channel in the 0–255 range. */
-  baseB: number;
-  /** Sampled texture data for textured triangle output. */
-  texture: TextureData | undefined;
-  /** Whether to draw the triangle edges instead of a filled interior. */
-  wireframe: boolean | undefined;
-  /** Whether to draw the triangle vertices as points. */
-  points: boolean | undefined;
-  /** Radius, in pixels, used for point rendering. */
-  pointRadius: number;
-  /** Width of the destination framebuffer in pixels. */
-  width: number;
-  /** Height of the destination framebuffer in pixels. */
-  height: number;
+/**
+ * Inputs used to rasterize one projected triangle. A rasterizer keeps one
+ * instance, sets its draw-call fields once, and changes only the triangle
+ * indices per triangle.
+ */
+export interface TriangleRasterizeOptions
+  extends TriangleStateOptions,
+    TriangleOutputOptions {
+  /** Reused record that receives the triangle's prepared shading. */
+  shading: TriangleShading;
 }
 
-function triangleCoordinates(
-  tb: TriangleBuffer,
-  vertexOffset: number,
-): readonly [number, number, number, number, number, number] {
-  return [
-    tb.screenX[vertexOffset],
-    tb.screenY[vertexOffset],
-    tb.screenX[vertexOffset + 1],
-    tb.screenY[vertexOffset + 1],
-    tb.screenX[vertexOffset + 2],
-    tb.screenY[vertexOffset + 2],
-  ];
+function clampChannel(value: number): number {
+  return value < 0 ? 0 : Math.min(Math.round(value), 255);
+}
+
+/**
+ * Bakes the triangle's lit color and average fog factor into its flat output
+ * color so wireframe edges match the filled triangle without per-pixel work.
+ */
+function applyWireframeShading(
+  state: RasterizerState,
+  shading: TriangleShading,
+): void {
+  const light = state.gouraudData;
+  if ((shading.isGouraud || shading.mixedVertexColor) && light) {
+    const tint = state.vertexTintData;
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    for (let vertex = 0; vertex < 9; vertex += 3) {
+      const at = state.gouraudBase + vertex;
+      r += light[at] * (tint ? tint[vertex] : 1);
+      g += light[at + 1] * (tint ? tint[vertex + 1] : 1);
+      b += light[at + 2] * (tint ? tint[vertex + 2] : 1);
+    }
+    shading.flatR = clampChannel((state.baseR * r) / 3);
+    shading.flatG = clampChannel((state.baseG * g) / 3);
+    shading.flatB = clampChannel((state.baseB * b) / 3);
+  }
+  if (!state.hasFog) return;
+  const fog = (state.fogF0 + state.fogF1 + state.fogF2) / 3;
+  const f = fog < 0 ? 0 : Math.min(fog, 1);
+  shading.flatR = clampChannel(
+    shading.flatR + (state.fogR - shading.flatR) * f,
+  );
+  shading.flatG = clampChannel(
+    shading.flatG + (state.fogG - shading.flatG) * f,
+  );
+  shading.flatB = clampChannel(
+    shading.flatB + (state.fogB - shading.flatB) * f,
+  );
 }
 
 /** Rasterizes a projected triangle using the selected fill and output paths. */
 export function rasterizeTriangle(options: TriangleRasterizeOptions): void {
-  const {
-    state,
-    scanlineFill,
-    wireframeRasterizer,
-    tb,
-    physIdx,
-    shadedColorData,
-    shadedColorStride,
-    iterIdx,
-    baseR,
-    baseG,
-    baseB,
-    texture,
-    wireframe,
-    points,
-    pointRadius,
-    width,
-    height,
-  } = options;
-  const vertexOffset = physIdx * 3;
-  const shading = prepareTriangleState({
-    state,
-    tb,
-    vertexOffset,
-    shadedColorData,
-    shadedColorStride,
-    iterIdx,
-    baseR,
-    baseG,
-    baseB,
-    texture,
-  });
-  const callback = createScanlineCallback(
-    state,
-    shading.isGouraud || shading.mixedVertexColor,
-    shading.isFlat && !shading.mixedVertexColor,
-    Boolean(texture),
-  );
-  rasterizeTriangleOutput({
-    state,
-    scanlineFill,
-    wireframeRasterizer,
-    shading,
-    coordinates: triangleCoordinates(tb, vertexOffset),
-    width,
-    height,
-    wireframe,
-    points,
-    pointRadius,
-    callback,
-  });
+  const shading = prepareTriangleState(options, options.shading);
+  if (options.wireframe) applyWireframeShading(options.state, shading);
+  rasterizeTriangleOutput(options, shading);
 }

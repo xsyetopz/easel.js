@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { Shading } from "../../../src/core/Constants.ts";
+import {
+  LinearToSRGB,
+  SRGBToLinear,
+} from "../../../src/math/ColorManagement.ts";
 import { SphericalHarmonics3 } from "../../../src/math/SphericalHarmonics3.ts";
 import { LightBaker } from "../../../src/pipeline/shading/LightBaker.ts";
 import { TriangleBuffer } from "../../../src/pipeline/TriangleBuffer.ts";
@@ -15,6 +19,11 @@ const TRI_PERPENDICULAR = [
   0, 0, 5, 0, 2, 5, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
   0,
 ] as TriangleArgs;
+/** three.js output encode of a linear channel, clamped like the framebuffer. */
+function srgb(linear: number): number {
+  return LinearToSRGB(Math.min(Math.max(linear, 0), 1));
+}
+
 function makeDirectional(dx: number, dy: number, dz: number, intensity = 1) {
   return {
     type: "directional",
@@ -92,9 +101,10 @@ describe("LightBaker", () => {
     ]);
 
     expect(dc.shadedColorStride).toBe(9);
-    expect(dc.shadedColorData[0]).toBeCloseTo(0.5431135, 6);
-    expect(dc.shadedColorData[1]).toBeCloseTo(0.32155675, 6);
-    expect(dc.shadedColorData[2]).toBeCloseTo(0.210778375, 6);
+    // Band-0 irradiance 0.886227 * c0, encoded to sRGB with no ambient floor.
+    expect(dc.shadedColorData[0]).toBeCloseTo(srgb(0.4431135), 2);
+    expect(dc.shadedColorData[1]).toBeCloseTo(srgb(0.22155675), 2);
+    expect(dc.shadedColorData[2]).toBeCloseTo(srgb(0.110778375), 2);
   });
 
   it("zero lights: shadedColorStride is 0 and bake returns early", () => {
@@ -147,9 +157,9 @@ describe("LightBaker", () => {
     baker.bake(dc, [makeDirectional(0, 0, 1)]);
 
     // sortOrder[0] = physIdx 0 → face normal (0,0,-1) → facing light → high r
-    // sortOrder[1] = physIdx 1 → face normal (1,0,0) → perpendicular → ambient only
+    // sortOrder[1] = physIdx 1 → face normal (1,0,0) → perpendicular → black
     expect(dc.shadedColorData[0]).toBeGreaterThan(0.9); // iter 0 r
-    expect(dc.shadedColorData[3]).toBeCloseTo(0.1, 2); // iter 1 r
+    expect(dc.shadedColorData[3]).toBe(0); // iter 1 r
   });
 
   it("uses physical triangle order when sortOrder is inactive", () => {
@@ -168,7 +178,7 @@ describe("LightBaker", () => {
 
     expect(Number.isFinite(dc.shadedColorData[0])).toBe(true);
     expect(dc.shadedColorData[0]).toBeGreaterThan(0.9);
-    expect(dc.shadedColorData[3]).toBeCloseTo(0.1, 2);
+    expect(dc.shadedColorData[3]).toBe(0);
   });
 
   it("directional + ambient lights accumulate: result higher than either alone", () => {
@@ -178,7 +188,7 @@ describe("LightBaker", () => {
     baker.bake(dc, [makeDirectional(0, 0, 1), makeAmbient(0.3)]);
     baker.bake(dcAmbOnly, [makeAmbient(0.3)]);
 
-    // combined is clamped to 1.0; directional alone is ~1.0 at ambient 0.1, so check against ambient-only
+    // The combined bake clamps to 1 after the material; ambient alone is lower.
     expect(dc.shadedColorData[0]).toBeGreaterThanOrEqual(
       dcAmbOnly.shadedColorData[0],
     );
@@ -198,12 +208,53 @@ describe("LightBaker", () => {
     expect(dc.shadedColorData instanceof Float32Array).toBe(true);
   });
 
-  it("flat shading: perpendicular normal returns ~ambient (0.1) only", () => {
+  it("flat shading: perpendicular normal is black, with no ambient floor", () => {
     const dc = makeDrawCall(Shading.Flat, [TRI_PERPENDICULAR]);
     baker.bake(dc, [makeDirectional(0, 0, 1)]);
-    expect(dc.shadedColorData[0]).toBeCloseTo(0.1, 2); // r
-    expect(dc.shadedColorData[1]).toBeCloseTo(0.1, 2); // g
-    expect(dc.shadedColorData[2]).toBeCloseTo(0.1, 2); // b
+    expect(dc.shadedColorData[0]).toBe(0); // r
+    expect(dc.shadedColorData[1]).toBe(0); // g
+    expect(dc.shadedColorData[2]).toBe(0); // b
+  });
+
+  it("multiplies the linear material and instance color before the sRGB encode", () => {
+    const dc = {
+      ...makeDrawCall(Shading.Flat, [TRI_FACING_LIGHT]),
+      material: { shading: Shading.Flat, color: { r: 0.5, g: 0.25, b: 1 } },
+      instanceColorR: 1,
+      instanceColorG: 1,
+      instanceColorB: 0.5,
+    };
+    baker.bake(dc, [makeDirectional(0, 0, 1, 0.8)]);
+    expect(dc.shadedColorData[0]).toBeCloseTo(srgb(0.4), 2);
+    expect(dc.shadedColorData[1]).toBeCloseTo(srgb(0.2), 2);
+    expect(dc.shadedColorData[2]).toBeCloseTo(srgb(0.4), 2);
+  });
+
+  it("adds emissive light after lighting, and bakes it without lights", () => {
+    const material = {
+      shading: Shading.Flat,
+      color: { r: 1, g: 1, b: 1 },
+      emissive: { r: 0.2, g: 0, b: 0.1 },
+      emissiveIntensity: 2,
+    };
+    const lit = {
+      ...makeDrawCall(Shading.Flat, [TRI_PERPENDICULAR]),
+      material,
+    };
+    baker.bake(lit, [makeAmbient(0.25)]);
+    expect(lit.shadedColorData[0]).toBeCloseTo(srgb(0.65), 2);
+    expect(lit.shadedColorData[1]).toBeCloseTo(srgb(0.25), 2);
+    expect(lit.shadedColorData[2]).toBeCloseTo(srgb(0.45), 2);
+
+    const dark = {
+      ...makeDrawCall(Shading.Gouraud, [TRI_FACING_LIGHT]),
+      material: { ...material, shading: Shading.Gouraud },
+    };
+    baker.bake(dark, []);
+    expect(dark.shadedColorStride).toBe(9);
+    expect(dark.shadedColorData[0]).toBeCloseTo(srgb(0.4), 2);
+    expect(dark.shadedColorData[1]).toBe(0);
+    expect(dark.shadedColorData[2]).toBeCloseTo(srgb(0.2), 2);
   });
 
   it("two triangles flat shading: shadedColorData holds 6 values (2 tris x 3)", () => {
@@ -270,11 +321,79 @@ describe("LightBaker", () => {
       shadedColorStride: 0,
     };
 
-    const light = makePoint(0, 0, 10);
+    // Intensity 100 at distance 10 gives 1 under the default decay of 2.
+    const light = makePoint(0, 0, 10, 100);
     baker.bake(dcNear, [light]);
     baker.bake(dcFar, [light]);
 
     expect(dcNear.shadedColorData[0]).toBeGreaterThan(0.9);
-    expect(dcFar.shadedColorData[0]).toBeCloseTo(0.1, 2);
+    expect(dcFar.shadedColorData[0]).toBe(0);
+  });
+
+  it("attenuates point lights by distance^decay and the optional cutoff", () => {
+    const bakeAt = (
+      lightZ: number,
+      decay: number,
+      distance = 0,
+      intensity = 1,
+    ): number => {
+      const tb = new TriangleBuffer(1);
+      tb.append(
+        0,
+        0,
+        5,
+        0,
+        2,
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+      );
+      tb.buildSortOrder();
+      const dc = {
+        triangles: tb,
+        material: { shading: Shading.Flat },
+        worldPositions: new Float32Array(9),
+        shadedColorData: new Float32Array(0),
+        shadedColorStride: 0,
+      };
+      const light = { ...makePoint(0, 0, lightZ, intensity), decay, distance };
+      baker.bake(dc, [light]);
+      // Decode the baked sRGB value back to the linear irradiance.
+      return SRGBToLinear(dc.shadedColorData[0] ?? Number.NaN);
+    };
+
+    const base = bakeAt(4, 2, 0, 0);
+    expect(base).toBe(0);
+    expect(bakeAt(2, 2, 0, 2) - base).toBeCloseTo(0.5, 3);
+    expect(bakeAt(4, 2, 0, 4) - base).toBeCloseTo(0.25, 3);
+    expect(bakeAt(4, 1, 0, 1) - base).toBeCloseTo(0.25, 3);
+    expect(bakeAt(4, 0, 0, 0.5) - base).toBeCloseTo(0.5, 3);
+    expect(bakeAt(4, 2, 4, 16) - base).toBeCloseTo(0, 3);
+    expect(bakeAt(2, 2, 4, 2) - base).toBeCloseTo(0.5 * (1 - 1 / 16) ** 2, 3);
   });
 });

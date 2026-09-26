@@ -13,12 +13,20 @@ export interface LambertMaterialOptions extends MaterialOptions {
   readonly color?: Color | number | string;
   /** Optional color texture sampled with nearest-neighbor CPU lookup. */
   readonly map?: Texture | undefined;
+  /** Light the surface emits regardless of scene lights; black by default. */
+  readonly emissive?: Color | number | string;
+  /** Scalar applied to {@link emissive}; defaults to 1. */
+  readonly emissiveIntensity?: number;
 }
 
 /** Serialized state of a Lambert material. */
 export interface LambertMaterialJSON extends MaterialJSON {
   /** Serialized diffuse RGB color packed as a 24-bit integer. */
   color: number;
+  /** Serialized emissive sRGB color packed as a 24-bit integer. */
+  emissive: number;
+  /** Emissive intensity, present only when it differs from 1. */
+  emissiveIntensity?: number;
   /** Texture id used by the color map, when assigned. */
   map?: string;
 }
@@ -54,11 +62,23 @@ export class LambertMaterial extends Material {
   /** Optional nearest-neighbor texture sampled for fragment color. */
   map: Texture | undefined = undefined;
 
+  /**
+   * Emitted light added after lighting, as in three.js: a surface no light
+   * reaches renders this color instead of black. The CPU bake adds it per
+   * vertex; `emissiveMap` is not supported.
+   */
+  emissive: Color;
+
+  /** Scalar applied to {@link emissive}. */
+  emissiveIntensity: number;
+
   /** Constructs a diffuse material for CPU-baked Lambert lighting. */
   constructor(options: LambertMaterialOptions = {}) {
     super(options);
     this.shading = options.shading ?? Shading.Gouraud;
     this.color = new Color(options.color ?? 0xffffff);
+    this.emissive = new Color(options.emissive ?? 0x000000);
+    this.emissiveIntensity = options.emissiveIntensity ?? 1;
     if (options.map !== undefined) this.map = options.map;
   }
 
@@ -71,6 +91,8 @@ export class LambertMaterial extends Material {
   override copy(source: LambertMaterial): this {
     super.copy(source);
     this.color.copy(source.color);
+    this.emissive.copy(source.emissive);
+    this.emissiveIntensity = source.emissiveIntensity;
     this.map = source.map;
     return this;
   }
@@ -81,7 +103,11 @@ export class LambertMaterial extends Material {
     const json: LambertMaterialJSON = {
       ...super.toJSON(),
       color: this.color.hex,
+      emissive: this.emissive.hex,
     };
+    if (this.emissiveIntensity !== 1) {
+      json.emissiveIntensity = this.emissiveIntensity;
+    }
     if (this.map !== undefined) json.map = this.map.uuid;
     return json;
   }

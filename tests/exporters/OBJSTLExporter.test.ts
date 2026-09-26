@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
-import { OBJExporter } from "@/exporters/OBJExporter.js";
 import { MTLExporter } from "@/exporters/MTLExporter.js";
+import { OBJExporter } from "@/exporters/OBJExporter.js";
 import { STLExporter } from "@/exporters/STLExporter.js";
+import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import { BasicMaterial } from "@/materials/BasicMaterial.js";
 import { Mesh } from "@/objects/Mesh.js";
 import { Texture } from "@/textures/Texture.js";
@@ -47,7 +47,11 @@ describe("OBJExporter and STLExporter", () => {
     const mesh = new Mesh(new BoxGeometry(1, 1, 1), material);
     const text = new MTLExporter().parse(mesh);
     expect(text).toContain("newmtl BoxMaterial");
-    expect(text).toContain("Kd 0.2 0.4 0.6");
+    // MTL colors are sRGB; three.js transfer functions round-trip within 1e-5.
+    const kd = /Kd (\S+) (\S+) (\S+)/u.exec(text)?.slice(1).map(Number);
+    expect(kd?.[0]).toBeCloseTo(0.2, 4);
+    expect(kd?.[1]).toBeCloseTo(0.4, 4);
+    expect(kd?.[2]).toBeCloseTo(0.6, 4);
     expect(text).toContain("d 0.75");
     expect(text).toContain("illum 2");
     expect(text).toContain("map_Kd albedo.png");

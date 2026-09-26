@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
+import { PLYExporter } from "@/exporters/PLYExporter.js";
 import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import { BasicMaterial } from "@/materials/BasicMaterial.js";
 import { Mesh } from "@/objects/Mesh.js";
-import { PLYExporter } from "@/exporters/PLYExporter.js";
 
 describe("PLYExporter", () => {
   it("serializes transformed vertices, normals, colors, and faces as ASCII", () => {

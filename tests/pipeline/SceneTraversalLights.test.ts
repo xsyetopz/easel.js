@@ -57,7 +57,7 @@ it("AmbientLight is collected as type 'ambient' in drawList.lights", () => {
   const result = traverseScene(scene);
   expect(result.lights).toHaveLength(1);
   expect(lightEntry(result.lights[0]).type).toBe("ambient");
-  expect(lightEntry(result.lights[0]).intensity).toBe(0.5);
+  expect(lightEntry(result.lights[0]).intensity).toBeCloseTo(0.5 / Math.PI, 12);
 });
 
 it("DirectionalLight is collected as type 'directional' in drawList.lights", () => {
@@ -86,7 +86,7 @@ it("collects LightProbe coefficients by reference for baked lighting", () => {
   const result = traverseScene(scene);
   const entry = lightEntry(result.lights[0]);
   expect(entry.type).toBe("probe");
-  expect(entry.intensity).toBe(0.75);
+  expect(entry.intensity).toBeCloseTo(0.75 / Math.PI, 12);
   expect(entry.coefficients).toBe(probe.sh.coefficients);
 });
 

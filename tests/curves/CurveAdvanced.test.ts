@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import { CurvePath } from "@/curves/CurvePath.js";
-import { Path } from "@/curves/Path.js";
-import { ShapePath } from "@/curves/ShapePath.js";
 import { LineCurve } from "@/curves/curves/LineCurve.js";
 import { LineCurve3 } from "@/curves/curves/LineCurve3.js";
+import { Path } from "@/curves/Path.js";
+import { ShapePath } from "@/curves/ShapePath.js";
 import { Vector2 } from "@/math/Vector2.js";
 import { Vector3 } from "@/math/Vector3.js";
 

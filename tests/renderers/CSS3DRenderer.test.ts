@@ -3,15 +3,16 @@ import { JSDOM } from "jsdom";
 import { OrthographicCamera } from "@/cameras/OrthographicCamera.js";
 import { PerspectiveCamera } from "@/cameras/PerspectiveCamera.js";
 import { Scene } from "@/core/Scene.js";
+import { Vector3 } from "@/math/Vector3.js";
 import { CSS3DObject } from "@/objects/CSS3DObject.js";
 import { CSS3DRenderer } from "@/renderers/CSS3DRenderer.js";
-import { Vector3 } from "@/math/Vector3.js";
 
 function withDocument<T>(callback: (document: Document) => T): T {
   const previous = globalThis.document;
   const dom = new JSDOM("<!doctype html><body></body>");
   Object.defineProperty(globalThis, "document", {
     configurable: true,
+    writable: true,
     value: dom.window.document,
   });
   try {
@@ -19,6 +20,7 @@ function withDocument<T>(callback: (document: Document) => T): T {
   } finally {
     Object.defineProperty(globalThis, "document", {
       configurable: true,
+      writable: true,
       value: previous,
     });
     dom.window.close();

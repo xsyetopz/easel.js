@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { RectAreaLight } from "@/lights/RectAreaLight.js";
 import { LightType } from "@/core/Constants.js";
+import { RectAreaLight } from "@/lights/RectAreaLight.js";
 
 describe("RectAreaLight", () => {
   it("constructs with defaults matching THREE", () => {

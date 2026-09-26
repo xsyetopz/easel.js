@@ -1,0 +1,171 @@
+{
+  "skill_name": "threejs-to-easeljs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Port this three.js r186 bootstrap to @xsyetopz/easel 0.7.0 and keep it working in the browser:\n\n```js\nimport * as THREE from \"three\";\nconst renderer = new THREE.WebGLRenderer({ canvas, antialias: true });\nrenderer.setPixelRatio(window.devicePixelRatio);\nrenderer.setSize(innerWidth, innerHeight);\nrenderer.setClearColor(0x101820);\nrenderer.shadowMap.enabled = true;\nconst camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 100);\nconst cube = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial({ color: 0x44aa88, roughness: 0.4 }));\ncube.castShadow = true;\nscene.add(cube);\nrenderer.setAnimationLoop((t) => { cube.rotation.y = t / 1000; renderer.render(scene, camera); });\n```",
+      "expected_output": "EASEL code using `new Renderer({ canvas, width, height })`, `renderer.clearColor = 0x101820`, a requestAnimationFrame loop with cancelAnimationFrame teardown, `new PerspectiveCamera({ fov: 50, aspect, near, far })`, and LambertMaterial or BasicMaterial in place of MeshStandardMaterial. It removes shadowMap, castShadow, roughness and setPixelRatio, and says that each removal is a behavior loss, not an equivalent.",
+      "assertions": [
+        "Does not call `setAnimationLoop`, `setPixelRatio`, or `setClearColor` on the EASEL renderer.",
+        "Constructs `PerspectiveCamera` with an options object that passes `fov: 50` explicitly (EASEL's default fov is 45).",
+        "Replaces `MeshStandardMaterial` with `LambertMaterial` or `BasicMaterial` and states that PBR response is lost.",
+        "Removes `castShadow` and `shadowMap` and states that EASEL has no shadow maps.",
+        "Chooses the framebuffer size explicitly and notes that CPU cost scales with framebuffer pixels.",
+        "Runs `bun run typecheck` or the skill's verifier, or states that neither was run."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Our three.js glass panel uses `new THREE.MeshBasicMaterial({ color: 0x88ccff, transparent: true, opacity: 0.35 })`. I changed the import to EASEL's BasicMaterial and now the page throws `RangeError: Material.opacity must be a finite integer`. Fix it.",
+      "expected_output": "Explains that EASEL opacity is an integer transparency level from 0 (opaque) to 8 (fully transparent), the inverse of three.js alpha. It converts with `Math.round((1 - alpha) * 8)`, which gives 5 for alpha 0.35, keeps `transparent: true`, and warns that three.js `opacity: 1` copied verbatim becomes 1/8 transparency.",
+      "assertions": [
+        "Sets EASEL opacity to 5 for three.js alpha 0.35, or uses a conversion that yields 5.",
+        "States that 0 is opaque and 8 is fully transparent in EASEL.",
+        "Keeps `transparent: true`, because EASEL blends only when it is set.",
+        "Does not clamp or round to a fractional opacity value."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Port this procedural texture to EASEL:\n\n```js\nconst size = 256;\nconst data = new Uint8Array(size * size * 4);\n/* fill a checkerboard */\nconst tex = new THREE.DataTexture(data, size, size);\ntex.wrapS = tex.wrapT = THREE.RepeatWrapping;\ntex.needsUpdate = true;\n```",
+      "expected_output": "Uses Uint8ClampedArray and `Wrapping.Repeat`, which is value 1 and not three.js's 1000. Explains that EASEL crops DataTexture pixels to the top-left 128x128, so a 256 texture loses three quarters of its area, and generates the texture at 128 or smaller instead.",
+      "assertions": [
+        "Uses `Uint8ClampedArray` for DataTexture data.",
+        "Uses `Wrapping.Repeat` instead of the numeric value 1000 or `RepeatWrapping`.",
+        "States that DataTexture pixel data is cropped to the top-left 128x128, not scaled.",
+        "Generates the texture at 128x128 or smaller, or scales it explicitly before construction."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Convert our animation loop to EASEL:\n\n```js\nconst clock = new THREE.Clock();\nconst mixer = new THREE.AnimationMixer(model);\nconst clip = THREE.AnimationClip.findByName(clips, \"Walk\");\nmixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity).play();\nfunction tick() { mixer.update(clock.getDelta()); color.setHex(0xff0000); console.log(color.getHexString()); requestAnimationFrame(tick); }\n```",
+      "expected_output": "Uses `Timer` with `update(timestamp)` and the `delta` accessor, `Animator`, the standalone `findByName` function, `Loop.Repeat`, and the `color.hex` and `color.hexString` accessors. It handles the undefined result of findByName.",
+      "assertions": [
+        "Uses `new Timer()` with `timer.update(...)` followed by `timer.delta`; does not call `getDelta()`.",
+        "Uses `Animator` in place of `AnimationMixer`.",
+        "Calls the imported function `findByName(clips, \"Walk\")`, not a static on AnimationClip, and guards the `undefined` result.",
+        "Uses `color.hex = ...` and `color.hexString`, not `setHex` or `getHexString`.",
+        "Uses `Loop.Repeat`."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "After porting to EASEL our 'detach orphans' pass never runs, and TypeScript rejects `scene.background = null`. Code: `scene.traverse(o => { if (o.parent === null && o !== scene) orphans.push(o); }); scene.background = null; mesh.material.map = null;`",
+      "expected_output": "Explains that EASEL uses `undefined` for absence (parent, background, map), so `=== null` is always false and the pass is silently dead. It rewrites the checks to `=== undefined` and assigns `undefined`.",
+      "assertions": [
+        "Changes `o.parent === null` to `o.parent === undefined` (or `!o.parent`).",
+        "Assigns `undefined` to `scene.background` and `material.map`.",
+        "States that the null comparison compiles without error and fails silently."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "This code targets three r186. Port it to EASEL 0.7.0: `if (mesh.intersectsFrustum(frustum)) visible.push(mesh); light.shadow = new THREE.LightShadow(camera); plane.toJSON(); object.dispose();`",
+      "expected_output": "Looks up each symbol in the parity ledger, finds `Node.intersectsFrustum`, `LightShadow`, `Plane.toJSON` and `Node.dispose` three-only, and replaces intersectsFrustum with a world-space bounding sphere tested through `Frustum.intersectsSphere`. It drops LightShadow (no shadows), serializes Plane manually or drops it, and replaces `object.dispose()` with explicit geometry and material disposal plus a `dispose` event if listeners rely on it.",
+      "assertions": [
+        "Runs `python3 scripts/parity.py` (or reads `api-comparison/three-core.txt`) for the r186 symbols.",
+        "Does not call `intersectsFrustum`, `dispose` on a Node, or `LightShadow` in the EASEL code.",
+        "Replaces the frustum test with a world-space bounding sphere passed to `Frustum.intersectsSphere`.",
+        "States that EASEL has no shadow maps."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Before I port it: does EASEL have `Object3D.getWorldPosition`, `Texture.colorSpace`, `Object3D.position` and `MeshPhongMaterial`? Quote the parity data.",
+      "expected_output": "Runs the parity helper for each symbol and quotes the rows. getWorldPosition is `=` on Node. colorSpace is `!` (shape differs). MeshPhongMaterial is `>` three-only. It flags `Node.position` showing `<` as an extractor artifact, because three defines position with Object.defineProperties, and confirms from source that both have it.",
+      "assertions": [
+        "Quotes ledger rows with their state markers for each symbol.",
+        "Translates `Object3D` to `Node` before looking it up.",
+        "States that `Node.position` is shared despite the `<` marker, citing three's `Object.defineProperties`.",
+        "Reports MeshPhongMaterial as three-only."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Audit our three.js app's imports for migration to EASEL and give me a ledger: we use WebGLRenderer, OrbitControls, GLTFLoader (GLB with Draco), MeshStandardMaterial, TextureLoader, AnimationMixer, EffectComposer with UnrealBloomPass.",
+      "expected_output": "A ledger with one row per import and a status from direct, adapt, surface-only, unsupported, or UNKNOWN, with evidence paths. GLB and Draco rows are marked unsupported or UNKNOWN with the files checked. EffectComposer and bloom are unsupported. The ledger does not claim parity from name matches.",
+      "assertions": [
+        "Every listed import has exactly one status from the five allowed values.",
+        "Each row names the EASEL file or ledger row checked.",
+        "EffectComposer and UnrealBloomPass are `unsupported`.",
+        "GLB container or Draco decoding is not marked `direct`.",
+        "TextureLoader is `adapt`, noting that `load` returns void in EASEL."
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Port: `const tex = new THREE.TextureLoader().load(\"wood.png\"); const mat = new THREE.MeshLambertMaterial({ map: tex });` and `new GLTFLoader().load(\"ship.gltf\", (gltf) => { scene.add(gltf.scene); mixer.clipAction(gltf.animations[0]).play(); });`",
+      "expected_output": "Uses the TextureLoader onLoad callback or `await loadAsync` with an `instanceof Texture` check, because `load` returns void. Explains that GLTFLoader animations are decoded channel records, not AnimationClips, and that images larger than 128 are scaled down.",
+      "assertions": [
+        "Does not use the return value of `TextureLoader.load`.",
+        "Narrows the `loadAsync` result (typed `Promise<unknown>`) before use, or uses the callback.",
+        "Does not pass `gltf.animations[0]` directly to `clipAction`.",
+        "Mentions the 128x128 texture limit."
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Create a new EASEL scene from scratch: a rotating torus knot with a Lambert material and a directional light, in a 320x240 canvas.",
+      "expected_output": "This is new EASEL authoring with no three.js source to port. The sibling `using-easeljs` skill fits; this skill should not trigger.",
+      "assertions": [
+        "Does not load the threejs-to-easeljs skill, or defers to `using-easeljs`."
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "I ported our three.js r186 product scene to EASEL and everything looks blown out, white faces are pure 255. Lights were `new THREE.DirectionalLight(0xffffff, 1.5)` and `new THREE.AmbientLight(0xffffff, 0.4)`; I kept the numbers. The material was MeshPhongMaterial with shininess 60.",
+      "expected_output": "Explains that three.js's Lambert/Phong shading divides by PI (BRDF_Lambert) and EASEL's baked lighting does not, so every intensity, ambient included, is divided by Math.PI (1.5/PI and 0.4/PI). Replaces MeshPhongMaterial with LambertMaterial, states that specular and shininess are lost, and says the result will still not match pixel for pixel because EASEL does no sRGB decode or encode.",
+      "assertions": [
+        "Divides both the directional and the ambient intensity by `Math.PI`.",
+        "Replaces `MeshPhongMaterial` with `LambertMaterial` and states that specular highlights (`shininess`) are lost.",
+        "States that brightness still differs after the division (no sRGB curve in EASEL), or recommends a pixel probe to tune it.",
+        "Does not claim EASEL has specular or physically based lighting."
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Port this star field to EASEL:\n\n```js\nconst geo = new THREE.BufferGeometry();\ngeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));\ngeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));\nconst mat = new THREE.PointsMaterial({ size: 0.05, sizeAttenuation: true, map: starSprite, alphaTest: 0.5, vertexColors: true });\nscene.add(new THREE.Points(geo, mat));\nraycaster.params.Points.threshold = 0.1;\nconsole.log(geo.attributes.position.count);\n```",
+      "expected_output": "Uses `new Attribute(new Float32Array(positions), 3)`, `geo.getAttribute(\"position\").count`, and `raycaster.pointsThreshold = 0.1`. Converts size to an integer pixel radius (0.05 throws RangeError), drops sizeAttenuation, map and alphaTest, and states that points are neither attenuated nor textured in EASEL. Keeps vertexColors true, noting that EASEL defaults it to true anyway.",
+      "assertions": [
+        "Uses `Attribute` with a `Float32Array`, not `Float32BufferAttribute`.",
+        "Reads the attribute with `getAttribute(\"position\")`, not `attributes.position`.",
+        "Sets `raycaster.pointsThreshold`, not `params.Points.threshold`.",
+        "Gives `PointsMaterial` a positive integer `size` and states that `0.05` would throw `RangeError`.",
+        "Removes `sizeAttenuation`, `map` and `alphaTest` and states each loss."
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "After the EASEL port our LOD tree never switches to the low-poly model, the selection box around the picked mesh is missing, and the HUD CanvasTexture stays blank. The three.js code used `new THREE.LOD()` with addLevel, `new THREE.BoxHelper(mesh)`, and `hudTexture.needsUpdate = true` after drawing.",
+      "expected_output": "Adds `lod.update(camera)` each frame between `renderer.prepare` and `renderer.render` (EASEL has no autoUpdate). Replaces `new BoxHelper(mesh)` with a BoxHelper over a Box3 refreshed by `box.setFromObject(mesh)` and `helper.update()` each frame, because EASEL's helper draws nothing before update() and uses geometry-local bounds for a mesh. Calls `hudTexture.update()` after setting needsUpdate, including after the first draw.",
+      "assertions": [
+        "Calls `lod.update(camera)` every frame after `prepare` and before `render`.",
+        "Calls `update()` on the BoxHelper and feeds it a world-space `Box3` from `setFromObject`.",
+        "Calls `texture.update()` after `needsUpdate = true` for the CanvasTexture.",
+        "Does not set `lod.autoUpdate`."
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Port: `const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.2, 16, 64), mat); ring.renderOrder = 2; mat.depthTest = false; const path = new THREE.Path(); path.absarc(0, 0, 1, 0, Math.PI / 2, true); if (obb.intersectRay(ray, hit) !== null) select(); if (box.isEmpty()) return; controls.object.position.set(0, 5, 10);`",
+      "expected_output": "Rotates the EASEL torus geometry by rotateX(PI/2) because EASEL's torus lies in the XZ plane. Moves renderOrder to `material.layer = 2`. Ports the clockwise arc by computing three.js's sweep (-3PI/2 here) and passing a counter-clockwise span, because EASEL clockwise arcs do not normalize. Tests `intersectRay(...) !== undefined` (or uses intersectsRay), reads `box.isEmpty` as a getter, and uses `controls.camera`.",
+      "assertions": [
+        "Applies `rotateX(Math.PI / 2)` to the EASEL `TorusGeometry`.",
+        "Uses `material.layer` instead of `renderOrder`.",
+        "Does not pass `clockwise: true` verbatim to `absarc`; the ported arc covers three.js's 270-degree clockwise sweep.",
+        "Compares the `intersectRay` result with `undefined` or calls `intersectsRay`.",
+        "Uses `box.isEmpty` without a call and `controls.camera` instead of `controls.object`."
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "Our three.js character uses morph targets for facial expressions (`mesh.morphTargetInfluences[smile] = 1`) loaded from a GLB, and a BoxGeometry with `addGroup` plus a material array for six different faces. What happens when we port this to EASEL?",
+      "expected_output": "States that EASEL has no morph target support: GLTFLoader drops primitive targets and the renderer ignores morphTargetInfluences, so expressions are recorded as unsupported (or baked into separate geometries). States that Geometry has no addGroup and Mesh takes one material, so the six-face box becomes six meshes or a texture atlas.",
+      "assertions": [
+        "Records morph targets as unsupported and does not claim `morphTargetInfluences` animates in EASEL.",
+        "States that `Geometry.addGroup` and material arrays are missing.",
+        "Proposes splitting the multi-material mesh into one mesh per group, or an atlas."
+      ]
+    }
+  ]
+}

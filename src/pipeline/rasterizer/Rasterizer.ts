@@ -1,8 +1,14 @@
 import { Wrapping } from "../../core/Constants.ts";
 import type { DepthBuffer } from "../framebuffer/DepthBuffer.ts";
 import type { TriangleBuffer } from "../TriangleBuffer.ts";
+import { createScanlineCallbacks } from "./_RasterizerCallbacks.ts";
 import { configureRasterizerState } from "./_RasterizerState.ts";
-import { rasterizeTriangle } from "./_RasterizerTriangle.ts";
+import {
+  rasterizeTriangle,
+  type TriangleRasterizeOptions,
+} from "./_RasterizerTriangle.ts";
+import { createWireframePlotter } from "./_RasterizerTriangleOutput.ts";
+import { createTriangleShading } from "./_RasterizerTriangleState.ts";
 import type {
   RasterDrawCall,
   RasterFramebuffer,
@@ -79,6 +85,32 @@ export class Rasterizer {
     depthWrite: true,
   };
 
+  // Reused for every triangle: per-draw fields are set once per draw call and
+  // only the triangle indices change inside the loop, so rasterizing a
+  // triangle allocates nothing.
+  readonly #triangle: TriangleRasterizeOptions = {
+    state: this.#state,
+    scanlineFill: this.#scanlineFill,
+    wireframeRasterizer: this.#wireframe,
+    scanlineCallbacks: createScanlineCallbacks(this.#state),
+    wireframePlotter: createWireframePlotter(this.#state),
+    shading: createTriangleShading(),
+    tb: undefined as unknown as TriangleBuffer,
+    physIdx: 0,
+    shadedColorData: undefined,
+    shadedColorStride: 0,
+    iterIdx: 0,
+    baseR: 255,
+    baseG: 255,
+    baseB: 255,
+    texture: undefined,
+    wireframe: undefined,
+    points: undefined,
+    pointRadius: 2,
+    width: 0,
+    height: 0,
+  };
+
   /** Rasterizes a draw call to the framebuffer by dispatching to the appropriate sub-rasterizer. */
   rasterize(
     drawCall: RasterDrawCall,
@@ -138,23 +170,29 @@ export class Rasterizer {
     width: number;
     height: number;
   }): void {
-    const { tb, ...triangleOptions } = options;
+    const { tb } = options;
+    const triangle = this.#triangle;
+    triangle.tb = tb;
+    triangle.shadedColorData = options.shadedColorData;
+    triangle.shadedColorStride = options.shadedColorStride;
+    triangle.baseR = options.baseR;
+    triangle.baseG = options.baseG;
+    triangle.baseB = options.baseB;
+    triangle.texture = options.texture;
+    triangle.wireframe = options.wireframe;
+    triangle.points = options.points;
+    triangle.pointRadius = options.pointRadius;
+    triangle.width = options.width;
+    triangle.height = options.height;
     const sortOrder = tb.sortOrder;
     const sortOrderActive = (
       tb as TriangleBuffer & { sortOrderActive: boolean }
     ).sortOrderActive;
     const useSortOrder = sortOrderActive && sortOrder.length === tb.length;
     for (let i = 0; i < tb.length; i++) {
-      const physIdx = useSortOrder ? sortOrder[i] : i;
-      rasterizeTriangle({
-        state: this.#state,
-        scanlineFill: this.#scanlineFill,
-        wireframeRasterizer: this.#wireframe,
-        tb,
-        physIdx,
-        iterIdx: i,
-        ...triangleOptions,
-      });
+      triangle.physIdx = useSortOrder ? sortOrder[i] : i;
+      triangle.iterIdx = i;
+      rasterizeTriangle(triangle);
     }
   }
 }

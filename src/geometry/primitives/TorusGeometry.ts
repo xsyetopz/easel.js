@@ -15,20 +15,44 @@ function buildTorusIndices(rs: number, ts: number): number[] {
   return indices;
 }
 
-/** Parametric torus around the Y axis. */
+/**
+ * Torus in the XY plane, centered on the origin, matching three.js r186:
+ * the ring runs counterclockwise around +Z and the tube cross-section starts
+ * on the outer equator.
+ */
 export class TorusGeometry extends Geometry {
-  /** Constructs a torus from major and tube radii and radial subdivisions. */
+  /**
+   * Constructs a torus.
+   *
+   * @param radius Distance from the torus center to the tube center.
+   * @param tube Tube radius.
+   * @param radialSegments Segments around the tube cross-section.
+   * @param tubularSegments Segments along the ring.
+   * @param arc Ring angle in radians, starting at +X.
+   * @param thetaStart Start angle of the tube cross-section in radians.
+   * @param thetaLength Swept angle of the tube cross-section in radians.
+   */
   constructor(
     radius: number = 1,
     tube: number = 0.4,
     radialSegments: number = 12,
     tubularSegments: number = 48,
     arc: number = Math.PI * 2,
+    thetaStart: number = 0,
+    thetaLength: number = Math.PI * 2,
   ) {
     super();
 
     this.type = "TorusGeometry";
-    this.parameters = { radius, tube, radialSegments, tubularSegments, arc };
+    this.parameters = {
+      radius,
+      tube,
+      radialSegments,
+      tubularSegments,
+      arc,
+      thetaStart,
+      thetaLength,
+    };
 
     const rs = Math.floor(radialSegments);
     const ts = Math.floor(tubularSegments);
@@ -36,28 +60,25 @@ export class TorusGeometry extends Geometry {
     const positions: number[] = [];
     const normals: number[] = [];
     const uvs: number[] = [];
+    // Same expressions as r186; each cosine and sine is evaluated once.
     for (let j = 0; j <= rs; j++) {
+      const v = thetaStart + (j / rs) * thetaLength;
+      const ringRadius = radius + tube * Math.cos(v);
+      const pz = tube * Math.sin(v);
       for (let i = 0; i <= ts; i++) {
         const u = (i / ts) * arc;
-        const v = (j / rs) * Math.PI * 2;
-
         const cosU = Math.cos(u);
         const sinU = Math.sin(u);
-        const cosV = Math.cos(v);
-        const sinV = Math.sin(v);
 
-        const px = (radius + tube * cosV) * cosU;
-        const py = tube * sinV;
-        const pz = -(radius + tube * cosV) * sinU;
-
+        const px = ringRadius * cosU;
+        const py = ringRadius * sinU;
         positions.push(px, py, pz);
 
-        const cx = radius * cosU;
-        const cz = -radius * sinU;
-        const nx = (px - cx) / tube;
-        const ny = py / tube;
-        const nz = (pz - cz) / tube;
-        normals.push(nx, ny, nz);
+        // Unit vector from the ring center, as Vector3.normalize computes it.
+        const nx = px - radius * cosU;
+        const ny = py - radius * sinU;
+        const scale = 1 / (Math.sqrt(nx * nx + ny * ny + pz * pz) || 1);
+        normals.push(nx * scale, ny * scale, pz * scale);
 
         uvs.push(i / ts, j / rs);
       }

@@ -13,10 +13,14 @@ export interface ExampleViewportSize {
 
 export type ExampleRuntimeState = "loading" | "ready" | "unsupported" | "error";
 
+export type ExampleContextType = "2d" | "webgl2";
+
 export interface ExampleRuntimeOptions {
   canvas: HTMLCanvasElement;
   container?: HTMLElement | null;
-  module: ExampleModule;
+  /** Rendering context the module needs; `webgl2` mounts the three.js original. */
+  contextType?: ExampleContextType;
+  module: Pick<ExampleModule, "setup">;
   params: ExampleParams;
   onState?: (state: ExampleRuntimeState, error?: unknown) => void;
 }
@@ -62,9 +66,16 @@ export function resizeExampleCanvas(
   return true;
 }
 
-function hasCanvas2DContext(canvas: HTMLCanvasElement): boolean {
+function hasContext(
+  canvas: HTMLCanvasElement,
+  contextType: ExampleContextType,
+): boolean {
   try {
-    return canvas.getContext("2d") !== null;
+    if (contextType === "2d") return canvas.getContext("2d") !== null;
+    // Probe a detached canvas: the first getContext call fixes the context
+    // type and attributes of the stage canvas, which three.js must own.
+    const probe = canvas.ownerDocument.createElement("canvas");
+    return probe.getContext("webgl2") !== null;
   } catch {
     return false;
   }
@@ -82,6 +93,7 @@ function hasCanvas2DContext(canvas: HTMLCanvasElement): boolean {
 export function mountExampleRuntime({
   canvas,
   container = canvas.parentElement,
+  contextType = "2d",
   module,
   params,
   onState,
@@ -112,7 +124,7 @@ export function mountExampleRuntime({
     report("loading");
     instance?.cleanup?.();
     instance = undefined;
-    if (!hasCanvas2DContext(canvas)) {
+    if (!hasContext(canvas, contextType)) {
       report("unsupported");
       return;
     }

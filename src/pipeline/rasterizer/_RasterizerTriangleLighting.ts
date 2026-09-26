@@ -2,25 +2,39 @@ import type { TriangleBuffer } from "../TriangleBuffer.ts";
 import type { BaseColors, VertexColors } from "./_RasterizerTriangleColors.ts";
 import type { RasterizerState, TextureData } from "./_RasterizerTypes.ts";
 
-/** Copies depth, fog, and baked color values into active triangle state. */
-export function applyTriangleState(options: {
+/** Draw-call inputs read while applying one triangle's lighting state. */
+export interface TriangleLightingInputs {
+  /** Mutable state that receives the triangle's depth, fog, and color setup. */
   state: RasterizerState;
+  /** Projected triangle data containing depth and fog factors. */
   tb: TriangleBuffer;
-  vertexOffset: number;
+  /** Baked lighting colors, or undefined when the triangle is unlit. */
   shadedColorData: Float32Array | undefined;
+  /** Sampled texture data, which selects the textured tint paths. */
+  texture: TextureData | undefined;
+}
+
+/** Per-triangle lighting mode and resolved colors produced before output. */
+export interface TriangleLighting extends BaseColors {
+  /** Index of the first triangle vertex in the packed triangle buffers. */
+  vertexOffset: number;
+  /** Offset of this triangle's lighting record in the packed color data. */
   base: number;
-  baseColors: BaseColors;
+  /** Whether the triangle uses one flat lighting color. */
+  isFlat: boolean;
+  /** Whether the triangle uses per-vertex Gouraud lighting. */
   isGouraud: boolean;
-}): void {
-  const {
-    state,
-    tb,
-    vertexOffset,
-    shadedColorData,
-    base,
-    baseColors,
-    isGouraud,
-  } = options;
+  /** Vertex colors resolved for the triangle. */
+  colors: VertexColors;
+}
+
+/** Copies depth, fog, and baked color values into active triangle state. */
+export function applyTriangleState(
+  inputs: TriangleLightingInputs,
+  lighting: TriangleLighting,
+): void {
+  const { state, tb, shadedColorData } = inputs;
+  const { vertexOffset } = lighting;
   state.ndcZ0 = tb.ndcZ[vertexOffset];
   state.ndcZ1 = tb.ndcZ[vertexOffset + 1];
   state.ndcZ2 = tb.ndcZ[vertexOffset + 2];
@@ -29,30 +43,28 @@ export function applyTriangleState(options: {
     state.fogF1 = tb.fogFactor[vertexOffset + 1];
     state.fogF2 = tb.fogFactor[vertexOffset + 2];
   }
-  state.baseR = baseColors.effectiveR;
-  state.baseG = baseColors.effectiveG;
-  state.baseB = baseColors.effectiveB;
-  state.flatR = baseColors.flatR;
-  state.flatG = baseColors.flatG;
-  state.flatB = baseColors.flatB;
-  if (isGouraud && shadedColorData) {
+  state.baseR = lighting.effectiveR;
+  state.baseG = lighting.effectiveG;
+  state.baseB = lighting.effectiveB;
+  state.flatR = lighting.flatR;
+  state.flatG = lighting.flatG;
+  state.flatB = lighting.flatB;
+  if (lighting.isGouraud && shadedColorData) {
     state.gouraudData = shadedColorData;
-    state.gouraudBase = base;
+    state.gouraudBase = lighting.base;
   }
 }
 
-function setBrightnessVertexTint(options: {
-  state: RasterizerState;
-  colors: VertexColors;
-  isGouraud: boolean;
-  shadedColorData: Float32Array | undefined;
-  base: number;
-}): void {
-  const { state, colors, isGouraud, shadedColorData, base } = options;
+function setBrightnessVertexTint(
+  inputs: TriangleLightingInputs,
+  lighting: TriangleLighting,
+): void {
+  const { state, shadedColorData } = inputs;
+  const { base } = lighting;
   const tint = state.vertexTintScratch;
-  tint.set(colors.values);
+  tint.set(lighting.colors.values);
   state.vertexTintData = tint;
-  if (isGouraud && shadedColorData) return;
+  if (lighting.isGouraud && shadedColorData) return;
 
   const lightR = shadedColorData ? shadedColorData[base] : 1;
   const lightG = shadedColorData ? shadedColorData[base + 1] : 1;
@@ -67,15 +79,13 @@ function setBrightnessVertexTint(options: {
   state.gouraudBase = 0;
 }
 
-function setCombinedVertexTint(options: {
-  state: RasterizerState;
-  colors: VertexColors;
-  isGouraud: boolean;
-  isFlat: boolean;
-  shadedColorData: Float32Array | undefined;
-  base: number;
-}): void {
-  const { state, colors, isGouraud, isFlat, shadedColorData, base } = options;
+function setCombinedVertexTint(
+  inputs: TriangleLightingInputs,
+  lighting: TriangleLighting,
+): void {
+  const { state, shadedColorData } = inputs;
+  const { isGouraud, isFlat, base } = lighting;
+  const values = lighting.colors.values;
   const scratch = state.vertexColorScratch;
   for (let k = 0; k < 3; k++) {
     const lightBase = k * 3;
@@ -91,36 +101,32 @@ function setCombinedVertexTint(options: {
       lightG = shadedColorData[base + 1];
       lightB = shadedColorData[base + 2];
     }
-    scratch[lightBase] = lightR * colors.values[lightBase];
-    scratch[lightBase + 1] = lightG * colors.values[lightBase + 1];
-    scratch[lightBase + 2] = lightB * colors.values[lightBase + 2];
+    scratch[lightBase] = lightR * values[lightBase];
+    scratch[lightBase + 1] = lightG * values[lightBase + 1];
+    scratch[lightBase + 2] = lightB * values[lightBase + 2];
   }
   state.gouraudData = scratch;
   state.gouraudBase = 0;
 }
 
 /** Configures vertex-color tinting for combined lighting and texture paths. */
-export function setMixedVertexTint(options: {
-  state: RasterizerState;
-  colors: VertexColors;
-  texture: TextureData | undefined;
-  isFlat: boolean;
-  isGouraud: boolean;
-  shadedColorData: Float32Array | undefined;
-  base: number;
-}): void {
-  const { state, colors, texture, isFlat, isGouraud } = options;
+export function setMixedVertexTint(
+  inputs: TriangleLightingInputs,
+  lighting: TriangleLighting,
+): void {
+  const { state, texture } = inputs;
+  const { colors, isFlat, isGouraud } = lighting;
   if (!(colors.hasVertexColor && colors.mixedVertexColor)) return;
   if (
     texture &&
     (isFlat || isGouraud) &&
     state.brightnessLevels !== undefined
   ) {
-    setBrightnessVertexTint(options);
+    setBrightnessVertexTint(inputs, lighting);
     return;
   }
   if (texture) state.hasCombinedTextureTint = true;
-  setCombinedVertexTint(options);
+  setCombinedVertexTint(inputs, lighting);
 }
 
 /** Copies the triangle's three UV pairs into active rasterizer state. */
@@ -142,29 +148,13 @@ function clampLight(value: number): number {
 }
 
 /** Selects flat-texture lighting and brightness-level sampling state. */
-export function setFlatTextureState(options: {
-  state: RasterizerState;
-  isFlat: boolean;
-  texture: TextureData | undefined;
-  mixedVertexColor: boolean;
-  shadedColorData: Float32Array | undefined;
-  base: number;
-  flatR: number;
-  flatG: number;
-  flatB: number;
-}): void {
-  const {
-    state,
-    isFlat,
-    texture,
-    mixedVertexColor,
-    shadedColorData,
-    base,
-    flatR,
-    flatG,
-    flatB,
-  } = options;
-  if (!(isFlat && texture && !mixedVertexColor)) {
+export function setFlatTextureState(
+  inputs: TriangleLightingInputs,
+  lighting: TriangleLighting,
+): void {
+  const { state, texture, shadedColorData } = inputs;
+  const { isFlat, base, flatR, flatG, flatB } = lighting;
+  if (!(isFlat && texture && !lighting.colors.mixedVertexColor)) {
     state.selectedBrightTex = undefined;
     return;
   }

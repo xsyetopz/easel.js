@@ -1,49 +1,50 @@
+import type { Node } from "../core/Node.ts";
 import { Attribute } from "../geometry/Attribute.ts";
 import { Geometry } from "../geometry/Geometry.ts";
 import { LineMaterial } from "../materials/LineMaterial.ts";
 import { Box3 } from "../math/Box3.ts";
 import type { Color, ColorValue } from "../math/Color.ts";
+import { Sphere } from "../math/Sphere.ts";
 import { LineSegments } from "../objects/LineSegments.ts";
 
+// Corner pairs in the order of three.js r186's BoxHelper index buffer, using
+// its corner numbering (0 = max corner, 6 = min corner).
 const BOX_EDGE_CORNERS = Uint8Array.of(
-  6,
-  7,
-  7,
-  3,
-  3,
+  0,
+  1,
+  1,
   2,
   2,
-  6,
+  3,
+  3,
+  0,
   4,
   5,
   5,
-  1,
-  1,
-  0,
-  0,
-  4,
   6,
-  2,
+  6,
   7,
-  3,
-  5,
-  1,
+  7,
   4,
   0,
+  4,
+  1,
+  5,
+  2,
+  6,
+  3,
+  7,
 );
 
-/** Prepared object shape whose geometry.boundingBox supplies bounds. */
-export interface BoxHelperObject {
-  /** Prepared geometry whose boundingBox supplies the wireframe bounds. */
-  readonly geometry?: {
-    readonly boundingBox?: Box3;
-  };
-}
+const _box = new Box3();
 
-/** Box3 or prepared object accepted as a BoxHelper bounds source. */
+/** Scene node whose world-space box, from `Box3.setFromObject`, the helper draws. */
+export type BoxHelperObject = Node;
+
+/** Box3 or scene node accepted as a BoxHelper bounds source. */
 export type BoxHelperSource = Box3 | BoxHelperObject;
 
-/** Draws a wireframe for a prepared Box3 or an object's prepared bounding box. */
+/** Draws a world-space wireframe box around a scene node or a Box3. */
 export class BoxHelper extends LineSegments {
   /** String identifier used by runtime type checks and serialization. */
   override type: string = "BoxHelper";
@@ -54,8 +55,13 @@ export class BoxHelper extends LineSegments {
   }
 
   #source: BoxHelperSource;
+  readonly #boundingSphere = new Sphere();
 
-  /** Constructs a wireframe helper for a Box3 or prepared object bounds. */
+  /**
+   * Constructs a wireframe helper and builds it from the source's world box,
+   * as three.js r186 does. The helper is drawn in world space, so its own
+   * `matrixAutoUpdate` is `false`.
+   */
   constructor(
     source: BoxHelperSource,
     color: Color | number | string = 0xffff00,
@@ -68,9 +74,11 @@ export class BoxHelper extends LineSegments {
     );
     super(geometry, new LineMaterial({ color }));
     this.#source = source;
+    this.matrixAutoUpdate = false;
+    this.update();
   }
 
-  /** Box or prepared object used to rebuild this helper. */
+  /** Box or scene node read by {@link update}. */
   get source(): BoxHelperSource {
     return this.#source;
   }
@@ -95,17 +103,14 @@ export class BoxHelper extends LineSegments {
     this.color.set(value);
   }
 
-  /** Explicitly rebuilds the wireframe from the source's already-prepared bounds. */
+  /**
+   * Rebuilds the wireframe. A scene-node source is measured with
+   * `Box3.setFromObject`, which updates its world matrices first; a Box3
+   * source is drawn as is. An empty box leaves the previous wireframe.
+   */
   update(): this {
-    const box =
-      this.#source instanceof Box3
-        ? this.#source
-        : this.#source.geometry?.boundingBox;
-    if (!box) {
-      throw new Error(
-        "BoxHelper.update requires a prepared geometry.boundingBox.",
-      );
-    }
+    const source = this.#source;
+    const box = source instanceof Box3 ? source : _box.setFromObject(source);
     if (box.isEmpty) return this;
     const position = this.geometry?.getAttribute("position");
     if (!(position?.array instanceof Float32Array)) {
@@ -113,10 +118,16 @@ export class BoxHelper extends LineSegments {
     }
     writeBoxEdges(position.array, box);
     position.needsUpdate = true;
+    // The bounding sphere three.js's computeBoundingSphere() finds for the
+    // eight corners, written into a reused Sphere instead of a new one.
+    const sphere = this.#boundingSphere;
+    box.getCenter(sphere.center);
+    sphere.radius = sphere.center.distanceTo(box.max);
+    if (this.geometry) this.geometry.boundingSphere = sphere;
     return this;
   }
 
-  /** Replaces the prepared object source and rebuilds its bounds once. */
+  /** Replaces the scene-node source and rebuilds the wireframe from it. */
   setFromObject(source: BoxHelperObject): this {
     this.source = source;
     return this.update();
@@ -145,8 +156,13 @@ export class BoxHelper extends LineSegments {
 
 function assertSource(source: BoxHelperSource): void {
   if (source instanceof Box3) return;
-  if (source === undefined || source === null || typeof source !== "object") {
-    throw new TypeError("BoxHelper source must be a Box3 or prepared object.");
+  if (
+    source === undefined ||
+    source === null ||
+    typeof source !== "object" ||
+    typeof source.updateMatrixWorld !== "function"
+  ) {
+    throw new TypeError("BoxHelper source must be a Box3 or scene node.");
   }
 }
 

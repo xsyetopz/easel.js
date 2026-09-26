@@ -1,10 +1,13 @@
 import { describe, expect, it } from "bun:test";
+import { Shading } from "@/core/Constants.js";
 import { LambertMaterial } from "@/materials/LambertMaterial.js";
+import { LinearToSRGB } from "@/math/ColorManagement.js";
 import { Matrix4 } from "@/math/Matrix4.js";
 import { DrawList } from "@/pipeline/DrawList.js";
 import { Framebuffer } from "@/pipeline/framebuffer/Framebuffer.js";
 import { buildInstancedDrawCalls } from "@/pipeline/InstancedMeshBuilder.js";
 import { Rasterizer } from "@/pipeline/rasterizer/Rasterizer.js";
+import { LightBaker } from "@/pipeline/shading/LightBaker.js";
 import type { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 import { appendCenterTriangle } from "../_helpers/rasterizer.ts";
 
@@ -18,7 +21,10 @@ function makeCamera() {
 
 describe("InstancedMeshBuilder", () => {
   it("reuses a draw call and stores instance tint without material wrappers", () => {
-    const material = new LambertMaterial({ color: 0xffffff });
+    const material = new LambertMaterial({
+      color: 0xffffff,
+      shading: Shading.Flat,
+    });
 
     const node = {
       matrixWorld: new Matrix4(),
@@ -94,11 +100,17 @@ describe("InstancedMeshBuilder", () => {
     appendCenterTriangle(triangles, -1);
     triangles.vertexIndex.set([0, 1, 2]);
     triangles.buildSortOrder();
+    // A lit material needs light: unit ambient irradiance leaves the bake at
+    // encode(instance color), and the linear vertex color is encoded too.
+    new LightBaker().bake(dc1 as never, [
+      { type: "ambient", color: { r: 1, g: 1, b: 1 }, intensity: 1 },
+    ]);
     const framebuffer = new Framebuffer(20, 20);
     new Rasterizer().rasterize(dc1 as never, framebuffer, undefined);
     const pixel = framebuffer.getPixel(10, 7);
-    expect(pixel.r).toBe(128);
-    expect(pixel.g).toBe(32);
+    const vertexG = Math.round(255 * LinearToSRGB(0.5));
+    expect(pixel.r).toBe(Math.round(255 * LinearToSRGB(0.5)));
+    expect(pixel.g).toBe(Math.round(vertexG * LinearToSRGB(0.25)));
     expect(pixel.b).toBe(0);
 
     // Mutate instanceColor to ensure the cached draw call is updated in place.

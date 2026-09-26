@@ -1,4 +1,6 @@
+import { SRGBColorSpace } from "../core/Constants.ts";
 import type { Attribute } from "../geometry/Attribute.ts";
+import { ColorManagement } from "./ColorManagement.ts";
 import type { Matrix3 } from "./Matrix3.ts";
 import type { Vector3 } from "./Vector3.ts";
 import { parseColorStyle } from "./_ColorParse.ts";
@@ -30,20 +32,37 @@ export {
   colorToRgb,
 } from "./_ColorUtils.ts";
 
-/** RGB color with channel values in [0, 1]. */
+const _encoded = { r: 0, g: 0, b: 0 };
+
+function encoded(color: Color, colorSpace: string): typeof _encoded {
+  _encoded.r = color.r;
+  _encoded.g = color.g;
+  _encoded.b = color.b;
+  return ColorManagement.workingToColorSpace(_encoded, colorSpace);
+}
+
+function toByte(value: number): number {
+  return Math.round(clampChannel(value) * COLOR_RGB_SCALE);
+}
+
+/**
+ * RGB color with channel values in [0, 1], stored in the linear working color
+ * space as in three.js. Hex values and CSS strings are sRGB: assigning one
+ * decodes it to linear channels, and reading `hex` or `style` encodes back.
+ */
 export class Color {
-  /** Normalized red channel. */
+  /** Linear red channel. */
   r: number = 1;
-  /** Normalized green channel. */
+  /** Linear green channel. */
   g: number = 1;
-  /** Normalized blue channel. */
+  /** Linear blue channel. */
   b: number = 1;
   /** Identifies this value as a color. */
   readonly isColor = true;
 
   /** Creates a color from a supported color value. */
   constructor(value?: ColorValue);
-  /** Creates a color from normalized RGB channels. */
+  /** Creates a color from linear working-space RGB channels. */
   constructor(r: number, g: number, b: number);
   /** Creates a color from a value or normalized RGB channels. */
   constructor(valueOrR?: ColorValue, g?: number, b?: number) {
@@ -58,46 +77,40 @@ export class Color {
     }
   }
 
-  /** Packed hexadecimal RGB value. */
+  /** Packed hexadecimal sRGB value, like three.js `getHex()`. */
   get hex(): number {
-    const r = Math.round(clampChannel(this.r) * COLOR_RGB_SCALE);
-    const g = Math.round(clampChannel(this.g) * COLOR_RGB_SCALE);
-    const b = Math.round(clampChannel(this.b) * COLOR_RGB_SCALE);
-    return (r << 16) | (g << 8) | b;
+    return this.getHex();
   }
-  /** Assigns the packed hexadecimal RGB value. */
+  /** Assigns a packed hexadecimal sRGB value, like three.js `setHex()`. */
   set hex(value: number) {
-    this.#setHex(value);
+    this.setHex(value);
   }
 
-  /** Six-character hexadecimal RGB string. */
+  /** Six-character hexadecimal sRGB string. */
   get hexString(): string {
     return this.hex.toString(16).padStart(6, "0");
   }
 
-  /** CSS rgb() style string. */
+  /** CSS rgb() style string in sRGB, like three.js `getStyle()`. */
   get style(): string {
-    const r = Math.round(clampChannel(this.r) * COLOR_RGB_SCALE);
-    const g = Math.round(clampChannel(this.g) * COLOR_RGB_SCALE);
-    const b = Math.round(clampChannel(this.b) * COLOR_RGB_SCALE);
-    return `rgb(${r},${g},${b})`;
+    return this.getStyle();
   }
-  /** Parses and assigns a CSS color style string. */
+  /** Parses and assigns a CSS color style string in sRGB. */
   set style(value: string) {
-    parseColorStyle(this, value);
+    parseColorStyle(this, value, SRGBColorSpace);
   }
 
-  /** HSL channels in normalized form. */
+  /** HSL channels of the working-space color. */
   get hsl(): HSL {
     return rgbToHsl(this.r, this.g, this.b);
   }
-  /** Packed 16-bit HSL representation. */
+  /** Packed 16-bit HSL representation of the working-space color. */
   get hsl16(): number {
     return colorHsl16(this);
   }
-  /** CSS hsl() style string. */
+  /** CSS hsl() style string in sRGB. */
   get hslString(): string {
-    const { h, s, l } = this.hsl;
+    const { h, s, l } = this.getHSL(undefined, SRGBColorSpace);
     return `hsl(${Math.trunc(h * COLOR_HUE_SCALE)},${Math.trunc(s * COLOR_SATURATION_SCALE)}%,${Math.trunc(l * COLOR_LIGHTNESS_SCALE)}%)`;
   }
 
@@ -110,19 +123,54 @@ export class Color {
     return this.#setChannels(source.r, source.g, source.b);
   }
 
-  /** Writes normalized HSL channels into a target record. */
-  getHSL(target: HSL = { h: 0, s: 0, l: 0 }): HSL {
-    const { h, s, l } = this.hsl;
+  /** Packed hexadecimal value encoded in `colorSpace` (sRGB by default). */
+  getHex(colorSpace: string = SRGBColorSpace): number {
+    const c = encoded(this, colorSpace);
+    return (toByte(c.r) << 16) | (toByte(c.g) << 8) | toByte(c.b);
+  }
+  /** Assigns a packed hexadecimal value given in `colorSpace` (sRGB by default). */
+  setHex(hex: number, colorSpace: string = SRGBColorSpace): this {
+    if (hex > 0xffffff || hex < 0)
+      throw new Error("EASEL.Color.setHex(): hex out of range");
+    const value = Math.trunc(hex);
+    this.r = (value >> 16) / COLOR_RGB_SCALE;
+    this.g = ((value >> 8) & COLOR_RGB_SCALE) / COLOR_RGB_SCALE;
+    this.b = (value & COLOR_RGB_SCALE) / COLOR_RGB_SCALE;
+    ColorManagement.colorSpaceToWorking(this, colorSpace);
+    return this;
+  }
+  /** CSS rgb() string encoded in `colorSpace` (sRGB by default). */
+  getStyle(colorSpace: string = SRGBColorSpace): string {
+    const c = encoded(this, colorSpace);
+    return `rgb(${toByte(c.r)},${toByte(c.g)},${toByte(c.b)})`;
+  }
+  /** Parses a CSS color string whose channels are in `colorSpace` (sRGB by default). */
+  setStyle(style: string, colorSpace: string = SRGBColorSpace): this {
+    parseColorStyle(this, style, colorSpace);
+    return this;
+  }
+
+  /** Writes HSL channels, taken in `colorSpace` (working space by default), into a target record. */
+  getHSL(
+    target: HSL = { h: 0, s: 0, l: 0 },
+    colorSpace: string = ColorManagement.workingColorSpace,
+  ): HSL {
+    const c = encoded(this, colorSpace);
+    const { h, s, l } = rgbToHsl(c.r, c.g, c.b);
     target.h = h;
     target.s = s;
     target.l = l;
     return target;
   }
-  /** Writes normalized RGB channels into a target record. */
-  getRGB(target: RGB = { r: 0, g: 0, b: 0 }): RGB {
-    target.r = this.r;
-    target.g = this.g;
-    target.b = this.b;
+  /** Writes RGB channels in `colorSpace` (working space by default) into a target record. */
+  getRGB(
+    target: RGB = { r: 0, g: 0, b: 0 },
+    colorSpace: string = ColorManagement.workingColorSpace,
+  ): RGB {
+    const c = encoded(this, colorSpace);
+    target.r = c.r;
+    target.g = c.g;
+    target.b = c.b;
     return target;
   }
 
@@ -255,9 +303,9 @@ export class Color {
       this.copy(value);
       return this;
     }
-    if (typeof value === "number") return this.#setHex(value);
+    if (typeof value === "number") return this.setHex(value);
     if (typeof value === "string") {
-      parseColorStyle(this, value);
+      parseColorStyle(this, value, SRGBColorSpace);
       return this;
     }
     throw new Error(
@@ -265,24 +313,24 @@ export class Color {
     );
   }
 
-  #setHex(value: number): this {
-    if (value > 0xffffff || value < 0)
-      throw new Error("EASEL.Color.setHex(): hex out of range");
-    const hex = Math.trunc(value);
-    this.r = (hex >> 16) / COLOR_RGB_SCALE;
-    this.g = ((hex >> 8) & COLOR_RGB_SCALE) / COLOR_RGB_SCALE;
-    this.b = (hex & COLOR_RGB_SCALE) / COLOR_RGB_SCALE;
+  /** Assigns HSL channels given in `colorSpace` (working space by default). */
+  setHSL(
+    h: number,
+    s: number,
+    l: number,
+    colorSpace: string = ColorManagement.workingColorSpace,
+  ): this {
+    colorSetHSL(this, h, s, l, colorSpace);
     return this;
   }
 
-  /** Assigns normalized HSL channels. */
-  setHSL(h: number, s: number, l: number): this {
-    colorSetHSL(this, h, s, l);
-    return this;
-  }
-
-  /** Assigns normalized RGB channels. */
-  setRGB(r: number, g: number, b: number): this {
+  /** Assigns RGB channels in [0, 1] given in `colorSpace` (working space by default). */
+  setRGB(
+    r: number,
+    g: number,
+    b: number,
+    colorSpace: string = ColorManagement.workingColorSpace,
+  ): this {
     if (
       !(Number.isFinite(r) && Number.isFinite(g) && Number.isFinite(b)) ||
       r < 0 ||
@@ -296,7 +344,9 @@ export class Color {
         "EASEL.Color.setRGB(): components must be finite values in [0, 1]",
       );
     }
-    return this.#setChannels(r, g, b);
+    this.#setChannels(r, g, b);
+    ColorManagement.colorSpaceToWorking(this, colorSpace);
+    return this;
   }
 
   #setChannels(r: number, g: number, b: number): this {

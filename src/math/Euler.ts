@@ -1,29 +1,26 @@
 import { safeAsin } from "./MathUtils.ts";
 import { Matrix4 } from "./Matrix4.ts";
 import { Quaternion } from "./Quaternion.ts";
-import {
-  type Axis,
-  type MatrixLike,
-  type RotationOrderConfig,
-  GIMBAL_LOCK_THRESHOLD,
-  ROTATION_ORDER_CONFIG,
-} from "./_EulerConfig.ts";
+
+/** Absolute sine at which Euler extraction switches to gimbal-lock handling. */
+const GIMBAL_LOCK_THRESHOLD = 0.9999999;
 
 /** Supported Euler rotation orders. */
 export type EulerOrder = "XYZ" | "YXZ" | "ZXY" | "ZYX" | "YZX" | "XZY";
 
 const _m = new Matrix4();
 
-interface MatrixElements {
-  m11: number;
-  m12: number;
-  m13: number;
-  m21: number;
-  m22: number;
-  m23: number;
-  m31: number;
-  m32: number;
-  m33: number;
+let deferFromQuaternion: (euler: Euler, q: Quaternion) => void;
+
+/**
+ * Internal: marks `euler` to take its angles from `q`, in its current order,
+ * the next time any angle or order is read or written. Node uses it to keep
+ * `rotation` in sync with `quaternion` without extracting angles on every
+ * quaternion write; the result equals an immediate `setFromQuaternion` that
+ * does not run the change callback, as three.js syncs with `update = false`.
+ */
+export function deferEulerFromQuaternion(euler: Euler, q: Quaternion): void {
+  deferFromQuaternion(euler, q);
 }
 
 /** Euler angles with configurable rotation order. */
@@ -33,6 +30,23 @@ export class Euler {
   #z = 0;
   #order: EulerOrder = "XYZ";
   #onChangeCallback: (() => void) | undefined = undefined;
+  // Quaternion whose rotation these angles still have to be extracted from;
+  // see deferEulerFromQuaternion.
+  #pending: Quaternion | undefined = undefined;
+
+  static {
+    deferFromQuaternion = (euler: Euler, q: Quaternion): void => {
+      euler.#pending = q;
+    };
+  }
+
+  #resolve(): void {
+    const q = this.#pending;
+    this.#pending = undefined;
+    if (q === undefined) return;
+    _m.makeRotationFromQuaternion(q);
+    this.#extract(_m.elements, this.#order);
+  }
 
   /** Constructs Euler angles in the requested rotation order. */
   constructor(
@@ -49,33 +63,39 @@ export class Euler {
 
   /** Cartesian x component. */
   get x(): number {
+    if (this.#pending !== undefined) this.#resolve();
     return this.#x;
   }
 
   /** Replaces the Cartesian x component. */
   set x(value: number) {
+    if (this.#pending !== undefined) this.#resolve();
     this.#x = value;
     this.#onChange();
   }
 
   /** Vertical Cartesian component. */
   get y(): number {
+    if (this.#pending !== undefined) this.#resolve();
     return this.#y;
   }
 
   /** Replaces the Cartesian y component. */
   set y(value: number) {
+    if (this.#pending !== undefined) this.#resolve();
     this.#y = value;
     this.#onChange();
   }
 
   /** Cartesian z component. */
   get z(): number {
+    if (this.#pending !== undefined) this.#resolve();
     return this.#z;
   }
 
   /** Replaces the Cartesian z component. */
   set z(value: number) {
+    if (this.#pending !== undefined) this.#resolve();
     this.#z = value;
     this.#onChange();
   }
@@ -87,6 +107,7 @@ export class Euler {
 
   /** Replaces the Euler rotation order and invokes the change callback. */
   set order(value: EulerOrder) {
+    if (this.#pending !== undefined) this.#resolve();
     this.#order = value;
     this.#onChange();
   }
@@ -142,70 +163,95 @@ export class Euler {
     return this.setFromRotationMatrix(_m, order);
   }
 
-  /** Replaces these Euler angles from a rotation matrix. */
+  /**
+   * Replaces these Euler angles from a rotation matrix. As in three.js r186,
+   * the angles and order are written together and the change callback runs
+   * once.
+   */
   setFromRotationMatrix(
     m: Matrix4 | { elements: number[] },
     order?: EulerOrder,
   ): this {
-    const te = m.elements;
-    const currentOrder = order ?? this.order;
-    this.#applyRotationOrder(currentOrder, {
-      m11: te[0],
-      m12: te[4],
-      m13: te[8],
-      m21: te[1],
-      m22: te[5],
-      m23: te[9],
-      m31: te[2],
-      m32: te[6],
-      m33: te[10],
-    });
-    this.order = currentOrder;
+    const currentOrder = order ?? this.#order;
+    this.#pending = undefined;
+    this.#extract(m.elements, currentOrder);
+    this.#order = currentOrder;
     this.#onChange();
     return this;
   }
 
-  #applyRotationOrder(ord: EulerOrder, elements: MatrixElements): void {
-    const cfg = ROTATION_ORDER_CONFIG[ord];
-    if (cfg === undefined) return;
-    this.#applyOrderConfig(cfg, elements as unknown as MatrixLike);
-  }
-
-  #applyOrderConfig(cfg: RotationOrderConfig, m: MatrixLike): void {
-    const { primary, asinVal, lockVal, locked, unlocked } = cfg;
-    const asin = asinVal(m);
-    this.#setAxis(primary, safeAsin(asin));
-    if (Math.abs(lockVal(m)) >= GIMBAL_LOCK_THRESHOLD) {
-      this.#setAxis(locked.a.axis, Math.atan2(locked.a.n(m), locked.a.d(m)));
-      const fallback = Math.atan2(locked.b.n(m), locked.b.d(m));
-      this.#setAxis(
-        locked.b.axis,
-        this.#getAxis(locked.b.axis) === 0
-          ? fallback
-          : this.#getAxis(locked.b.axis),
-      );
-    } else {
-      this.#setAxis(
-        unlocked.a.axis,
-        Math.atan2(unlocked.a.n(m), unlocked.a.d(m)),
-      );
-      this.#setAxis(
-        unlocked.b.axis,
-        Math.atan2(unlocked.b.n(m), unlocked.b.d(m)),
-      );
+  #extract(te: ArrayLike<number>, order: EulerOrder): void {
+    const m11 = te[0] ?? 0;
+    const m12 = te[4] ?? 0;
+    const m13 = te[8] ?? 0;
+    const m21 = te[1] ?? 0;
+    const m22 = te[5] ?? 0;
+    const m23 = te[9] ?? 0;
+    const m31 = te[2] ?? 0;
+    const m32 = te[6] ?? 0;
+    const m33 = te[10] ?? 0;
+    switch (order) {
+      case "XYZ":
+        this.#y = safeAsin(m13);
+        if (Math.abs(m13) < GIMBAL_LOCK_THRESHOLD) {
+          this.#x = Math.atan2(-m23, m33);
+          this.#z = Math.atan2(-m12, m11);
+        } else {
+          this.#x = Math.atan2(m32, m22);
+          this.#z = 0;
+        }
+        break;
+      case "YXZ":
+        this.#x = safeAsin(-m23);
+        if (Math.abs(m23) < GIMBAL_LOCK_THRESHOLD) {
+          this.#y = Math.atan2(m13, m33);
+          this.#z = Math.atan2(m21, m22);
+        } else {
+          this.#y = Math.atan2(-m31, m11);
+          this.#z = 0;
+        }
+        break;
+      case "ZXY":
+        this.#x = safeAsin(m32);
+        if (Math.abs(m32) < GIMBAL_LOCK_THRESHOLD) {
+          this.#y = Math.atan2(-m31, m33);
+          this.#z = Math.atan2(-m12, m22);
+        } else {
+          this.#y = 0;
+          this.#z = Math.atan2(m21, m11);
+        }
+        break;
+      case "ZYX":
+        this.#y = safeAsin(-m31);
+        if (Math.abs(m31) < GIMBAL_LOCK_THRESHOLD) {
+          this.#x = Math.atan2(m32, m33);
+          this.#z = Math.atan2(m21, m11);
+        } else {
+          this.#x = 0;
+          this.#z = Math.atan2(-m12, m22);
+        }
+        break;
+      case "YZX":
+        this.#z = safeAsin(m21);
+        if (Math.abs(m21) < GIMBAL_LOCK_THRESHOLD) {
+          this.#x = Math.atan2(-m23, m22);
+          this.#y = Math.atan2(-m31, m11);
+        } else {
+          this.#x = 0;
+          this.#y = Math.atan2(m13, m33);
+        }
+        break;
+      case "XZY":
+        this.#z = safeAsin(-m12);
+        if (Math.abs(m12) < GIMBAL_LOCK_THRESHOLD) {
+          this.#x = Math.atan2(m32, m22);
+          this.#y = Math.atan2(m13, m11);
+        } else {
+          this.#x = Math.atan2(-m23, m33);
+          this.#y = 0;
+        }
+        break;
     }
-  }
-
-  #setAxis(axis: Axis, value: number): void {
-    if (axis === "x") this.x = value;
-    else if (axis === "y") this.y = value;
-    else this.z = value;
-  }
-
-  #getAxis(axis: Axis): number {
-    if (axis === "x") return this.x;
-    if (axis === "y") return this.y;
-    return this.z;
   }
 
   /** Returns true when x, y, z, and order exactly match the argument. */

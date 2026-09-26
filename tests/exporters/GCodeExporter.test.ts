@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import { GCodeExporter } from "@/exporters/GCodeExporter.js";
+import { BoxGeometry } from "@/geometry/primitives/BoxGeometry.js";
 import { BasicMaterial } from "@/materials/BasicMaterial.js";
 import { Mesh } from "@/objects/Mesh.js";
 

@@ -1,0 +1,34 @@
+[
+  {
+    "query": "fog stopped working after I changed scene.fog.far at runtime, now render throws 'Fog LUT is dirty'",
+    "should_trigger": true
+  },
+  {
+    "query": "easel geometry: setIndex is not a function, what replaced it? building a custom quad grid",
+    "should_trigger": true
+  },
+  {
+    "query": "which constants does @xsyetopz/easel export for Loop and Side, and what are the values",
+    "should_trigger": true
+  },
+  {
+    "query": "animation clip plays too fast and snaps back to start when it ends, using Animator + AnimationClip in easel",
+    "should_trigger": true
+  },
+  {
+    "query": "I want my three.js project's OrbitControls code converted to EASEL names, just this one file for now",
+    "should_trigger": false
+  },
+  {
+    "query": "EaselJS Bitmap cache() is slow on mobile Safari",
+    "should_trigger": false
+  },
+  {
+    "query": "Set up WebGPU compute shaders for particle simulation",
+    "should_trigger": false
+  },
+  {
+    "query": "Draw a line graph of CPU temps on a <canvas> element every second",
+    "should_trigger": false
+  }
+]

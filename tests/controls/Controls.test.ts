@@ -25,6 +25,19 @@ describe("Controls", () => {
 
       expect(controls.enabled).toBe(true);
     });
+
+    it("defaults state, keys, mouseButtons, and touches like three.js r186", () => {
+      const controls = new Controls(new Node());
+
+      expect(controls.state).toBe(-1);
+      expect(controls.keys).toEqual({});
+      expect(controls.mouseButtons).toEqual({
+        LEFT: undefined,
+        MIDDLE: undefined,
+        RIGHT: undefined,
+      });
+      expect(controls.touches).toEqual({ ONE: undefined, TWO: undefined });
+    });
   });
 
   describe("inheritance", () => {

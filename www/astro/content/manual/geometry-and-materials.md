@@ -42,14 +42,14 @@ Material opacity is intentionally discrete. Transparent objects depend on
 sorted draw order, and changing depth writes can change how overlapping
 fragments appear.
 
-<figure class="manual-render" data-manual-example="vertex-color-review">
+<figure class="manual-render" data-manual-example="canvas_interactive_raycasting_points">
   <div class="manual-render__stage">
-    <canvas width="16" height="9" role="img" aria-label="Geometry colors rendered without a texture.">
+    <canvas width="16" height="9" role="img" aria-label="Vertex-colored point clouds rendered without a texture.">
       This render needs a Canvas2D-capable browser.
     </canvas>
     <p data-manual-example-status role="status">Loading render…</p>
   </div>
-  <figcaption>Geometry colors rendered without a texture.</figcaption>
+  <figcaption>Vertex-colored point clouds rendered without a texture.</figcaption>
 </figure>
 
 ## Related API

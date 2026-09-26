@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Wrapping } from "@/core/Constants.ts";
+import { LinearToSRGB } from "@/math/ColorManagement.js";
 import { LineBuffer } from "@/pipeline/LineBuffer.js";
 import { TriangleBuffer } from "@/pipeline/TriangleBuffer.js";
 import {
@@ -37,6 +38,77 @@ describe("Rasterizer", () => {
       undefined,
     );
     expect(countNonBlackPixels(fb)).toBeGreaterThan(0);
+  });
+
+  it("points material keeps each point's own vertex color", () => {
+    const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+    const tb = new TriangleBuffer(1);
+    appendCenterTriangle(tb, -1);
+    tb.vertexIndex.set([0, 1, 2]);
+    tb.buildSortOrder();
+    rasterizer.rasterize(
+      {
+        triangles: tb,
+        material: { color: { r: 1, g: 1, b: 1 }, points: true, size: 1 },
+        vertexColorData: new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+        vertexColorItemSize: 3,
+      },
+      fb,
+      undefined,
+    );
+    expect(fb.getPixel(8, 5)).toMatchObject({ r: 255, g: 0, b: 0 });
+    expect(fb.getPixel(12, 5)).toMatchObject({ r: 0, g: 255, b: 0 });
+    expect(fb.getPixel(10, 10)).toMatchObject({ r: 0, g: 0, b: 255 });
+  });
+
+  describe("points under fog", () => {
+    const fog = { r: 0.2, g: 0.4, b: 0.6 };
+    // Fog blends in sRGB output space with the encoded fog color, as in three.js.
+    const fogRgb = [fog.r, fog.g, fog.b].map((c) =>
+      Math.round(LinearToSRGB(c) * 255),
+    );
+    const mix = (color: number[], factor: number) =>
+      color.map((channel, i) =>
+        Math.round(channel + (fogRgb[i] - channel) * factor),
+      );
+    const renderFoggedPoints = (vertexColorData?: Float32Array) => {
+      const { rasterizer, framebuffer: fb } = makeRasterizerFixture();
+      const tb = new TriangleBuffer(1);
+      appendCenterTriangle(tb, -1);
+      tb.vertexIndex.set([0, 1, 2]);
+      tb.fogFactor.set([0, 0.5, 1]);
+      tb.buildSortOrder();
+      const drawCall: RasterDrawCall = {
+        triangles: tb,
+        material: { color: { r: 1, g: 1, b: 1 }, points: true, size: 1 },
+      };
+      if (vertexColorData) {
+        drawCall.vertexColorData = vertexColorData;
+        drawCall.vertexColorItemSize = 3;
+      }
+      rasterizer.rasterize(drawCall, fb, undefined, fog);
+      const rgb = (x: number, y: number) => {
+        const { r, g, b } = fb.getPixel(x, y);
+        return [r, g, b];
+      };
+      return [rgb(8, 5), rgb(12, 5), rgb(10, 10)];
+    };
+
+    it("blends each vertex-colored point toward the fog color by its own factor", () => {
+      const pixels = renderFoggedPoints(
+        new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]),
+      );
+      expect(pixels[0]).toEqual([255, 0, 0]);
+      expect(pixels[1]).toEqual(mix([0, 255, 0], 0.5));
+      expect(pixels[2]).toEqual(fogRgb);
+    });
+
+    it("blends each flat-colored point toward the fog color by its own factor", () => {
+      const pixels = renderFoggedPoints();
+      expect(pixels[0]).toEqual([255, 255, 255]);
+      expect(pixels[1]).toEqual(mix([255, 255, 255], 0.5));
+      expect(pixels[2]).toEqual(fogRgb);
+    });
   });
 
   it("does not write pixels for empty triangles array", () => {
@@ -126,12 +198,16 @@ describe("Rasterizer", () => {
       fb,
       undefined,
     );
+    // Linear material and vertex colors are each encoded to sRGB, then
+    // multiplied: encode(0.5) * encode(1), encode(0.5) * encode(0.5), ...
+    const half = LinearToSRGB(0.5);
+    const materialHalf = Math.round(255 * half);
     const pixels = collectNonBlackPixels(fb);
     expect(pixels.length).toBeGreaterThan(0);
     for (const p of pixels) {
-      expect(p.r).toBe(128);
-      expect(p.g).toBe(64);
-      expect(p.b).toBe(128);
+      expect(p.r).toBe(materialHalf);
+      expect(p.g).toBe(Math.round(materialHalf * half));
+      expect(p.b).toBe(Math.round(255 * half));
     }
   });
 

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { Object3D } from "three";
+import { Loop } from "@/animation/AnimationAction.js";
 import { AnimationClip } from "@/animation/AnimationClip.js";
 import { Animator } from "@/animation/Animator.js";
-import { Loop } from "@/animation/AnimationAction.js";
 import { NumberTrack } from "@/animation/tracks/NumberTrack.js";
 import { Node } from "@/core/Node.js";
 

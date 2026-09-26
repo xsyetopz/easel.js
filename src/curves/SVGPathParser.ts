@@ -25,6 +25,7 @@ type CommandHandler = (
 
 const TOKEN_PATTERN = /[a-zA-Z]|[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/gu;
 const COMMAND_PATTERN = /^[a-zA-Z]$/u;
+const ARC_FLAG_OFFSETS = [3, 4] as const;
 const COMMAND_ARGUMENTS: Record<string, number> = {
   M: 2,
   L: 2,
@@ -95,14 +96,16 @@ function consumeCommand(
     throw new SyntaxError(`Unsupported SVG path command: ${command}`);
   if (!hasArguments(tokens, index))
     throw new SyntaxError(`Missing arguments for SVG path command: ${command}`);
+  const relative = command !== upper;
   let first = true;
   while (hasArguments(tokens, index)) {
+    if (upper === "A") splitArcFlags(tokens, index);
     if (tokens.length - index < argumentCount)
       throw new SyntaxError(`Incomplete SVG path command: ${command}`);
     const values = tokens.slice(index, index + argumentCount).map(parseNumber);
     index += argumentCount;
     state.forceMove = upper === "M" && first;
-    handler(state, values, command !== upper);
+    handler(state, values, relative);
     state.previousCommand = upper;
     first = false;
     if (upper === "M") command = command === upper ? "L" : "l";
@@ -120,6 +123,22 @@ export const parsePath: (data: string) => ShapePath = parseSVGPath;
 
 function isCommand(token: string | undefined): boolean {
   return token !== undefined && COMMAND_PATTERN.test(token);
+}
+
+/**
+ * Splits packed arc flags such as `0010` into `0`, `0`, `10`. The SVG path
+ * grammar defines each flag as a single `0` or `1` character, so flags and the
+ * following coordinate may be written without separators.
+ */
+function splitArcFlags(tokens: string[], index: number): void {
+  for (const offset of ARC_FLAG_OFFSETS) {
+    const flagIndex = index + offset;
+    const token = tokens[flagIndex];
+    if (token === undefined || token.length < 2 || isCommand(token)) continue;
+    const flag = token[0];
+    if (flag !== "0" && flag !== "1") continue;
+    tokens.splice(flagIndex, 1, flag, token.slice(1));
+  }
 }
 
 function hasArguments(tokens: string[], index: number): boolean {

@@ -3,11 +3,24 @@ import { getSingletonHighlighter } from "shiki";
 import type { ControlDefinition } from "../types/controls.ts";
 
 export interface ExampleMeta {
+  /** EASEL example id; `webgl_` upstream ids become `canvas_`. */
   id: string;
+  /** Mirrored three.js r186 example id, such as `webgl_raycaster_sprite`. */
+  upstream: string;
   name: string;
   category: string;
   animated: boolean;
   description: string;
+  /** Visible or behavioral differences from the three.js original. */
+  differences: string[];
+}
+
+/** three.js release the side-by-side ports are taken from. */
+export const THREE_EXAMPLES_REVISION = "r186";
+
+/** Returns the upstream source URL of a three.js example. */
+export function threeExampleSourceUrl(id: string): string {
+  return `https://github.com/mrdoob/three.js/blob/${THREE_EXAMPLES_REVISION}/examples/${id}.html`;
 }
 
 export interface ExampleCatalogEntry {
@@ -17,6 +30,8 @@ export interface ExampleCatalogEntry {
 export interface ExampleRegistryEntry extends ExampleCatalogEntry {
   controls: ExampleControl[];
   load: () => Promise<ExampleModule>;
+  /** Loads the three.js r186 original, adapted to the same `setup` contract. */
+  loadThree: () => Promise<ThreeExampleModule>;
 }
 
 export type ExampleControl = ControlDefinition;
@@ -41,6 +56,11 @@ export interface ExampleModule {
     canvas: HTMLCanvasElement,
     params: ExampleParams,
   ) => ExampleInstance | undefined;
+}
+
+/** The three.js original of an example, rendered with WebGL beside the EASEL port. */
+export interface ThreeExampleModule {
+  setup: ExampleModule["setup"];
 }
 
 export interface ExampleRouteData {

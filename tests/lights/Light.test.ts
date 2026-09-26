@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import * as THREE from "three";
 import { Node } from "@/core/Node.js";
 import { AmbientLight } from "@/lights/AmbientLight.js";
 import { DirectionalLight } from "@/lights/DirectionalLight.js";
@@ -225,5 +226,19 @@ describe("light family", () => {
       },
     };
     expect(() => mutating.toJSON()).toThrow("finite");
+  });
+});
+
+describe("Light.isLight parity with three.js r186", () => {
+  it("is true on every light, as in three.js", () => {
+    const reference = THREE as unknown as {
+      PointLight: new () => { isLight?: boolean };
+    };
+    expect(new PointLight().isLight).toBe(true);
+    expect(new AmbientLight().isLight).toBe(true);
+    expect(new PointLight().isLight).toBe(
+      new reference.PointLight().isLight === true,
+    );
+    expect((new Node() as { isLight?: boolean }).isLight).toBeUndefined();
   });
 });

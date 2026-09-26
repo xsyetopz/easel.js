@@ -50,6 +50,11 @@ export class OrthographicCamera extends Camera {
   /** Runtime class label used by serialization and camera dispatch. */
   override type: string = "OrthographicCamera";
 
+  /** Returns `true` for this concrete type. */
+  get isOrthographicCamera(): true {
+    return true;
+  }
+
   #left: number;
   #right: number;
   #top: number;

@@ -4,6 +4,8 @@ declare module "jsdom" {
     /** Browser document created for a test. */
     readonly window: {
       readonly document: Document;
+      /** XML and HTML parser constructor from the test window. */
+      readonly DOMParser: typeof DOMParser;
       close(): void;
     };
     /** Creates a browser-like document for a test. */

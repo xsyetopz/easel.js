@@ -19,6 +19,16 @@ describe("SVGLoader", () => {
     expect(result.paths[1]?.subPaths[0]?.curves.length).toBeGreaterThan(0);
   });
 
+  it("parses path data with packed arc flags and implicit absolute lines", () => {
+    const result = new SVGLoader().parse(
+      `<svg><path d="M0 0A1 1 0 0010 0"/><path d="M 0 0 10 0 10 10 Z"/></svg>`,
+    );
+    expect(result.paths[0]?.subPaths[0]?.curves).toHaveLength(1);
+    const secondLine = result.paths[1]?.subPaths[0]?.curves[1];
+    expect(secondLine?.getPoint(0)).toMatchObject({ x: 10, y: 0 });
+    expect(secondLine?.getPoint(1)).toMatchObject({ x: 10, y: 10 });
+  });
+
   it("parses standard shape elements and retains source metadata", () => {
     const result = new SVGLoader().parse(
       `<svg><rect x="1" y="2" width="4" height="5" rx="1" fill="#0f0"/><circle cx="1" cy="1" r="1"/><ellipse cx="4" cy="5" rx="2" ry="1"/><line x1="0" y1="1" x2="2" y2="3"/><polyline points="0 1"/></svg>`,

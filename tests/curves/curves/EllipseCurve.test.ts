@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe } from "bun:test";
 import * as THREE from "three";
 import { EllipseCurve } from "@/curves/curves/EllipseCurve.js";
 import { expectCurveParity } from "../../_helpers/curves.ts";
@@ -10,21 +10,26 @@ describe("EllipseCurve vs THREE", () => {
 
   expectCurveParity(EASEL, THREECurve, { lengthEpsilon: 1e-3 });
 
-  // Clockwise traversal: EASEL reverses angle direction (endAngle → startAngle),
-  // while THREE.js swaps start/end. The implementations differ intentionally.
-  describe("clockwise (EASEL behaviour)", () => {
-    const eC = new EllipseCurve(0, 0, 2, 1, 0, Math.PI, true, 0);
-    it("t=0 starts at endAngle (PI)", () => {
-      // clockwise=true means start at endAngle, so cos(PI)=-1, sin(PI)=0
-      const p = eC.getPoint(0);
-      expect(p.x).toBeCloseTo(-2, 5);
-      expect(p.y).toBeCloseTo(0, 5);
+  // Replaces the "clockwise (EASEL behaviour)" block, which pinned EASEL's
+  // old end-to-start traversal. r186 runs from startAngle in the clockwise
+  // direction after normalizing the delta, so every case compares with it.
+  const cases: [string, ConstructorParameters<typeof EllipseCurve>][] = [
+    ["clockwise, start < end", [0, 0, 2, 1, 0, Math.PI, true, 0]],
+    ["counterclockwise, start > end", [1, -1, 1, 1, Math.PI, 0, false, 0]],
+    ["clockwise, start > end", [0, 0, 3, 2, 2, 0.5, true, 0]],
+    ["full turn, clockwise", [0, 0, 1, 1, 0, Math.PI * 2, true, 0]],
+    ["equal angles", [0, 0, 1, 1, 1, 1, true, 0]],
+    ["delta above 2PI", [0, 0, 1, 2, -1, 9, false, 0]],
+    ["delta below -2PI, clockwise", [0, 0, 1, 2, 9, -1, true, 0]],
+    ["rotated, clockwise", [2, 3, 4, 1, 0, Math.PI / 2, true, 0.7]],
+  ];
+  for (const [name, args] of cases) {
+    describe(name, () => {
+      expectCurveParity(
+        new EllipseCurve(...args),
+        new THREE.EllipseCurve(...args),
+        { samples: [0, 0.1, 0.25, 0.5, 0.75, 1], lengthEpsilon: 1e-3 },
+      );
     });
-    it("t=1 ends at startAngle (0)", () => {
-      // clockwise=true means end at startAngle, so cos(0)=1, sin(0)=0
-      const p = eC.getPoint(1);
-      expect(p.x).toBeCloseTo(2, 5);
-      expect(p.y).toBeCloseTo(0, 5);
-    });
-  });
+  }
 });

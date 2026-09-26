@@ -163,15 +163,11 @@ export function createHelperControlsWorkload(EASEL) {
     description:
       "BoxHelper update plus OrbitControls pointer/wheel/update path against deterministic event target.",
     create() {
-      const tracked = {
-        geometry: {
-          boundingBox: {
-            min: { x: -1, y: -1, z: -1 },
-            max: { x: 1, y: 1, z: 1 },
-          },
-        },
-      };
-      const helper = new EASEL.BoxHelper(tracked, 0xffff00);
+      const box = new EASEL.Box3(
+        new EASEL.Vector3(-1, -1, -1),
+        new EASEL.Vector3(1, 1, 1),
+      );
+      const helper = new EASEL.BoxHelper(box, 0xffff00);
       const camera = createOrthoCamera(EASEL, 640, 360, 16);
       camera.position.set(0, 4, 12);
       camera.lookAt(new EASEL.Vector3(0, 0, 0));
@@ -190,7 +186,6 @@ export function createHelperControlsWorkload(EASEL) {
       return {
         metadata: { helper: "BoxHelper", control: "OrbitControls" },
         run(frame, timings) {
-          const box = tracked.geometry.boundingBox;
           box.min.x = -1 - Math.sin(frame * 0.03) * 0.2;
           box.max.y = 1 + Math.cos(frame * 0.02) * 0.2;
           const start = performance.now();

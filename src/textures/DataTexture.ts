@@ -58,6 +58,7 @@ export class DataTexture extends Texture {
     } as TextureImageSource;
     if (data !== undefined) {
       this.#imageData = createDataImage(data, width, height);
+      this.encodeCachedTexels(this.#imageData);
     }
   }
 
@@ -97,6 +98,7 @@ export class DataTexture extends Texture {
           source.width,
           source.height,
         );
+        this.encodeCachedTexels(this.#imageData);
       }
     }
     return super.update();

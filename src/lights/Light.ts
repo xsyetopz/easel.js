@@ -26,6 +26,11 @@ export class Light extends Node {
   /** String identifier used by runtime type checks and serialization. */
   override type: string = "Light";
 
+  /** Returns `true` for every light. */
+  get isLight(): true {
+    return true;
+  }
+
   /** RGB color multiplied into the light contribution. */
   color: Color;
 
