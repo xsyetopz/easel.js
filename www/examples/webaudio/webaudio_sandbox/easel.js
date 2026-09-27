@@ -39,7 +39,7 @@ export const meta = {
     "The upstream music tracks 358232 and 376737 are CC BY-NC-SA and are not copied, so both sides substitute generated audio: a sawtooth pulsing twice a second on the first sphere and a fast square beat on the second, built from OscillatorNode and GainNode.",
     "The CC0 Project_Utopia ambience is also replaced by a generated slow triangle swell, because the asset was not copied into this repository; it plays as a node source instead of a looping media element.",
     "The generated sources start at once and never end, where the two upstream songs play through once.",
-    "EASEL has no Phong material or emissive colour, so the spheres use flat-shaded LambertMaterial without specular, and the analyser's average frequency raises the material's blue channel instead of its emissive blue, so the glow is scaled by the light instead of added on top of it.",
+    "EASEL has no Phong material, so the spheres use flat-shaded LambertMaterial without specular.",
     "EASEL's AudioAnalyzer takes an AudioContext and options, so the port creates one per sphere with fftSize 32 and attaches it to that sound's output, where three.js passes the sound to AudioAnalyser.",
     "EASEL FogExp2 evaluates fog per vertex from a lookup table, so the fog fades across each face instead of per pixel.",
   ],
@@ -134,9 +134,6 @@ export function setup(canvas, params) {
 
   const sphere = new SphereGeometry(20, 32, 16);
 
-  const baseBlue = [0xffaa00, 0xff2200, 0x6622aa].map(
-    (hex) => (hex & 0xff) / 255,
-  );
   const material1 = new LambertMaterial({
     color: 0xffaa00,
     shading: Shading.Flat,
@@ -276,10 +273,7 @@ export function setup(canvas, params) {
 
     if (audio) {
       for (let i = 0; i < 3; i++) {
-        materials[i].color.b = Math.min(
-          1,
-          baseBlue[i] + audio.analysers[i].averageFrequency / 256,
-        );
+        materials[i].emissive.b = audio.analysers[i].averageFrequency / 256;
       }
     }
 
@@ -340,7 +334,7 @@ canvas.addEventListener("click", () => {
   analyser = new EASEL.AudioAnalyzer(context, { fftSize: 32 }).attach(sound.output);
 });
 
-material.color.b = analyser.averageFrequency / 256;
+material.emissive.b = analyser.averageFrequency / 256;
 controls.update(timer.update(timestamp).delta);
 renderer.prepare(scene, camera);
 renderer.render(scene, camera);`;

@@ -252,8 +252,6 @@ export function setup(canvas, params) {
 
     const material = new LambertMaterial({ color: 0x00cc00 });
     const geometry = new TorusGeometry(5, 2, 24, 100);
-    // EASEL 0.7.0 builds the torus in the XZ plane; three.js builds it in XY.
-    geometry.rotateX(Math.PI / 2);
     mesh = new Mesh(geometry, material);
     settings.geometryName = "torus";
     placeOnXYPlane(mesh);

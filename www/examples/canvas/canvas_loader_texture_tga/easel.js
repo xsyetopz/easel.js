@@ -9,6 +9,7 @@ import {
   PerspectiveCamera,
   Renderer,
   Scene,
+  SRGBColorSpace,
   TGALoader,
 } from "@/index.js";
 
@@ -31,7 +32,6 @@ export const meta = {
   differences: [
     "MeshPhongMaterial becomes LambertMaterial because EASEL has no Phong shading, so the crates show no specular highlight.",
     "EASEL has no createDataTexture on DataTextureLoader, so the port wraps TGALoader.parse output in a DataTexture and builds its brightness levels, as EASEL's DataTextureLoader.load does.",
-    "EASEL Texture.colorSpace rejects SRGBColorSpace because EASEL samples texture bytes without color conversion, so the assignment is dropped and lighting runs in display color space.",
     "EASEL caches the 256x256 TGA images at 128x128 and samples them nearest-neighbor with affine warping, so the wood grain is blockier and bends across each face.",
     "Edges are aliased because EASEL has no antialiasing.",
   ],
@@ -63,7 +63,8 @@ export function setup(canvas) {
     texData1.width,
     texData1.height,
   );
-  texture1.buildBrightnessLevels();
+  texture1.colorSpace = SRGBColorSpace;
+  texture1.update().buildBrightnessLevels();
   const material1 = new LambertMaterial({ color: 0xffffff, map: texture1 });
 
   const mesh1 = new Mesh(geometry, material1);
@@ -79,7 +80,8 @@ export function setup(canvas) {
     texData2.width,
     texData2.height,
   );
-  texture2.buildBrightnessLevels();
+  texture2.colorSpace = SRGBColorSpace;
+  texture2.update().buildBrightnessLevels();
   const material2 = new LambertMaterial({ color: 0xffffff, map: texture2 });
 
   const mesh2 = new Mesh(geometry, material2);
@@ -140,7 +142,8 @@ export const easelSource = `import * as EASEL from "@xsyetopz/easel";
 const loader = new EASEL.TGALoader();
 const texData = loader.parse(tgaBuffer);
 const texture = new EASEL.DataTexture(texData.data, texData.width, texData.height);
-texture.buildBrightnessLevels();
+texture.colorSpace = EASEL.SRGBColorSpace;
+texture.update().buildBrightnessLevels();
 
 const material = new EASEL.LambertMaterial({ color: 0xffffff, map: texture });
 const mesh = new EASEL.Mesh(new EASEL.BoxGeometry(), material);

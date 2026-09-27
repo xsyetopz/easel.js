@@ -27,7 +27,6 @@ export const meta = {
   differences: [
     "MeshPhongMaterial becomes LambertMaterial with Gouraud (per-vertex) lighting, so the triangles have no white specular highlight (specular 0xffffff, shininess 250).",
     "EASEL only reads RGB (itemSize 3) vertex colors and has no per-vertex alpha, so the random per-triangle alpha is dropped and the material is opaque instead of transparent; transparent: true would also turn off depth writes in EASEL and draw the triangles in submission order.",
-    "EASEL has no color management, so the linear vertex colors are converted to sRGB once at setup with convertLinearToSRGB and lighting and fog are applied to display values instead of in linear space.",
     "Attribute.onUpload is a GPU upload hook with no EASEL equivalent, so the typed arrays stay in memory.",
     "Fog is sampled once per vertex from EASEL's 256-entry fog table instead of per pixel.",
     "All 160,000 triangles are transformed, lit and rasterized on the CPU every frame; a Bun stub-canvas run at 640x360 measured a median of about 62 ms per frame (roughly 16 fps), above the 33 ms budget, and the count is kept to match three.js.",
@@ -135,9 +134,7 @@ export function setup(canvas) {
     const vy = y / n + 0.5;
     const vz = z / n + 0.5;
 
-    // three.js treats these as linear working-space values and encodes them
-    // to sRGB on output; EASEL stores display values, so convert once here.
-    color.setRGB(vx, vy, vz).convertLinearToSRGB();
+    color.setRGB(vx, vy, vz);
 
     // EASEL vertex colors are RGB only; the per-triangle alpha is dropped.
     colors.push(color.r, color.g, color.b);

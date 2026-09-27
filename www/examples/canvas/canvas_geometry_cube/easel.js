@@ -5,6 +5,7 @@ import {
   PerspectiveCamera,
   Renderer,
   Scene,
+  SRGBColorSpace,
   TextureLoader,
 } from "@/index.js";
 
@@ -21,7 +22,7 @@ export const meta = {
     "A unit box textured with the wooden crate GIF tumbles slowly around its X and Y axes.",
   differences: [
     "EASEL caches the 256x256 crate.gif at 128x128 and samples it nearest-neighbor with affine warping, so the wood grain is blockier and bends across each face instead of being filtered and perspective-correct.",
-    "EASEL's TextureLoader.load returns nothing, so the port assigns the map in the load callback, and the cube draws untextured white for the first frames, before the data-URL GIF is decoded.",
+    "EASEL's TextureLoader.load returns nothing, so the port assigns the map in the load callback, where it also sets colorSpace and re-caches the already decoded texels with update(); the cube draws untextured white for the first frames, before the data-URL GIF is decoded.",
   ],
 };
 export const controls = [];
@@ -50,6 +51,8 @@ export function setup(canvas) {
         texture.dispose();
         return;
       }
+      texture.colorSpace = SRGBColorSpace;
+      texture.update().buildBrightnessLevels();
       material.map = texture;
     },
   );
@@ -97,6 +100,8 @@ camera.position.z = 2;
 
 const material = new EASEL.BasicMaterial();
 new EASEL.TextureLoader().load(crateUrl, (texture) => {
+  texture.colorSpace = EASEL.SRGBColorSpace;
+  texture.update().buildBrightnessLevels();
   material.map = texture;
 });
 

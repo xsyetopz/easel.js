@@ -291,9 +291,7 @@ export function setup(canvas, params) {
   const boxMaterial = new BasicMaterial({ color: 0x00ff00 });
   const cube = new Mesh(boxGeometry, boxMaterial);
   cube.visible = false;
-  boxGeometry.computeBoundingBox();
-  cube.updateMatrixWorld();
-  const box = new BoxHelper(cube).update();
+  const box = new BoxHelper(cube);
   scene.add(box);
   scene.add(cube);
   resources.push(boxGeometry, boxMaterial, box);

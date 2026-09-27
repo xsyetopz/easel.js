@@ -8,6 +8,7 @@ import {
   PointsMaterial,
   Renderer,
   Scene,
+  SRGBColorSpace,
 } from "@/index.js";
 
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
@@ -75,9 +76,7 @@ export function setup(canvas) {
     const vy = y / n + 0.5;
     const vz = z / n + 0.5;
 
-    // three.js stores these sRGB values as linear and converts them back on
-    // output; EASEL displays vertex colors as given, so no conversion.
-    color.setRGB(vx, vy, vz);
+    color.setRGB(vx, vy, vz, SRGBColorSpace);
 
     colors.push(color.r, color.g, color.b);
   }

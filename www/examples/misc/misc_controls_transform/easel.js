@@ -10,6 +10,7 @@ import {
   PerspectiveCamera,
   Renderer,
   Scene,
+  SRGBColorSpace,
   TextureLoader,
   TransformControls,
   toRadians,
@@ -91,6 +92,8 @@ export function setup(canvas) {
       map.dispose();
       return;
     }
+    map.colorSpace = SRGBColorSpace;
+    map.update().buildBrightnessLevels();
     texture = map;
     material.map = map;
   });
@@ -161,10 +164,9 @@ export function setup(canvas) {
             : cameraPersp;
         currentCamera.position.copy(position);
 
-        orbit.camera = currentCamera;
+        orbit.object = currentCamera;
         control.camera = currentCamera;
 
-        currentCamera.updateMatrixWorld();
         currentCamera.lookAt(orbit.target.x, orbit.target.y, orbit.target.z);
         onWindowResize();
         break;

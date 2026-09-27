@@ -6,6 +6,7 @@ import {
   Renderer,
   Scene,
   SphereGeometry,
+  SRGBColorSpace,
   TextureLoader,
   toRadians,
 } from "@/index.js";
@@ -24,8 +25,7 @@ export const meta = {
   differences: [
     "Both sides show Greg Zaal's CC0 Poly Haven panorama spruit_sunrise_2k.hdr.jpg from the three.js repository instead of 2294472375_24a3b8ef46_o.jpg, whose license is unknown.",
     "EASEL caches the 2048x1024 panorama at 128x128 and samples it nearest-neighbor with affine warping, so the full-screen view is very blocky and bends across each sphere face instead of being filtered and perspective-correct.",
-    "EASEL's TextureLoader.load returns nothing, so the port assigns the map in the load callback, and the sphere draws untextured white until the data-URL JPEG is decoded.",
-    "EASEL Texture.colorSpace rejects SRGBColorSpace because EASEL samples texture bytes without color conversion, so the assignment is dropped.",
+    "EASEL's TextureLoader.load returns nothing, so the port assigns the map in the load callback, where it also sets colorSpace and re-caches the already decoded texels with update(); the sphere draws untextured white until the data-URL JPEG is decoded.",
     "Pointer move, pointer up and wheel listeners are attached to the canvas, with pointer capture, instead of the document, so dragging and zooming only start over the example.",
   ],
 };
@@ -67,6 +67,8 @@ export function setup(canvas) {
         texture.dispose();
         return;
       }
+      texture.colorSpace = SRGBColorSpace;
+      texture.update().buildBrightnessLevels();
       material.map = texture;
     },
   );
@@ -141,7 +143,6 @@ export function setup(canvas) {
     const y = 500 * Math.cos(phi);
     const z = 500 * Math.sin(phi) * Math.sin(theta);
 
-    camera.updateMatrixWorld();
     camera.lookAt(x, y, z);
 
     renderer.prepare(scene, camera);
@@ -179,6 +180,8 @@ geometry.scale(-1, 1, 1);
 
 const material = new EASEL.BasicMaterial();
 new EASEL.TextureLoader().load(panoramaUrl, (texture) => {
+  texture.colorSpace = EASEL.SRGBColorSpace;
+  texture.update().buildBrightnessLevels();
   material.map = texture;
 });
 scene.add(new EASEL.Mesh(geometry, material));
@@ -186,7 +189,6 @@ scene.add(new EASEL.Mesh(geometry, material));
 lon += 0.1;
 phi = EASEL.toRadians(90 - lat);
 theta = EASEL.toRadians(lon);
-camera.updateMatrixWorld();
 camera.lookAt(
   500 * Math.sin(phi) * Math.cos(theta),
   500 * Math.cos(phi),

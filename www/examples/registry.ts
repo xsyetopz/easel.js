@@ -21,9 +21,8 @@ export const examples: ExampleRegistryEntry[] = [
         "Three flat-shaded icosahedra with hue, saturation and red-to-yellow vertex color gradients and black wireframe overlays float above soft canvas-texture shadows while the camera follows the pointer.",
       differences: [
         "MeshPhongMaterial with shininess 0 becomes an EASEL LambertMaterial with flat baked lighting, which has no specular term; with shininess 0 the Phong highlight is a faint uniform sheen that the port drops.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL's Color.setRGB rejects components outside 0 to 1, so the third icosahedron's green channel is clamped at 0 before it is stored; three.js stores the negative value and clamps at output, which only changes the gradient on the top faces slightly.",
-        "EASEL interpolates vertex colors in sRGB bytes rather than three.js's linear working space, so the gradients blend slightly darker between vertices.",
+        "EASEL lights each vertex in linear space and encodes it to sRGB before interpolating across the face, where three.js interpolates in linear space and encodes per pixel, so the gradients blend slightly darker between vertices.",
         "The black wireframe overlay shares the faces' depth, so EASEL's depth test hides short stretches of some edges where three.js draws them unbroken.",
         "The upstream page follows the mouse over the whole window; the embedded stage follows the pointer over its canvas, measured from the canvas center.",
       ],
@@ -46,7 +45,6 @@ export const examples: ExampleRegistryEntry[] = [
       differences: [
         "EASEL points are filled discs with an integer pixel radius and no texture sampling, alphaTest or size attenuation, so solid blue discs of radius 2 stand in for the disc.png sprites whose size shrinks with distance.",
         "The hull's opacity 0.5 maps to EASEL's discrete opacity level 4 of 8, so the hull blends through one of nine fixed translucency steps (here exactly half) rather than a continuous alpha.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
       ],
     },
     controls: [],
@@ -66,7 +64,7 @@ export const examples: ExampleRegistryEntry[] = [
         "A unit box textured with the wooden crate GIF tumbles slowly around its X and Y axes.",
       differences: [
         "EASEL caches the 256x256 crate.gif at 128x128 and samples it nearest-neighbor with affine warping, so the wood grain is blockier and bends across each face instead of being filtered and perspective-correct.",
-        "EASEL's TextureLoader.load returns nothing, so the port assigns the map in the load callback, and the cube draws untextured white for the first frames, before the data-URL GIF is decoded.",
+        "EASEL's TextureLoader.load returns nothing, so the port assigns the map in the load callback, where it also sets colorSpace and re-caches the already decoded texels with update(); the cube draws untextured white for the first frames, before the data-URL GIF is decoded.",
       ],
     },
     controls: [],
@@ -86,9 +84,6 @@ export const examples: ExampleRegistryEntry[] = [
         "Five thousand randomly placed, vertex-colored triangles in one rotating Geometry are raycast every frame, and a white outline traces the triangle under the pointer.",
       differences: [
         "EASEL has no MeshPhongMaterial, so the triangles use LambertMaterial and lose the white specular highlights (shininess 250) of the three.js original.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
-        "EASEL does no color management: three.js treats the setRGB vertex colors as linear values and encodes the output to sRGB, so the EASEL triangles look darker and more saturated.",
-        "EASEL lights the back of a double-sided triangle with its front normal, while three.js flips the normal for back faces, so triangles seen from behind are lit by the light on their far side instead of the one facing the camera.",
         "EASEL bakes lighting per vertex and rasterizes the triangles and the outline on the CPU without anti-aliasing, so edges are jagged where the three.js renderer enables antialias.",
       ],
     },
@@ -110,9 +105,6 @@ export const examples: ExampleRegistryEntry[] = [
       description:
         "Two thousand randomly colored, rotated, and scaled Lambert cubes are raycast every frame while the camera slowly orbits, and the cube under the pointer turns red.",
       differences: [
-        "EASEL LambertMaterial has no emissive color, so the hovered cube swaps its diffuse color to red and stays shaded by the light, instead of three.js adding an unlit red emissive term on top of its lit color.",
-        "The EASEL Raycaster ignores material.side and also hits the back faces of these front-sided cubes, so when the picking ray starts inside a cube that cube turns red, where three.js skips it and picks the next cube behind.",
-        "The directional light intensity is divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL bakes Lambert lighting per vertex (Gouraud) instead of per fragment, and it rasterizes the cubes on the CPU without anti-aliasing, so cube edges are jagged where the three.js renderer enables antialias.",
       ],
     },
@@ -132,9 +124,6 @@ export const examples: ExampleRegistryEntry[] = [
       description:
         "Two thousand randomly colored, rotated, and scaled Lambert cubes are viewed through an orthographic camera that slowly orbits them, and the cube picked by an orthographic raycast under the pointer turns red.",
       differences: [
-        "EASEL LambertMaterial has no emissive color, so the hovered cube swaps its diffuse color to red and stays shaded by the light, instead of three.js adding an unlit red emissive term on top of its lit color.",
-        "The EASEL Raycaster ignores material.side and also hits the back faces of these front-sided cubes, so when the picking ray starts inside a cube that cube turns red, where three.js skips it and picks the next cube behind.",
-        "The directional light intensity is divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL bakes Lambert lighting per vertex (Gouraud) instead of per fragment, and it rasterizes the cubes on the CPU without anti-aliasing, so cube edges are jagged where the three.js renderer enables antialias.",
       ],
     },
@@ -199,11 +188,9 @@ export const examples: ExampleRegistryEntry[] = [
         "Click the grid to stack textured orange voxels where a translucent red roll-over cube snaps to the picked face; Shift-click removes a voxel.",
       differences: [
         "The upstream page tracks Shift with document keydown and keyup listeners; both ports read shiftKey from the pointerdown event so every listener stays on the canvas.",
-        "EASEL's TextureLoader.load returns nothing, so the port assigns the square-outline map in the load callback, and voxels placed before the data-URL PNG is decoded draw untextured until it arrives.",
+        "EASEL's TextureLoader.load returns nothing, so the port assigns the square-outline map in the load callback, where it also sets colorSpace and re-caches the already decoded texels with update(); voxels placed before the data-URL PNG is decoded draw untextured until it arrives.",
         "The 16x16 square-outline texture is sampled nearest-neighbor with affine warping instead of being filtered and perspective-correct.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL has discrete opacity levels, so the roll-over cube's 0.5 opacity becomes level 4 of 8.",
-        "EASEL has no color management, so the map's SRGBColorSpace setting is dropped and the orange tint and lighting are applied to display values.",
       ],
     },
     controls: [],
@@ -276,7 +263,6 @@ export const examples: ExampleRegistryEntry[] = [
         "EASEL's CanvasTexture accepts only a canvas, so the port wraps the HTMLImageElement and the ImageBitmap in a plain Texture and caches it explicitly with needsUpdate and update(), because the EASEL renderer does not refresh textures on its own.",
         "EASEL applies flipY to ImageBitmap sources, unlike WebGL, so the bitmap textures set flipY to false to undo the imageOrientation 'flipY' decode and stay upright like the image textures.",
         "EASEL calls Texture.onUpdate with no argument, so the ImageBitmap is closed through a closure instead of texture.source.data.",
-        "EASEL Texture.colorSpace rejects SRGBColorSpace because EASEL samples texture bytes without color conversion, so the assignments are dropped.",
         "EASEL caches the 256x256 crate at 128x128 and samples it nearest-neighbor with affine warping, so the grain is blockier and bends across each face.",
         "Cube positions and rotations are random, so the two sides place their cubes differently.",
         "Edges are aliased because EASEL has no antialiasing.",
@@ -387,7 +373,6 @@ export const examples: ExampleRegistryEntry[] = [
         "Both sides load the CC0 Suzanne OBJ instead of the unlicensed male02 model, so there is no MTL file and no texture; the scale is 0.8 and position.y is 0 instead of 0.01 and -0.95 so Suzanne fills the view about as much as male02 does.",
         "three.js falls back to a white MeshPhongMaterial when no MTL is set; EASEL has no Phong material and its OBJLoader falls back to an unlit BasicMaterial, so the port passes a white LambertMaterial for the Suzanne usemtl group through setMaterials and has no specular highlight.",
         "Lighting is baked per vertex (Gouraud) instead of per pixel.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "Edges are aliased because EASEL has no antialiasing.",
       ],
     },
@@ -533,9 +518,7 @@ export const examples: ExampleRegistryEntry[] = [
         "Two lit crates side by side, textured with a greyscale and a color-mapped TGA image decoded by TGALoader, with orbit controls.",
       differences: [
         "MeshPhongMaterial becomes LambertMaterial because EASEL has no Phong shading, so the crates show no specular highlight.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL has no createDataTexture on DataTextureLoader, so the port wraps TGALoader.parse output in a DataTexture and builds its brightness levels, as EASEL's DataTextureLoader.load does.",
-        "EASEL Texture.colorSpace rejects SRGBColorSpace because EASEL samples texture bytes without color conversion, so the assignment is dropped and lighting runs in display color space.",
         "EASEL caches the 256x256 TGA images at 128x128 and samples them nearest-neighbor with affine warping, so the wood grain is blockier and bends across each face.",
         "Edges are aliased because EASEL has no antialiasing.",
       ],
@@ -557,7 +540,6 @@ export const examples: ExampleRegistryEntry[] = [
         "Parse a MagicaVoxel monument with VOXLoader, light it with hemisphere and directional lights, and orbit it.",
       differences: [
         "EASEL VOXLoader builds a vertex-colored LambertMaterial mesh with per-vertex baked lighting instead of the per-pixel MeshStandardMaterial that three.js builds.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL lights in display color space without the linear-to-sRGB output conversion, so mid-tones differ slightly.",
         "Edges are aliased because EASEL has no antialiasing.",
       ],
@@ -643,7 +625,6 @@ export const examples: ExampleRegistryEntry[] = [
         "Both sides request the camera on the first click on their own canvas instead of at page load, so the side-by-side page never prompts on its own; each side opens its own stream.",
         "EASEL caches each video frame at 128x128 and samples it nearest-neighbor with affine warping, so the webcam image is much blockier than the filtered three.js texture.",
         "EASEL re-reads the video only when texture.update() runs, so the port calls it once per frame, where three.js refreshes the VideoTexture on its own.",
-        "EASEL textures have no colour-space conversion, so the video pixels are used as-is instead of being tagged SRGBColorSpace.",
         "Before a stream arrives, three.js samples an empty texture and draws the planes black on the black background, while EASEL draws them in the material's white base colour until the first video frame is cached.",
       ],
     },
@@ -740,8 +721,7 @@ export const examples: ExampleRegistryEntry[] = [
       differences: [
         "Both sides show Greg Zaal's CC0 Poly Haven panorama spruit_sunrise_2k.hdr.jpg from the three.js repository instead of 2294472375_24a3b8ef46_o.jpg, whose license is unknown.",
         "EASEL caches the 2048x1024 panorama at 128x128 and samples it nearest-neighbor with affine warping, so the full-screen view is very blocky and bends across each sphere face instead of being filtered and perspective-correct.",
-        "EASEL's TextureLoader.load returns nothing, so the port assigns the map in the load callback, and the sphere draws untextured white until the data-URL JPEG is decoded.",
-        "EASEL Texture.colorSpace rejects SRGBColorSpace because EASEL samples texture bytes without color conversion, so the assignment is dropped.",
+        "EASEL's TextureLoader.load returns nothing, so the port assigns the map in the load callback, where it also sets colorSpace and re-caches the already decoded texels with update(); the sphere draws untextured white until the data-URL JPEG is decoded.",
         "Pointer move, pointer up and wheel listeners are attached to the canvas, with pointer capture, instead of the document, so dragging and zooming only start over the example.",
       ],
     },
@@ -765,7 +745,6 @@ export const examples: ExampleRegistryEntry[] = [
       differences: [
         "EASEL points are filled discs with an integer pixel radius and no texture sampling or alphaTest, so solid discs stand in for the alpha-tested disc.png sprites, and disc.png is not loaded.",
         "EASEL PointsMaterial has no sizeAttenuation, so with the toggle on every point uses one radius, taken from the three.js size-35 formula at the 1000-unit camera distance (3 pixels at 640x360), instead of growing as it comes closer; with the toggle off the radius is 18 pixels, matching the 35-pixel sprites.",
-        "EASEL has no color management and its setHSL takes no color space, so the per-frame setHSL(h, 0.5, 0.5), which three.js treats as linear and sRGB-encodes on output, gives darker and more saturated points than the pale three.js hues; the initial sRGB setHSL call matches.",
       ],
     },
     controls: [
@@ -834,7 +813,6 @@ export const examples: ExampleRegistryEntry[] = [
         "textures/pano.webm and pano.mp4 carry no licence notice, so both sides substitute a generated 512x256 equirectangular canvas animation (sky, ground, a circling sun and pillars every 30 degrees) drawn each frame and used as a CanvasTexture instead of a VideoTexture.",
         "EASEL caches the panorama at 128x128 and samples it nearest-neighbor with affine warping, so the surroundings are blocky and bend across the 60x40 sphere's faces instead of being filtered and perspective-correct.",
         "EASEL re-reads the canvas only on an explicit texture.update() after needsUpdate is set, so the port does both every frame.",
-        "EASEL textures have no colour-space conversion, so the panorama is not tagged SRGBColorSpace.",
         "Pointer listeners are on the canvas with pointer capture instead of on the document, so drags start only on the example.",
       ],
     },
@@ -857,9 +835,7 @@ export const examples: ExampleRegistryEntry[] = [
         "160,000 random non-indexed triangles with flat face normals and position-based vertex colors fill a fogged cube that tumbles under ambient and directional light.",
       differences: [
         "MeshPhongMaterial becomes LambertMaterial with Gouraud (per-vertex) lighting, so the triangles have no white specular highlight (specular 0xffffff, shininess 250).",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL only reads RGB (itemSize 3) vertex colors and has no per-vertex alpha, so the random per-triangle alpha is dropped and the material is opaque instead of transparent; transparent: true would also turn off depth writes in EASEL and draw the triangles in submission order.",
-        "EASEL has no color management, so the linear vertex colors are converted to sRGB once at setup with convertLinearToSRGB and lighting and fog are applied to display values instead of in linear space.",
         "Attribute.onUpload is a GPU upload hook with no EASEL equivalent, so the typed arrays stay in memory.",
         "Fog is sampled once per vertex from EASEL's 256-entry fog table instead of per pixel.",
         "All 160,000 triangles are transformed, lit and rasterized on the CPU every frame; a Bun stub-canvas run at 640x360 measured a median of about 62 ms per frame (roughly 16 fps), above the 33 ms budget, and the count is kept to match three.js.",
@@ -882,9 +858,7 @@ export const examples: ExampleRegistryEntry[] = [
         "Up to 1,000 particles drift inside a rotating box and connect with fading line segments when they come close, using setDrawRange to draw only the live part of preallocated point and line buffers.",
       differences: [
         "EASEL has no blending modes, so the additive blending on the points, the connecting lines and the box outline becomes a plain overwrite: overlapping lines no longer add up to brighter crossings, and the points material uses layer 1 so the white dots stay on top of the lines that end on them.",
-        "EASEL has no color management, so the line colors (1 - dist / minDistance) are shown as display values instead of being sRGB-encoded from linear space, which makes the connecting lines dimmer than in three.js (a value of 0.5 shows as about 0.5 instead of about 0.73).",
         "EASEL point size is an integer pixel radius without size attenuation, so size 3 (a 3-pixel-wide square that ignores distance in three.js) becomes a radius-1 disc about 3 pixels wide.",
-        "EASEL BoxHelper reads the box mesh's prepared geometry.boundingBox and needs an explicit update(), so the port computes the bounding box and calls update() once after construction.",
         "Attribute.setUsage(DynamicDrawUsage) is a GPU buffer hint with no EASEL equivalent and is dropped; the attributes are republished with needsUpdate each frame as in three.js.",
         "Points and lines are rasterized on the CPU without anti-aliasing, and lines are 1 pixel wide.",
         "The particle update, the O(n^2) connection search and all drawn points and lines run on the CPU; a Bun stub-canvas run at 640x360 measured a median of about 7 to 16 ms per frame at the defaults and about 85 ms per frame with particleCount 1000 and minDistance 300.",
@@ -958,8 +932,6 @@ export const examples: ExampleRegistryEntry[] = [
         "A 10x10 indexed grid Geometry with per-vertex normals and a red-green gradient over full blue tumbles under a hemisphere light, with a wireframe toggle.",
       differences: [
         "MeshPhongMaterial becomes LambertMaterial with Gouraud (per-vertex) lighting, so the grid has no specular highlight.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
-        "EASEL has no color management: the sRGB vertex colors are stored as display values and lighting is applied to them directly instead of in linear space.",
         "The wireframe is drawn by the CPU rasterizer without anti-aliasing.",
       ],
     },
@@ -986,9 +958,7 @@ export const examples: ExampleRegistryEntry[] = [
       animated: true,
       description:
         "Four rows of Koch snowflake curves at four iteration depths, drawn as one indexed LineSegments geometry with random per-vertex colors, spinning around the view axis.",
-      differences: [
-        "EASEL uses vertex colors as display colors without the linear-to-sRGB output conversion three.js applies, so the random pale blue colors look darker and more saturated.",
-      ],
+      differences: [],
     },
     controls: [],
     load: async () =>
@@ -1064,8 +1034,7 @@ export const examples: ExampleRegistryEntry[] = [
         "The upstream music tracks 358232 and 376737 are CC BY-NC-SA and are not copied, so both sides substitute generated audio: a sawtooth pulsing twice a second on the first sphere and a fast square beat on the second, built from OscillatorNode and GainNode.",
         "The CC0 Project_Utopia ambience is also replaced by a generated slow triangle swell, because the asset was not copied into this repository; it plays as a node source instead of a looping media element.",
         "The generated sources start at once and never end, where the two upstream songs play through once.",
-        "EASEL has no Phong material or emissive colour, so the spheres use flat-shaded LambertMaterial without specular, and the analyser's average frequency raises the material's blue channel instead of its emissive blue, so the glow is scaled by the light instead of added on top of it.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
+        "EASEL has no Phong material, so the spheres use flat-shaded LambertMaterial without specular.",
         "EASEL's AudioAnalyzer takes an AudioContext and options, so the port creates one per sphere with fftSize 32 and attaches it to that sound's output, where three.js passes the sound to AudioAnalyser.",
         "EASEL FogExp2 evaluates fog per vertex from a lookup table, so the fog fades across each face instead of per pixel.",
       ],
@@ -1149,7 +1118,6 @@ export const examples: ExampleRegistryEntry[] = [
         "Pan, rotate, and zoom a damped MapControls camera over a fogged city of 500 instanced flat-shaded boxes.",
       differences: [
         "MeshPhongMaterial becomes LambertMaterial with flat shading, so the boxes have no specular highlights.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL FogExp2 evaluates fog per vertex from a lookup table, so the fog fades across each face instead of per pixel.",
       ],
     },
@@ -1185,7 +1153,6 @@ export const examples: ExampleRegistryEntry[] = [
         "Orbit, zoom, and pan a damped OrbitControls camera over a fogged field of 500 instanced flat-shaded cones.",
       differences: [
         "MeshPhongMaterial becomes LambertMaterial with flat shading, so the cones have no specular highlights.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL FogExp2 evaluates fog per vertex from a lookup table, so the fog fades across each face instead of per pixel.",
       ],
     },
@@ -1207,7 +1174,6 @@ export const examples: ExampleRegistryEntry[] = [
       differences: [
         "There is no Click to play overlay with instructions; the canvas locks the pointer when clicked, and the keys listen on the focused canvas instead of document.",
         "MeshPhongMaterial becomes LambertMaterial with flat shading, so the boxes have no white specular highlight.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
       ],
     },
     controls: [],
@@ -1227,7 +1193,6 @@ export const examples: ExampleRegistryEntry[] = [
         "Rotate, zoom, and pan TrackballControls through a fogged cloud of 500 instanced cones, with a switch between perspective and orthographic cameras.",
       differences: [
         "MeshPhongMaterial becomes LambertMaterial with flat shading, so the cones have no specular highlights.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
         "EASEL FogExp2 evaluates fog per vertex from a lookup table, so the fog fades across each face instead of per pixel.",
       ],
     },
@@ -1266,7 +1231,6 @@ export const examples: ExampleRegistryEntry[] = [
         "The gizmo keeps the three.js handle layout, picking, and constant screen size, but draws its shafts and rotation rings as lines and its arrow cones with fewer segments so the CPU renderer stays fast.",
         "The 256 x 256 crate texture is scaled to 128 x 128 and sampled with nearest-neighbor, affine UVs, and no anisotropic filtering.",
         "The scene is redrawn every frame instead of only on change events.",
-        "Light intensities are divided by pi because EASEL bakes lights without the 1/pi Lambert BRDF factor that three.js applies, which keeps the overall brightness close to the original.",
       ],
     },
     controls: [],

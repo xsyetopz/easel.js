@@ -37,7 +37,6 @@ export function setup(canvas) {
 
   const scene = new Scene();
   scene.add(camera);
-  camera.updateMatrixWorld();
   camera.lookAt(scene.position);
 
   const timer = new Timer();

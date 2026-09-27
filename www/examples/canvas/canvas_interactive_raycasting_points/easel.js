@@ -157,7 +157,6 @@ export function setup(canvas) {
     far: 10000,
   });
   camera.position.set(10, 10, 10);
-  camera.updateMatrixWorld();
   camera.lookAt(scene.position);
   camera.updateMatrix();
 

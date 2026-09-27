@@ -9,6 +9,7 @@ import {
   PerspectiveCamera,
   Renderer,
   Scene,
+  SRGBColorSpace,
   Texture,
 } from "@/index.js";
 
@@ -33,7 +34,6 @@ export const meta = {
     "EASEL's CanvasTexture accepts only a canvas, so the port wraps the HTMLImageElement and the ImageBitmap in a plain Texture and caches it explicitly with needsUpdate and update(), because the EASEL renderer does not refresh textures on its own.",
     "EASEL applies flipY to ImageBitmap sources, unlike WebGL, so the bitmap textures set flipY to false to undo the imageOrientation 'flipY' decode and stay upright like the image textures.",
     "EASEL calls Texture.onUpdate with no argument, so the ImageBitmap is closed through a closure instead of texture.source.data.",
-    "EASEL Texture.colorSpace rejects SRGBColorSpace because EASEL samples texture bytes without color conversion, so the assignments are dropped.",
     "EASEL caches the 256x256 crate at 128x128 and samples it nearest-neighbor with affine warping, so the grain is blockier and bends across each face.",
     "Cube positions and rotations are random, so the two sides place their cubes differently.",
     "Edges are aliased because EASEL has no antialiasing.",
@@ -60,6 +60,7 @@ export function setup(canvas) {
         }
 
         const texture = new Texture(imageBitmap);
+        texture.colorSpace = SRGBColorSpace;
         texture.flipY = false;
         const material = new BasicMaterial({ map: texture });
 
@@ -88,6 +89,7 @@ export function setup(canvas) {
       if (disposed) return;
 
       const texture = new Texture(image);
+      texture.colorSpace = SRGBColorSpace;
       texture.needsUpdate = true;
       texture.update().buildBrightnessLevels();
       const material = new BasicMaterial({ color: 0xff8888, map: texture });
@@ -122,7 +124,6 @@ export function setup(canvas) {
     far: 1500,
   });
   camera.position.set(0, 4, 7);
-  camera.updateMatrixWorld();
   camera.lookAt(0, 0, 0);
 
   // SCENE
@@ -200,6 +201,7 @@ new EASEL.ImageBitmapLoader()
   .setOptions({ imageOrientation: "flipY" })
   .load(url, (imageBitmap) => {
     const texture = new EASEL.Texture(imageBitmap);
+    texture.colorSpace = EASEL.SRGBColorSpace;
     texture.flipY = false;
     texture.onUpdate = () => imageBitmap.close();
     texture.needsUpdate = true;

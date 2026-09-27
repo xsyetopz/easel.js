@@ -11,6 +11,7 @@ import {
   Raycaster,
   Renderer,
   Scene,
+  SRGBColorSpace,
   TextureLoader,
   Vector2,
 } from "@/index.js";
@@ -29,10 +30,9 @@ export const meta = {
     "Click the grid to stack textured orange voxels where a translucent red roll-over cube snaps to the picked face; Shift-click removes a voxel.",
   differences: [
     "The upstream page tracks Shift with document keydown and keyup listeners; both ports read shiftKey from the pointerdown event so every listener stays on the canvas.",
-    "EASEL's TextureLoader.load returns nothing, so the port assigns the square-outline map in the load callback, and voxels placed before the data-URL PNG is decoded draw untextured until it arrives.",
+    "EASEL's TextureLoader.load returns nothing, so the port assigns the square-outline map in the load callback, where it also sets colorSpace and re-caches the already decoded texels with update(); voxels placed before the data-URL PNG is decoded draw untextured until it arrives.",
     "The 16x16 square-outline texture is sampled nearest-neighbor with affine warping instead of being filtered and perspective-correct.",
     "EASEL has discrete opacity levels, so the roll-over cube's 0.5 opacity becomes level 4 of 8.",
-    "EASEL has no color management, so the map's SRGBColorSpace setting is dropped and the orange tint and lighting are applied to display values.",
   ],
 };
 export const controls = [];
@@ -50,7 +50,6 @@ export function setup(canvas) {
     far: 10000,
   });
   camera.position.set(500, 800, 1300);
-  camera.updateMatrixWorld();
   camera.lookAt(0, 0, 0);
 
   const scene = new Scene();
@@ -84,6 +83,8 @@ export function setup(canvas) {
         map.dispose();
         return;
       }
+      map.colorSpace = SRGBColorSpace;
+      map.update().buildBrightnessLevels();
       cubeMaterial.map = map;
     },
   );
@@ -221,6 +222,8 @@ export const easelSource = `import * as EASEL from "@xsyetopz/easel";
 const rollOverMaterial = new EASEL.BasicMaterial({ color: 0xff0000, opacity: 4, transparent: true, vertexColors: false });
 const cubeMaterial = new EASEL.LambertMaterial({ color: 0xfeb74c, vertexColors: false });
 new EASEL.TextureLoader().load(squareOutlineUrl, (map) => {
+  map.colorSpace = EASEL.SRGBColorSpace;
+  map.update().buildBrightnessLevels();
   cubeMaterial.map = map;
 });
 

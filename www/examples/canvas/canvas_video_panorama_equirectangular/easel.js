@@ -6,6 +6,7 @@ import {
   Renderer,
   Scene,
   SphereGeometry,
+  SRGBColorSpace,
   toRadians,
 } from "@/index.js";
 
@@ -24,7 +25,6 @@ export const meta = {
     "textures/pano.webm and pano.mp4 carry no licence notice, so both sides substitute a generated 512x256 equirectangular canvas animation (sky, ground, a circling sun and pillars every 30 degrees) drawn each frame and used as a CanvasTexture instead of a VideoTexture.",
     "EASEL caches the panorama at 128x128 and samples it nearest-neighbor with affine warping, so the surroundings are blocky and bend across the 60x40 sphere's faces instead of being filtered and perspective-correct.",
     "EASEL re-reads the canvas only on an explicit texture.update() after needsUpdate is set, so the port does both every frame.",
-    "EASEL textures have no colour-space conversion, so the panorama is not tagged SRGBColorSpace.",
     "Pointer listeners are on the canvas with pointer capture instead of on the document, so drags start only on the example.",
   ],
 };
@@ -62,6 +62,7 @@ export function setup(canvas) {
   if (sourceContext) drawPanoramaFrame(sourceContext, 0);
 
   const texture = new CanvasTexture(source);
+  texture.colorSpace = SRGBColorSpace;
   const material = new BasicMaterial({ map: texture, vertexColors: false });
 
   const mesh = new Mesh(geometry, material);
@@ -116,7 +117,6 @@ export function setup(canvas) {
     camera.position.y = distance * Math.cos(phi);
     camera.position.z = distance * Math.sin(phi) * Math.sin(theta);
 
-    camera.updateMatrixWorld();
     camera.lookAt(0, 0, 0);
 
     renderer.prepare(scene, camera);
@@ -149,6 +149,7 @@ const geometry = new EASEL.SphereGeometry(5, 60, 40);
 geometry.scale(-1, 1, 1);
 
 const texture = new EASEL.CanvasTexture(panoramaCanvas);
+texture.colorSpace = EASEL.SRGBColorSpace;
 const material = new EASEL.BasicMaterial({ map: texture, vertexColors: false });
 scene.add(new EASEL.Mesh(geometry, material));
 
@@ -163,7 +164,6 @@ camera.position.set(
   0.5 * Math.cos(phi),
   0.5 * Math.sin(phi) * Math.sin(theta),
 );
-camera.updateMatrixWorld();
 camera.lookAt(0, 0, 0);
 renderer.prepare(scene, camera);
 renderer.render(scene, camera);`;

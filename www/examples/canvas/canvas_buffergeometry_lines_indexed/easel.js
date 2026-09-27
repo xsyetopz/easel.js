@@ -20,9 +20,7 @@ export const meta = {
   animated: true,
   description:
     "Four rows of Koch snowflake curves at four iteration depths, drawn as one indexed LineSegments geometry with random per-vertex colors, spinning around the view axis.",
-  differences: [
-    "EASEL uses vertex colors as display colors without the linear-to-sRGB output conversion three.js applies, so the random pale blue colors look darker and more saturated.",
-  ],
+  differences: [],
 };
 export const controls = [];
 

@@ -31,8 +31,6 @@ export const meta = {
     "Five thousand randomly placed, vertex-colored triangles in one rotating Geometry are raycast every frame, and a white outline traces the triangle under the pointer.",
   differences: [
     "EASEL has no MeshPhongMaterial, so the triangles use LambertMaterial and lose the white specular highlights (shininess 250) of the three.js original.",
-    "EASEL does no color management: three.js treats the setRGB vertex colors as linear values and encodes the output to sRGB, so the EASEL triangles look darker and more saturated.",
-    "EASEL lights the back of a double-sided triangle with its front normal, while three.js flips the normal for back faces, so triangles seen from behind are lit by the light on their far side instead of the one facing the camera.",
     "EASEL bakes lighting per vertex and rasterizes the triangles and the outline on the CPU without anti-aliasing, so edges are jagged where the three.js renderer enables antialias.",
   ],
 };

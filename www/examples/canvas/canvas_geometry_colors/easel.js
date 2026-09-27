@@ -12,6 +12,7 @@ import {
   Renderer,
   Scene,
   Shading,
+  SRGBColorSpace,
 } from "@/index.js";
 
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
@@ -27,7 +28,7 @@ export const meta = {
   differences: [
     "MeshPhongMaterial with shininess 0 becomes an EASEL LambertMaterial with flat baked lighting, which has no specular term; with shininess 0 the Phong highlight is a faint uniform sheen that the port drops.",
     "EASEL's Color.setRGB rejects components outside 0 to 1, so the third icosahedron's green channel is clamped at 0 before it is stored; three.js stores the negative value and clamps at output, which only changes the gradient on the top faces slightly.",
-    "EASEL interpolates vertex colors in sRGB bytes rather than three.js's linear working space, so the gradients blend slightly darker between vertices.",
+    "EASEL lights each vertex in linear space and encodes it to sRGB before interpolating across the face, where three.js interpolates in linear space and encodes per pixel, so the gradients blend slightly darker between vertices.",
     "The black wireframe overlay shares the faces' depth, so EASEL's depth test hides short stretches of some edges where three.js draws them unbroken.",
     "The upstream page follows the mouse over the whole window; the embedded stage follows the pointer over its canvas, measured from the canvas center.",
   ],
@@ -128,16 +129,22 @@ export function setup(canvas) {
   const colors3 = geometry3.getAttribute("color");
 
   for (let i = 0; i < count; i++) {
-    color.setHSL((positions1.getY(i) / radius + 1) / 2, 1.0, 0.5);
+    color.setHSL(
+      (positions1.getY(i) / radius + 1) / 2,
+      1.0,
+      0.5,
+      SRGBColorSpace,
+    );
     colors1.setXYZ(i, color.r, color.g, color.b);
 
-    color.setHSL(0, (positions2.getY(i) / radius + 1) / 2, 0.5);
+    color.setHSL(0, (positions2.getY(i) / radius + 1) / 2, 0.5, SRGBColorSpace);
     colors2.setXYZ(i, color.r, color.g, color.b);
 
     color.setRGB(
       1,
       Math.max(0, 0.8 - (positions3.getY(i) / radius + 1) / 2),
       0,
+      SRGBColorSpace,
     );
     colors3.setXYZ(i, color.r, color.g, color.b);
   }
@@ -194,7 +201,6 @@ export function setup(canvas) {
     camera.position.x += (mouseX - camera.position.x) * 0.05;
     camera.position.y += (-mouseY - camera.position.y) * 0.05;
 
-    camera.updateMatrixWorld();
     camera.lookAt(scene.position);
 
     renderer.prepare(scene, camera);
@@ -237,7 +243,7 @@ const positions = geometry.getAttribute("position");
 const colors = geometry.getAttribute("color");
 const color = new EASEL.Color();
 for (let i = 0; i < count; i++) {
-  color.setHSL((positions.getY(i) / 200 + 1) / 2, 1.0, 0.5);
+  color.setHSL((positions.getY(i) / 200 + 1) / 2, 1.0, 0.5, EASEL.SRGBColorSpace);
   colors.setXYZ(i, color.r, color.g, color.b);
 }
 

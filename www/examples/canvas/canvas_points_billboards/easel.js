@@ -6,6 +6,7 @@ import {
   Points,
   PointsMaterial,
   Renderer,
+  SRGBColorSpace,
   Scene,
 } from "@/index.js";
 
@@ -22,7 +23,6 @@ export const meta = {
   differences: [
     "EASEL points are filled discs with an integer pixel radius and no texture sampling or alphaTest, so solid discs stand in for the alpha-tested disc.png sprites, and disc.png is not loaded.",
     "EASEL PointsMaterial has no sizeAttenuation, so with the toggle on every point uses one radius, taken from the three.js size-35 formula at the 1000-unit camera distance (3 pixels at 640x360), instead of growing as it comes closer; with the toggle off the radius is 18 pixels, matching the 35-pixel sprites.",
-    "EASEL has no color management and its setHSL takes no color space, so the per-frame setHSL(h, 0.5, 0.5), which three.js treats as linear and sRGB-encodes on output, gives darker and more saturated points than the pale three.js hues; the initial sRGB setHSL call matches.",
   ],
 };
 /** @type {import("../../../types/controls.ts").ControlDefinition[]} */
@@ -83,7 +83,7 @@ export function setup(canvas, params = {}) {
     transparent: true,
     vertexColors: false,
   });
-  material.color.setHSL(1.0, 0.3, 0.7);
+  material.color.setHSL(1.0, 0.3, 0.7, SRGBColorSpace);
 
   const particles = new Points(geometry, material);
   scene.add(particles);
@@ -117,7 +117,6 @@ export function setup(canvas, params = {}) {
     camera.position.x += (mouseX - camera.position.x) * 0.05;
     camera.position.y += (-mouseY - camera.position.y) * 0.05;
 
-    camera.updateMatrixWorld();
     camera.lookAt(scene.position);
 
     const h = ((360 * (1.0 + time)) % 360) / 360;
@@ -166,7 +165,6 @@ geometry.setAttribute("position", new EASEL.Attribute(new Float32Array(vertices)
 const material = new EASEL.PointsMaterial({ size: 3, transparent: true, vertexColors: false });
 scene.add(new EASEL.Points(geometry, material));
 
-camera.updateMatrixWorld();
 camera.lookAt(scene.position);
 material.color.setHSL(h, 0.5, 0.5);
 renderer.prepare(scene, camera);

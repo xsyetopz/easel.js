@@ -52,7 +52,6 @@ export function setup(canvas) {
     far: 1000,
   });
   camera.position.set(15, 15, 15);
-  camera.updateMatrixWorld();
   camera.lookAt(scene.position);
 
   const orbit = new OrbitControls(camera, canvas);

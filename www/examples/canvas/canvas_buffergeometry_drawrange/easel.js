@@ -28,9 +28,7 @@ export const meta = {
     "Up to 1,000 particles drift inside a rotating box and connect with fading line segments when they come close, using setDrawRange to draw only the live part of preallocated point and line buffers.",
   differences: [
     "EASEL has no blending modes, so the additive blending on the points, the connecting lines and the box outline becomes a plain overwrite: overlapping lines no longer add up to brighter crossings, and the points material uses layer 1 so the white dots stay on top of the lines that end on them.",
-    "EASEL has no color management, so the line colors (1 - dist / minDistance) are shown as display values instead of being sRGB-encoded from linear space, which makes the connecting lines dimmer than in three.js (a value of 0.5 shows as about 0.5 instead of about 0.73).",
     "EASEL point size is an integer pixel radius without size attenuation, so size 3 (a 3-pixel-wide square that ignores distance in three.js) becomes a radius-1 disc about 3 pixels wide.",
-    "EASEL BoxHelper reads the box mesh's prepared geometry.boundingBox and needs an explicit update(), so the port computes the bounding box and calls update() once after construction.",
     "Attribute.setUsage(DynamicDrawUsage) is a GPU buffer hint with no EASEL equivalent and is dropped; the attributes are republished with needsUpdate each frame as in three.js.",
     "Points and lines are rasterized on the CPU without anti-aliasing, and lines are 1 pixel wide.",
     "The particle update, the O(n^2) connection search and all drawn points and lines run on the CPU; a Bun stub-canvas run at 640x360 measured a median of about 7 to 16 ms per frame at the defaults and about 85 ms per frame with particleCount 1000 and minDistance 300.",
@@ -123,12 +121,8 @@ export function setup(canvas, params = {}) {
   const group = new Group();
   scene.add(group);
 
-  // EASEL BoxHelper reads the prepared geometry.boundingBox and only rebuilds
-  // its lines on an explicit update().
   const box = new Mesh(new BoxGeometry(r, r, r));
-  box.geometry.computeBoundingBox();
   const helper = new BoxHelper(box);
-  helper.update();
   helper.material.color.hex = 0x474747;
   // EASEL has no blending modes; additive blending becomes normal blending.
   helper.material.transparent = true;

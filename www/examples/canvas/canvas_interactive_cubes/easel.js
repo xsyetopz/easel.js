@@ -23,8 +23,6 @@ export const meta = {
   description:
     "Two thousand randomly colored, rotated, and scaled Lambert cubes are raycast every frame while the camera slowly orbits, and the cube under the pointer turns red.",
   differences: [
-    "EASEL LambertMaterial has no emissive color, so the hovered cube swaps its diffuse color to red and stays shaded by the light, instead of three.js adding an unlit red emissive term on top of its lit color.",
-    "The EASEL Raycaster ignores material.side and also hits the back faces of these front-sided cubes, so when the picking ray starts inside a cube that cube turns red, where three.js skips it and picks the next cube behind.",
     "EASEL bakes Lambert lighting per vertex (Gouraud) instead of per fragment, and it rasterizes the cubes on the CPU without anti-aliasing, so cube edges are jagged where the three.js renderer enables antialias.",
   ],
 };
@@ -99,7 +97,6 @@ export function setup(canvas) {
     camera.position.x = radius * Math.sin(toRadians(theta));
     camera.position.y = radius * Math.sin(toRadians(theta));
     camera.position.z = radius * Math.cos(toRadians(theta));
-    camera.updateMatrixWorld();
     camera.lookAt(scene.position);
 
     camera.updateMatrixWorld();
@@ -113,14 +110,15 @@ export function setup(canvas) {
     if (intersects.length > 0) {
       if (INTERSECTED !== intersects[0].object) {
         if (INTERSECTED)
-          INTERSECTED.material.color.hex = INTERSECTED.currentHex;
+          INTERSECTED.material.emissive.hex = INTERSECTED.currentHex;
 
         INTERSECTED = intersects[0].object;
-        INTERSECTED.currentHex = INTERSECTED.material.color.hex;
-        INTERSECTED.material.color.hex = 0xff0000;
+        INTERSECTED.currentHex = INTERSECTED.material.emissive.hex;
+        INTERSECTED.material.emissive.hex = 0xff0000;
       }
     } else {
-      if (INTERSECTED) INTERSECTED.material.color.hex = INTERSECTED.currentHex;
+      if (INTERSECTED)
+        INTERSECTED.material.emissive.hex = INTERSECTED.currentHex;
 
       INTERSECTED = undefined;
     }
@@ -163,14 +161,13 @@ const object = new EASEL.Mesh(
 );
 scene.add(object);
 
-camera.updateMatrixWorld();
 camera.lookAt(scene.position);
 camera.updateMatrixWorld();
 
 const raycaster = new EASEL.Raycaster();
 raycaster.setFromCamera(pointer, camera);
 const hit = raycaster.intersectObjects(scene.children, false)[0];
-if (hit) hit.object.material.color.hex = 0xff0000;
+if (hit) hit.object.material.emissive.hex = 0xff0000;
 
 renderer.prepare(scene, camera);
 renderer.render(scene, camera);`;

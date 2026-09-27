@@ -9,6 +9,7 @@ import {
   Renderer,
   Scene,
   Side,
+  SRGBColorSpace,
 } from "@/index.js";
 
 import { createExampleAnimationLoop } from "../../../runtime/example-animation.ts";
@@ -23,7 +24,6 @@ export const meta = {
     "A 10x10 indexed grid Geometry with per-vertex normals and a red-green gradient over full blue tumbles under a hemisphere light, with a wireframe toggle.",
   differences: [
     "MeshPhongMaterial becomes LambertMaterial with Gouraud (per-vertex) lighting, so the grid has no specular highlight.",
-    "EASEL has no color management: the sRGB vertex colors are stored as display values and lighting is applied to them directly instead of in linear space.",
     "The wireframe is drawn by the CPU rasterizer without anti-aliasing.",
   ],
 };
@@ -90,8 +90,7 @@ export function setup(canvas, params = {}) {
       const r = x / size + 0.5;
       const g = y / size + 0.5;
 
-      // EASEL colors are display (sRGB) values, so no color-space argument.
-      _color.setRGB(r, g, 1);
+      _color.setRGB(r, g, 1, SRGBColorSpace);
 
       colors.push(_color.r, _color.g, _color.b);
     }

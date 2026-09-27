@@ -149,7 +149,6 @@ export function setup(canvas) {
     camera.position.x = radius * Math.sin(toRadians(theta));
     camera.position.y = radius * Math.sin(toRadians(theta));
     camera.position.z = radius * Math.cos(toRadians(theta));
-    camera.updateMatrixWorld();
     camera.lookAt(scene.position);
 
     camera.updateMatrixWorld();
@@ -210,7 +209,6 @@ parentTransform.add(object);
 const raycaster = new EASEL.Raycaster();
 raycaster.lineThreshold = 3;
 
-camera.updateMatrixWorld();
 camera.lookAt(scene.position);
 camera.updateMatrixWorld();
 raycaster.setFromCamera(pointer, camera);

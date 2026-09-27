@@ -6,6 +6,7 @@ import {
   PlaneGeometry,
   Renderer,
   Scene,
+  SRGBColorSpace,
   VideoTexture,
 } from "@/index.js";
 
@@ -23,7 +24,6 @@ export const meta = {
     "Both sides request the camera on the first click on their own canvas instead of at page load, so the side-by-side page never prompts on its own; each side opens its own stream.",
     "EASEL caches each video frame at 128x128 and samples it nearest-neighbor with affine warping, so the webcam image is much blockier than the filtered three.js texture.",
     "EASEL re-reads the video only when texture.update() runs, so the port calls it once per frame, where three.js refreshes the VideoTexture on its own.",
-    "EASEL textures have no colour-space conversion, so the video pixels are used as-is instead of being tagged SRGBColorSpace.",
     "Before a stream arrives, three.js samples an empty texture and draws the planes black on the black background, while EASEL draws them in the material's white base colour until the first video frame is cached.",
   ],
 };
@@ -53,6 +53,7 @@ export function setup(canvas) {
   }
 
   const texture = new VideoTexture(video);
+  texture.colorSpace = SRGBColorSpace;
 
   const geometry = new PlaneGeometry(16, 9);
   geometry.scale(0.5, 0.5, 0.5);
@@ -156,6 +157,7 @@ export function setup(canvas) {
 export const easelSource = `import * as EASEL from "@xsyetopz/easel";
 
 const texture = new EASEL.VideoTexture(video);
+texture.colorSpace = EASEL.SRGBColorSpace;
 const geometry = new EASEL.PlaneGeometry(16, 9);
 geometry.scale(0.5, 0.5, 0.5);
 const material = new EASEL.BasicMaterial({ map: texture, vertexColors: false });
