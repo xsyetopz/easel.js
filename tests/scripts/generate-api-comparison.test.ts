@@ -6,12 +6,6 @@ import process from "node:process";
 setDefaultTimeout(30_000);
 
 const root = `${import.meta.dir}/../..`;
-const packageVersion = JSON.parse(
-  readFileSync(`${root}/package.json`, "utf8"),
-) as { version: string };
-const threePackageVersion = JSON.parse(
-  readFileSync(`${root}/node_modules/three/package.json`, "utf8"),
-) as { version: string };
 const privateNamePattern = /(?:^|\.)#/u;
 const cacheMemberPattern = /^Cache\.(?!constructor$)/u;
 let cachedReport: string | undefined;
@@ -28,12 +22,31 @@ function runGenerator(...args: string[]): string {
   return result.stdout;
 }
 
+// RFC 4180: quoted fields may hold commas and doubled quotes.
+function parseCsvLine(line: string): string[] {
+  const cells: string[] = [];
+  let cell = "";
+  let quoted = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    if (quoted) {
+      if (char === '"' && line[index + 1] === '"') {
+        cell += '"';
+        index += 1;
+      } else if (char === '"') quoted = false;
+      else cell += char;
+    } else if (char === '"') quoted = true;
+    else if (char === ",") {
+      cells.push(cell);
+      cell = "";
+    } else cell += char;
+  }
+  cells.push(cell);
+  return cells;
+}
+
 function reportRows(report: string): string[][] {
-  return report
-    .trimEnd()
-    .split("\n")
-    .slice(3)
-    .map((line) => line.split("\t"));
+  return report.trimEnd().split("\n").slice(1).map(parseCsvLine);
 }
 
 function checkedReport(): string {
@@ -45,7 +58,7 @@ describe("generate-api-comparison", () => {
   it("is deterministic, sorted, and line-oriented", () => {
     const first = checkedReport();
     expect(first).toBe(
-      readFileSync(`${root}/api-comparison/three-core.txt`, "utf8"),
+      readFileSync(`${root}/api-comparison/three-core.csv`, "utf8"),
     );
     const rows = reportRows(first);
     expect(rows.length).toBeGreaterThan(1000);
@@ -88,9 +101,7 @@ describe("generate-api-comparison", () => {
                   states[currentState as keyof typeof states]))),
       ).toBe(true);
     }
-    expect(
-      first.split("\n").filter((line) => line.startsWith("# ")).length,
-    ).toBe(3);
+    expect(first.split("\n", 1)[0]).toBe("state,subject,kind,easel,three");
   });
 
   it("reports public shape distinctions and excludes private names", () => {
@@ -208,16 +219,12 @@ describe("generate-api-comparison", () => {
   it("targets installed THREE core and records the CPU renderer boundary", () => {
     const report = checkedReport();
     const rows = reportRows(report);
-    expect(report).toContain(
-      `# EASEL=@xsyetopz/easel@${packageVersion.version}\tTHREE=three@${threePackageVersion.version}\tentry=src/Three.Core.js`,
-    );
-    expect(report).toContain(
+    const legend = readFileSync(`${root}/api-comparison/README.md`, "utf8");
+    expect(legend).toContain(
       "EASEL limits: CPU/Canvas2D; affine UV; baked flat/Gouraud",
     );
-    expect(report).toContain(
-      "no GPU/shader/PBR/shadow/environment-map surface",
-    );
-    expect(report).toContain("limits do not describe THREE core");
+    expect(legend).toContain("no GPU/shader/PBR/shadow/environment-map surface");
+    expect(legend).toContain("limits do not describe THREE core");
     expect(
       rows.some(
         (parts) =>

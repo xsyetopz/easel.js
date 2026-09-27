@@ -42,7 +42,7 @@ Run from the repository root with Bun (`.bun-version`).
 - `bun run biome:lint`
 - `bun run api:check-modern` and `bun run docs:check-public`: API style and
   JSDoc policy for public changes
-- `bun run api:compare`: regenerates `api-comparison/three-core.txt`
+- `bun run api:compare`: regenerates `api-comparison/three-core.csv`
 - `bun run examples:registry`: regenerates `www/examples/registry.ts`
 - `bun run bench -- --workload=<name>`: render benchmarks (`--list` shows
   the workloads)
@@ -66,7 +66,7 @@ Run from the repository root with Bun (`.bun-version`).
 
 ## Boundaries
 
-- Don't hand-edit generated files: `api-comparison/three-core.txt`,
+- Don't hand-edit generated files: `api-comparison/three-core.csv`,
   `www/examples/registry.ts`, and the API pages under
   `www/astro/content/docs/`. Rerun their generator instead.
 - Add an asset only with license evidence, a hash pin, and an

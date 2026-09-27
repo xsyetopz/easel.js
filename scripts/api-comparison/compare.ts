@@ -224,21 +224,12 @@ export function compareFacts(
   return rows.sort(rowSort);
 }
 
-export function formatReport(
-  rows: readonly ComparisonRow[],
-  easelVersion: string,
-  threeVersion: string,
-): string {
-  const header = [
-    `# EASEL=${easelVersion}\tTHREE=${threeVersion}\tentry=src/Three.Core.js`,
-    "# columns: state\tsubject\tkind\tEASEL\tTHREE",
-    "# state: = both; < EASEL-only; > THREE-only; ! same name but different public shape; EASEL limits: CPU/Canvas2D; affine UV; baked flat/Gouraud; no GPU/shader/PBR/shadow/environment-map surface; limits do not describe THREE core",
-  ];
-  return `${header.join("\n")}\n${rows
+export function formatReport(rows: readonly ComparisonRow[]): string {
+  return `state,subject,kind,easel,three\n${rows
     .map((row) =>
       [row.state, row.subject, row.kind, row.easel, row.three]
         .map(escapeCell)
-        .join("\t"),
+        .join(","),
     )
     .join("\n")}\n`;
 }

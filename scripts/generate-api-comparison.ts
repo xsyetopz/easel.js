@@ -22,7 +22,7 @@ const ROOT = resolve(import.meta.dir, "..");
 const EASEL_ROOT = join(ROOT, "src", "index.ts");
 const THREE_SOURCE_ROOT = join(ROOT, "node_modules", "three", "src");
 const THREE_ENTRY = join(THREE_SOURCE_ROOT, "Three.Core.js");
-const OUTPUT = join(ROOT, "api-comparison", "three-core.txt");
+const OUTPUT = join(ROOT, "api-comparison", "three-core.csv");
 
 export const compareFacts: typeof compareFactsImplementation =
   compareFactsImplementation;
@@ -49,14 +49,6 @@ function extractSide(root: string, roots: readonly string[]): PublicFact[] {
   });
 }
 
-function packageVersion(packagePath: string): string {
-  const packageJson = JSON.parse(readFileSync(packagePath, "utf8")) as {
-    name?: string;
-    version?: string;
-  };
-  return `${packageJson.name ?? "unknown"}@${packageJson.version ?? "unknown"}`;
-}
-
 export function generateReport(): string {
   if (!existsSync(EASEL_ROOT)) {
     throw new Error(`Missing EASEL entrypoint: ${EASEL_ROOT}`);
@@ -78,11 +70,7 @@ export function generateReport(): string {
     ...easelRoots.filter((root) => root !== EASEL_ROOT),
   ]);
   const threeFacts = extractSide(THREE_ENTRY, threeRoots);
-  return formatReport(
-    compareFacts(easelFacts, threeFacts),
-    packageVersion(join(ROOT, "package.json")),
-    packageVersion(join(ROOT, "node_modules", "three", "package.json")),
-  );
+  return formatReport(compareFacts(easelFacts, threeFacts));
 }
 
 function main(): void {
@@ -92,7 +80,7 @@ function main(): void {
     const current = existsSync(OUTPUT) ? readFileSync(OUTPUT, "utf8") : "";
     if (current !== report) {
       console.error(
-        "api-comparison/three-core.txt is stale; run bun run api:compare",
+        "api-comparison/three-core.csv is stale; run bun run api:compare",
       );
       process.exitCode = 1;
     }

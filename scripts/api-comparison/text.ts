@@ -207,11 +207,7 @@ export function isPrivateName(name: string): boolean {
 }
 
 export function escapeCell(value: string): string {
-  return value
-    .replaceAll("\\", "\\\\")
-    .replaceAll("\t", "\\t")
-    .replaceAll("\r", "\\r")
-    .replaceAll("\n", "\\n");
+  return /[",\r\n]/u.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
 }
 
 export function typeText(
