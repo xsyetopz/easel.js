@@ -7,8 +7,8 @@ import {
 } from "../core/Constants.ts";
 import { EventDispatcher } from "../core/EventDispatcher.ts";
 import { Matrix3 } from "../math/Matrix3.ts";
-import { encodeSrgbPixels } from "../pipeline/color/SrgbEncode.ts";
 import { Vector2 } from "../math/Vector2.ts";
+import { encodeSrgbPixels } from "../pipeline/color/SrgbEncode.ts";
 import type { ImageDataLike, ImagePixelArray } from "../utils/ImageUtils.ts";
 import {
   Source,
@@ -272,21 +272,13 @@ export class Texture extends EventDispatcher {
     if (this.#constructed) this.needsUpdate = true;
   }
 
-  /** Encodes cached linear texels to sRGB unless the texture is sRGB. */
-  protected encodeCachedTexels(data: ImageData | undefined): void {
-    if (data && this.#colorSpace !== SRGBColorSpace) {
-      encodeSrgbPixels(data.data);
-    }
-  }
-
-  /** Deprecated alias for {@link colorSpace}. */
-  get encoding(): string {
-    return this.colorSpace;
-  }
-
-  /** Delegates to {@link colorSpace}. */
-  set encoding(value: string) {
-    this.colorSpace = value;
+  /**
+   * Whether texels cached now are linear and must be encoded to sRGB before
+   * they are sampled. Subclasses with their own cache record this when they
+   * build it and encode on the first read of `data`.
+   */
+  protected cachedTexelsNeedEncode(): boolean {
+    return this.#colorSpace !== SRGBColorSpace;
   }
 
   /** User-owned serializable metadata. */
@@ -317,6 +309,9 @@ export class Texture extends EventDispatcher {
   #type = DEFAULT_UNSIGNED_BYTE_TYPE;
   #unpackAlignment: 1 | 4 = 4;
   #data: ImageData | undefined = undefined;
+  // Set when #data holds linear texels still to be encoded to sRGB; the
+  // encode runs on the first read of `data`.
+  #encodePending = false;
   #brightnessLevels: Uint8ClampedArray[] | undefined = undefined;
   #needsUpdate: boolean = false;
   #colorSpace: string = DEFAULT_NO_COLOR_SPACE;
@@ -358,6 +353,7 @@ export class Texture extends EventDispatcher {
   set image(value: TextureImageSource) {
     this.source.data = value;
     this.#data = undefined;
+    this.#encodePending = false;
     this.#brightnessLevels = undefined;
   }
 
@@ -387,6 +383,10 @@ export class Texture extends EventDispatcher {
 
   /** Cached pixel data, clamped to 128x128. */
   get data(): ImageData | undefined {
+    if (this.#encodePending) {
+      this.#encodePending = false;
+      if (this.#data !== undefined) encodeSrgbPixels(this.#data.data);
+    }
     return this.#data;
   }
 
@@ -486,6 +486,7 @@ export class Texture extends EventDispatcher {
     this.colorSpace = source.colorSpace;
     this.userData = cloneUserData(source.userData);
     this.#data = cloneImageData(source.data);
+    this.#encodePending = false;
     this.#brightnessLevels = source.brightnessLevels?.map(
       (level) => new Uint8ClampedArray(level),
     );
@@ -561,6 +562,7 @@ export class Texture extends EventDispatcher {
     this.dispatchEvent({ type: "dispose" });
     this.image = undefined;
     this.#data = undefined;
+    this.#encodePending = false;
     this.#brightnessLevels = undefined;
     this.#needsUpdate = false;
   }
@@ -593,7 +595,7 @@ export class Texture extends EventDispatcher {
 
     if (isPixelSource(source)) {
       this.#data = clampPixelSource(source);
-      this.encodeCachedTexels(this.#data);
+      this.#encodePending = this.cachedTexelsNeedEncode();
       return;
     }
 
@@ -623,7 +625,7 @@ export class Texture extends EventDispatcher {
     context.imageSmoothingEnabled = false;
     context.drawImage(source as CanvasImageSource, 0, 0, dw, dh);
     this.#data = context.getImageData(0, 0, dw, dh);
-    this.encodeCachedTexels(this.#data);
+    this.#encodePending = this.cachedTexelsNeedEncode();
   }
 }
 

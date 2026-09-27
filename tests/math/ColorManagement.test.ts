@@ -5,9 +5,12 @@ import {
   NoColorSpace,
   SRGBColorSpace,
 } from "@/core/Constants.js";
+import { Color } from "@/math/Color.js";
 import {
   ColorManagement,
+  decodesSrgbToWorking,
   LinearToSRGB,
+  SRGB_BYTE_TO_LINEAR,
   SRGBToLinear,
 } from "@/math/ColorManagement.js";
 
@@ -33,6 +36,59 @@ describe("ColorManagement", () => {
       expect(SRGBToLinear(value)).toBe(threeDecode(value));
       expect(LinearToSRGB(value)).toBe(threeEncode(value));
     }
+  });
+
+  it("decodes every 8-bit sRGB value through the table exactly", () => {
+    expect(SRGB_BYTE_TO_LINEAR.length).toBe(256);
+    for (let byte = 0; byte < 256; byte++) {
+      expect(
+        Object.is(SRGB_BYTE_TO_LINEAR[byte], SRGBToLinear(byte / 255)),
+      ).toBe(true);
+      expect(
+        Object.is(SRGB_BYTE_TO_LINEAR[byte], threeDecode(byte / 255)),
+      ).toBe(true);
+    }
+  });
+
+  it("decodes hex and rgb() input like three.js for every 8-bit channel", () => {
+    const color = new Color();
+    const threeColor = new THREE.Color();
+    for (let byte = 0; byte < 256; byte++) {
+      const other = 255 - byte;
+      const hex = (byte << 16) | (other << 8) | (byte ^ 0x5a);
+      color.setHex(hex);
+      threeColor.setHex(hex);
+      expect([color.r, color.g, color.b]).toEqual([
+        threeColor.r,
+        threeColor.g,
+        threeColor.b,
+      ]);
+      const style = `rgb(${byte},${other},${byte ^ 0x5a})`;
+      color.setStyle(style);
+      threeColor.setStyle(style);
+      expect([color.r, color.g, color.b]).toEqual([
+        threeColor.r,
+        threeColor.g,
+        threeColor.b,
+      ]);
+    }
+  });
+
+  it("uses the decode table only for sRGB input into a linear working space", () => {
+    expect(decodesSrgbToWorking(SRGBColorSpace)).toBe(true);
+    expect(decodesSrgbToWorking(LinearSRGBColorSpace)).toBe(false);
+    expect(decodesSrgbToWorking(NoColorSpace)).toBe(false);
+    ColorManagement.enabled = false;
+    try {
+      expect(decodesSrgbToWorking(SRGBColorSpace)).toBe(false);
+      expect(new Color().setHex(0x80ff00).r).toBe(128 / 255);
+    } finally {
+      ColorManagement.enabled = true;
+    }
+    expect(new Color().setHex(0x80ff00, LinearSRGBColorSpace).r).toBe(
+      128 / 255,
+    );
+    expect(() => new Color().setStyle("rgb(256,0,0)")).toThrow(RangeError);
   });
 
   it("converts in place between sRGB and the working space", () => {

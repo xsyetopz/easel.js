@@ -1,9 +1,7 @@
 import { SRGBColorSpace } from "../core/Constants.ts";
 import type { Attribute } from "../geometry/Attribute.ts";
-import { ColorManagement } from "./ColorManagement.ts";
-import type { Matrix3 } from "./Matrix3.ts";
-import type { Vector3 } from "./Vector3.ts";
 import { parseColorStyle } from "./_ColorParse.ts";
+import type { ColorValue, HSL, RGB } from "./_ColorUtils.ts";
 import {
   COLOR_HUE_SCALE,
   COLOR_LIGHTNESS_SCALE,
@@ -20,7 +18,13 @@ import {
   colorSetHSL,
   rgbToHsl,
 } from "./_ColorUtils.ts";
-import type { ColorValue, HSL, RGB } from "./_ColorUtils.ts";
+import {
+  ColorManagement,
+  decodesSrgbToWorking,
+  SRGB_BYTE_TO_LINEAR,
+} from "./ColorManagement.ts";
+import type { Matrix3 } from "./Matrix3.ts";
+import type { Vector3 } from "./Vector3.ts";
 
 export type { ColorValue, HSL, RGB, RGBArray } from "./_ColorUtils.ts";
 export {
@@ -133,9 +137,18 @@ export class Color {
     if (hex > 0xffffff || hex < 0)
       throw new Error("EASEL.Color.setHex(): hex out of range");
     const value = Math.trunc(hex);
-    this.r = (value >> 16) / COLOR_RGB_SCALE;
-    this.g = ((value >> 8) & COLOR_RGB_SCALE) / COLOR_RGB_SCALE;
-    this.b = (value & COLOR_RGB_SCALE) / COLOR_RGB_SCALE;
+    const r = value >> 16;
+    const g = (value >> 8) & COLOR_RGB_SCALE;
+    const b = value & COLOR_RGB_SCALE;
+    if (decodesSrgbToWorking(colorSpace)) {
+      this.r = SRGB_BYTE_TO_LINEAR[r];
+      this.g = SRGB_BYTE_TO_LINEAR[g];
+      this.b = SRGB_BYTE_TO_LINEAR[b];
+      return this;
+    }
+    this.r = r / COLOR_RGB_SCALE;
+    this.g = g / COLOR_RGB_SCALE;
+    this.b = b / COLOR_RGB_SCALE;
     ColorManagement.colorSpaceToWorking(this, colorSpace);
     return this;
   }

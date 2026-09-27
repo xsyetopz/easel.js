@@ -1,10 +1,14 @@
-import type { Color } from "./Color.ts";
 import {
   COLOR_HUE_SCALE,
   COLOR_LIGHTNESS_SCALE,
   COLOR_RGB_SCALE,
   COLOR_SATURATION_SCALE,
 } from "./_ColorUtils.ts";
+import type { Color } from "./Color.ts";
+import {
+  decodesSrgbToWorking,
+  SRGB_BYTE_TO_LINEAR,
+} from "./ColorManagement.ts";
 
 /** Parses a CSS color string with channels in `colorSpace` and applies it to `color`. */
 export function parseColorStyle(
@@ -61,10 +65,25 @@ function parseRgbStyle(color: Color, style: string, colorSpace: string): Color {
     );
   }
 
+  const r = Number(values[0]);
+  const g = Number(values[1]);
+  const b = Number(values[2]);
+  if (
+    r <= COLOR_RGB_SCALE &&
+    g <= COLOR_RGB_SCALE &&
+    b <= COLOR_RGB_SCALE &&
+    decodesSrgbToWorking(colorSpace)
+  ) {
+    // Integer 8-bit channels: the table holds the exact decode of each.
+    color.r = SRGB_BYTE_TO_LINEAR[r];
+    color.g = SRGB_BYTE_TO_LINEAR[g];
+    color.b = SRGB_BYTE_TO_LINEAR[b];
+    return color;
+  }
   return color.setRGB(
-    Number(values[0]) / COLOR_RGB_SCALE,
-    Number(values[1]) / COLOR_RGB_SCALE,
-    Number(values[2]) / COLOR_RGB_SCALE,
+    r / COLOR_RGB_SCALE,
+    g / COLOR_RGB_SCALE,
+    b / COLOR_RGB_SCALE,
     colorSpace,
   );
 }

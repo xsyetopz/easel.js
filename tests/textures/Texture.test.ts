@@ -275,4 +275,35 @@ describe("Texture color space", () => {
     expect(srgb.needsUpdate).toBe(false);
     expect(Array.from(srgb.data?.data ?? [])).toEqual([64, 128, 200, 255]);
   });
+
+  it("encodes with the color space current when the cache was built", () => {
+    const bytes = new Uint8ClampedArray([64, 128, 200, 255]);
+    const encoded = [
+      Math.round(LinearToSRGB(64 / 255) * 255),
+      Math.round(LinearToSRGB(128 / 255) * 255),
+      Math.round(LinearToSRGB(200 / 255) * 255),
+      255,
+    ];
+    // The cache was built as linear; switching to sRGB only marks it for update.
+    const data = new DataTexture(bytes, 1, 1);
+    data.colorSpace = "srgb";
+    expect(Array.from(data.data?.data ?? [])).toEqual(encoded);
+    expect(data.width).toBe(1);
+
+    const pixels = new Texture(
+      fakeImageData(new Uint8ClampedArray(bytes), 1, 1),
+    );
+    pixels.needsUpdate = true;
+    pixels.update();
+    pixels.colorSpace = "srgb";
+    expect(Array.from(pixels.data?.data ?? [])).toEqual(encoded);
+    pixels.update();
+    expect(Array.from(pixels.data?.data ?? [])).toEqual([64, 128, 200, 255]);
+
+    // Reading twice or cloning never encodes twice.
+    const cloned = new DataTexture(bytes, 1, 1).clone();
+    expect(Array.from(cloned.data?.data ?? [])).toEqual(encoded);
+    expect(Array.from(cloned.data?.data ?? [])).toEqual(encoded);
+    expect(bytes[0]).toBe(64);
+  });
 });

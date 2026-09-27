@@ -1,4 +1,5 @@
 import type { Wrapping as WrappingMode } from "../core/Constants.ts";
+import { encodeSrgbPixels } from "../pipeline/color/SrgbEncode.ts";
 import { Texture, type TextureImageSource } from "./Texture.ts";
 
 const DEFAULT_LINEAR_MAPPING = 300;
@@ -15,6 +16,9 @@ export class DataTexture extends Texture {
   readonly isDataTexture = true;
 
   #imageData: ImageData | undefined;
+  // Set when #imageData holds linear texels still to be encoded to sRGB; the
+  // encode runs on the first read of `data`.
+  #encodePending = false;
   #width = 0;
   #height = 0;
 
@@ -58,7 +62,7 @@ export class DataTexture extends Texture {
     } as TextureImageSource;
     if (data !== undefined) {
       this.#imageData = createDataImage(data, width, height);
-      this.encodeCachedTexels(this.#imageData);
+      this.#encodePending = this.cachedTexelsNeedEncode();
     }
   }
 
@@ -71,10 +75,17 @@ export class DataTexture extends Texture {
   override set image(value: TextureImageSource) {
     super.image = value;
     this.#imageData = undefined;
+    this.#encodePending = false;
   }
 
   /** Cached raw pixel data. */
   override get data(): ImageData | undefined {
+    if (this.#encodePending) {
+      this.#encodePending = false;
+      if (this.#imageData !== undefined) {
+        encodeSrgbPixels(this.#imageData.data);
+      }
+    }
     return this.#imageData;
   }
 
@@ -98,7 +109,7 @@ export class DataTexture extends Texture {
           source.width,
           source.height,
         );
-        this.encodeCachedTexels(this.#imageData);
+        this.#encodePending = this.cachedTexelsNeedEncode();
       }
     }
     return super.update();
@@ -114,6 +125,7 @@ export class DataTexture extends Texture {
     super.copy(source);
     const image = source.data;
     this.#imageData = image ? cloneDataImage(image) : undefined;
+    this.#encodePending = false;
     this.#width = source.width;
     this.#height = source.height;
     return this;
@@ -122,6 +134,7 @@ export class DataTexture extends Texture {
   /** Releases raw pixel data and shared source state. */
   override dispose(): void {
     this.#imageData = undefined;
+    this.#encodePending = false;
     this.#width = 0;
     this.#height = 0;
     super.dispose();
