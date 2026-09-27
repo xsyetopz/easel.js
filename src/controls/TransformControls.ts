@@ -151,13 +151,13 @@ const _objectChangeEvent = { type: "objectChange" };
  */
 class TransformControlsRoot extends Node {
   override type: string = "TransformControlsRoot";
-  readonly parentPosition = new Vector3();
-  readonly parentQuaternion = new Quaternion();
-  readonly parentQuaternionInv = new Quaternion();
-  readonly parentScale = new Vector3();
-  readonly worldQuaternionInv = new Quaternion();
-  readonly worldScale = new Vector3();
-  readonly cameraScale = new Vector3();
+  readonly parentPosition: Vector3 = new Vector3();
+  readonly parentQuaternion: Quaternion = new Quaternion();
+  readonly parentQuaternionInv: Quaternion = new Quaternion();
+  readonly parentScale: Vector3 = new Vector3();
+  readonly worldQuaternionInv: Quaternion = new Quaternion();
+  readonly worldScale: Vector3 = new Vector3();
+  readonly cameraScale: Vector3 = new Vector3();
   readonly #controls: TransformControls;
   gizmo: TransformControlsGizmo | undefined;
 
@@ -342,25 +342,25 @@ export class TransformControls extends EventDispatcher {
   viewport: TransformViewport | undefined = undefined;
 
   /** World position of the attached object at the last helper update. */
-  readonly worldPosition = new Vector3();
+  readonly worldPosition: Vector3 = new Vector3();
   /** World position of the attached object when the drag started. */
-  readonly worldPositionStart = new Vector3();
+  readonly worldPositionStart: Vector3 = new Vector3();
   /** World rotation of the attached object at the last helper update. */
-  readonly worldQuaternion = new Quaternion();
+  readonly worldQuaternion: Quaternion = new Quaternion();
   /** World rotation of the attached object when the drag started. */
-  readonly worldQuaternionStart = new Quaternion();
+  readonly worldQuaternionStart: Quaternion = new Quaternion();
   /** Camera world position at the last helper update. */
-  readonly cameraPosition = new Vector3();
+  readonly cameraPosition: Vector3 = new Vector3();
   /** Camera world rotation at the last helper update. */
-  readonly cameraQuaternion = new Quaternion();
+  readonly cameraQuaternion: Quaternion = new Quaternion();
   /** Drag-plane hit at the drag start, relative to `worldPositionStart`. */
-  readonly pointStart = new Vector3();
+  readonly pointStart: Vector3 = new Vector3();
   /** Latest drag-plane hit, relative to `worldPositionStart`. */
-  readonly pointEnd = new Vector3();
+  readonly pointEnd: Vector3 = new Vector3();
   /** Rotation axis of the current rotate gesture. */
-  readonly rotationAxis = new Vector3();
+  readonly rotationAxis: Vector3 = new Vector3();
   /** Unit vector from the object toward the camera (or the view direction). */
-  readonly eye = new Vector3();
+  readonly eye: Vector3 = new Vector3();
 
   readonly #props: TransformProperties;
   readonly #propertyEvents = new Map<string, PropertyEvent>();
