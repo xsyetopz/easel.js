@@ -1,7 +1,12 @@
-"""Validate that the package, JSR, source revision, and pinned skill versions agree."""
+"""Validate that the package, JSR, source revision, and pinned skill versions agree.
+
+With ``--expected X.Y.Z`` they must also equal the version being released.
+``--root PATH`` checks another tree, such as a release candidate worktree.
+"""
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -29,8 +34,19 @@ def main(
     repo_root: str | Path | None = None,
 ) -> int:
     """Run the version consistency check."""
-    del argv
-    root = resolve_repo_root(repo_root)
+    parser = argparse.ArgumentParser(prog="check-version")
+    parser.add_argument("--expected", help="version every source must equal")
+    parser.add_argument("--root", help="repository tree to check")
+    arguments = parser.parse_args(sys.argv[1:] if argv is None else argv)
+    if arguments.expected is not None and not SEMVER_PATTERN.fullmatch(
+        arguments.expected
+    ):
+        print(
+            f"Expected version must be X.Y.Z, got {arguments.expected}",
+            file=sys.stderr,
+        )
+        return 1
+    root = resolve_repo_root(arguments.root or repo_root)
     metadata = read_version_metadata(root)
 
     versions = [
@@ -71,6 +87,14 @@ def main(
             file=sys.stderr,
         )
     if stale:
+        return 1
+
+    if arguments.expected is not None and metadata.package_version != arguments.expected:
+        print(
+            f"Version {_display_version(metadata.package_version)} does not match "
+            f"release version {arguments.expected}",
+            file=sys.stderr,
+        )
         return 1
 
     print(f"Version consistent: {_display_version(metadata.package_version)}")

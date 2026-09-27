@@ -93,19 +93,15 @@ jobs:
             exit 1
           fi
 
-          bun run version:check
-          PACKAGE_VERSION="$(bun -p "require('./package.json').version")"
+          # Every version source (package.json, jsr.json, the source revision,
+          # and skill pins) must equal the requested release version.
+          bun run version:check -- --expected "$VERSION"
           PACKAGE_NAME="$(bun -p "require('./package.json').name")"
           JSR_NAME="$(bun -p "require('./jsr.json').name")"
           if [ "$PACKAGE_NAME" != "@xsyetopz/easel" ] || [ "$JSR_NAME" != "@xsyetopz/easel" ]; then
             echo "::error::Unexpected package identity: npm=$PACKAGE_NAME jsr=$JSR_NAME"
             exit 1
           fi
-          if [ "$PACKAGE_VERSION" != "$VERSION" ]; then
-            echo "::error::Package version $PACKAGE_VERSION does not match release input $VERSION"
-            exit 1
-          fi
-
           if git rev-parse --verify --quiet "refs/tags/v$VERSION" >/dev/null; then
             echo "::error::Tag already exists: v$VERSION"
             exit 1
@@ -149,11 +145,12 @@ jobs:
               echo "::error::Published npm source $RELEASE_SHA is not an ancestor of current main $HEAD_SHA"
               exit 1
             fi
-            PUBLISHED_VERSION="$(git show "$RELEASE_SHA:package.json" | node -e 'let value=""; process.stdin.on("data", chunk => value += chunk); process.stdin.on("end", () => process.stdout.write(JSON.parse(value).version))')"
-            if [ "$PUBLISHED_VERSION" != "$VERSION" ]; then
-              echo "::error::Published npm source has package version $PUBLISHED_VERSION, expected $VERSION"
-              exit 1
-            fi
+            # The resumed candidate is published and tagged, so check its
+            # tree with this checkout's version checker.
+            CANDIDATE_DIR="$RUNNER_TEMP/release-candidate"
+            git worktree add --detach "$CANDIDATE_DIR" "$RELEASE_SHA"
+            python3 -m scripts check-version --expected "$VERSION" --root "$CANDIDATE_DIR"
+            git worktree remove --force "$CANDIDATE_DIR"
           elif grep -Eqi 'E404|404 Not Found|No match found for version|is not in this registry' "$NPM_ERROR"; then
             NPM_EXISTS=false
           else
@@ -240,6 +237,7 @@ jobs:
       - name: Assert approved release candidate
         env:
           CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
+          VERSION: ${{ needs.validate.outputs.version }}
           EXPECTED_NODE_VERSION: ${{ needs.validate.outputs.node_version }}
           EXPECTED_BUN_VERSION: ${{ needs.validate.outputs.bun_version }}
         run: |
@@ -254,6 +252,16 @@ jobs:
             echo "HEAD=$HEAD_SHA candidate=$CANDIDATE_SHA"
             exit 1
           fi
+          node - "$VERSION" <<'NODE'
+          const [expectedVersion] = process.argv.slice(2);
+          for (const file of ["package.json", "jsr.json"]) {
+            const { version } = require(`${process.cwd()}/${file}`);
+            if (version !== expectedVersion) {
+              console.error(`::error::${file} version ${version} does not match release version ${expectedVersion}`);
+              process.exit(1);
+            }
+          }
+          NODE
           test "$(node --version)" = "v$EXPECTED_NODE_VERSION"
           test "$(bun --version)" = "$EXPECTED_BUN_VERSION"
           npm --version
@@ -460,7 +468,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.validate.outputs.version }}
         run: |
           set -euo pipefail
           if [ -z "${GH_TOKEN:-}" ]; then
@@ -476,6 +484,16 @@ jobs:
             echo "::error::GitHub release checkout does not match the published source"
             exit 1
           fi
+          node - "$VERSION" <<'NODE'
+          const [expectedVersion] = process.argv.slice(2);
+          for (const file of ["package.json", "jsr.json"]) {
+            const { version } = require(`${process.cwd()}/${file}`);
+            if (version !== expectedVersion) {
+              console.error(`::error::${file} version ${version} does not match release version ${expectedVersion}`);
+              process.exit(1);
+            }
+          }
+          NODE
           TAG_ERROR="$(mktemp)"
           set +e
           git ls-remote --exit-code --refs origin "refs/tags/v$VERSION" >/dev/null 2>"$TAG_ERROR"
@@ -521,7 +539,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.validate.outputs.version }}
         run: |
           set -euo pipefail
           TAG_OBJECT_SHA="$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/tags" \

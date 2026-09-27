@@ -46,7 +46,12 @@ describe("workflow policy", () => {
   });
 
   it("delegates source revision validation to the canonical version check", () => {
-    expect(releaseWorkflow).toContain("bun run version:check");
+    expect(releaseWorkflow).toContain(
+      'bun run version:check -- --expected "$VERSION"',
+    );
+    expect(releaseWorkflow).toContain(
+      'python3 -m scripts check-version --expected "$VERSION" --root "$CANDIDATE_DIR"',
+    );
     expect(releaseWorkflow).not.toContain("src/index.ts");
     expect(releaseWorkflow).not.toContain("REVISION");
   });

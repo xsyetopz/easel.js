@@ -40,6 +40,11 @@ semantic versioning.
   is in `api-comparison/README.md`.
 - `bun run version` now also rewrites the `@xsyetopz/easel` version pins in
   `.agents/skills`, and `bun run version:check` fails on a stale pin.
+- `bun run version:check -- --expected X.Y.Z` also requires every version
+  source to equal the release version. The release workflow and
+  `bun run release` use it, and the publish and tag jobs check the
+  candidate's `package.json` and `jsr.json` against the requested version
+  before they publish or tag.
 - **Breaking:** `TrackballControls` is now a true three.js r186 trackball:
   rotation rolls `camera.up` and does not stop at the poles; it extends
   `Controls` (`camera` → `object`); `update()` returns `void`; wheel zoom

@@ -2,38 +2,15 @@
 
 from __future__ import annotations
 
-import json
 import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from .. import resolve_repo_root
+from .. import check_version, resolve_repo_root
 
 _SEMVER_PATTERN = r"^[0-9]+\.[0-9]+\.[0-9]+$"
-_UNDEFINED = object()
-
-
-def _read_json(path: Path) -> dict[str, object]:
-    with path.open(encoding="utf-8") as source:
-        return json.load(source)
-
-
-def _property(body: dict[str, object], name: str) -> object:
-    return body.get(name, _UNDEFINED)
-
-
-def _javascript_string(value: object) -> str:
-    if value is _UNDEFINED:
-        return "undefined"
-    if value is None:
-        return "null"
-    if value is True:
-        return "true"
-    if value is False:
-        return "false"
-    return str(value)
 
 
 def _decode_output(output: bytes) -> str:
@@ -93,14 +70,7 @@ def main(
         return 1
 
     root = resolve_repo_root(repo_root)
-    package_json = _read_json(root / "package.json")
-    package_version = _property(package_json, "version")
-    if package_version != version:
-        print(
-            f"package.json version {_javascript_string(package_version)} "
-            f"does not match {version}",
-            file=sys.stderr,
-        )
+    if check_version.main(["--expected", version], repo_root=root) != 0:
         return 1
 
     branch_name = _run(
