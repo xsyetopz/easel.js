@@ -1,4 +1,4 @@
-// EASEL 0.7.0: absence is undefined.
+// EASEL 0.8.0: absence is undefined.
 import { BasicMaterial, BoxGeometry, Mesh, Node, Scene } from "@xsyetopz/easel";
 
 export function findRoots(scene: Node): string[] {

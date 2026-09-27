@@ -1,4 +1,4 @@
-// EASEL 0.7.0: one Attribute class over an explicit typed array, and a Map
+// EASEL 0.8.0: one Attribute class over an explicit typed array, and a Map
 // of attributes read through getAttribute().
 import { Attribute, Geometry } from "@xsyetopz/easel";
 

@@ -49,19 +49,20 @@ for (const [name, key] of [["directional", "sun"], ["ambient", "sky"]] as
   for (const byte of [0xff, 0x80]) {
     const target = threeRed(three[key].intensity, byte);
     const ported = easelRed(candidate.lights()[key], byte);
-    const naive = easelRed(silent.lights()[key], byte);
-    check(C, `${name} I/PI is closer to three than I for colour ${byte}`,
-      Math.abs(ported - target) < Math.abs(naive - target),
-      `three ${target}, easel I/PI ${ported}, easel I ${naive}`);
+    const stale = easelRed(silent.lights()[key], byte);
+    check(C, `${name} verbatim intensity matches three for colour ${byte}`,
+      Math.abs(ported - target) <= 1 &&
+        Math.abs(ported - target) < Math.abs(stale - target),
+      `three ${target}, easel I ${ported}, easel I/PI ${stale}`);
   }
 }
 
-// Brighter three.js lights: the gap left after dividing by PI.
+// Brighter three.js lights keep matching without a probe.
 for (const intensity of [2, 3]) {
   const target = threeRed(intensity, 0xff);
   const sun = candidate.lights().sun;
   sun.intensity = candidate.easelIntensity(intensity);
   const ported = easelRed(sun, 0xff);
-  check(C, `white at three intensity ${intensity} stays within 50 levels`,
-    Math.abs(ported - target) <= 50, `three ${target}, easel I/PI ${ported}`);
+  check(C, `white at three intensity ${intensity} matches within 1 level`,
+    Math.abs(ported - target) <= 1, `three ${target}, easel I ${ported}`);
 }

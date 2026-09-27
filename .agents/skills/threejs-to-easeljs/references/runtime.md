@@ -8,8 +8,6 @@ under `assets/examples/<card>/`.
 - Timer deltas
 - Animator and binding paths
 - TextureLoader results
-- LOD update
-- BoxHelper bounds
 - r186 intersectsFrustum and dispose
 
 ## Timer deltas
@@ -148,108 +146,13 @@ stay untextured.
 1. In a browser, the material's `map` is a `Texture` after the promise
    resolves.
 
-## LOD update
-
-**Definition.** three.js `LOD.autoUpdate` defaults to `true`, and
-`WebGLRenderer.render` then calls `lod.update(camera)`. EASEL `LOD` has
-no `autoUpdate` and its renderer never selects levels; `lod.update(camera)`
-sets exactly one level visible from the prepared world matrices of the
-LOD and camera (`src/objects/LOD.ts`). Until then every level stays
-visible.
-
-**Use when.**
-
-- Porting any `THREE.LOD`.
-
-**Do not use when.**
-
-- Calling `update` before `renderer.prepare` in a frame where the camera
-  or the LOD moved: it reads last frame's matrices.
-
-**Example.**
-
-```ts
-import type { Camera, LOD, Renderer, Scene } from "@xsyetopz/easel";
-
-export function frame(renderer: Renderer, scene: Scene, camera: Camera,
-  lods: LOD[]): void {
-  renderer.prepare(scene, camera);
-  for (const lod of lods) lod.update(camera);
-  renderer.render(scene, camera);
-}
-```
-
-Runnable: `assets/examples/lod-update/`.
-
-**Cost removed.** `TS2339` on `autoUpdate`, and a silent cost: without
-`update`, every level stays visible, so the renderer rasterizes the
-high-detail and low-detail meshes on top of each other. The oracle
-matches three.js's visible levels at distances 3 and 50.
-
-**Verify.**
-
-1. The verifier prints `PASS lod-update: visible levels match` for both
-   distances and `naive port leaves every level visible`.
-
-## BoxHelper bounds
-
-**Definition.** three.js `new BoxHelper(object)` computes a world-space
-box at construction and on each `update()`. EASEL `BoxHelper(source)`
-takes a `Box3` or an object with `geometry.boundingBox`, starts with all
-24 vertices at the origin, and draws only after `update()`
-(`src/helpers/BoxHelper.ts`). With an object source it copies the
-geometry-local `boundingBox`, so a moved or rotated mesh gets the wrong
-box. `Box3.setFromObject` gives the world-space box.
-
-**Use when.**
-
-- Porting `new THREE.BoxHelper(object)` or `helper.update()` calls.
-
-**Do not use when.**
-
-- You need an oriented box that turns with the object; add a
-  `LineSegments` box as a child of the object instead.
-
-**Example.**
-
-```ts
-import { Box3, BoxHelper, type Node } from "@xsyetopz/easel";
-
-export function makeHelper(target: Node) {
-  const box = new Box3();
-  const helper = new BoxHelper(box, 0xffff00);
-  function refresh(): void {
-    // after renderer.prepare(...) or target.updateMatrixWorld(...)
-    box.setFromObject(target);
-    helper.update();
-  }
-  return { helper, refresh };
-}
-```
-
-Call `refresh()` each frame the target moves, between `prepare` and
-`render`, as three.js code calls `helper.update()`.
-
-Runnable: `assets/examples/box-helper/`.
-
-**Cost removed.** An invisible helper (no `update()`) or a helper stuck
-at the origin. Under `exactOptionalPropertyTypes` the naive
-`new BoxHelper(mesh)` fails with `TS2345`; with looser settings it
-compiles. Local run for a 2-unit box at x = 5: three.js spans x 4..6, the
-port 4..6, the naive helper 0..0 before `update()` and -1..1 after it.
-
-**Verify.**
-
-1. The verifier prints `PASS box-helper: world-space x extent matches
-   three (three 4,6, easel 4,6)` and both naive lines.
-
 ## r186 intersectsFrustum and dispose
 
 **Definition.** r186 added `intersectsFrustum(frustum)` to `Object3D`,
 `Mesh`, `Line`, `Points` and `Sprite` (Mesh calls
 `frustum.intersectsObject(this)`), and `Object3D.dispose()`, which only
 dispatches a `dispose` event (`node_modules/three/src/core/Object3D.js`).
-EASEL 0.7.0 has neither (`>` rows for `Node.intersectsFrustum`,
+EASEL 0.8.0 has neither (`>` rows for `Node.intersectsFrustum`,
 `Node.dispose`, `Mesh.intersectsFrustum`), nor `Frustum.intersectsObject`.
 It has `Frustum.intersectsSphere`, `Geometry.computeBoundingSphere`,
 `Sphere.applyMatrix4`, and `dispose()` on `Geometry` and `Material`.

@@ -1,4 +1,4 @@
-// EASEL 0.7.0: Animator, VectorTrack, Loop.Repeat. Binding paths have no
+// EASEL 0.8.0: Animator, VectorTrack, Loop.Repeat. Binding paths have no
 // leading dot: three.js ".position" is "position" (or "Box.position").
 import {
   AnimationClip,

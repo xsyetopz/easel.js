@@ -1,4 +1,4 @@
-// EASEL 0.7.0: thresholds are raycaster accessors; there is no `params`.
+// EASEL 0.8.0: thresholds are raycaster accessors; there is no `params`.
 import {
   Attribute, Geometry, Line, Points, PointsMaterial, Raycaster, Vector3,
 } from "@xsyetopz/easel";

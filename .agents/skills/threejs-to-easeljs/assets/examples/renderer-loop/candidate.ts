@@ -1,4 +1,4 @@
-// EASEL 0.7.0: CPU framebuffer. Width and height are framebuffer pixels
+// EASEL 0.8.0: CPU framebuffer. Width and height are framebuffer pixels
 // (cost scales with them); there is no pixel ratio, loop, or setClearColor,
 // and each frame calls prepare before render.
 import type { Camera, Scene } from "@xsyetopz/easel";

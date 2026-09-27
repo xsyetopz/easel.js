@@ -1,4 +1,4 @@
-// EASEL 0.7.0: grouped `as const` objects; some values differ from three.js.
+// EASEL 0.8.0: grouped `as const` objects; some values differ from three.js.
 import { BasicMaterial, Loop, Side, Texture, Wrapping } from "@xsyetopz/easel";
 
 export function run() {

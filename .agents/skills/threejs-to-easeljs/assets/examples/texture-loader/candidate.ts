@@ -1,4 +1,4 @@
-// EASEL 0.7.0: load() returns void and loadAsync() resolves `unknown`.
+// EASEL 0.8.0: load() returns void and loadAsync() resolves `unknown`.
 // Images wider or taller than 128 are scaled down with drawImage.
 import { LambertMaterial, Texture, TextureLoader } from "@xsyetopz/easel";
 

@@ -1,4 +1,4 @@
-// EASEL 0.7.0: draw order lives on the material as `layer` (lower layers
+// EASEL 0.8.0: draw order lives on the material as `layer` (lower layers
 // draw first). Like renderOrder, it only changes the picture when the later
 // draw ignores depth (depthTest: false) or blends.
 import { BasicMaterial, Mesh, PlaneGeometry } from "@xsyetopz/easel";

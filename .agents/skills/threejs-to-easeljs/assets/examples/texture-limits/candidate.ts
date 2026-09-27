@@ -1,4 +1,4 @@
-// EASEL 0.7.0: Uint8ClampedArray, at most 128x128, Wrapping.Repeat.
+// EASEL 0.8.0: Uint8ClampedArray, at most 128x128, Wrapping.Repeat.
 // Generate at the limit: squares of 8 texels keep the 16-square pattern.
 import { DataTexture, Wrapping } from "@xsyetopz/easel";
 

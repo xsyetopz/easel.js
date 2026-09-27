@@ -17,15 +17,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import parity  # noqa: E402
 
 LEDGER = """\
-# EASEL=@xsyetopz/easel@0.7.0\tTHREE=three@0.186.1\tentry=src/Three.Core.js
-=\tNode\tclass\tclass extends EventDispatcher\tclass extends EventDispatcher
-<\tNode.position\tfield\tinstance rw Vector3\t-
->\tNode.dispose\tmethod\t-\tinstance () => void
-!\tColor.hex\taccessor\tinstance rw number\tinstance () => number
->\tAnimationClip.findByName\tmethod\t-\tstatic (a: Array, n: string) => ?AnimationClip
-<\tfindByName\tfunction\t(clips: object, name: string) => AnimationClip | undefined\t-
-=\tTimer\tclass\tclass\tclass
->\tTimer\tclass\t-\tclass
+state,subject,kind,easel,three
+=,Node,class,class extends EventDispatcher,class extends EventDispatcher
+<,Node.position,field,instance rw Vector3,-
+>,Node.dispose,method,-,instance () => void
+!,Color.hex,accessor,instance rw number,instance () => number
+>,AnimationClip.findByName,method,-,"static (a: Array, n: string) => ?AnimationClip"
+<,findByName,function,"(clips: object, name: string) => AnimationClip | undefined",-
+=,Timer,class,class,class
+>,Timer,class,-,class
 """
 
 
@@ -40,7 +40,7 @@ def run(*argv: str) -> tuple[int, str]:
 class ParityTest(unittest.TestCase):
     def setUp(self) -> None:
         self.dir = tempfile.TemporaryDirectory()
-        self.ledger = Path(self.dir.name) / "three-core.txt"
+        self.ledger = Path(self.dir.name) / "three-core.csv"
         self.ledger.write_text(LEDGER, encoding="utf-8")
 
     def tearDown(self) -> None:
@@ -83,7 +83,9 @@ class ParityTest(unittest.TestCase):
         self.assertIn("cannot read", out)
 
     def test_malformed_ledger_exits_2(self) -> None:
-        self.ledger.write_text("?\tNode\n", encoding="utf-8")
+        self.ledger.write_text(
+            "state,subject,kind,easel,three\n?,Node\n", encoding="utf-8"
+        )
         code, out = run("--ledger", str(self.ledger), "Node")
         self.assertEqual(code, 2)
         self.assertIn("malformed row", out)

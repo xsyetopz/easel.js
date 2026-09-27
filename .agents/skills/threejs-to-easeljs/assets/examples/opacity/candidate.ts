@@ -1,4 +1,4 @@
-// EASEL 0.7.0: integer transparency level, 0 opaque through 8 transparent.
+// EASEL 0.8.0: integer transparency level, 0 opaque through 8 transparent.
 import { BasicMaterial } from "@xsyetopz/easel";
 
 export function easelOpacity(alpha: number): number {

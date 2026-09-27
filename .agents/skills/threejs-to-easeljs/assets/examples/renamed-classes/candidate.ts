@@ -1,4 +1,4 @@
-// EASEL 0.7.0: Node, Geometry, Attribute (no GPU buffer prefix).
+// EASEL 0.8.0: Node, Geometry, Attribute (no GPU buffer prefix).
 import {
   Attribute,
   BasicMaterial,

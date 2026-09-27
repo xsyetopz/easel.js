@@ -1,10 +1,10 @@
-// EASEL 0.7.0: baked Lambert lighting has no 1/PI term, so divide every
-// ported light intensity (directional, point, spot, ambient, hemisphere) by
-// Math.PI to start from three.js brightness.
+// EASEL 0.8: Lambert lighting includes three.js r186's 1 / PI and sRGB
+// colour management, so ported light intensities (directional, point,
+// spot, ambient, hemisphere) stay verbatim.
 import { AmbientLight, DirectionalLight } from "@xsyetopz/easel";
 
 export function easelIntensity(threeIntensity: number): number {
-  return threeIntensity / Math.PI;
+  return threeIntensity;
 }
 
 export function lights(): { sun: DirectionalLight; sky: AmbientLight } {

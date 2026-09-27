@@ -14,7 +14,7 @@ SYMBOL is a three.js or EASEL name: `Object3D`, `THREE.Color.getHex`,
 - for a three-only static, also prints EASEL top-level functions or
   constants with the same member name (statics become standalone exports).
 
-The ledger defaults to `api-comparison/three-core.txt` in the nearest
+The ledger defaults to `api-comparison/three-core.csv` in the nearest
 directory above the current one, then above this script. Row states:
 `=` both, `<` EASEL-only, `>` three-only, `!` shape differs.
 
@@ -24,12 +24,14 @@ usage or a missing or malformed ledger.
 
 from __future__ import annotations
 
+import csv
 import re
 import sys
 from collections import Counter
 from pathlib import Path
 
-LEDGER = Path("api-comparison") / "three-core.txt"
+LEDGER = Path("api-comparison") / "three-core.csv"
+HEADER = ["state", "subject", "kind", "easel", "three"]
 
 # Copy of THREE_TO_EASEL_CLASS in scripts/api-comparison/compare.ts;
 # test_parity.py fails when the two drift.
@@ -73,26 +75,22 @@ def find_ledger(start: Path) -> Path | None:
     return None
 
 
-def load(path: Path) -> tuple[list[str], dict[str, list[list[str]]]]:
+def load(path: Path) -> dict[str, list[list[str]]]:
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as error:
         raise LedgerError(f"cannot read {path}: {error}") from error
-    header: list[str] = []
+    records = csv.reader(text.splitlines())
+    if next(records, None) != HEADER:
+        raise LedgerError(f"{path}:1: expected header {','.join(HEADER)}")
     rows: dict[str, list[list[str]]] = {}
-    for number, line in enumerate(text.splitlines(), 1):
-        if not line:
-            continue
-        if line.startswith("#"):
-            header.append(line)
-            continue
-        cells = line.split("\t")
-        if len(cells) != 5 or cells[0] not in "=<>!":
-            raise LedgerError(f"{path}:{number}: malformed row")
+    for cells in records:
+        if len(cells) != 5 or cells[0] not in ("=", "<", ">", "!"):
+            raise LedgerError(f"{path}:{records.line_num}: malformed row")
         rows.setdefault(cells[1], []).append(cells)
     if not rows:
         raise LedgerError(f"{path}: no rows")
-    return header, rows
+    return rows
 
 
 def normalize(symbol: str) -> str:
@@ -159,11 +157,11 @@ def main(argv: list[str]) -> int:
         print(f"error: {LEDGER} not found; pass --ledger", file=sys.stderr)
         return 2
     try:
-        header, rows = load(ledger)
+        rows = load(ledger)
     except LedgerError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
-    print(header[0] if header else f"# {ledger}")
+    print(f"# {ledger}")
     missing = False
     for symbol in args:
         lines = lookup(symbol, rows)

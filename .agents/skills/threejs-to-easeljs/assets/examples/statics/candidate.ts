@@ -1,4 +1,4 @@
-// EASEL 0.7.0: statics are standalone exported functions and constants.
+// EASEL 0.8.0: statics are standalone exported functions and constants.
 import {
   AnimationClip,
   animationClipToJSON,

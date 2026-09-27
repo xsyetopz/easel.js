@@ -1,4 +1,4 @@
-// EASEL 0.7.0: `size` is a positive integer pixel radius; a point covers
+// EASEL 0.8.0: `size` is a positive integer pixel radius; a point covers
 // 2 * size + 1 pixels across at any distance. There is no sizeAttenuation,
 // and the point rasterizer uses neither `map` nor an alpha test.
 import { PointsMaterial } from "@xsyetopz/easel";

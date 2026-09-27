@@ -1,6 +1,6 @@
 # Rendering: renderer, lights, materials, points, textures
 
-Cards for the CPU renderer boundary. EASEL 0.7.0 rasterizes on the CPU
+Cards for the CPU renderer boundary. EASEL 0.8.0 rasterizes on the CPU
 and uploads `ImageData` to a Canvas2D context (`src/renderers/Renderer.ts`,
 `src/pipeline/`). Runnable pairs live under `assets/examples/<card>/`. The
 three.js baselines for the renderer and PBR cards need WebGL, so only
@@ -93,29 +93,28 @@ shader multiplies direct and ambient irradiance by `BRDF_Lambert =
 diffuse / PI` (`src/renderers/shaders/ShaderChunk/common.glsl.js`,
 `lights_lambert_pars_fragment.glsl.js`), after `ColorManagement`
 (enabled by default) decodes sRGB colours to linear, and the default
-`SRGBColorSpace` output encodes the result back. EASEL bakes
-`colour * intensity * N.L` per face or vertex with no `1 / PI` term and
-no sRGB decode or encode (`src/pipeline/shading/lightAccumulator.ts`;
-`new Color(0x808080).r` is 0.502 in EASEL, 0.216 in three.js). Point and
-spot `decay` and `distance` follow three.js, so the same division covers
-them.
+`SRGBColorSpace` output encodes the result back. EASEL 0.8 does the same
+per vertex: `Color` stores linear values (`new Color(0x808080).r` is
+0.216, as in three.js), the `1 / PI` is folded into each light's colour
+once per frame, and the baked result is encoded to sRGB
+(`references/lighting-color-parity.md` in the repository).
 
 **Use when.**
 
 - Porting any `DirectionalLight`, `PointLight`, `SpotLight`,
-  `HemisphereLight` or `AmbientLight` intensity. Divide each by
-  `Math.PI`, ambient included.
+  `HemisphereLight` or `AmbientLight` intensity. Keep it verbatim.
+- Updating a port written for EASEL 0.7, which divided every intensity by
+  `Math.PI`. Remove the division.
 
 **Do not use when.**
 
 - The three.js source was tuned for legacy light units (it sets
   `useLegacyLights = true` or `physicallyCorrectLights = false`, flags
-  r186 no longer has): those intensities already leave out the `PI`, so
-  keep them.
-- Expecting a pixel match. The division halves the error but EASEL stays
-  darker at mid-tones and saturates earlier, because it skips the sRGB
-  curve. When screenshots must match, pick the intensity by a pixel
-  probe, as the opacity card does.
+  r186 no longer has): multiply those intensities by `Math.PI`, as
+  three.js's own migration does.
+- Expecting a per-pixel match on gradients. EASEL lights and encodes per
+  vertex, then interpolates the encoded colour, so Gouraud mid-tones
+  differ slightly from three.js's per-pixel encode.
 
 **Example.**
 
@@ -123,37 +122,33 @@ them.
 import { AmbientLight, DirectionalLight } from "@xsyetopz/easel";
 
 // three.js: new DirectionalLight(0xffffff, 1), new AmbientLight(0xffffff, 1)
-export function easelIntensity(threeIntensity: number): number {
-  return threeIntensity / Math.PI;
-}
-
-const sun = new DirectionalLight(0xffffff, easelIntensity(1));
+const sun = new DirectionalLight(0xffffff, 1);
 sun.position.set(0, 0, 1);
-const sky = new AmbientLight(0xffffff, easelIntensity(1));
+const sky = new AmbientLight(0xffffff, 1);
 ```
 
 Runnable: `assets/examples/light-intensity/`. Tier: EASEL side executed;
 the three.js column is computed from the r186 shader formula above, not
 rendered (no WebGL in bun).
 
-**Cost removed.** Scenes about twice as bright as the three.js original,
-with every lit white surface clipped to 255. Local run (verifier, macOS
-arm64, bun 1.4.2), red channel of a Lambert plane facing the light:
+**Cost removed.** Scenes at half the three.js brightness from a stale
+0.7-era `/ Math.PI`. Local run (verifier, macOS arm64, bun 1.4.2), red
+channel of a Lambert plane facing the light:
 
-| Surface, three.js intensity | three.js | EASEL `I / PI` | EASEL `I` |
+| Surface, three.js intensity | three.js | EASEL `I` | EASEL `I / PI` |
 | --- | --- | --- | --- |
-| white, directional 1 | 153 | 106 | 255 |
-| grey 0x80, directional 1 | 74 | 53 | 128 |
-| white, ambient 1 | 153 | 106 | 255 |
-| white, directional 2 | 209 | 187 | 255 |
-| white, directional 3 | 250 | 255 | 255 |
+| white, directional 1 | 153 | 152 | 89 |
+| grey 0x80, directional 1 | 74 | 74 | 40 |
+| white, ambient 1 | 153 | 152 | 89 |
+| white, directional 2 | 209 | 208 | |
+| white, directional 3 | 250 | 249 | |
 
 **Verify.**
 
-1. The verifier prints four `PASS light-intensity: ... I/PI is closer to
-   three than I` lines and two `stays within 50 levels` lines.
-1. `rg -n 'Light\([^)]*[0-9]' <ported files>` shows every intensity
-   divided by `Math.PI` or recorded as probe-tuned.
+1. The verifier prints four `PASS light-intensity: ... verbatim intensity
+   matches three` lines and two `matches within 1 level` lines.
+1. `rg -n 'Math\.PI' <ported files>` shows no division of a light
+   intensity.
 
 ## PBR, shadows, and shaders
 
@@ -192,12 +187,12 @@ import {
 } from "@xsyetopz/easel";
 
 const scene = new Scene();
-// three.js intensity 2, divided by PI (see Light intensity)
-const light = new DirectionalLight(0xffffff, 2 / Math.PI);
+// three.js intensity 2, verbatim (see Light intensity)
+const light = new DirectionalLight(0xffffff, 2);
 light.position.set(3, 5, 2);
 const mesh = new Mesh(new BoxGeometry(),
   new LambertMaterial({ color: 0x44aa88, shading: Shading.Gouraud }));
-scene.add(new AmbientLight(0xffffff, 0.2 / Math.PI), light, mesh);
+scene.add(new AmbientLight(0xffffff, 0.2), light, mesh);
 ```
 
 Runnable: `assets/examples/pbr-shadows/`. Tier: EASEL side executed;

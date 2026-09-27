@@ -1,4 +1,4 @@
-// EASEL 0.7.0: test the world-space bounding sphere against the frustum;
+// EASEL 0.8.0: test the world-space bounding sphere against the frustum;
 // dispose geometry and material explicitly and fire the event yourself.
 import {
   BasicMaterial,

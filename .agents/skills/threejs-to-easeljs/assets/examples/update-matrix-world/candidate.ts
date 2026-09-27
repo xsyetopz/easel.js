@@ -1,4 +1,4 @@
-// EASEL 0.7.0: updateMatrixWorld(updateParents, updateChildren, force).
+// EASEL 0.8.0: updateMatrixWorld(updateParents, updateChildren, force).
 import { Node } from "@xsyetopz/easel";
 
 export function run(): number {

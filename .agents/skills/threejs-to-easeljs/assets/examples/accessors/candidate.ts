@@ -1,4 +1,4 @@
-// EASEL 0.7.0: get/set accessors replace parameterless getX()/setX(value).
+// EASEL 0.8: get/set accessors replace parameterless getX()/setX(value).
 import { Box3, BoxGeometry, Color } from "@xsyetopz/easel";
 
 export function run() {

@@ -1,4 +1,4 @@
-// EASEL 0.7.0: the renderer samples a cached copy of the canvas and never
+// EASEL 0.8.0: the renderer samples a cached copy of the canvas and never
 // refreshes it. Flag the texture and rebuild the cache with update() after
 // every redraw, including the first draw after construction.
 import { BasicMaterial, CanvasTexture } from "@xsyetopz/easel";

@@ -1,4 +1,4 @@
-// EASEL 0.7.0: OBB is a core export and intersectRay returns undefined on
+// EASEL 0.8.0: OBB is a core export and intersectRay returns undefined on
 // a miss. Test for undefined, or use intersectsRay for a boolean.
 import { OBB, Ray, Vector3 } from "@xsyetopz/easel";
 

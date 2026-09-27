@@ -1,7 +1,7 @@
 interface:
   display_name: "Three.js to EASEL.js"
-  short_description: "Port three.js r186 code to EASEL 0.7.0"
+  short_description: "Port three.js r186 code to EASEL 0.8.0"
   default_prompt: >-
-    Use $threejs-to-easeljs to port this three.js code to EASEL 0.7.0:
+    Use $threejs-to-easeljs to port this three.js code to EASEL 0.8.0:
     look up each symbol in the parity ledger, apply the matching cards,
     and verify with the typecheck and the example oracles.

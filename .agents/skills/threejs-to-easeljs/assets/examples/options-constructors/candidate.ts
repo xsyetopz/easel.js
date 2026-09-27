@@ -1,4 +1,4 @@
-// EASEL 0.7.0: one options object; pass every value three.js defaulted.
+// EASEL 0.8.0: one options object; pass every value three.js defaulted.
 import { Fog, OrthographicCamera, PerspectiveCamera } from "@xsyetopz/easel";
 
 export function run() {

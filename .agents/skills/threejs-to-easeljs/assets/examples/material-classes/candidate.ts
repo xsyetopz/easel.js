@@ -1,4 +1,4 @@
-// EASEL 0.7.0: Mesh prefix dropped, LineBasic -> Line, LineDashed ->
+// EASEL 0.8.0: Mesh prefix dropped, LineBasic -> Line, LineDashed ->
 // DashedLine. vertexColors defaults to true, so set false to match three.
 import {
   BasicMaterial,

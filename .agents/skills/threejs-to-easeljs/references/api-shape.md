@@ -1,7 +1,7 @@
 # API shape: names, accessors, statics, absence, constructors
 
 Cards for the mechanical differences between three.js r186 (`three@0.186.1`)
-and EASEL 0.7.0. The naming and style rules come from `CONTRIBUTING.md`
+and EASEL 0.8. The naming and style rules come from `CONTRIBUTING.md`
 ("Three.js API parity"). Every card has a runnable pair under
 `assets/examples/<card>/`: `baseline.js` (three.js), `candidate.ts` (EASEL),
 `naive.ts` (the careless port, with the compiler errors it must raise), and,
@@ -14,7 +14,6 @@ where the naive port compiles, `silent.ts` plus a `check.ts` oracle.
 - Accessors replace getX and setX
 - Attributes and the attribute map
 - Raycaster thresholds
-- Controls camera field
 - Statics become standalone exports
 - Undefined replaces null
 - Options objects replace positional constructors
@@ -142,7 +141,10 @@ follow the same rule: `box.isEmpty()` -> `box.isEmpty` (`Box3`, a getter).
 **Do not use when.**
 
 - The method takes arguments beyond the value (`getWorldPosition(target)`,
-  `setRGB(r, g, b)`, `setHSL`); those stay methods. Check the row.
+  `setRGB(r, g, b)`, `setHSL`); those stay methods. `Color.getHex`,
+  `setHex`, `getStyle` and `setStyle` take an optional `colorSpace`, so
+  EASEL 0.8 keeps them as methods beside the `hex` and `style` accessors.
+  Check the row.
 
 **Example.**
 
@@ -159,7 +161,7 @@ const empty = new Box3().isEmpty; // three.js: isEmpty()
 
 Runnable: `assets/examples/accessors/`.
 
-**Cost removed.** `TS2339 Property 'getHex' does not exist`, and `TS6234`
+**Cost removed.** `TS2551` ("did you mean 'hexString'?") on `getHexString()`, `TS2339` on `setIndex`/`getIndex`, and `TS6234`
 ("not callable because it is a 'get' accessor") on `isEmpty()`. In plain
 JavaScript the call would throw `TypeError`, and a bare `box.isEmpty`
 copied back to three.js is a function, always truthy. The oracle shows
@@ -262,50 +264,6 @@ away and matches three.js hit counts at thresholds 1, 0.6, 0.4 and 0.1.
 
 1. The verifier prints four `PASS raycaster-thresholds: hits match`
    lines.
-
-## Controls camera field
-
-**Definition.** EASEL `OrbitControls` is a core export (three.js imports
-it from `three/addons/controls/OrbitControls.js`) and names the controlled
-camera `controls.camera`; three.js calls it `controls.object`. Its
-constructor requires a DOM element or an `EventTarget` with `style`,
-`setPointerCapture` and `releasePointerCapture`
-(`src/controls/OrbitControls.ts`); three.js accepts `null`.
-
-**Use when.**
-
-- Porting code that reads or replaces `controls.object`, for example to
-  switch cameras or read the camera position in a control callback.
-
-**Do not use when.**
-
-- Other controls: look each up with `bun scripts/easel_api.ts show NAME`
-  from the `using-easeljs` skill or `src/index.ts`; do not assume the same
-  rename.
-
-**Example.**
-
-```ts
-import { OrbitControls, PerspectiveCamera } from "@xsyetopz/easel";
-
-declare const canvas: HTMLCanvasElement;
-const camera = new PerspectiveCamera({
-  fov: 50, aspect: 1, near: 0.1, far: 100,
-});
-const controls = new OrbitControls(camera, canvas);
-const eye = controls.camera.position; // three: controls.object.position
-```
-
-Runnable: `assets/examples/controls-camera/`.
-
-**Cost removed.** `TS2339` on `controls.object`, `undefined` reads in
-JavaScript.
-
-**Verify.**
-
-1. The verifier prints `PASS controls-camera: three controls.object and
-   EASEL controls.camera are the camera` and rejects
-   `controls-camera/naive.ts:6`.
 
 ## Statics become standalone exports
 
