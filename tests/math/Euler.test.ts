@@ -129,3 +129,32 @@ describe("Euler gimbal lock", () => {
     }
   });
 });
+
+describe("Euler change callback count (three.js r186)", () => {
+  it("runs the callback once for set, copy, and fromArray, as three.js does", () => {
+    const counts: number[] = [];
+    for (const write of [
+      (e: Euler) => e.set(0.1, 0.2, 0.3),
+      (e: Euler) => e.set(0.1, 0.2, 0.3, "ZYX"),
+      (e: Euler) => e.copy(new Euler(1, 2, 3, "YXZ")),
+      (e: Euler) => e.copy(e),
+      (e: Euler) => e.fromArray([0.3, 0.2, 0.1]),
+    ]) {
+      let calls = 0;
+      const euler = new Euler(1, 2, 3, "XZY").setOnChangeCallback(() => {
+        calls++;
+      });
+      write(euler);
+      counts.push(calls);
+    }
+    expect(counts).toEqual([1, 1, 1, 1, 1]);
+  });
+
+  it("keeps the current order when set and fromArray omit it", () => {
+    const euler = new Euler(0, 0, 0, "ZXY");
+    euler.set(0.1, 0.2, 0.3);
+    expect(euler.order).toBe("ZXY");
+    euler.fromArray([0.3, 0.2, 0.1]);
+    expect(euler.order).toBe("ZXY");
+  });
+});

@@ -105,7 +105,6 @@ export class SpotLightHelper extends Node {
     }
     _direction.normalize();
     setPositiveZDirection(this.quaternion, _direction);
-    this.rotation.setFromQuaternion(this.quaternion);
 
     const length = this.#displayLength ?? this.#light.distance;
     if (!Number.isFinite(length) || length <= 0) {

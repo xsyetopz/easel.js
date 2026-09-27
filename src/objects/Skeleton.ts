@@ -84,7 +84,6 @@ export class Skeleton {
         bone.matrix.copy(bone.matrixWorld);
       }
       bone.matrix.decompose(bone.position, bone.quaternion, bone.scale);
-      bone.rotation.setFromQuaternion(bone.quaternion);
       bone.matrixWorldNeedsUpdate = false;
     }
   }

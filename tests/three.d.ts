@@ -161,6 +161,9 @@ declare module "three" {
     premultiply(q: Quaternion): this;
     slerp(q: Quaternion, t: number): this;
     setFromRotationMatrix(m: Matrix4): this;
+    fromArray(array: ArrayLike<number>, offset?: number): this;
+    normalize(): this;
+    toArray(): number[];
   }
   export class Euler {
     x: number;
@@ -176,6 +179,7 @@ declare module "three" {
   }
   export class Object3D {
     position: Vector3;
+    rotation: Euler;
     quaternion: Quaternion;
     scale: Vector3;
     visible: boolean;
@@ -184,6 +188,8 @@ declare module "three" {
     updateMatrixWorld(force?: boolean): void;
     rotateX(angle: number): this;
     rotateY(angle: number): this;
+    applyQuaternion(q: Quaternion): this;
+    setRotationFromEuler(euler: Euler): this;
     translateY(distance: number): this;
     translateZ(distance: number): this;
   }

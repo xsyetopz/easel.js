@@ -406,3 +406,56 @@ describe("Node", () => {
     expect(child.getWorldPosition(new Vector3()).x).toBeCloseTo(6);
   });
 });
+
+describe("Node rotation and quaternion sync parity (three.js r186)", () => {
+  const components = (q: { x: number; y: number; z: number; w: number }) => [
+    q.x,
+    q.y,
+    q.z,
+    q.w,
+  ];
+
+  it("keeps a written quaternion bit for bit and derives rotation as three.js does", () => {
+    const values = [
+      0.3234983196103153, -0.4313310928137537, 0.5391638660171921,
+      0.6469966392206306,
+    ];
+    const node = new Node();
+    const object = new Object3D();
+    node.rotation.order = "YZX";
+    object.rotation.order = "YZX";
+    node.quaternion = new Quaternion().fromArray(values);
+    object.quaternion.fromArray(values);
+    node.applyQuaternion(new Quaternion(0.1, 0.2, 0.3, 0.9).normalize());
+    object.applyQuaternion(
+      new Object3D().quaternion.set(0.1, 0.2, 0.3, 0.9).normalize(),
+    );
+    node.rotateX(0.7);
+    object.rotateX(0.7);
+    expect(components(node.quaternion)).toEqual(components(object.quaternion));
+    expect([node.rotation.x, node.rotation.y, node.rotation.z]).toEqual([
+      object.rotation.x,
+      object.rotation.y,
+      object.rotation.z,
+    ]);
+  });
+
+  it("keeps rotation's own order in setRotationFromEuler and copies the order in copy", () => {
+    const node = new Node();
+    const object = new Object3D();
+    node.setRotationFromEuler(new Node().rotation.set(0.3, -2.5, 1.1, "YXZ"));
+    object.setRotationFromEuler(
+      new Object3D().rotation.set(0.3, -2.5, 1.1, "YXZ"),
+    );
+    expect(node.rotation.order).toBe("XYZ");
+    expect([node.rotation.x, node.rotation.y, node.rotation.z]).toEqual([
+      object.rotation.x,
+      object.rotation.y,
+      object.rotation.z,
+    ]);
+
+    const source = new Node();
+    source.rotation.set(0.1, 0.2, 0.3, "ZXY");
+    expect(new Node().copy(source).rotation.order).toBe("ZXY");
+  });
+});

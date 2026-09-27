@@ -235,7 +235,6 @@ function applyObjectTransform(object: Node, json: ObjectRecord): void {
   const quaternion = optionalTuple(json, "quaternion", 4);
   if (quaternion !== undefined) {
     object.quaternion.fromArray(quaternion);
-    object.rotation.setFromQuaternion(object.quaternion);
   }
   const up = optionalTuple(json, "up", 3);
   if (up !== undefined) object.up.fromArray(up);

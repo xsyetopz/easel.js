@@ -1,4 +1,4 @@
-import { deferEulerFromQuaternion, Euler } from "../math/Euler.ts";
+import { Euler, linkEulerAndQuaternion } from "../math/Euler.ts";
 import { Matrix4 } from "../math/Matrix4.ts";
 import { Quaternion } from "../math/Quaternion.ts";
 import { Vector3 } from "../math/Vector3.ts";
@@ -165,20 +165,8 @@ export class Node extends EventDispatcher {
     super();
     this.uuid = uuid;
     // Keep rotation and quaternion in sync in both directions, as three.js
-    // does; the flag stops each update from echoing back to its source.
-    let syncing = false;
-    this.#rotation.setOnChangeCallback(() => {
-      if (syncing) return;
-      syncing = true;
-      this.#quaternion.setFromEuler(this.#rotation);
-      syncing = false;
-    });
-    // Angles are extracted from the quaternion when `rotation` is next read
-    // or written, with the same result as extracting them here.
-    this.#quaternion.onChange(() => {
-      if (syncing) return;
-      deferEulerFromQuaternion(this.#rotation, this.#quaternion);
-    });
+    // does.
+    linkEulerAndQuaternion(this.#rotation, this.#quaternion);
     this.updateMatrix();
   }
 
@@ -200,7 +188,6 @@ export class Node extends EventDispatcher {
   /** Copies a quaternion and updates the synchronized Euler angles. */
   set quaternion(value: Quaternion) {
     this.#quaternion.copy(value);
-    this.#rotation.setFromQuaternion(this.#quaternion);
   }
 
   /** Whether local transform changes are folded into `matrix` on world updates. */
@@ -261,7 +248,6 @@ export class Node extends EventDispatcher {
   attach(object: Node): this {
     _m1.copy(this.matrixWorld).invert().multiply(object.matrixWorld);
     _m1.decompose(object.position, object.quaternion, object.scale);
-    object.rotation.setFromQuaternion(object.quaternion);
     this.add(object);
     object.updateMatrix();
     return this;
@@ -335,7 +321,6 @@ export class Node extends EventDispatcher {
     if (this.matrixAutoUpdate) this.updateMatrix();
     this.matrix.multiplyMatrices(matrix, this.matrix);
     this.matrix.decompose(this.position, this.quaternion, this.scale);
-    this.rotation.setFromQuaternion(this.quaternion);
     this.matrixWorldNeedsUpdate = true;
     this.#syncLocalCache();
     return this;
@@ -344,7 +329,6 @@ export class Node extends EventDispatcher {
   /** Premultiplies the node rotation by `quaternion`. */
   applyQuaternion(quaternion: Quaternion): this {
     this.quaternion.premultiply(quaternion);
-    this.rotation.setFromQuaternion(this.quaternion);
     this.matrixWorldNeedsUpdate = true;
     return this;
   }
@@ -352,15 +336,16 @@ export class Node extends EventDispatcher {
   /** Sets rotation from an axis and angle in radians. */
   setRotationFromAxisAngle(axis: Vector3, angle: number): this {
     this.quaternion.setFromAxisAngle(axis, angle);
-    this.rotation.setFromQuaternion(this.quaternion);
     this.matrixWorldNeedsUpdate = true;
     return this;
   }
 
-  /** Copies Euler rotation values into the synchronized quaternion. */
+  /**
+   * Sets the quaternion from `euler`. As in three.js r186, `rotation` keeps its
+   * own order and takes the matching angles.
+   */
   setRotationFromEuler(euler: Euler): this {
     this.quaternion.setFromEuler(euler);
-    this.rotation.copy(euler);
     this.matrixWorldNeedsUpdate = true;
     return this;
   }
@@ -368,7 +353,6 @@ export class Node extends EventDispatcher {
   /** Extracts rotation from `matrix` and synchronizes both rotation forms. */
   setRotationFromMatrix(matrix: Matrix4): this {
     this.quaternion.setFromRotationMatrix(matrix);
-    this.rotation.setFromQuaternion(this.quaternion);
     this.matrixWorldNeedsUpdate = true;
     return this;
   }
@@ -673,6 +657,7 @@ export class Node extends EventDispatcher {
     this.position.copy(source.position);
     this.up.copy(source.up);
     this.pivot = source.pivot?.clone();
+    this.rotation.order = source.rotation.order;
     this.quaternion = source.quaternion;
     this.scale.copy(source.scale);
 

@@ -246,3 +246,13 @@ describe("Quaternion", () => {
     expect(new Quaternion().random().length).toBeCloseTo(1, 12);
   });
 });
+
+describe("Quaternion.normalize parity (three.js r186)", () => {
+  it("multiplies by the reciprocal length bit for bit and maps zero to identity", () => {
+    const easel = new Quaternion(0.7, -1.3, 0.2, 0.9).normalize();
+    const three = new TQuaternion(0.7, -1.3, 0.2, 0.9).normalize();
+    expect([easel.x, easel.y, easel.z, easel.w]).toEqual(three.toArray());
+    const zero = new Quaternion(0, 0, 0, 0).normalize();
+    expect([zero.x, zero.y, zero.z, zero.w]).toEqual([0, 0, 0, 1]);
+  });
+});

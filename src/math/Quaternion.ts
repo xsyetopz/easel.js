@@ -1,3 +1,5 @@
+import type { Euler } from "./Euler.ts";
+
 /** Mutable flat storage accepted by quaternion array operations. */
 export type QuaternionArray = number[] | Float32Array | Float64Array;
 
@@ -92,6 +94,25 @@ export function multiplyQuaternionsFlat<Destination extends QuaternionArray>(
   return destination;
 }
 
+let setSyncEuler: (q: Quaternion, euler: Euler) => void;
+// Set by linkQuaternionToEuler; Euler.ts supplies it so this module keeps no
+// runtime import of Euler, which would form an import cycle.
+let syncEulerFromQuaternion: (euler: Euler, q: Quaternion) => void;
+
+/**
+ * Internal: makes every change to `q` run `sync(euler, q)` in place of a change
+ * callback, until `onChange` replaces the link. Node sets it up through
+ * `linkEulerAndQuaternion`.
+ */
+export function linkQuaternionToEuler(
+  q: Quaternion,
+  euler: Euler,
+  sync: (euler: Euler, q: Quaternion) => void,
+): void {
+  syncEulerFromQuaternion = sync;
+  setSyncEuler(q, euler);
+}
+
 /** Unit quaternion for rotation without gimbal lock. */
 export class Quaternion {
   #x = 0;
@@ -99,6 +120,21 @@ export class Quaternion {
   #z = 0;
   #w = 1;
   #onChangeCallback: (() => void) | undefined = undefined;
+  // Owning node's rotation, kept in sync instead of a callback; see
+  // linkQuaternionToEuler.
+  #syncEuler: Euler | undefined = undefined;
+
+  static {
+    setSyncEuler = (q: Quaternion, euler: Euler): void => {
+      q.#syncEuler = euler;
+    };
+  }
+
+  #notify(): void {
+    const euler = this.#syncEuler;
+    if (euler !== undefined) syncEulerFromQuaternion(euler, this);
+    else if (this.#onChangeCallback !== undefined) this.#onChangeCallback();
+  }
 
   /** Constructs a quaternion, defaulting to the identity rotation. */
   constructor(x: number = 0, y: number = 0, z: number = 0, w: number = 1) {
@@ -116,7 +152,7 @@ export class Quaternion {
   /** Replaces the Cartesian x component. */
   set x(value: number) {
     this.#x = value;
-    this.#onChangeCallback?.();
+    this.#notify();
   }
 
   /** Vertical Cartesian component. */
@@ -127,7 +163,7 @@ export class Quaternion {
   /** Replaces the Cartesian y component. */
   set y(value: number) {
     this.#y = value;
-    this.#onChangeCallback?.();
+    this.#notify();
   }
 
   /** Cartesian z component. */
@@ -138,7 +174,7 @@ export class Quaternion {
   /** Replaces the Cartesian z component. */
   set z(value: number) {
     this.#z = value;
-    this.#onChangeCallback?.();
+    this.#notify();
   }
 
   /** Homogeneous w component. */
@@ -149,7 +185,7 @@ export class Quaternion {
   /** Replaces the homogeneous w component. */
   set w(value: number) {
     this.#w = value;
-    this.#onChangeCallback?.();
+    this.#notify();
   }
 
   /** Euclidean magnitude of this value. */
@@ -181,7 +217,7 @@ export class Quaternion {
     this.#y = q.y;
     this.#z = q.z;
     this.#w = q.w;
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -190,7 +226,7 @@ export class Quaternion {
     this.#x = -this.#x;
     this.#y = -this.#y;
     this.#z = -this.#z;
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -205,7 +241,7 @@ export class Quaternion {
     this.#y /= scalar;
     this.#z /= scalar;
     this.#w /= scalar;
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -215,7 +251,7 @@ export class Quaternion {
     this.#y = array[offset + 1];
     this.#z = array[offset + 2];
     this.#w = array[offset + 3];
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -234,7 +270,7 @@ export class Quaternion {
     this.#x = -this.#x;
     this.#y = -this.#y;
     this.#z = -this.#z;
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -247,7 +283,7 @@ export class Quaternion {
     this.#y = qy * w + qw * y + qz * x - qx * z;
     this.#z = qz * w + qw * z + qx * y - qy * x;
     this.#w = qw * w - qx * x - qy * y - qz * z;
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -264,7 +300,7 @@ export class Quaternion {
     this.#y = ay * bw + aw * by + az * bx - ax * bz;
     this.#z = az * bw + aw * bz + ax * by - ay * bx;
     this.#w = aw * bw - ax * bx - ay * by - az * bz;
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -274,7 +310,7 @@ export class Quaternion {
     this.#y = y;
     this.#z = z;
     this.#w = w;
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -290,7 +326,7 @@ export class Quaternion {
     this.#y = axis.y * s;
     this.#z = axis.z * s;
     this.#w = Math.cos(halfAngle);
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -311,7 +347,7 @@ export class Quaternion {
       this.#y = Math.sin(half);
       this.#z = 0;
       this.#w = Math.cos(half);
-      this.#onChangeCallback?.();
+      this.#notify();
       return this;
     }
     if (x !== 0 && y === 0 && z === 0) {
@@ -320,7 +356,7 @@ export class Quaternion {
       this.#y = 0;
       this.#z = 0;
       this.#w = Math.cos(half);
-      this.#onChangeCallback?.();
+      this.#notify();
       return this;
     }
     if (z !== 0 && x === 0 && y === 0) {
@@ -329,7 +365,7 @@ export class Quaternion {
       this.#y = 0;
       this.#z = Math.sin(half);
       this.#w = Math.cos(half);
-      this.#onChangeCallback?.();
+      this.#notify();
       return this;
     }
 
@@ -380,7 +416,7 @@ export class Quaternion {
       default:
         break;
     }
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -433,7 +469,7 @@ export class Quaternion {
       this.#y = (m23 + m32) / s;
       this.#z = 0.25 * s;
     }
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -472,9 +508,27 @@ export class Quaternion {
     return this.slerp(q, Math.min(1, step / angle));
   }
 
-  /** Rescales this quaternion to unit length. */
+  /**
+   * Rescales this quaternion to unit length. As in three.js r186, a zero
+   * quaternion becomes the identity.
+   */
   normalize(): this {
-    return this.divideScalar(this.length || 1);
+    const length = this.length;
+    if (length === 0) {
+      this.#x = 0;
+      this.#y = 0;
+      this.#z = 0;
+      this.#w = 1;
+    } else {
+      // Multiply by the reciprocal, as three.js r186 does.
+      const inverse = 1 / length;
+      this.#x *= inverse;
+      this.#y *= inverse;
+      this.#z *= inverse;
+      this.#w *= inverse;
+    }
+    this.#notify();
+    return this;
   }
 
   /** Spherically interpolates toward `q` by `t`. */
@@ -510,7 +564,7 @@ export class Quaternion {
       this.#w = this.#w * s + w * t;
       this.normalize();
     }
-    this.#onChangeCallback?.();
+    this.#notify();
     return this;
   }
 
@@ -521,6 +575,7 @@ export class Quaternion {
 
   /** Registers a callback invoked whenever a component changes. */
   onChange(callback: () => void): this {
+    this.#syncEuler = undefined;
     this.#onChangeCallback = callback;
     return this;
   }

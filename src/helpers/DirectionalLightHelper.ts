@@ -148,7 +148,6 @@ export class DirectionalLightHelper extends Node {
     }
     _direction.divideScalar(length);
     setPositiveZDirection(this.quaternion, _direction);
-    this.rotation.setFromQuaternion(this.quaternion);
     this.#targetLine.scale.set(1, 1, length);
     this.#material.color.copy(this.#color ?? this.#light.color);
     return this;

@@ -101,7 +101,6 @@ export class HemisphereLightHelper extends LineSegments {
 
     this.position.set(x, y, z);
     setPositiveYDirection(this.quaternion, directionX, directionY, directionZ);
-    this.rotation.setFromQuaternion(this.quaternion);
 
     const override = this.#color;
     if (override === undefined) {

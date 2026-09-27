@@ -96,7 +96,6 @@ export class PlaneHelper extends Line {
         w * inverseLength,
       );
     }
-    this.rotation.setFromQuaternion(this.quaternion);
     return this;
   }
 
