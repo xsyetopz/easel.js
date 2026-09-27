@@ -1,9 +1,9 @@
 import type { Node } from "../core/Node.ts";
 import type { Matrix4 } from "../math/Matrix4.ts";
-import { Mesh } from "../objects/Mesh.ts";
+import type { Mesh } from "../objects/Mesh.ts";
+import { VOXLoader as VOXLoaderClass } from "./_VOXLoader.ts";
 import { buildMesh as buildMeshData } from "./_VOXMeshing.ts";
 import { buildVoxelVolume as buildVoxelVolumeData } from "./_VOXVoxelVolume.ts";
-import { VOXLoader as VOXLoaderClass } from "./_VOXLoader.ts";
 
 /** Loader class for MagicaVoxel VOX 150/200 assets and CPU scene data. */
 export const VOXLoader: typeof VOXLoaderClass = VOXLoaderClass;
@@ -132,4 +132,3 @@ export function buildMesh(chunk: VOXChunk): Mesh {
 export function buildVoxelVolume(chunk: VOXChunk): VOXVoxelVolume {
   return buildVoxelVolumeData(chunk);
 }
-
