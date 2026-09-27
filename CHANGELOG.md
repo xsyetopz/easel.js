@@ -13,6 +13,19 @@ semantic versioning.
   Each page runs the three.js original on WebGL beside its EASEL port on
   Canvas2D and lists every difference between them. Upstream `webgl_*` ids
   appear as `canvas_*`, with the three.js id kept in `meta.upstream`.
+- Added to `OrbitControls`/`MapControls`: `listenToKeyEvents`, arrow keys,
+  `keyPanSpeed`, `keyRotateSpeed`, `zoomToCursor`, `cursorStyle`, two-finger
+  touch dolly/pan/rotate, `saveState`, `cursor`, target-radius and azimuth
+  limits, public `pan`/`dollyIn`/`dollyOut`/`rotateLeft`/`rotateUp`;
+  `camera.up` sets the orbit axis. `Controls` gains `state`, `keys`,
+  `mouseButtons`, `touches`.
+- Added `emissive` and `emissiveIntensity` on `LambertMaterial` and
+  `ToonMaterial`. Visible back faces of `Side.Double`/`Side.Back` meshes are
+  lit with the flipped normal; the spot cone uses three.js `smoothstep`.
+- Added `OrthographicCamera.isOrthographicCamera`.
+- `STLLoader` reads binary STL facet and default colors, `OBJLoader` reads
+  `v x y z r g b` vertex colors, and `PLYLoader` reads per-face colors, as in
+  three.js r186.
 
 ### Changed
 
@@ -21,11 +34,117 @@ semantic versioning.
   pixel-identical; in the render benchmark, frame time drops by about 20% to
   55% on triangle- and point-heavy workloads (100,000 points: 14.8 ms to
   7.0 ms per frame).
-- Regenerated `api-comparison/three-core.txt` against three.js r186
-  (`three@0.186.1`).
+- Regenerated the API comparison against three.js r186 (`three@0.186.1`)
+  and moved it from tab-separated `api-comparison/three-core.txt` to
+  `api-comparison/three-core.csv` (RFC 4180, with a header row). The legend
+  is in `api-comparison/README.md`.
+- `bun run version` now also rewrites the `@xsyetopz/easel` version pins in
+  `.agents/skills`, and `bun run version:check` fails on a stale pin.
+- **Breaking:** `TrackballControls` is now a true three.js r186 trackball:
+  rotation rolls `camera.up` and does not stop at the poles; it extends
+  `Controls` (`camera` → `object`); `update()` returns `void`; wheel zoom
+  follows three's `deltaMode` scaling and orthographic cameras zoom through
+  `camera.zoom`; the constructor runs `update()`. Adds `rollSpeed`,
+  `multiTouchRoll`, `minZoom`/`maxZoom`, `mouseButtons`, `state`, `keyState`,
+  `screen`, A/S/D keys, and two-finger zoom, pan, and twist roll.
+- **Breaking:** `FirstPersonControls` and `FlyControls` extend `Controls`
+  (`camera` → `object`, `update(delta)` returns `void`). `FirstPersonControls`
+  looks by drag in degrees, moves with pointer buttons and touch, uses R/F for
+  height, damps with `dampingFactor`, drops `activeLook` and the `change`
+  event, and adds `lookAt(x, y, z)`. `FlyControls` rotates by quaternion,
+  translates on local axes, and dispatches `change` like three.js.
+- **Breaking:** `OrbitControls` and `MapControls` follow three.js r186 and
+  extend `Controls` (`camera` → `object`). `primaryAction` is replaced by
+  `mouseButtons`/`touches` with r186 defaults; the middle button dollies;
+  `MapControls` pans by grabbing the ground plane (no longer inverted) and
+  rotates on the right button; `update()` ignores `enabled`; `autoRotate`
+  without `delta` assumes 60 fps; default `minZoom` is 0; the constructor aims
+  the camera at the target; distance and angle getters are the accessors
+  `distance`, `polarAngle`, `azimuthalAngle`; `reset()` restores `saveState()`
+  including zoom.
+- **Breaking:** `Raycaster` hits invisible objects and filters only by
+  `layers`, as in three.js r186.
+- **Breaking:** `BoxHelper` builds its wireframe in the constructor and
+  `update()` recomputes it with `Box3.setFromObject`; it takes a `Node` or
+  `Box3` source, uses r186's edge order, and sets `matrixAutoUpdate = false`.
+- **Breaking:** `TorusGeometry` lies in the XY plane and gains
+  `thetaStart`/`thetaLength`; `TorusKnotGeometry` matches r186's ring
+  direction, winding, normals, and UVs.
+- **Breaking:** `LOD.autoUpdate` (default `true`) makes `Renderer.prepare`
+  update visible LODs once per frame; `LOD.update()` does nothing with fewer
+  than two levels.
+- **Breaking:** `EllipseCurve`/`ArcCurve` `clockwise` follows r186 angle
+  normalization; saved JSON with `aClockwise: true` draws differently.
+- **Breaking:** `PointerLockControls` extends `Controls` (`camera` →
+  `object`), listens on `ownerDocument`, no longer unlocks on `dispose()`, and
+  reports lock errors to the console instead of an `error` event.
+- **Breaking:** `DragControls` extends `Controls`; `recursive` defaults to
+  `true`; `objects` is held by reference; the `raycaster` argument and
+  `activate`/`deactivate` are removed. Adds right-button rotate,
+  `rotateSpeed`, `mouseButtons`/`touches`, and `state`.
+- **Breaking:** `TransformControls` properties are accessors that dispatch
+  `<name>-changed` (including `dragging-changed`); the `set*` methods are
+  removed; `null` becomes `undefined`; pointer methods take NDC;
+  `helper`/`raycaster` replace `getHelper()`/`getRaycaster()`. Adds a
+  constant-screen-size gizmo, plane and E/XYZE handles, `minX`–`maxZ`, and
+  `setColors`.
+- **Breaking:** `Color` stores linear channels, as in three.js r186; hex and
+  CSS input decode from sRGB and `hex`/`style` encode back;
+  `setRGB`/`getRGB`/`setHSL`/`getHSL` take a `colorSpace`;
+  `setHex`/`getHex`/`setStyle`/`getStyle` are added. `ColorManagement` is
+  enabled with a linear working space, and `SRGBColorSpace`,
+  `LinearSRGBColorSpace`, `NoColorSpace` are exported.
+- **Breaking:** Lambert lighting matches three.js: light intensities include
+  1/π, there is no ambient floor, the result is encoded to sRGB per vertex,
+  and an unlit lit-material renders black. A white plane under
+  `DirectionalLight(0xffffff, 1)` renders 153 instead of 255.
+- **Breaking:** `Texture.colorSpace` accepts three.js values; default and
+  linear texels are encoded to sRGB once at cache build. Vertex colors are
+  linear; fog and background blend in sRGB. `MTLLoader`/`MTLExporter` treat
+  MTL colors as sRGB; glTF base color factors are linear and base-color maps
+  sRGB.
+- **Breaking:** `ArcballControls` follows three.js r186: it extends `Controls`
+  (`camera` → `object`, constructor `(camera, domElement?, scene?)`);
+  `panSpeed`, `zoomSpeed`, and `gizmosVisible` are removed;
+  `setMouseAction(operation, mouse, key?)` returns `boolean` and
+  `unsetMouseAction` is added; `MouseAction` and `ArcballCamera` changed
+  shape. Adds double-tap focus, rotation inertia, multi-touch gestures, the
+  pan grid, gizmos, `cursorZoom`, `adjustNearFar`, and state copy/paste/JSON.
+- **Breaking:** `Node.lookAt` updates world matrices first and returns
+  three.js's quaternion (no Euler round-trip sign flips); lights aim like
+  cameras; the numeric overload no longer allocates. Adds `Light.isLight`.
+- **Breaking:** `Vector3.applyQuaternion` uses three.js r186's formula;
+  results change for non-unit quaternions.
+- **Breaking:** `CylinderGeometry` and `ConeGeometry` build caps and torso
+  exactly like three.js r186.
+- **Breaking:** `Plane.setFromNormalAndCoplanarPoint` no longer normalizes the
+  normal; `Matrix4.decompose`/`extractRotation` no longer allocate, and a
+  singular matrix gives an identity rotation instead of NaN.
+- **Breaking:** quaternion writes (the `quaternion` setter, `attach`,
+  `applyMatrix4`, `applyQuaternion`, `setRotationFromAxisAngle`,
+  `setRotationFromMatrix`, the rotate methods, `ObjectLoader`,
+  `Skeleton.pose`, and the light and plane helpers) are no longer
+  round-tripped through Euler angles, so they match three.js r186 bit for bit;
+  Euler angles derived from a quaternion are computed in float64.
+- **Breaking:** `Node.setRotationFromEuler` keeps `rotation`'s own order, as
+  r186 does; `Node.copy` copies `rotation.order`; `Quaternion.normalize` maps
+  a zero quaternion to the identity.
+- `Euler.set`/`copy`/`fromArray` run the change callback once. `Node` keeps
+  `rotation` and `quaternion` in sync through owner links instead of closures
+  (`new Node()` about 20% faster). `Color` decodes 8-bit sRGB through a lookup
+  table, and textures encode linear texels on first read instead of at
+  construction.
+- **Breaking:** `VOXLoader`, `PLYLoader`, `PDBLoader`, `XYZLoader`,
+  `PCDLoader`, `STLLoader`, and `OBJLoader` decode file vertex colors from
+  sRGB to linear, as three.js r186 does. A byte of 128 now loads as about
+  0.216 instead of 0.502.
 
 ### Removed
 
+- **Breaking:** Removed deprecated aliases, which EASEL does not keep:
+  `Texture.encoding` (use `colorSpace`), `FirstPersonControls.handleResize()`
+  (a no-op since three.js r184), the `LoaderHandler` type (use `Loader`), and
+  `VOXMesh` (use `buildMesh`, as three.js r182 advises).
 - Removed the custom website examples in favor of the three.js mirror.
 - Removed example assets that no example or test uses anymore.
 - Removed `@astrojs/check`, the `typescript-compiler-api` alias, and the Bun
@@ -88,6 +207,9 @@ semantic versioning.
   one-sided classes.
 - Fixed the benchmark `ImageData` polyfill to accept the `(width, height)`
   constructor form, which crashed `bun run bench` on scene workloads.
+- `FlyControls` instances no longer share movement and rotation input.
+- SVG arc parsing follows r186 `SVGLoader` arithmetic, and SVG path
+  serialization sets the large-arc flag from the swept angle.
 
 ## [0.7.0] - 2026-08-15
 

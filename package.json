@@ -1,6 +1,6 @@
 {
   "name": "@xsyetopz/easel",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Canvas2D software renderer and CPU rasterizer with a scene graph API",
   "type": "module",
   "main": "./dist/index.cjs",
