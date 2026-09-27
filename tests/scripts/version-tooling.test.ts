@@ -221,4 +221,49 @@ describe("version metadata tooling", () => {
       ),
     );
   });
+
+  it("rewrites pinned skill versions and reports stale pins", () => {
+    const directory = createFixture();
+    const skill = join(directory, ".agents/skills/demo");
+    mkdirSync(join(skill, "templates"), { recursive: true });
+    const skillSource = [
+      "metadata:",
+      '  easel-version: "1.2.3"',
+      "Install @xsyetopz/easel@1.2.3; typescript stays 1.2.3.",
+      "",
+    ].join("\n");
+    const templateSource = `${JSON.stringify(
+      { dependencies: { "@xsyetopz/easel": "1.2.3", typescript: "1.2.3" } },
+      null,
+      2,
+    )}\n`;
+    writeFileSync(join(skill, "SKILL.md"), skillSource);
+    writeFileSync(join(skill, "templates/package.json"), templateSource);
+
+    expect(runCommand(directory, "check-version").status).toBe(0);
+    writeFileSync(
+      join(skill, "SKILL.md"),
+      skillSource.replace('"1.2.3"', '"1.2.2"'),
+    );
+    expect(runCommand(directory, "check-version")).toEqual({
+      status: 1,
+      stdout: "",
+      stderr:
+        ".agents/skills/demo/SKILL.md:2 pins 1.2.2, expected 1.2.3\n",
+    });
+
+    expect(runCommand(directory, "version", "minor").status).toBe(0);
+    expect(readFileSync(join(skill, "SKILL.md"), "utf8")).toBe(
+      [
+        "metadata:",
+        '  easel-version: "1.3.0"',
+        "Install @xsyetopz/easel@1.3.0; typescript stays 1.2.3.",
+        "",
+      ].join("\n"),
+    );
+    expect(readFileSync(join(skill, "templates/package.json"), "utf8")).toBe(
+      templateSource.replace('"@xsyetopz/easel": "1.2.3"', '"@xsyetopz/easel": "1.3.0"'),
+    );
+    expect(runCommand(directory, "check-version").status).toBe(0);
+  });
 });

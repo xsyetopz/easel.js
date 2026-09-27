@@ -109,3 +109,67 @@ def replace_revision_version(metadata: VersionMetadata, version: str) -> str:
 
     start, end = metadata.revision_span
     return metadata.index_source[:start] + version + metadata.index_source[end:]
+
+
+# Version pins outside the canonical files: skill metadata and the starter
+# templates' package specifiers. Each pattern captures only the version text.
+PIN_ROOTS = (".agents/skills",)
+PIN_SUFFIXES = (".md", ".json", ".sh", ".ts", ".yaml")
+_PIN_PATTERNS = (
+    re.compile(r"@xsyetopz/easel@(?P<version>[0-9]+\.[0-9]+\.[0-9]+)\b"),
+    re.compile(r'"@xsyetopz/easel":\s*"(?P<version>[0-9]+\.[0-9]+\.[0-9]+)"'),
+    re.compile(r'easel-version:\s*"(?P<version>[0-9]+\.[0-9]+\.[0-9]+)"'),
+)
+
+
+@dataclass(frozen=True)
+class VersionPin:
+    """One pinned version literal inside a repository file."""
+
+    path: Path
+    line: int
+    version: str
+
+
+def _pin_files(root: Path) -> list[Path]:
+    files: list[Path] = []
+    for pin_root in PIN_ROOTS:
+        base = root / pin_root
+        if base.is_dir():
+            files.extend(
+                path
+                for path in sorted(base.rglob("*"))
+                if path.is_file() and path.suffix in PIN_SUFFIXES
+            )
+    return files
+
+
+def find_version_pins(root: Path) -> list[VersionPin]:
+    """List every pinned EASEL version under the pin roots."""
+    pins: list[VersionPin] = []
+    for path in _pin_files(root):
+        text = path.read_text(encoding="utf-8")
+        for pattern in _PIN_PATTERNS:
+            for match in pattern.finditer(text):
+                line = text.count("\n", 0, match.start()) + 1
+                pins.append(VersionPin(path, line, match.group("version")))
+    return sorted(pins, key=lambda pin: (str(pin.path), pin.line))
+
+
+def replace_version_pins(root: Path, version: str) -> list[Path]:
+    """Rewrite every pinned EASEL version to `version`; returns changed files."""
+    changed: list[Path] = []
+    for path in _pin_files(root):
+        text = path.read_text(encoding="utf-8")
+        updated = text
+        for pattern in _PIN_PATTERNS:
+            updated = pattern.sub(
+                lambda match: match.group(0).replace(
+                    match.group("version"), version
+                ),
+                updated,
+            )
+        if updated != text:
+            path.write_text(updated, encoding="utf-8")
+            changed.append(path)
+    return changed

@@ -1,4 +1,4 @@
-"""Update the package, JSR, and source revision versions."""
+"""Update the package, JSR, source revision, and pinned skill versions."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from .._version_metadata import (
     UNDEFINED,
     read_version_metadata,
     replace_revision_version,
+    replace_version_pins,
     write_json,
 )
 
@@ -108,6 +109,7 @@ def main(
         replace_revision_version(metadata, next_version),
         encoding="utf-8",
     )
+    replace_version_pins(root, next_version)
     print(f"Version set to {next_version}")
     return 0
 

@@ -1,4 +1,4 @@
-"""Validate that the package, JSR, and source revision versions agree."""
+"""Validate that the package, JSR, source revision, and pinned skill versions agree."""
 
 from __future__ import annotations
 
@@ -6,7 +6,12 @@ import sys
 from pathlib import Path
 
 from . import resolve_repo_root
-from ._version_metadata import SEMVER_PATTERN, UNDEFINED, read_version_metadata
+from ._version_metadata import (
+    SEMVER_PATTERN,
+    UNDEFINED,
+    find_version_pins,
+    read_version_metadata,
+)
 
 
 def _display_version(version: object) -> str:
@@ -54,6 +59,18 @@ def main(
             f"REVISION={_display_version(metadata.revision_version)}",
             file=sys.stderr,
         )
+        return 1
+
+    stale = [
+        pin for pin in find_version_pins(root) if pin.version != metadata.package_version
+    ]
+    for pin in stale:
+        print(
+            f"{pin.path.relative_to(root)}:{pin.line} pins {pin.version}, "
+            f"expected {metadata.package_version}",
+            file=sys.stderr,
+        )
+    if stale:
         return 1
 
     print(f"Version consistent: {_display_version(metadata.package_version)}")
