@@ -1,8 +1,7 @@
 # Lighting and color parity with three.js r186
 
-Status: specification for 0.8.0. Every formula below is taken from
-`node_modules/three/src` (r186) and should be re-checked there when
-implementing.
+Status: implemented in 0.8.0. Every formula below is taken from
+`node_modules/three/src` (r186).
 
 ## What three.js computes
 
@@ -59,7 +58,6 @@ approximation and documents it here.
 - An unlit `BasicMaterial(0x6699ff)` renders `0x6699ff`.
 - Report the pixel-hash blast radius across the benchmark scenes and a
   before/after `bun run bench`; every workload stays within 1%.
-- Afterwards, remove the `/ Math.PI` factors and their "divided by pi"
-  differences from the website ports, the rule in `www/AGENTS.md`, and the
-  skills' light-intensity card, and update
-  `references/three-examples-mirror-r186.md`.
+- Implemented in 0.8.0: ports pass three.js light intensities and
+  `colorSpace` settings verbatim; lighting scale and color management match
+  r186.

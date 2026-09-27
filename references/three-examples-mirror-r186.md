@@ -48,11 +48,10 @@ object-space normal map.
 The ports record these as differences. Each needs a decision before the
 library changes, because each alters documented or relied-on behavior.
 
-- Lighting scale: three.js multiplies diffuse light by 1/π and encodes output
-  to sRGB; EASEL does neither. Ports divide intensities by π, which halves but
-  does not remove the brightness gap.
-- Color management: EASEL has no linear working space, and `Texture.colorSpace`
-  rejects `SRGBColorSpace`.
+- Lighting scale: resolved in 0.8.0; ports pass three.js light intensities
+  verbatim, matching r186.
+- Color management: resolved in 0.8.0; ports restore three.js `colorSpace`
+  settings verbatim, matching r186.
 - Controls: `MapControls` pans opposite to three.js and cannot rotate with the
   right button. `OrbitControls` pans with the middle button where three.js
   dollies. `TrackballControls` is a pole-clamped orbit. No control handles

@@ -14,6 +14,6 @@ Scope: `www/`; root `astro.config.mjs` owns Astro/Starlight routing, aliases, an
 - Start each `three.js` file with `// Adapted from three.js r186 examples/<upstream>.html.` and `// Copyright 2010-2026 three.js authors. MIT License.`; listen on the canvas, not `window` or `document`, and release every listener in `cleanup`.
 - Annotate non-empty `controls` exports with `/** @type {import("../../../types/controls.ts").ControlDefinition[]} */`, or `typecheck:website` fails once the example is registered.
 - Both sides parse the same checked-in data from `assets/` (`?raw`, or a `.base64` sibling for binary). Copy an upstream asset only with license evidence, pin its hash in `tests/examples/ExampleAssets.test.ts`, and add its `assets/README.md` row; otherwise substitute and record it as a difference.
-- Until the lighting scale is decided, pass three.js light intensities divided by `Math.PI` on the EASEL side and say so in `differences`.
+- Pass three.js light intensities and `colorSpace` settings verbatim; EASEL matches r186 lighting scale and color management.
 - Preserve base-path-aware links and browser-only boundaries; do not make package source depend on Astro or website runtime code.
 - Run `bun run examples:registry`, `bun run typecheck:website`, `bun run examples:catalog`, and `bun test tests/examples`; run `bun run www:build` for site/config changes.
