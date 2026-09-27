@@ -1,4 +1,5 @@
 import { Geometry } from "../geometry/Geometry.ts";
+import { SRGB_BYTE_TO_LINEAR } from "../math/ColorManagement.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 
@@ -56,7 +57,11 @@ export class XYZLoader extends Loader {
         const green = values[4];
         const blue = values[5];
         if (red !== undefined && green !== undefined && blue !== undefined) {
-          colors.push(red / 255, green / 255, blue / 255);
+          colors.push(
+            SRGB_BYTE_TO_LINEAR[red] ?? 0,
+            SRGB_BYTE_TO_LINEAR[green] ?? 0,
+            SRGB_BYTE_TO_LINEAR[blue] ?? 0,
+          );
         }
       }
     }

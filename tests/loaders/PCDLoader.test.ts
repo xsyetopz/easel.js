@@ -12,10 +12,12 @@ WIDTH 2
 HEIGHT 1
 POINTS 2
 DATA ascii
-0 1 2 16711680
+0 1 2 8421504
 3 4 5 65280`);
     expect(geometry.getAttribute("position")?.count).toBe(2);
-    expect(geometry.getAttribute("color")?.getX(0)).toBeCloseTo(1);
+    expect(geometry.getAttribute("color")?.getX(0)).toBeCloseTo(0.2158605);
+    expect(geometry.getAttribute("color")?.getY(0)).toBeCloseTo(0.2158605);
+    expect(geometry.getAttribute("color")?.getZ(0)).toBeCloseTo(0.2158605);
     expect(geometry.getAttribute("color")?.getY(1)).toBeCloseTo(1);
   });
 });

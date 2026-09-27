@@ -1,4 +1,5 @@
 import { Geometry } from "../geometry/Geometry.ts";
+import { SRGB_BYTE_TO_LINEAR } from "../math/ColorManagement.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 
@@ -142,7 +143,11 @@ export class PDBLoader extends Loader {
     const atomColors: number[] = [];
     for (const atom of atoms) {
       atomPositions.push(atom[0], atom[1], atom[2]);
-      atomColors.push(atom[3][0] / 255, atom[3][1] / 255, atom[3][2] / 255);
+      atomColors.push(
+        SRGB_BYTE_TO_LINEAR[atom[3][0]] ?? 0,
+        SRGB_BYTE_TO_LINEAR[atom[3][1]] ?? 0,
+        SRGB_BYTE_TO_LINEAR[atom[3][2]] ?? 0,
+      );
     }
     const bondPositions: number[] = [];
     for (const [startSerial, endSerial] of bonds) {

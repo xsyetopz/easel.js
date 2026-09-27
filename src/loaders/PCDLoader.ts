@@ -1,4 +1,5 @@
 import { Geometry } from "../geometry/Geometry.ts";
+import { SRGB_BYTE_TO_LINEAR } from "../math/ColorManagement.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 
@@ -56,9 +57,9 @@ export class PCDLoader extends Loader {
           ? packed >>> 0
           : (new Uint32Array(new Float32Array([packed]).buffer)[0] ?? 0);
         colors.push(
-          ((integer >>> 16) & 255) / 255,
-          ((integer >>> 8) & 255) / 255,
-          (integer & 255) / 255,
+          SRGB_BYTE_TO_LINEAR[(integer >>> 16) & 255] ?? 0,
+          SRGB_BYTE_TO_LINEAR[(integer >>> 8) & 255] ?? 0,
+          SRGB_BYTE_TO_LINEAR[integer & 255] ?? 0,
         );
       }
     }

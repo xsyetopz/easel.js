@@ -1,5 +1,9 @@
 import { Attribute } from "../geometry/Attribute.ts";
 import { Geometry } from "../geometry/Geometry.ts";
+import {
+  SRGBToLinear,
+  SRGB_BYTE_TO_LINEAR,
+} from "../math/ColorManagement.ts";
 import type {
   PLYCustomPropertyMapping,
   PLYPropertyNameMapping,
@@ -17,18 +21,17 @@ interface PLYElement {
   properties: { type: PLYScalarType | "list"; name: string }[];
 }
 
-function normalizeColor(
-  value: number,
-  type: PLYScalarType | undefined,
-): number {
-  if (
-    type === "float" ||
-    type === "float32" ||
-    type === "double" ||
-    type === "float64"
-  )
-    return value;
-  return value > 1 ? value / 255 : value;
+function decodeColor(value: number, type: PLYScalarType | undefined): number {
+  if (type === "float" || type === "float32" || type === "double" || type === "float64")
+    return SRGBToLinear(value);
+  if (type === "ushort" || type === "uint16")
+    return SRGBToLinear(value / 65535);
+  if (type === "char" || type === "int8") return SRGBToLinear(value / 255);
+  if (type === "short" || type === "int16") return SRGBToLinear(value / 255);
+  if (type === "int" || type === "uint" || type === "int32" || type === "uint32")
+    return SRGBToLinear(value / 255);
+  const byte = Math.round(value);
+  return SRGB_BYTE_TO_LINEAR[byte] ?? SRGBToLinear(value / 255);
 }
 
 /** Extracts a guaranteed 3-element number tuple from an array of possibly-undefined values. */
@@ -106,7 +109,7 @@ export function processVertices(
       const rgb = color as number[];
       for (let index = 0; index < 3; index++) {
         colors.push(
-          normalizeColor(
+          decodeColor(
             rgb[index] ?? 0,
             typeByName.get(COLOR_NAMES[index] ?? ""),
           ),
@@ -136,6 +139,33 @@ export function processFaces(faces: PLYRecord[]): number[] {
   return indices;
 }
 
+/** Decodes face RGB values into one color triple per fan-triangulated face. */
+export function processFaceColors(
+  faces: PLYRecord[],
+  faceElement: PLYElement | undefined,
+): number[] {
+  if (faceElement === undefined) return [];
+  const types = new Map(
+    faceElement.properties
+      .filter((property) => property.type !== "list")
+      .map((property) => [property.name, property.type as PLYScalarType]),
+  );
+  const colors: number[] = [];
+  for (const face of faces) {
+    const values = COLOR_NAMES.map((name) => findValue(face, [name]));
+    if (values.some((value) => value === undefined)) return [];
+    const rgb = values as number[];
+    const color = rgb.map((value, index) =>
+      decodeColor(value, types.get(COLOR_NAMES[index] ?? "")),
+    );
+    const indices = findList(face, ["vertex_indices", "vertex_index"]);
+    if (indices === undefined || indices.length < 3) continue;
+    for (let index = 1; index + 1 < indices.length; index++)
+      colors.push(color[0] ?? 0, color[1] ?? 0, color[2] ?? 0);
+  }
+  return colors;
+}
+
 /** Finalizes a Geometry from processed vertex and face data. */
 export function buildGeometry(
   data: PLYVertexData,
@@ -155,6 +185,64 @@ export function buildGeometry(
         name,
         new Attribute(new Float32Array(values), itemSize),
       );
+  }
+  return geometry;
+}
+
+/** Builds expanded face-color geometry, preserving the vertex channels. */
+export function buildFaceColoredGeometry(
+  data: PLYVertexData,
+  indices: number[],
+  faceColors: number[],
+  customPropertyMapping: PLYCustomPropertyMapping,
+): Geometry {
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+  const colors: number[] = [];
+  const custom = new Map<string, number[]>();
+  for (const name of Object.keys(customPropertyMapping)) custom.set(name, []);
+  const hasNormals = data.normals.length === data.positions.length;
+  const hasUvs = data.uvs.length === (data.positions.length / 3) * 2;
+  for (let offset = 0; offset < indices.length; offset++) {
+    const vertex = indices[offset] ?? 0;
+    const positionOffset = vertex * 3;
+    positions.push(
+      data.positions[positionOffset] ?? 0,
+      data.positions[positionOffset + 1] ?? 0,
+      data.positions[positionOffset + 2] ?? 0,
+    );
+    if (hasNormals)
+      normals.push(
+        data.normals[positionOffset] ?? 0,
+        data.normals[positionOffset + 1] ?? 0,
+        data.normals[positionOffset + 2] ?? 0,
+      );
+    if (hasUvs) {
+      const uvOffset = vertex * 2;
+      uvs.push(data.uvs[uvOffset] ?? 0, data.uvs[uvOffset + 1] ?? 0);
+    }
+    const colorOffset = Math.floor(offset / 3) * 3;
+    colors.push(
+      faceColors[colorOffset] ?? 0,
+      faceColors[colorOffset + 1] ?? 0,
+      faceColors[colorOffset + 2] ?? 0,
+    );
+    for (const [name, values] of data.custom) {
+      const itemSize = customPropertyMapping[name]?.length ?? 0;
+      const destination = custom.get(name);
+      if (destination === undefined) continue;
+      for (let component = 0; component < itemSize; component++)
+        destination.push(values[vertex * itemSize + component] ?? 0);
+    }
+  }
+  const geometry = new Geometry().setPositions(positions).setColors(colors);
+  if (hasNormals) geometry.setNormals(normals);
+  if (hasUvs) geometry.setUVs(uvs);
+  for (const [name, values] of custom) {
+    const itemSize = customPropertyMapping[name]?.length ?? 0;
+    if (itemSize > 0)
+      geometry.setAttribute(name, new Attribute(new Float32Array(values), itemSize));
   }
   return geometry;
 }

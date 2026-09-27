@@ -8,7 +8,9 @@ import {
 import { recordsFromBinary } from "./_PLYLoaderBinary.ts";
 import {
   buildGeometry,
+  buildFaceColoredGeometry,
   processFaces,
+  processFaceColors,
   processVertices,
 } from "./_PLYLoaderGeometry.ts";
 import type { PLYHeader, PLYRecord } from "./_PLYLoaderHelpers.ts";
@@ -114,6 +116,15 @@ export class PLYLoader extends Loader {
     );
     const faces = records.get("face") ?? [];
     const indices = processFaces(faces);
+    const faceElement = header.elements.find((element) => element.name === "face");
+    const faceColors = processFaceColors(faces, faceElement);
+    if (data.colors.length === 0 && faceColors.length > 0)
+      return buildFaceColoredGeometry(
+        data,
+        indices,
+        faceColors,
+        this.customPropertyMapping,
+      );
     return buildGeometry(data, indices, this.customPropertyMapping);
   }
 }

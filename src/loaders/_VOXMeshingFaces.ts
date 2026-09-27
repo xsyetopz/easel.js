@@ -1,3 +1,5 @@
+import { SRGB_BYTE_TO_LINEAR } from "../math/ColorManagement.ts";
+
 type Axis = 0 | 1 | 2;
 type Triple = [number, number, number];
 
@@ -129,9 +131,9 @@ function faceVertices(context: FaceVerticesContext): Triple[] {
 }
 function appendFaceColor(mesh: VOXMeshData, colorCode: number): void {
   const packed = mesh.palette[Math.abs(colorCode)] ?? 0xffffffff;
-  const red = (packed & 0xff) / 255;
-  const green = ((packed >> 8) & 0xff) / 255;
-  const blue = ((packed >> 16) & 0xff) / 255;
+  const red = SRGB_BYTE_TO_LINEAR[packed & 0xff] ?? 0;
+  const green = SRGB_BYTE_TO_LINEAR[(packed >> 8) & 0xff] ?? 0;
+  const blue = SRGB_BYTE_TO_LINEAR[(packed >> 16) & 0xff] ?? 0;
   for (let vertex = 0; vertex < 4; vertex++) mesh.colors.push(red, green, blue);
 }
 

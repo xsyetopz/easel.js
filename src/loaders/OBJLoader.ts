@@ -1,5 +1,6 @@
 import { Geometry } from "../geometry/Geometry.ts";
 import { BasicMaterial } from "../materials/BasicMaterial.ts";
+import { SRGBToLinear } from "../math/ColorManagement.ts";
 import type { Material } from "../materials/Material.ts";
 import { Group } from "../objects/Group.ts";
 import { Mesh } from "../objects/Mesh.ts";
@@ -15,12 +16,15 @@ const RE_WHITESPACE = /\s+/u;
 interface ObjObject {
   name: string;
   vertices: number[];
+  colors: number[];
   uvs: number[];
   normals: number[];
   indices: number[];
   keys: Map<string, number>;
   hasUV: boolean;
   hasNormal: boolean;
+  hasColors: boolean;
+  missingColor: boolean;
   materialName: string | undefined;
 }
 
@@ -92,12 +96,15 @@ function createObject(name: string, materialName?: string): ObjObject {
   return {
     name,
     vertices: [],
+    colors: [],
     uvs: [],
     normals: [],
     indices: [],
     keys: new Map(),
     hasUV: false,
     hasNormal: false,
+    hasColors: false,
+    missingColor: false,
     materialName,
   };
 }
@@ -150,6 +157,7 @@ export class OBJLoader extends Loader {
       configuredTable ?? this.#materials,
     );
     const positions: number[][] = [];
+    const colors: number[] = [];
     const uvs: number[][] = [];
     const normals: number[][] = [];
     const objects: ObjObject[] = [];
@@ -193,6 +201,15 @@ export class OBJLoader extends Loader {
           Number.parseFloat(parts[2] ?? "0"),
           Number.parseFloat(parts[3] ?? "0"),
         ]);
+        if (parts.length >= 7) {
+          colors.push(
+            SRGBToLinear(Number.parseFloat(parts[4] ?? "0")),
+            SRGBToLinear(Number.parseFloat(parts[5] ?? "0")),
+            SRGBToLinear(Number.parseFloat(parts[6] ?? "0")),
+          );
+        } else {
+          colors.push(Number.NaN, Number.NaN, Number.NaN);
+        }
       } else if (command === "vt" && parts.length >= 3) {
         uvs.push([
           Number.parseFloat(parts[1] ?? "0"),
@@ -230,6 +247,16 @@ export class OBJLoader extends Loader {
             index = current.vertices.length / 3;
             const point = positions[position] ?? [0, 0, 0];
             current.vertices.push(point[0] ?? 0, point[1] ?? 0, point[2] ?? 0);
+            const colorOffset = position * 3;
+            const red = colors[colorOffset];
+            const green = colors[colorOffset + 1];
+            const blue = colors[colorOffset + 2];
+            if (red === undefined || green === undefined || blue === undefined || Number.isNaN(red) || Number.isNaN(green) || Number.isNaN(blue)) {
+              current.missingColor = true;
+            } else {
+              current.colors.push(red, green, blue);
+              current.hasColors = true;
+            }
             const texcoord = uv === undefined ? [0, 0] : (uvs[uv] ?? [0, 0]);
             current.uvs.push(texcoord[0] ?? 0, texcoord[1] ?? 0);
             const direction =
@@ -264,6 +291,8 @@ export class OBJLoader extends Loader {
       if (object.hasUV) geometry.setUVs(object.uvs);
       if (object.hasNormal) geometry.setNormals(object.normals);
       else geometry.computeVertexNormals();
+      if (object.hasColors && !object.missingColor)
+        geometry.setColors(object.colors);
       const configuredMaterial = object.materialName
         ? materialTable?.materials[object.materialName]
         : undefined;

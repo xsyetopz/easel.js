@@ -1,4 +1,8 @@
 import { Geometry } from "../geometry/Geometry.ts";
+import {
+  SRGBToLinear,
+  SRGB_BYTE_TO_LINEAR,
+} from "../math/ColorManagement.ts";
 import { FileLoader } from "./FileLoader.ts";
 import { Loader } from "./Loader.ts";
 
@@ -51,11 +55,37 @@ function parseBinary(data: ArrayBuffer): Geometry | undefined {
   if (triangles > Math.floor((data.byteLength - 84) / 50)) return;
   const positions: number[] = [];
   const normals: number[] = [];
+  const colors: number[] = [];
+  let hasColors = false;
+  let defaultColor: [number, number, number] = [0, 0, 0];
+  for (let index = 0; index < 70; index++) {
+    if (
+      view.getUint32(index, false) === 0x434f4c4f &&
+      view.getUint8(index + 4) === 0x52 &&
+      view.getUint8(index + 5) === 0x3d
+    ) {
+      hasColors = true;
+      defaultColor = [
+        SRGB_BYTE_TO_LINEAR[view.getUint8(index + 6)] ?? 0,
+        SRGB_BYTE_TO_LINEAR[view.getUint8(index + 7)] ?? 0,
+        SRGB_BYTE_TO_LINEAR[view.getUint8(index + 8)] ?? 0,
+      ];
+    }
+  }
   let offset = 84;
   for (let triangle = 0; triangle < triangles; triangle++) {
     const nx = view.getFloat32(offset, true);
     const ny = view.getFloat32(offset + 4, true);
     const nz = view.getFloat32(offset + 8, true);
+    const packedColor = view.getUint16(offset + 48, true);
+    let red = defaultColor[0];
+    let green = defaultColor[1];
+    let blue = defaultColor[2];
+    if (hasColors && (packedColor & 0x8000) === 0) {
+      red = SRGBToLinear((packedColor & 0x1f) / 31);
+      green = SRGBToLinear(((packedColor >> 5) & 0x1f) / 31);
+      blue = SRGBToLinear(((packedColor >> 10) & 0x1f) / 31);
+    }
     for (let vertex = 0; vertex < 3; vertex++) {
       const vertexOffset = offset + 12 + vertex * 12;
       positions.push(
@@ -64,10 +94,13 @@ function parseBinary(data: ArrayBuffer): Geometry | undefined {
         view.getFloat32(vertexOffset + 8, true),
       );
       normals.push(nx, ny, nz);
+      if (hasColors) colors.push(red, green, blue);
     }
     offset += 50;
   }
-  return new Geometry().setPositions(positions).setNormals(normals);
+  const geometry = new Geometry().setPositions(positions).setNormals(normals);
+  if (hasColors) geometry.setColors(colors);
+  return geometry;
 }
 
 /** Loads ASCII or binary STL triangle data into CPU geometry. */

@@ -21,7 +21,7 @@ describe("PLYLoader", () => {
       "element face 1",
       "property list uchar int vertex_indices",
       "end_header",
-      "0 0 0 0 0 1 255 0 0",
+      "0 0 0 0 0 1 128 0 0",
       "1 0 0 0 0 1 0 255 0",
       "1 1 0 0 0 1 0 0 255",
       "0 1 0 0 0 1 255 255 255",
@@ -30,7 +30,7 @@ describe("PLYLoader", () => {
     const geometry = new PLYLoader().parse(data);
     expect(geometry.getAttribute("position")?.count).toBe(4);
     expect(geometry.getAttribute("normal")?.getZ(0)).toBe(1);
-    expect(geometry.getAttribute("color")?.getX(0)).toBe(1);
+    expect(geometry.getAttribute("color")?.getX(0)).toBeCloseTo(0.2158605);
     expect(Array.from(geometry.index ?? [])).toEqual([0, 1, 2, 0, 2, 3]);
   });
 
@@ -51,6 +51,31 @@ describe("PLYLoader", () => {
     expect(Array.from(geometry.getAttribute("position")?.array ?? [])).toEqual([
       2, 3, 4,
     ]);
+  });
+
+  test("decodes float vertex colors from sRGB", () => {
+    const data = [
+      "ply", "format ascii 1.0", "element vertex 1",
+      "property float x", "property float y", "property float z",
+      "property float red", "property float green", "property float blue",
+      "end_header", "0 0 0 0.5 0.25 1",
+    ].join("\n");
+    const geometry = new PLYLoader().parse(data);
+    expect(geometry.getAttribute("color")?.getX(0)).toBeCloseTo(0.21404114);
+    expect(geometry.getAttribute("color")?.getY(0)).toBeCloseTo(0.05087609);
+  });
+
+  test("decodes byte face colors into linear triangle vertex colors", () => {
+    const data = [
+      "ply", "format ascii 1.0", "element vertex 3",
+      "property float x", "property float y", "property float z",
+      "element face 1", "property list uchar int vertex_indices",
+      "property uchar red", "property uchar green", "property uchar blue",
+      "end_header", "0 0 0", "1 0 0", "0 1 0", "3 0 1 2 128 0 0",
+    ].join("\n");
+    const geometry = new PLYLoader().parse(data);
+    expect(geometry.getAttribute("position")?.count).toBe(3);
+    expect(geometry.getAttribute("color")?.getX(0)).toBeCloseTo(0.2158605);
   });
 
   test("parses binary little-endian vertices and faces", () => {
@@ -98,7 +123,7 @@ describe("XYZLoader", () => {
     );
     expect(geometry.getAttribute("position")?.count).toBe(2);
     expect(geometry.getAttribute("color")?.getX(0)).toBe(1);
-    expect(geometry.getAttribute("color")?.getY(0)).toBeCloseTo(128 / 255);
+    expect(geometry.getAttribute("color")?.getY(0)).toBeCloseTo(0.2158605);
   });
 });
 
@@ -114,6 +139,8 @@ describe("PDBLoader", () => {
     expect(result.json.atoms).toHaveLength(2);
     expect(result.geometryAtoms.getAttribute("position")?.count).toBe(2);
     expect(result.geometryBonds.getAttribute("position")?.count).toBe(2);
-    expect(result.geometryAtoms.getAttribute("color")?.getX(1)).toBe(1);
+    expect(result.geometryAtoms.getAttribute("color")?.getX(0)).toBeCloseTo(
+      0.2788943,
+    );
   });
 });

@@ -108,7 +108,7 @@ describe("VOXLoader", () => {
     const mesh = buildMesh(chunk);
     expect(mesh).toBeInstanceOf(Mesh);
     expect(mesh.geometry?.getAttribute("color")?.getX(0)).toBeCloseTo(
-      0xcc / 255,
+      0.6038273,
     );
     // Two adjacent equal-colored voxels share their internal face and produce six quads.
     expect(mesh.geometry?.index?.length).toBe(36);

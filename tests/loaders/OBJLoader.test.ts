@@ -43,6 +43,16 @@ describe("OBJLoader", () => {
     expect(geometry?.getAttribute("normal")?.getZ(0)).toBeCloseTo(1);
   });
 
+  it("decodes floating point vertex colors from sRGB", () => {
+    const group = new OBJLoader().parse(
+      "v 0 0 0 0.5 0.25 1\nv 1 0 0 0.5 0.25 1\nv 0 1 0 0.5 0.25 1\nf 1 2 3",
+    );
+    const mesh = group.children[0] as Mesh;
+    expect(mesh.geometry?.getAttribute("color")?.getX(0)).toBeCloseTo(
+      0.21404114,
+    );
+  });
+
   it("preserves usemtl assignments through a supplied CPU material table", () => {
     const material = new BasicMaterial({ color: 0x336699, name: "blue" });
     const group = new OBJLoader().parse(
