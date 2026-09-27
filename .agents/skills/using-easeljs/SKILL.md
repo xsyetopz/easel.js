@@ -3,12 +3,12 @@ name: using-easeljs
 description: Writes, fixes, and reviews app code for EASEL.js (@xsyetopz/easel), the CPU-only Canvas2D 3D renderer with a three.js-style API. Use when code imports @xsyetopz/easel, an EASEL canvas renders blank or stretched, or an EASEL API name needs checking.
 license: MIT
 metadata:
-  easel-version: "0.7.0"
+  easel-version: "0.8.0"
 ---
 
 # Using EASEL.js
 
-This skill makes `@xsyetopz/easel` 0.7.0 app code (`REVISION === "0.7.0"`)
+This skill makes `@xsyetopz/easel` 0.8.0 app code (`REVISION === "0.8.0"`)
 draw the frame it should. It covers the scene, camera, materials,
 geometry, animation, input, and teardown. Each trap below has a card with
 a runnable example that a bundled verifier type-checks against
@@ -19,7 +19,7 @@ then run that card's Verify steps.
 
 1. Establish the version. In this repository, `rg -n REVISION
    src/index.ts`. In an app, read
-   `node_modules/@xsyetopz/easel/package.json`. If it is not 0.7.0,
+   `node_modules/@xsyetopz/easel/package.json`. If it is not 0.8.0,
    run the API script with `--root node_modules/@xsyetopz/easel` and
    trust its output over this skill.
 1. Before writing any name not shown in a card, look it up:
@@ -42,9 +42,12 @@ session each. Values are from local runs against `src/index.ts`
 (macOS arm64, Bun 1.4.2); the `threejs-to-easeljs` skill has runnable
 oracles for each.
 
-- Lambert lighting has no `1 / PI` term. A three.js-style intensity of 1
-  clips a white face to 255; three.js shows 153. Divide intensities
-  taken from three.js examples by `Math.PI` (gives 106), ambient too.
+- Lighting and colour follow three.js r186: `Color` stores linear values
+  (hex and CSS input are decoded from sRGB), Lambert lighting includes
+  the `1 / PI` term, and output is encoded to sRGB. Use three.js light
+  intensities as they are: a white face under `DirectionalLight(0xffffff,
+  1)` renders 152 (three.js 153). Dividing by `Math.PI`, the 0.7 habit,
+  halves the brightness.
 - Every material, `PointsMaterial` included, defaults `vertexColors` to
   `true`: a geometry with a `color` attribute is tinted by it. Pass
   `vertexColors: false` to use `material.color` alone.
@@ -55,37 +58,27 @@ oracles for each.
 - A `CanvasTexture` renders untextured until `texture.update()`; after
   each redraw set `needsUpdate = true` and call `update()` again, or the
   old pixels stay.
-- `LOD` never switches by itself: call `lod.update(camera)` after
-  `prepare` and before `render`, or every level draws.
-- `BoxHelper` draws nothing until `update()`, and a mesh source uses the
-  geometry-local box. Use `new BoxHelper(box)` with
-  `box.setFromObject(mesh)` and `helper.update()` each frame.
 - Draw order is `material.layer` (lower first), not `renderOrder`; it
   only shows with `depthTest: false` or transparency.
-- `TorusGeometry` lies in the XZ plane (hole along Y);
-  `rotateX(Math.PI / 2)` stands it up.
-- With `clockwise: true`, `EllipseCurve`, `ArcCurve` and `Path.absarc`
-  run from `endAngle` back to `startAngle` over the same span, with no
-  angle normalization.
 - `OBB.intersectRay` returns `undefined` on a miss, so a `!== null` test
   is always true.
 - Accessors, not methods: `box.isEmpty` (not `isEmpty()`),
   `raycaster.pointsThreshold` and `lineThreshold` (no `params`),
-  `controls.camera` (not `controls.object`).
+  `orbit.distance`, `polarAngle` and `azimuthalAngle` (not
+  `getDistance()`). Controls take the camera as `controls.object`.
 - `geometry.attributes` is a `Map`: use `getAttribute("position")`, not
   `attributes.position`. `new Attribute(array, itemSize)` stores a plain
   array as `Float32Array`; pass `Uint16Array` and the like explicitly.
 - `TextureLoader.load` returns `void`; await `loadAsync` (typed
   `Promise<unknown>`) and check `instanceof Texture`.
-- No morph targets, no `Geometry.addGroup`, no material arrays: one
-  material per mesh.
-- `v.length` is an accessor, not `length()`. `Color.setRGB` takes no
-  colour space and throws `RangeError` outside 0..1; there is no colour
-  management, so convert linear values with `.convertLinearToSRGB()`.
+- No `Geometry.addGroup` and no material arrays: one material per mesh.
+  Morph attributes and `morphTargetInfluences` are stored but not
+  rendered.
+- `v.length` is an accessor, not `length()`. `Color.setRGB` takes
+  three.js's optional `colorSpace` but throws `RangeError` outside 0..1.
+  Texture `colorSpace` must be set before the texture's first
+  `update()`, or call `update()` again after changing it.
 - `transparent: true` in the constructor also turns off `depthWrite`.
-- `LambertMaterial` has no `emissive`; change `color` to fake a glow.
-- `Side.Double` lights back faces with the front normal, so a back face
-  lit from behind stays dark (25 against 153 in front).
 - `geometry.mergeVertices()` changes the geometry in place (box: 24 to 8
   vertices) and returns it; clone first to keep the original.
 - Raycasting honours `material.side`, points fade into scene fog, and a

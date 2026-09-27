@@ -1,6 +1,6 @@
 # Loaders, exporters, and serialization
 
-All names below are root exports in EASEL 0.7.0. Loaders decode browser- or
+All names below are root exports in EASEL 0.8.0. Loaders decode browser- or
 CPU-accessible data; they do not create GPU resources.
 
 ## Shared loader lifecycle

@@ -48,7 +48,7 @@ pass `--root node_modules/@xsyetopz/easel`; the npm package ships both
 **Do not use when.**
 
 - You need to know how EASEL differs from three.js r186 member by member.
-  Read `api-comparison/three-core.txt` in the repository, whose state
+  Read `api-comparison/three-core.csv` in the repository, whose state
   column marks entries as `=`, `<`, `>`, or `!`. For a whole-project port,
   use the sibling `threejs-to-easeljs` skill.
 
@@ -82,9 +82,9 @@ export declare class Renderer {
 Runnable: `scripts/easel_api.ts`.
 
 **Cost removed.** Invented or outdated API names. Local run (macOS arm64,
-Bun 1.4.2, tsc 7.0.2): `exports` reported 405 value exports and 243
-type-only exports at `REVISION` 0.7.0 with no runtime mismatch. The same
-cross-check against the published `@xsyetopz/easel@0.7.0` npm package
+Bun 1.4.2, tsc 7.0.2): `exports` reported 409 value exports and 253
+type-only exports on the 0.8.0 tree with no runtime mismatch. The earlier
+cross-check against the published `@xsyetopz/easel@0.8.0` npm package
 also passed.
 
 **Verify.**

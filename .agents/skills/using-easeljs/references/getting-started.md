@@ -1,12 +1,12 @@
 # Getting started
 
-Baseline: `@xsyetopz/easel@0.7.0`. Preserve an existing installed version
+Baseline: `@xsyetopz/easel@0.8.0`. Preserve an existing installed version
 unless the task explicitly upgrades it, then inspect that version's declarations.
 
 ## Identity and runtime
 
 - Package: `@xsyetopz/easel`
-- Revision constant: `REVISION === "0.7.0"`
+- Revision constant: `REVISION === "0.8.0"`
 - Target: browser `HTMLCanvasElement` and Canvas2D
 - Backend: CPU software rasterizer followed by `ImageData` upload
 - Root entries: ESM `dist/index.es.js`, CommonJS `dist/index.cjs`, declarations
@@ -19,10 +19,10 @@ list recipes do not apply.
 ## Install and import
 
 ```bash
-bun add @xsyetopz/easel@0.7.0
+bun add @xsyetopz/easel@0.8.0
 ```
 
-If 0.7.0 is not yet available from the selected registry, validate against the
+If 0.8.0 is not yet available from the selected registry, validate against the
 repository source/declaration build or wait for publication; do not silently
 downgrade examples to an older API.
 
@@ -31,8 +31,8 @@ import * as EASEL from "@xsyetopz/easel";
 // or verified root names
 import { PerspectiveCamera, Renderer, Scene } from "@xsyetopz/easel";
 
-if (EASEL.REVISION !== "0.7.0") {
-  console.warn(`Skill baseline is 0.7.0; installed ${EASEL.REVISION}`);
+if (EASEL.REVISION !== "0.8.0") {
+  console.warn(`Skill baseline is 0.8.0; installed ${EASEL.REVISION}`);
 }
 ```
 

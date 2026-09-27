@@ -116,8 +116,8 @@ node_template() {
 }
 
 verify_templates() {
-  if ! bun pm view @xsyetopz/easel@0.7.0 version >/dev/null 2>&1 &&
-    ! npm view @xsyetopz/easel@0.7.0 version >/dev/null 2>&1; then
+  if ! bun pm view @xsyetopz/easel@0.8.0 version >/dev/null 2>&1 &&
+    ! npm view @xsyetopz/easel@0.8.0 version >/dev/null 2>&1; then
     echo 'SKIP templates: npm registry unreachable'
     return 0
   fi
@@ -126,7 +126,7 @@ verify_templates() {
   node_template react-canvas ""
   node_template astro-canvas src/scene.ts
 
-  # Drift check: the examples against the published 0.7.0 package.
+  # Drift check: the examples against the published package.
   drift="$WORK/templates/vite-vanilla-ts/drift"
   mkdir -p "$drift"
   cp "$HERE"/*.ts "$drift/"
@@ -137,10 +137,10 @@ verify_templates() {
   }
   if [ -n "$drift" ]; then
     pkg="$WORK/templates/vite-vanilla-ts/node_modules/@xsyetopz/easel"
-    step "published 0.7.0 examples typecheck" \
+    step "published package examples typecheck" \
       sh -c "cd '$drift' && '$TSC' -p tsconfig.json"
-    step "published 0.7.0 examples run" sh -c "cd '$drift' && bun run.ts"
-    step "published 0.7.0 exports cross-check" \
+    step "published package examples run" sh -c "cd '$drift' && bun run.ts"
+    step "published package exports cross-check" \
       bun "$SKILL/scripts/easel_api.ts" exports --root "$pkg"
   fi
 

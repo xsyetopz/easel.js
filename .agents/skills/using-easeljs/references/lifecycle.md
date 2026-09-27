@@ -92,7 +92,7 @@ unmount; 1 frame was queued while mounted and 0 remained after.
 - `Geometry.dispose()` clears attributes, the index, the bounds, and the
   caches of that geometry object. Every mesh that shares the geometry is
   affected.
-- `Material.dispose()` is a no-op in 0.7.0 and does not dispose `map`.
+- `Material.dispose()` is a no-op and does not dispose `map`.
 - `Texture.dispose()` drops its cached pixel data.
 
 The scene does not track ownership, so dispose a resource only when no

@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@xsyetopz/easel": "0.7.0"
+    "@xsyetopz/easel": "0.8.0"
   },
   "devDependencies": {
     "typescript": "7.0.2",

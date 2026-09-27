@@ -4,7 +4,7 @@
     "strict": true
   },
   "imports": {
-    "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.7.0"
+    "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.8.0"
   },
   "tasks": {
     "check": "deno check src/main.ts",

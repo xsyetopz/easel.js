@@ -27,7 +27,7 @@ When no canvas is supplied, a browser host creates one. Without `document`,
 `domElement` is `undefined` and render still runs the CPU pipeline without an
 upload target. This is not a promise of a complete headless canvas runtime.
 
-EASEL 0.7.0 has no `pixelRatio`, `setPixelRatio`, `setClearColor`, or
+EASEL 0.8.0 has no `pixelRatio`, `setPixelRatio`, `setClearColor`, or
 `setAnimationLoop`. Use a CSS-scaled low-resolution backing store when desired:
 
 ```ts

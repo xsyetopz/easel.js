@@ -1,6 +1,6 @@
 # Audio
 
-EASEL 0.7.0 exposes two complementary browser Web Audio paths:
+EASEL 0.8.0 exposes two complementary browser Web Audio paths:
 
 - `AudioGraph` for lifecycle-safe synthesis, media routing, analyzers, and
   Canvas2D visualization.

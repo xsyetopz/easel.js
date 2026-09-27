@@ -1,6 +1,6 @@
 # API signatures
 
-Source: declaration emit from repository `src/` at `REVISION = "0.7.0"`.
+Source: declaration emit from repository `src/` at `REVISION = "0.8.0"`.
 This is a high-use signature guide, not a substitute for the complete root
 surface in [API exports](api-exports.md). For an omitted member, inspect the
 installed `dist/**/*.d.ts` file named by that export guide. Do not infer a
@@ -32,7 +32,7 @@ class Renderer {
 ```
 
 `Renderer` has no `pixelRatio`, `setPixelRatio`, `setClearColor`, or
-`setAnimationLoop` API in 0.7.0. After transform/control changes, call
+`setAnimationLoop` API in 0.8.0. After transform/control changes, call
 `renderer.prepare(scene, camera)` before `renderer.render(...)`. `prepare`
 updates scene world matrices and the camera inverse view matrix; `render` does
 not do that work.
@@ -186,7 +186,7 @@ class Geometry {
 }
 ```
 
-The writable `Geometry.index` accessor is the 0.7.0 index-buffer API. Assignment
+The writable `Geometry.index` accessor is the 0.8.0 index-buffer API. Assignment
 retains typed indices, converts plain arrays, or clears the buffer with
 `undefined`. It replaced the historical `setIndex()` method; index buffers are
 still supported. See [Geometry](geometry.md#manual-geometry) for conversion
@@ -252,7 +252,7 @@ animator.update(deltaSeconds)
 ```
 
 The old numeric fourth `Track` argument and `LoopRepeat`/`LoopOnce`/
-`LoopPingPong` root values are not 0.7.0 APIs. Use `TrackOptions.itemSize` and
+`LoopPingPong` root values are not 0.8.0 APIs. Use `TrackOptions.itemSize` and
 `Loop.Repeat`/`Loop.Once`/`Loop.PingPong`.
 
 ## Picking

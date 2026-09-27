@@ -4,7 +4,7 @@
     "should_trigger": true
   },
   {
-    "query": "Using @xsyetopz/easel 0.7.0 in a Vite app: after window resize the cube looks stretched horizontally. src/main.ts attached, how do I fix the resize handler?",
+    "query": "Using @xsyetopz/easel 0.8.0 in a Vite app: after window resize the cube looks stretched horizontally. src/main.ts attached, how do I fix the resize handler?",
     "should_trigger": true
   },
   {

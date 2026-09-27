@@ -1,6 +1,6 @@
 # Animation tracks and loops
 
-Cards for keyframe tracks and the animator in `@xsyetopz/easel` 0.7.0.
+Cards for keyframe tracks and the animator in `@xsyetopz/easel` 0.8.0.
 Here `Track` replaces three.js `KeyframeTrack`, a `TrackOptions` object
 replaces the positional `interpolation` argument, `Loop.Repeat` replaces
 `LoopRepeat`, and `Timer` replaces `Clock`. The runnable files are in

@@ -1,6 +1,6 @@
 # API constants
 
-Source: `src/core/Constants.ts` and root exports at EASEL 0.7.0.
+Source: `src/core/Constants.ts` and root exports at EASEL 0.8.0.
 
 ```ts
 Side = { Front: 0, Back: 1, Double: 2 }

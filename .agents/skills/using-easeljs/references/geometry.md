@@ -5,7 +5,7 @@ normals, and bounds.
 
 ## Built-in geometry
 
-Built-in geometry exports in `@xsyetopz/easel@0.7.0`:
+Built-in geometry exports in `@xsyetopz/easel@0.8.0`:
 
 - `BoxGeometry`
 - `CapsuleGeometry`
@@ -68,7 +68,7 @@ Public members:
 - `computeBoundingSphere()`
 - `dispose()`
 
-`Geometry.index` is an accessor in 0.7.0 and the writable index-buffer API. A
+`Geometry.index` is an accessor in 0.8.0 and the writable index-buffer API. A
 `Uint16Array` or `Uint32Array` is retained directly. A plain `number[]` becomes
 `Uint32Array` when any index exceeds 65,535 and `Uint16Array` otherwise;
 `undefined` clears the index buffer and selects sequential vertices. This

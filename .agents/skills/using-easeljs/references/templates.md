@@ -1,10 +1,10 @@
 # Templates
 
 Copy one standalone tree from `assets/templates/` after choosing the runtime.
-All package manifests pin the verified 0.7.0 baseline and import only the
+All package manifests pin the verified 0.8.0 baseline and import only the
 package root.
-Remote installs require registry publication of 0.7.0. If resolution fails,
-validate with a local 0.7.0 package build; do not change the templates to an
+Remote installs require registry publication of 0.8.0. If resolution fails,
+validate with a local 0.8.0 package build; do not change the templates to an
 older API.
 
 | Use when | Asset | Install/check |

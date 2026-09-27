@@ -23,17 +23,17 @@ and Canvas2D.
 Use `npm:` when matching npm/Bun/Node examples:
 
 ```ts
-import * as EASEL from "npm:@xsyetopz/easel@0.7.0";
+import * as EASEL from "npm:@xsyetopz/easel@0.8.0";
 ```
 
 Use `jsr:` for JSR-native Deno projects:
 
 ```ts
-import * as EASEL from "jsr:@xsyetopz/easel@0.7.0";
+import * as EASEL from "jsr:@xsyetopz/easel@0.8.0";
 ```
 
-This pin requires a published JSR 0.7.0 package. If it does not resolve, use a
-local 0.7.0 checkout/declaration build for validation rather than downgrading
+This pin requires a published JSR 0.8.0 package. If it does not resolve, use a
+local 0.8.0 checkout/declaration build for validation rather than downgrading
 the code to an older API.
 
 Use `deno.json` imports when code should keep bare package imports:
@@ -41,7 +41,7 @@ Use `deno.json` imports when code should keep bare package imports:
 ```json
 {
     "imports": {
-        "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.7.0"
+        "@xsyetopz/easel": "jsr:@xsyetopz/easel@0.8.0"
     },
     "compilerOptions": {
         "lib": ["dom", "dom.iterable", "es2022"],
@@ -113,7 +113,7 @@ Browser console check:
 console.log(EASEL.REVISION);
 ```
 
-Expected API revision: `0.7.0`.
+Expected API revision: `0.8.0`.
 
 ## Do Not
 

@@ -1,6 +1,6 @@
 # Frame, camera, and resize
 
-Cards for drawing a correct frame with `@xsyetopz/easel` 0.7.0: preparing
+Cards for drawing a correct frame with `@xsyetopz/easel` 0.8.0: preparing
 matrices, aiming a camera, resizing, and choosing the clear color. The
 runnable files are in `assets/examples/`; `sh assets/examples/verify.sh
 examples` type-checks them against `src/index.ts` and runs each oracle
@@ -77,21 +77,19 @@ changed 360 bytes.
 `{ fov = 45, aspect = 1, near = 0.1, far = 2000, tileSize = 1, zoom = 1 }`.
 It has no `(fov, aspect, near, far)` overload.
 `OrthographicCamera` also takes an object: `{ left, right, top, bottom,
-near, far, tileSize, zoom }`. `Node.lookAt(x, y, z)` reads the eye
-position from `matrixWorld`, not from `position` (`src/core/Node.ts`),
-and it does not refresh that matrix first. three.js does refresh it.
+near, far, tileSize, zoom }`. `Node.lookAt(x, y, z)` refreshes the
+world matrices of the node and its parents before aiming, as three.js
+does (`src/core/Node.ts`), so it can follow `position.set` directly.
 
 **Use when.**
 
 - Creating any camera.
-- Calling `lookAt` right after changing `position`, before the first
-  `prepare`.
+- Porting `new PerspectiveCamera(fov, aspect, near, far)` from three.js.
 
 **Do not use when.**
 
-- The camera is already prepared and has not moved since. Then
-  `matrixWorld` is current and the extra `updateMatrixWorld()` does
-  nothing useful.
+- Code written for EASEL 0.7 calls `updateMatrixWorld()` before
+  `lookAt`. The call is harmless and can stay.
 
 **Example.**
 
@@ -105,8 +103,7 @@ export function createCamera(width: number, height: number) {
     far: 100,
   });
   camera.position.set(6, 0, 0);
-  // lookAt() reads the eye position from matrixWorld, so refresh it first.
-  camera.updateMatrixWorld();
+  // lookAt() refreshes the world matrices itself, as in three.js.
   camera.lookAt(0, 0, 0);
   return camera;
 }
@@ -114,9 +111,9 @@ export function createCamera(width: number, height: number) {
 
 Runnable: `assets/examples/camera-lookat.ts`.
 
-**Cost removed.** A camera that aims from the origin. Local run: with a
-camera at (6, 0, 0) aimed at a box at the origin, `updateMatrixWorld()`
-then `lookAt` drew 49 px, and `lookAt` alone drew 0 px.
+**Cost removed.** A positional three.js constructor call, which fails
+the type check. Local run: a camera at (6, 0, 0) aimed with `lookAt`
+right after `position.set` drew 49 px of a box at the origin.
 
 **Verify.**
 

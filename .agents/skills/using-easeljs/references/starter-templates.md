@@ -9,12 +9,12 @@ and then type-checks, builds, and smoke-runs it.
 ## Starter templates
 
 **Definition.** Each template is a standalone project tree. The Node
-templates pin exact versions: `@xsyetopz/easel` 0.7.0, `typescript`
+templates pin exact versions: `@xsyetopz/easel` 0.8.0, `typescript`
 7.0.2, `vite` 8.3.1, `astro` 7.3.5, `react` and `react-dom` 19.3.0,
 `@types/react` and `@types/react-dom` 19.3.0, and `@vitejs/plugin-react`
 6.1.1. The TypeScript, Vite, and Astro versions match the repository's
 root `package.json`. The React packages were checked with `npm view` on
-2026-09-26. The Deno template imports `jsr:@xsyetopz/easel@0.7.0`.
+2026-09-26. The Deno template imports `jsr:@xsyetopz/easel@0.8.0`.
 
 | Template | Use for | Verified by `verify.sh templates` |
 | --- | --- | --- |

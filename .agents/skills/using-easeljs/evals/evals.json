@@ -3,15 +3,15 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I'm using @xsyetopz/easel 0.7.0 in a Vite app. My canvas stays the clear color even though I add a BoxGeometry mesh and call renderer.render(scene, camera) every frame. The camera is new PerspectiveCamera({ fov: 60, aspect: 16 / 9, near: 0.1, far: 100 }), then camera.position.set(4, 2, 0) and camera.lookAt(0, 0, 0). Fix src/main.ts.",
-      "expected_output": "Calls camera.updateMatrixWorld() after setting the position and before lookAt, and calls renderer.prepare(scene, camera) before every renderer.render(scene, camera). Explains that EASEL's lookAt reads matrixWorld and render does not update matrices.",
+      "prompt": "I'm using @xsyetopz/easel 0.8.0 in a Vite app. My canvas stays the clear color even though I add a BoxGeometry mesh and call renderer.render(scene, camera) every frame. The camera is new PerspectiveCamera({ fov: 60, aspect: 16 / 9, near: 0.1, far: 100 }), then camera.position.set(4, 2, 0) and camera.lookAt(0, 0, 0). Fix src/main.ts.",
+      "expected_output": "Calls renderer.prepare(scene, camera) before every renderer.render(scene, camera) and explains that render does not update matrices. Keeps position.set followed by lookAt, which EASEL 0.8 handles as three.js does.",
       "cards": [
         "references/frame.md#prepare-before-render",
         "references/frame.md#camera-options-and-lookat"
       ],
       "assertions": [
         "The fixed frame loop calls renderer.prepare(scene, camera) before renderer.render(scene, camera).",
-        "camera.updateMatrixWorld() (or renderer.prepare) runs after camera.position.set and before camera.lookAt.",
+        "Does not claim that lookAt needs a prior camera.updateMatrixWorld() call.",
         "Does not add renderer.setAnimationLoop, renderer.setPixelRatio, or any other method absent from EASEL's Renderer."
       ]
     },
@@ -114,7 +114,7 @@
     },
     {
       "id": 9,
-      "prompt": "Which exports does @xsyetopz/easel 0.7.0 have for loading OBJ files, and what is the exact signature of OBJLoader.setMaterials?",
+      "prompt": "Which exports does @xsyetopz/easel 0.8.0 have for loading OBJ files, and what is the exact signature of OBJLoader.setMaterials?",
       "expected_output": "Runs the bundled API script (exports and show modes) against the source or installed declarations and quotes the printed declaration instead of recalling one.",
       "cards": [
         "references/api-lookup.md#look-up-exports-and-signatures"
@@ -132,7 +132,7 @@
         "references/starter-templates.md#starter-templates"
       ],
       "assertions": [
-        "Uses the vite-vanilla-ts template or equivalent with @xsyetopz/easel pinned to 0.7.0.",
+        "Uses the vite-vanilla-ts template or equivalent with @xsyetopz/easel pinned to 0.8.0.",
         "Runs the project's typecheck and vite build and reports the results.",
         "Does not claim a browser render was checked unless one was run."
       ]
@@ -177,12 +177,12 @@
     {
       "id": 15,
       "prompt": "I'm adding a particle cloud to my EASEL scene: a Geometry with position and color attributes, `new PointsMaterial({ color: 0xffffff, size: 0.1 })`. It throws RangeError. Also my LOD for trees always shows both models at once.",
-      "expected_output": "Explains that PointsMaterial.size is a positive integer pixel radius (size 2 is 5 px across) with no distance attenuation, so 0.1 throws; picks an integer. Notes that vertexColors defaults to true, so the color attribute tints the points (set false for plain white). Adds `lod.update(camera)` each frame between prepare and render because EASEL LOD has no automatic update.",
+      "expected_output": "Explains that PointsMaterial.size is a positive integer pixel radius (size 2 is 5 px across) with no distance attenuation, so 0.1 throws; picks an integer. Notes that vertexColors defaults to true, so the color attribute tints the points (set false for plain white). For the LOD, checks that `lod.autoUpdate` is still true and that `renderer.prepare(scene, camera)` runs each frame with the camera the LOD should measure from, because EASEL 0.8 switches levels inside prepare, as three.js does in render.",
       "cards": [],
       "assertions": [
         "Uses a positive integer `size` and explains it is a pixel radius.",
         "Mentions that `vertexColors` defaults to `true` for the color attribute.",
-        "Calls `lod.update(camera)` after `renderer.prepare` and before `renderer.render`."
+        "Keeps `lod.autoUpdate` (or calls `lod.update(camera)` only when it is off) and runs `renderer.prepare` each frame."
       ]
     },
     {

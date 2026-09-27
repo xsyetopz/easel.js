@@ -19,7 +19,7 @@ function check(name: string, ok: boolean, detail = ""): void {
 
 const index = `
 /** doc */
-export const REVISION: string = "0.7.0";
+export const REVISION: string = "0.8.0";
 // comment export { Fake } from "./fake.ts";
 export { A, type B, c as d } from "./a.ts";
 export type {

@@ -18,8 +18,7 @@ export function createCamera(width: number, height: number) {
     far: 100,
   });
   camera.position.set(6, 0, 0);
-  // lookAt() reads the eye position from matrixWorld, so refresh it first.
-  camera.updateMatrixWorld();
+  // lookAt() refreshes the world matrices itself, as in three.js.
   camera.lookAt(0, 0, 0);
   return camera;
 }
@@ -39,17 +38,11 @@ function pixelsSeen(camera: PerspectiveCamera): number {
 export function check(): string {
   const good = pixelsSeen(createCamera(64, 48));
 
-  const stale = new PerspectiveCamera({ fov: 60, aspect: 64 / 48 });
-  stale.position.set(6, 0, 0);
-  stale.lookAt(0, 0, 0); // matrixWorld still holds the origin
-  const bad = pixelsSeen(stale);
-
   const defaults = new PerspectiveCamera();
-  expect(good > 0, "camera aimed after updateMatrixWorld should see the box");
-  expect(bad === 0, "lookAt before updateMatrixWorld should miss the box");
+  expect(good > 0, "camera aimed right after position.set should see the box");
   expect(
     defaults.fov === 45 && defaults.near === 0.1 && defaults.far === 2000,
     "PerspectiveCamera defaults changed",
   );
-  return `updateMatrixWorld+lookAt=${good}px lookAt-only=${bad}px`;
+  return `lookAt=${good}px`;
 }

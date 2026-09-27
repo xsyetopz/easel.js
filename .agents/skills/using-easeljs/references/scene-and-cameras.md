@@ -92,4 +92,4 @@ raycaster.setFromCamera(ndc, camera);
 const hits = raycaster.intersectObject(scene, true);
 ```
 
-No structural inverse-projection adapter is needed in 0.7.0.
+No structural inverse-projection adapter is needed in 0.8.0.

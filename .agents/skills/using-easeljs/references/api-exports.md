@@ -1,10 +1,10 @@
 # API exports
 
-Source: repository `src/index.ts` at `REVISION = "0.7.0"`. This is the root
+Source: repository `src/index.ts` at `REVISION = "0.8.0"`. This is the root
 package surface; do not import the listed source paths from application code. Values
 are runtime imports; types require `import type` when `verbatimModuleSyntax` is enabled.
 
-- Root value: `REVISION` (`"0.7.0"`).
+- Root value: `REVISION` (`"0.8.0"`).
 
 ## animation
 
