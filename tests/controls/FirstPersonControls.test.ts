@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { PerspectiveCamera } from "@/cameras/PerspectiveCamera.js";
 import { FirstPersonControls } from "@/controls/FirstPersonControls.js";
 import { Vector3 } from "@/math/Vector3.js";
@@ -415,14 +415,5 @@ describe("FirstPersonControls parity with three.js r186", () => {
     error = Math.max(error, run(s, 20));
     pointer(s, "pointerup", mouse(80, 40, 0));
     expectParity(s, error);
-  });
-
-  it("warns that handleResize was removed", () => {
-    const spy = spyOn(console, "warn").mockImplementation(() => undefined);
-    const s = pair();
-    s.easel.handleResize();
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(String(spy.mock.calls[0]?.[0])).toContain("handleResize");
-    spy.mockRestore();
   });
 });

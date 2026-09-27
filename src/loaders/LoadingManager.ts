@@ -1,11 +1,5 @@
 import type { Loader } from "./Loader.ts";
 
-/**
- * Loader interface selected by LoadingManager URL-pattern handlers.
- * @deprecated Use {@link Loader} instead; retained for API compatibility.
- */
-export type LoaderHandler = Loader;
-
 /** Tracks loading state and cancellation across multiple assets. */
 export class LoadingManager {
   #onStart: ((url: string, loaded: number, total: number) => void) | undefined;

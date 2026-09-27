@@ -458,7 +458,6 @@ export { Loader } from "./loaders/Loader.ts";
 export { extractUrlBase, resolveUrl } from "./loaders/LoaderUtils.ts";
 export {
   DefaultLoadingManager,
-  type LoaderHandler,
   LoadingManager,
 } from "./loaders/LoadingManager.ts";
 export { MaterialLoader } from "./loaders/MaterialLoader.ts";
@@ -535,7 +534,6 @@ export {
   type VOXGroupNode,
   VOXLoader,
   type VOXLoaderResult,
-  VOXMesh,
   type VOXModelReference,
   type VOXNode,
   type VOXShapeNode,

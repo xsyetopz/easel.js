@@ -2,7 +2,6 @@ import type { Node } from "../core/Node.ts";
 import { clamp, DEG2RAD, RAD2DEG } from "../math/MathUtils.ts";
 import { Spherical } from "../math/Spherical.ts";
 import { Vector3 } from "../math/Vector3.ts";
-import { warn } from "../utils/ConsoleUtils.ts";
 import {
   type ControlDomElement,
   type ControlEvent,
@@ -264,14 +263,6 @@ export class FirstPersonControls extends Controls {
 
     _targetPosition.setFromSphericalCoords(1, phi, theta).add(object.position);
     object.lookAt(_targetPosition);
-  }
-
-  /**
-   * @deprecated Removed in three.js r184; the controls no longer depend on
-   * the element size. Logs a warning and does nothing.
-   */
-  handleResize(): void {
-    warn("FirstPersonControls: handleResize() has been removed.");
   }
 
   #setOrientation(): void {
